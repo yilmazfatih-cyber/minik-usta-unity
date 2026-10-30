@@ -1,0 +1,38 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <!-- Runs the Unity EditMode tests (Assets/MinikUsta/Core.Tests) under NUnit 3 outside Unity (D-093).
+       NUnit stays on 3.x: Unity's bundled NUnit is 3.5 and NUnit 4 moved Assert.AreEqual/IsTrue to ClassicAssert. -->
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
+    <LangVersion>9.0</LangVersion>
+    <Nullable>enable</Nullable>
+    <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+    <EnableDefaultCompileItems>false</EnableDefaultCompileItems>
+    <IsPackable>false</IsPackable>
+    <IsTestProject>true</IsTestProject>
+    <AssemblyName>MinikUsta.Core.Tests</AssemblyName>
+    <RootNamespace>MinikUsta.Core.Tests</RootNamespace>
+    <ImplicitUsings>disable</ImplicitUsings>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Compile Include="../../Assets/MinikUsta/Core.Tests/**/*.cs" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <!-- Test data: the same files the Unity tests read (levels in StreamingAssets, golden files next to the tests). -->
+    <None Include="../../Assets/StreamingAssets/MinikUsta/levels/*.json" Link="levels/%(Filename)%(Extension)" CopyToOutputDirectory="PreserveNewest" />
+    <None Include="../../Assets/MinikUsta/Core.Tests/Golden/*.json" Link="Golden/%(Filename)%(Extension)" CopyToOutputDirectory="PreserveNewest" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.14.1" />
+    <PackageReference Include="NUnit" Version="3.14.0" />
+    <PackageReference Include="NUnit3TestAdapter" Version="4.6.0" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="../MinikUsta.Core/MinikUsta.Core.csproj" />
+  </ItemGroup>
+
+</Project>

@@ -1,0 +1,58 @@
+{
+  "schemaVersion": 1,
+  "id": 10,
+  "chapter": 1,
+  "name": { "tr": "Ağaç Ev Tamam!", "en": "Treehouse Done!" },
+  "difficulty": "hard",
+  "moves": 18,
+  "goals": [{ "type": "build" }],
+  "gravity": { "build": "normal", "yard": false },
+  "wall": { "height": 6, "gaps": [] },
+  "site": { "cols": 2, "rows": 6 },
+  "build": {
+    "mode": "segments",
+    "segments": [
+      { "name": { "tr": "Gövde", "en": "Trunk" }, "rows": ["WW", "GG", "GW", "GW", "RR", "RR"] },
+      { "name": { "tr": "Çatı", "en": "Roof" }, "rows": ["RR", "GG", "GG", "RR", "WW", "WW"] }
+    ]
+  },
+  "yard": {
+    "cols": 6,
+    "rows": 5,
+    "batches": [
+      {
+        "forSegment": 0,
+        "pieces": [
+          { "shape": "O4_0", "color": "R", "x": 4, "y": 0 },
+          { "shape": "D2_0", "color": "W", "x": 3, "y": 0 },
+          { "shape": "D2_0", "color": "G", "x": 2, "y": 0 },
+          { "shape": "D2_90", "color": "G", "x": 0, "y": 2 },
+          { "shape": "D2_90", "color": "W", "x": 0, "y": 3 },
+          { "shape": "Q9_0", "x": 3, "y": 2 }
+        ]
+      },
+      {
+        "forSegment": 1,
+        "pieces": [
+          { "shape": "D2_90", "color": "R", "x": 3, "y": 5 },
+          { "shape": "O4_0", "color": "W", "x": 0, "y": 5 },
+          { "shape": "D2_0", "color": "G", "x": 5, "y": 5 },
+          { "shape": "D2_0", "color": "G", "x": 5, "y": 5 },
+          { "shape": "D2_90", "color": "R", "x": 0, "y": 5 }
+        ]
+      }
+    ]
+  },
+  "obstacles": [],
+  "tutorial": [
+    {
+      "step": 1,
+      "highlight": ["booster:crane"],
+      "hand": { "kind": "tap" },
+      "textKey": "tut.m.cranebooster",
+      "startOn": { "event": "segmentDone" },
+      "done": { "event": "boosterUsed", "count": 1 }
+    }
+  ],
+  "targets": { "minShifts": [5, 6], "firstNeedDepth": [3, 3], "deadRate": [0, 0] }
+}

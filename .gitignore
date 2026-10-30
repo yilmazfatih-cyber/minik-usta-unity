@@ -1,0 +1,38 @@
+# Unity (ProjectSettings/ and Packages/manifest.json are committed once the owner creates the project)
+/[Ll]ibrary/
+/[Tt]emp/
+/[Oo]bj/
+/[Bb]uild/
+/[Bb]uilds/
+/[Ll]ogs/
+/[Uu]ser[Ss]ettings/
+/[Mm]emoryCaptures/
+/[Rr]ecordings/
+/Assets/AssetStoreTools*
+/Assets/Plugins/Editor/JetBrains*
+.vsconfig
+*.pidb.meta
+*.pdb.meta
+*.mdb.meta
+sysinfo.txt
+*.apk
+*.aab
+*.unitypackage
+*.app
+crashlytics-build.properties
+/Assets/StreamingAssets/aa.meta
+/Assets/StreamingAssets/aa/*
+
+# dotnet (dotnet/ solution compiles the same .cs files outside Unity, D-093)
+bin/
+obj/
+*.user
+*.suo
+.vs/
+TestResults/
+*.binlog
+
+# IDE
+.idea/
+*.swp
+.DS_Store

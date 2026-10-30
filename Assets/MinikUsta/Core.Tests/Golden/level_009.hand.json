@@ -1,0 +1,103 @@
+{
+  "level": 9,
+  "source": "docs/LEVELS.md §2 Bölüm 9 — Kanonik çözüm (solver, GDD K-50 madde 4)",
+  "levelHash": "31e21c053c2225a5",
+  "rulesVersion": 2,
+  "geo": { "yard": [4, 4], "site": [2, 6], "H": 6, "wall": 4 },
+  "budget": 13,
+  "minMoves": 7,
+  "movesLeft": 6,
+  "yao": { "overWall": 3, "rail": 1 },
+  "steps": [
+    {
+      "piece": "b",
+      "ref": "piece:1",
+      "shape": "D2_90",
+      "color": "G",
+      "from": [2, 0],
+      "kind": "shift",
+      "to": [2, 1]
+    },
+    {
+      "piece": "a",
+      "ref": "piece:0",
+      "shape": "D2_90",
+      "color": "R",
+      "from": [0, 0],
+      "kind": "rail",
+      "gap": 0,
+      "to": [4, 0]
+    },
+    {
+      "piece": "c",
+      "ref": "piece:2",
+      "shape": "O4_0",
+      "color": "R",
+      "from": [0, 1],
+      "kind": "shift",
+      "to": [0, 0]
+    },
+    {
+      "piece": "d",
+      "ref": "piece:3",
+      "shape": "O4_0",
+      "color": "W",
+      "from": [2, 2],
+      "kind": "shift",
+      "to": [0, 2]
+    },
+    {
+      "piece": "b",
+      "ref": "piece:1",
+      "shape": "D2_90",
+      "color": "G",
+      "from": [2, 1],
+      "kind": "overWall",
+      "to": [4, 1]
+    },
+    {
+      "piece": "d",
+      "ref": "piece:3",
+      "shape": "O4_0",
+      "color": "W",
+      "from": [0, 2],
+      "kind": "overWall",
+      "to": [4, 2]
+    },
+    {
+      "piece": "c",
+      "ref": "piece:2",
+      "shape": "O4_0",
+      "color": "R",
+      "from": [0, 0],
+      "kind": "overWall",
+      "to": [4, 4],
+      "segmentCompleted": 0
+    }
+  ],
+  "log": [
+    { "kind": "start", "preBoosters": [], "streakTier": 0 },
+    { "kind": "drag", "pieceId": 1, "to": { "ix": 2, "iy": 1, "mode": 0 } },
+    { "kind": "drag", "pieceId": 0, "to": { "ix": 4, "iy": 0, "mode": 1 } },
+    { "kind": "drag", "pieceId": 2, "to": { "ix": 0, "iy": 0, "mode": 0 } },
+    { "kind": "drag", "pieceId": 3, "to": { "ix": 0, "iy": 2, "mode": 0 } },
+    { "kind": "drag", "pieceId": 1, "to": { "ix": 4, "iy": 1, "mode": 0 } },
+    { "kind": "drag", "pieceId": 3, "to": { "ix": 4, "iy": 2, "mode": 0 } },
+    { "kind": "drag", "pieceId": 2, "to": { "ix": 4, "iy": 4, "mode": 0 } }
+  ],
+  "eventLogHash": "24e449d7f2eb77c9",
+  "finalAscii": [
+    "L9 turn 7 moves 6 seg 1/1 elev 0",
+    "size 4x4|2x6 H6",
+    " y  0 1 2 3 | W | 4 5",
+    " 7  . . . . | : | . .",
+    " 6  . . . . | : | . .",
+    " 5  · · · · | : | R R",
+    " 4  · · · · | : | R R",
+    " 3  . . . . | # | W W",
+    " 2  . . . . | # | W W",
+    " 1  . . . . | # | G G",
+    " 0  . . . . | = | R R",
+    "plan seg0 (top→bottom): RR RR WW WW GG RR"
+  ]
+}

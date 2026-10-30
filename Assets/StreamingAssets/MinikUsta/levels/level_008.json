@@ -1,0 +1,58 @@
+{
+  "schemaVersion": 1,
+  "id": 8,
+  "chapter": 1,
+  "name": { "tr": "Bahçe Çiti", "en": "Garden Fence" },
+  "difficulty": "normal",
+  "moves": 14,
+  "teaches": "Y5",
+  "goals": [{ "type": "build" }],
+  "gravity": { "build": "normal", "yard": false },
+  "wall": { "height": 5, "gaps": [] },
+  "site": { "cols": 2, "rows": 6 },
+  "build": {
+    "mode": "segments",
+    "segments": [{ "name": { "tr": "Çit", "en": "Fence" }, "rows": ["WW", "YY", "YW", "YW", "RR", "RR"] }]
+  },
+  "yard": {
+    "cols": 6,
+    "rows": 5,
+    "batches": [
+      {
+        "forSegment": 0,
+        "pieces": [
+          { "shape": "O4_0", "color": "R", "x": 0, "y": 0 },
+          { "shape": "D2_0", "color": "W", "x": 2, "y": 0 },
+          { "shape": "D2_0", "color": "Y", "x": 3, "y": 0 },
+          { "shape": "D2_90", "color": "Y", "x": 4, "y": 2 },
+          { "shape": "D2_90", "color": "W", "x": 4, "y": 3 },
+          { "shape": "Q9_0", "x": 0, "y": 2 }
+        ]
+      }
+    ]
+  },
+  "obstacles": [],
+  "tutorial": [
+    {
+      "step": 1,
+      "highlight": ["piece:5", "piece:3", "piece:4"],
+      "hand": {
+        "kind": "drag",
+        "path": [
+          [4, 2],
+          [4, 0]
+        ]
+      },
+      "textKey": "tut.m.heavy",
+      "done": { "event": "yardMove", "count": 1 }
+    },
+    {
+      "step": 2,
+      "highlight": ["booster:hammer", "piece:5"],
+      "hand": { "kind": "tap" },
+      "textKey": "tut.m.hammer",
+      "done": { "event": "placementCorrect", "count": 1 }
+    }
+  ],
+  "targets": { "minShifts": [3, 4], "firstNeedDepth": [2, 3], "deadRate": [0, 0] }
+}

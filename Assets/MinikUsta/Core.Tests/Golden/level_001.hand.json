@@ -1,0 +1,81 @@
+{
+  "level": 1,
+  "source": "docs/LEVELS.md §2 Bölüm 1 — Kanonik çözüm (solver, GDD K-50 madde 4)",
+  "levelHash": "c8428cd15d5dfdae",
+  "rulesVersion": 2,
+  "geo": { "yard": [4, 4], "site": [2, 5], "H": 5, "wall": 4 },
+  "budget": 11,
+  "minMoves": 5,
+  "movesLeft": 6,
+  "yao": { "overWall": 5, "rail": 0 },
+  "steps": [
+    {
+      "piece": "b",
+      "ref": "piece:1",
+      "shape": "D2_0",
+      "color": "W",
+      "from": [1, 2],
+      "kind": "overWall",
+      "to": [5, 0]
+    },
+    {
+      "piece": "a",
+      "ref": "piece:0",
+      "shape": "D2_0",
+      "color": "Y",
+      "from": [0, 2],
+      "kind": "overWall",
+      "to": [4, 0]
+    },
+    {
+      "piece": "c",
+      "ref": "piece:2",
+      "shape": "D2_90",
+      "color": "W",
+      "from": [0, 1],
+      "kind": "overWall",
+      "to": [4, 2]
+    },
+    {
+      "piece": "d",
+      "ref": "piece:3",
+      "shape": "D2_90",
+      "color": "Y",
+      "from": [2, 1],
+      "kind": "overWall",
+      "to": [4, 3]
+    },
+    {
+      "piece": "e",
+      "ref": "piece:4",
+      "shape": "D2_90",
+      "color": "W",
+      "from": [0, 0],
+      "kind": "overWall",
+      "to": [4, 4],
+      "segmentCompleted": 0
+    }
+  ],
+  "log": [
+    { "kind": "start", "preBoosters": [], "streakTier": 0 },
+    { "kind": "drag", "pieceId": 1, "to": { "ix": 5, "iy": 0, "mode": 0 } },
+    { "kind": "drag", "pieceId": 0, "to": { "ix": 4, "iy": 0, "mode": 0 } },
+    { "kind": "drag", "pieceId": 2, "to": { "ix": 4, "iy": 2, "mode": 0 } },
+    { "kind": "drag", "pieceId": 3, "to": { "ix": 4, "iy": 3, "mode": 0 } },
+    { "kind": "drag", "pieceId": 4, "to": { "ix": 4, "iy": 4, "mode": 0 } }
+  ],
+  "eventLogHash": "94603ef8115fa118",
+  "finalAscii": [
+    "L1 turn 5 moves 6 seg 1/1 elev 0",
+    "size 4x4|2x5 H5",
+    " y  0 1 2 3 | W | 4 5",
+    " 6  . . . . | : | . .",
+    " 5  . . . . | : | . .",
+    " 4  · · · · | : | W W",
+    " 3  . . . . | # | Y Y",
+    " 2  . . . . | # | W W",
+    " 1  . . . . | # | Y W",
+    " 0  . . . . | # | Y W",
+    "plan seg0 (top→bottom): WW YY WW YW YW"
+  ]
+}

@@ -1,0 +1,64 @@
+{
+  "schemaVersion": 1,
+  "id": 9,
+  "chapter": 1,
+  "name": { "tr": "İp Merdiven", "en": "Rope Ladder" },
+  "difficulty": "normal",
+  "moves": 13,
+  "teaches": "W3",
+  "goals": [{ "type": "build" }],
+  "gravity": { "build": "normal", "yard": false },
+  "wall": { "height": 4, "gaps": [{ "type": "static", "y": 0, "size": 1 }] },
+  "site": { "cols": 2, "rows": 6 },
+  "build": {
+    "mode": "segments",
+    "segments": [
+      { "name": { "tr": "Basamaklar", "en": "Rungs" }, "rows": ["RR", "RR", "WW", "WW", "GG", "RR"] }
+    ]
+  },
+  "yard": {
+    "cols": 4,
+    "rows": 4,
+    "batches": [
+      {
+        "forSegment": 0,
+        "pieces": [
+          { "shape": "D2_90", "color": "R", "x": 0, "y": 0 },
+          { "shape": "D2_90", "color": "G", "x": 2, "y": 0 },
+          { "shape": "O4_0", "color": "R", "x": 0, "y": 1 },
+          { "shape": "O4_0", "color": "W", "x": 2, "y": 2 }
+        ]
+      }
+    ]
+  },
+  "obstacles": [],
+  "tutorial": [
+    {
+      "step": 1,
+      "highlight": ["piece:1"],
+      "hand": {
+        "kind": "drag",
+        "path": [
+          [2, 0],
+          [2, 1]
+        ]
+      },
+      "textKey": "tut.m.dig",
+      "done": { "event": "yardMove", "count": 1, "piece": "piece:1" }
+    },
+    {
+      "step": 2,
+      "highlight": ["piece:0", "gap:0"],
+      "hand": {
+        "kind": "drag",
+        "path": [
+          [1, 0],
+          [5, 0]
+        ]
+      },
+      "textKey": "tut.m.narrow",
+      "done": { "event": "gapPass", "count": 1 }
+    }
+  ],
+  "targets": { "minShifts": [3, 4], "firstNeedDepth": [1, 2], "deadRate": [0, 0] }
+}

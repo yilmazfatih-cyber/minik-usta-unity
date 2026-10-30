@@ -1,0 +1,157 @@
+{
+  "level": 7,
+  "source": "docs/LEVELS.md §2 Bölüm 7 — Kanonik çözüm (solver, GDD K-50 madde 4)",
+  "levelHash": "4d3bb5341faefe81",
+  "rulesVersion": 2,
+  "geo": { "yard": [4, 5], "site": [2, 5], "H": 5, "wall": 5 },
+  "budget": 17,
+  "minMoves": 12,
+  "movesLeft": 5,
+  "yao": { "overWall": 8, "rail": 0 },
+  "steps": [
+    {
+      "piece": "c",
+      "ref": "piece:2",
+      "shape": "D2_0",
+      "color": "W",
+      "from": [1, 2],
+      "kind": "shift",
+      "to": [3, 2]
+    },
+    {
+      "piece": "b",
+      "ref": "piece:1",
+      "shape": "D2_0",
+      "color": "G",
+      "from": [0, 2],
+      "kind": "shift",
+      "to": [2, 2]
+    },
+    {
+      "piece": "d",
+      "ref": "piece:3",
+      "shape": "D2_90",
+      "color": "W",
+      "from": [0, 4],
+      "kind": "shift",
+      "to": [2, 4]
+    },
+    {
+      "piece": "a",
+      "ref": "piece:0",
+      "shape": "O4_0",
+      "color": "R",
+      "from": [0, 0],
+      "kind": "overWall",
+      "to": [4, 0]
+    },
+    {
+      "piece": "b",
+      "ref": "piece:1",
+      "shape": "D2_0",
+      "color": "G",
+      "from": [2, 2],
+      "kind": "overWall",
+      "to": [4, 2]
+    },
+    {
+      "piece": "c",
+      "ref": "piece:2",
+      "shape": "D2_0",
+      "color": "W",
+      "from": [3, 2],
+      "kind": "overWall",
+      "to": [5, 2]
+    },
+    {
+      "piece": "d",
+      "ref": "piece:3",
+      "shape": "D2_90",
+      "color": "W",
+      "from": [2, 4],
+      "kind": "overWall",
+      "to": [4, 4],
+      "segmentCompleted": 0,
+      "delivered": [
+        ["piece:k1_0", 2, 2],
+        ["piece:k1_1", 0, 0],
+        ["piece:k1_2", 3, 2]
+      ]
+    },
+    {
+      "piece": "k1_1",
+      "ref": "piece:k1_1",
+      "shape": "D2_90",
+      "color": "R",
+      "from": [0, 0],
+      "kind": "shift",
+      "to": [2, 4]
+    },
+    {
+      "piece": "e",
+      "ref": "piece:4",
+      "shape": "O4_0",
+      "color": "G",
+      "from": [2, 0],
+      "kind": "overWall",
+      "to": [4, 0]
+    },
+    {
+      "piece": "k1_0",
+      "ref": "piece:k1_0",
+      "shape": "D2_0",
+      "color": "W",
+      "from": [2, 2],
+      "kind": "overWall",
+      "to": [5, 2]
+    },
+    {
+      "piece": "k1_2",
+      "ref": "piece:k1_2",
+      "shape": "D2_0",
+      "color": "R",
+      "from": [3, 2],
+      "kind": "overWall",
+      "to": [4, 2]
+    },
+    {
+      "piece": "k1_1",
+      "ref": "piece:k1_1",
+      "shape": "D2_90",
+      "color": "R",
+      "from": [2, 4],
+      "kind": "overWall",
+      "to": [4, 4],
+      "segmentCompleted": 1
+    }
+  ],
+  "log": [
+    { "kind": "start", "preBoosters": [], "streakTier": 0 },
+    { "kind": "drag", "pieceId": 2, "to": { "ix": 3, "iy": 2, "mode": 0 } },
+    { "kind": "drag", "pieceId": 1, "to": { "ix": 2, "iy": 2, "mode": 0 } },
+    { "kind": "drag", "pieceId": 3, "to": { "ix": 2, "iy": 4, "mode": 0 } },
+    { "kind": "drag", "pieceId": 0, "to": { "ix": 4, "iy": 0, "mode": 0 } },
+    { "kind": "drag", "pieceId": 1, "to": { "ix": 4, "iy": 2, "mode": 0 } },
+    { "kind": "drag", "pieceId": 2, "to": { "ix": 5, "iy": 2, "mode": 0 } },
+    { "kind": "drag", "pieceId": 3, "to": { "ix": 4, "iy": 4, "mode": 0 } },
+    { "kind": "drag", "pieceId": 6, "to": { "ix": 2, "iy": 4, "mode": 0 } },
+    { "kind": "drag", "pieceId": 4, "to": { "ix": 4, "iy": 0, "mode": 0 } },
+    { "kind": "drag", "pieceId": 5, "to": { "ix": 5, "iy": 2, "mode": 0 } },
+    { "kind": "drag", "pieceId": 7, "to": { "ix": 4, "iy": 2, "mode": 0 } },
+    { "kind": "drag", "pieceId": 6, "to": { "ix": 4, "iy": 4, "mode": 0 } }
+  ],
+  "eventLogHash": "332bcb209e41b02d",
+  "finalAscii": [
+    "L7 turn 12 moves 5 seg 2/2 elev 0",
+    "size 4x5|2x5 H5",
+    " y  0 1 2 3 | W | 4 5",
+    " 6  . . . . | : | . .",
+    " 5  . . . . | : | . .",
+    " 4  . . . . | # | R R",
+    " 3  . . . . | # | R W",
+    " 2  . . . . | # | R W",
+    " 1  . . . . | # | G G",
+    " 0  . . . . | # | G G",
+    "plan seg1 (top→bottom): RR RW RW GG GG"
+  ]
+}

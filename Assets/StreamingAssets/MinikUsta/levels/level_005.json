@@ -1,0 +1,60 @@
+{
+  "schemaVersion": 1,
+  "id": 5,
+  "chapter": 1,
+  "name": { "tr": "İki Odalı Ev", "en": "Two-Room House" },
+  "difficulty": "normal",
+  "moves": 17,
+  "teaches": "S1",
+  "goals": [{ "type": "build" }],
+  "gravity": { "build": "normal", "yard": false },
+  "wall": { "height": 4, "gaps": [] },
+  "site": { "cols": 2, "rows": 5 },
+  "build": {
+    "mode": "segments",
+    "segments": [
+      { "name": { "tr": "Sol Oda", "en": "Left Room" }, "rows": ["WW", "WY", "WY", "RR", "RR"] },
+      { "name": { "tr": "Sağ Oda", "en": "Right Room" }, "rows": ["RR", "RR", "WW", "YY", "YY"] }
+    ]
+  },
+  "yard": {
+    "cols": 4,
+    "rows": 4,
+    "batches": [
+      {
+        "forSegment": 0,
+        "pieces": [
+          { "shape": "O4_0", "color": "R", "x": 0, "y": 0 },
+          { "shape": "D2_0", "color": "W", "x": 2, "y": 0 },
+          { "shape": "D2_0", "color": "Y", "x": 3, "y": 0 },
+          { "shape": "D2_90", "color": "W", "x": 0, "y": 2 }
+        ]
+      },
+      {
+        "forSegment": 1,
+        "pieces": [
+          { "shape": "O4_0", "color": "Y", "x": 0, "y": 4 },
+          { "shape": "D2_0", "color": "R", "x": 0, "y": 4 },
+          { "shape": "D2_0", "color": "R", "x": 1, "y": 4 },
+          { "shape": "D2_90", "color": "W", "x": 2, "y": 4 }
+        ]
+      }
+    ]
+  },
+  "obstacles": [],
+  "tutorial": [
+    {
+      "step": 1,
+      "highlight": ["panorama"],
+      "textKey": "tut.m.segments",
+      "done": { "event": "segmentDone", "count": 1 }
+    },
+    {
+      "step": 2,
+      "highlight": ["piece:k1_0", "piece:k1_1", "piece:k1_2", "piece:k1_3"],
+      "textKey": "tut.m.truck",
+      "done": { "event": "placementCorrect", "count": 1 }
+    }
+  ],
+  "targets": { "minShifts": [3, 4], "firstNeedDepth": [1, 2], "deadRate": [0, 0] }
+}
