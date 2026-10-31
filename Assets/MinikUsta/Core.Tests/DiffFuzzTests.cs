@@ -224,7 +224,10 @@ namespace MinikUsta.Core.Tests
             Assert.AreEqual(m["sequences"]!.AsInt, listed, "manifest file list");
             foreach (string k in new[] { "drag", "hammer", "crane", "paint", "goldTrowel", "undo", "addMoves", "decline", "exit" })
                 Assert.IsTrue(m["actions"]![k] != null && m["actions"]![k]!.AsInt > 0, "the fuzz contains a " + k + " action");
-            foreach (string t in new[] { "teardown", "levelWon", "outOfMoves", "deliveryArrived", "deliveryQueued", "siteShifted", "placementWrong", "trowelEarned" })
+            // every source kind: real levels, cover boards, K-49 geometries, truck-queue boards, scripted scenarios (P4 item 3)
+            var kinds = m["files"]!.Items.Select(f => f["source"]!["kind"]!.AsString).Distinct().OrderBy(k => k, StringComparer.Ordinal).ToArray();
+            CollectionAssert.AreEqual(new[] { "cover", "geo", "level", "scenario", "truck" }, kinds);
+            foreach (string t in new[] { "teardown", "levelWon", "outOfMoves", "deliveryArrived", "deliveryQueued", "siteShifted", "placementWrong", "trowelEarned", "deadlockDetected", "truckHelp", "chainReleased", "cargoSmashed", "colorsSwapped" })
                 Assert.IsTrue(m["events"]![t] != null && m["events"]![t]!.AsInt > 0, "the fuzz contains a " + t + " event");
         }
 

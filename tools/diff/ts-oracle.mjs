@@ -18,8 +18,10 @@
  * (truck deliveries, segment shifts, wins) are reached; a third of the seeds is "burn"-biased (yard shifts) so the
  * out-of-moves window, offers, K-29 losses and Söküm (K-30) show up within the move cap.
  * Sources: levels 1–10, tests/fixtures/cover.ts full-cover boards, random levels in the 9 K-49 geometries (static gap,
- * yard gravity on/off). Every source file carries the level data (`level`) so C# compiles the very same level
- * (`levelHash` is compared).
+ * yard gravity on/off), crowded "truck" boards whose batches queue (K-25, K-26, E-03), and scripted scenarios (P4 item
+ * 3: Söküm / K-30 with Undo, offers and exits; D1 truck help — reshuffle incl. the RNG attempts ≥ 1, unchain, after an
+ * offer; +5 offers; Undo; truck queue), some followed by random valid play. Every source file carries the level data
+ * (`level`) so C# compiles the very same level (`levelHash` is compared).
  *
  * Per step (`steps[i]`): `a` action, `st` status (applied / cancelled / rejected, or exit / decline), `rs` reason,
  * `w` won, `oom` out of moves, `td` teardown cause, `z` Zobrist hash (hashHex), `b` FNV-1a of the whole buffer, `n`
@@ -332,10 +334,10 @@ function playSequence(name, lvl, seed, prefixMoves, burn, script = null) {
   const game = GameSession.start(lvl, { preBoosters, streakTier }, { streakBonus }, startSink);
   const steps = [{ i: 0, a: { kind: 'start', preBoosters, streakTier }, st: 'start', ...snapshot(game, startSink.events) }];
   const prefix = prefixMoves.length === 0 ? 0 : seed % (prefixMoves.length + 1);
-  const cap = script ? script.actions.length : MOVES;
+  const cap = script && !script.randomAfter ? script.actions.length : MOVES;
   for (let k = 0; k < cap; k++) {
     if (game.outcome === 'won' || game.outcome === 'lost' || game.outcome === 'exited') break;
-    const a = script ? script.actions[k] : k < prefix ? prefixMoves[k] : randomAction(game, rng, burn, k);
+    const a = script && k < script.actions.length ? script.actions[k] : k < prefix ? prefixMoves[k] : randomAction(game, rng, burn, k);
     if (!a) break;
     bump(totals.actions, a.kind);
     const i = steps.length;
@@ -516,6 +518,35 @@ const STREAK = {
   plan: ['WW', 'WW', 'WW', 'WW', 'WW'],
   pieces: [['D2_0', 'W', 0, 0], ['D2_0', 'W', 1, 0], ['D2_0', 'W', 2, 0], ['D2_0', 'W', 3, 0], ['B1_0', 'Y', 4, 0], ['B1_0', 'W', 5, 0]],
 };
+/** tests/core/deadlock.test.ts JAM: yard 5 × 4, four blocks under an I5 Ağır Yük, crates on top of it; plan 2 × 4 W. */
+const JAM = {
+  yard: { cols: 5, rows: 4 },
+  site: { cols: 2, rows: 4 },
+  wall: { height: 2 },
+  plan: ['WW', 'WW', 'WW', 'WW'],
+  pieces: [['D2_90', 'W', 0, 0], ['B1_0', 'W', 2, 0], ['B1_0', 'W', 3, 0], ['B1_0', 'W', 4, 0], ['I5_0', 'W', 0, 1], ['D2_90', 'W', 0, 3], ['B1_0', 'W', 2, 3]],
+  obstacles: [0, 1, 2, 3, 4].map((x) => ({ type: 'crate', x, y: 2, hp: 1 })),
+};
+/** tests/core/deadlock.test.ts "D1 removes chains first": two chained B1 W (Y3) and a D2_0 W. */
+const CHAINED = {
+  wall: { height: 2 },
+  site: { cols: 2, rows: 2 },
+  plan: ['WW', 'WW'],
+  pieces: [['B1_0', 'W', 0, 0, ['chained']], ['B1_0', 'W', 1, 0, ['chained']], ['D2_0', 'W', 4, 0]],
+};
+/**
+ * K-30 D1 reshuffles whose first constructive attempt fails, so attempts ≥ 1 shuffle with the state's RNG (deadlock.ts
+ * `reshuffleYard`): found by a seeded search (random crate-jammed yards, random valid drags; kept when a reshuffle
+ * changed H.rng). The log leads to that move; random valid play follows.
+ */
+const D1_RNG = [
+  { spec: {"id":12,"yard":{"cols":5,"rows":5},"site":{"cols":2,"rows":4},"wall":{"height":2},"plan":["WW","WY","YW","YY"],"pieces":[["O4_0","W",3,0],["I3_90","Y",0,1],["B1_0","Y",1,0],["B1_0","W",0,0],["B1_0","W",2,0],["B1_0","W",4,4],["B1_0","Y",2,3],["B1_0","W",3,3],["B1_0","Y",3,4],["B1_0","W",2,4],["B1_0","W",1,3],["B1_0","Y",0,3],["B1_0","Y",4,3]],"obstacles":[{"type":"crate","x":0,"y":2,"hp":1},{"type":"crate","x":1,"y":2,"hp":1},{"type":"crate","x":2,"y":2,"hp":1},{"type":"crate","x":3,"y":2,"hp":1},{"type":"crate","x":4,"y":2,"hp":1}],"moves":30}, log: [{"kind":"drag","pieceId":12,"to":{"ix":5,"iy":1,"mode":0}},{"kind":"drag","pieceId":11,"to":{"ix":6,"iy":6,"mode":0}},{"kind":"drag","pieceId":9,"to":{"ix":5,"iy":5,"mode":0}},{"kind":"drag","pieceId":7,"to":{"ix":5,"iy":2,"mode":0}},{"kind":"drag","pieceId":5,"to":{"ix":6,"iy":3,"mode":0}},{"kind":"drag","pieceId":7,"to":{"ix":5,"iy":6,"mode":0}},{"kind":"drag","pieceId":8,"to":{"ix":5,"iy":5,"mode":0}},{"kind":"drag","pieceId":9,"to":{"ix":6,"iy":2,"mode":0}},{"kind":"drag","pieceId":7,"to":{"ix":6,"iy":5,"mode":0}},{"kind":"drag","pieceId":7,"to":{"ix":5,"iy":5,"mode":0}},{"kind":"drag","pieceId":6,"to":{"ix":4,"iy":3,"mode":0}},{"kind":"drag","pieceId":6,"to":{"ix":5,"iy":6,"mode":0}},{"kind":"drag","pieceId":10,"to":{"ix":6,"iy":4,"mode":0}},{"kind":"drag","pieceId":9,"to":{"ix":6,"iy":4,"mode":0}},{"kind":"drag","pieceId":10,"to":{"ix":5,"iy":4,"mode":0}},{"kind":"drag","pieceId":6,"to":{"ix":6,"iy":5,"mode":0}},{"kind":"drag","pieceId":9,"to":{"ix":6,"iy":6,"mode":0}}] },
+  { spec: {"id":12,"yard":{"cols":5,"rows":3},"site":{"cols":2,"rows":4},"wall":{"height":2},"plan":["YW","YY","WW","WW"],"pieces":[["C3_0","W",2,0],["D2_90","Y",3,1],["C3_0","Y",0,0],["B1_0","Y",4,0],["D2_0","W",1,1]],"obstacles":[{"type":"crate","x":0,"y":2,"hp":1},{"type":"crate","x":2,"y":2,"hp":1},{"type":"crate","x":3,"y":2,"hp":1},{"type":"crate","x":4,"y":2,"hp":1}],"moves":30}, log: [{"kind":"drag","pieceId":4,"to":{"ix":6,"iy":3,"mode":0}},{"kind":"drag","pieceId":3,"to":{"ix":5,"iy":0,"mode":0}},{"kind":"drag","pieceId":3,"to":{"ix":5,"iy":5,"mode":0}},{"kind":"drag","pieceId":3,"to":{"ix":5,"iy":2,"mode":0}},{"kind":"drag","pieceId":3,"to":{"ix":6,"iy":3,"mode":0}}] },
+  { spec: {"id":12,"yard":{"cols":4,"rows":3},"site":{"cols":2,"rows":2},"wall":{"height":2},"plan":["YW","YY"],"pieces":[["D2_0","W",2,0],["D2_0","Y",1,1],["D2_0","W",3,0],["C3_0","W",0,0]],"obstacles":[{"type":"crate","x":0,"y":2,"hp":1},{"type":"crate","x":2,"y":2,"hp":1},{"type":"crate","x":3,"y":2,"hp":1}],"moves":30}, log: [{"kind":"drag","pieceId":1,"to":{"ix":4,"iy":3,"mode":0}}] },
+  { spec: {"id":12,"yard":{"cols":4,"rows":5},"site":{"cols":2,"rows":4},"wall":{"height":2},"plan":["YY","WY","YW","WW"],"pieces":[["O4_0","W",0,0],["D2_90","Y",2,1],["B1_0","Y",3,0],["B1_0","W",2,0],["B1_0","Y",2,4],["B1_0","W",3,4],["B1_0","W",0,3],["B1_0","Y",1,4],["B1_0","W",1,3],["B1_0","Y",2,3],["B1_0","W",3,3],["B1_0","Y",0,4]],"obstacles":[{"type":"crate","x":0,"y":2,"hp":1},{"type":"crate","x":1,"y":2,"hp":1},{"type":"crate","x":2,"y":2,"hp":1},{"type":"crate","x":3,"y":2,"hp":1}],"moves":30}, log: [{"kind":"drag","pieceId":11,"to":{"ix":4,"iy":1,"mode":0}},{"kind":"drag","pieceId":4,"to":{"ix":4,"iy":1,"mode":0}},{"kind":"drag","pieceId":10,"to":{"ix":5,"iy":0,"mode":0}},{"kind":"drag","pieceId":9,"to":{"ix":5,"iy":1,"mode":0}},{"kind":"drag","pieceId":5,"to":{"ix":5,"iy":1,"mode":0}},{"kind":"drag","pieceId":7,"to":{"ix":3,"iy":3,"mode":0}},{"kind":"drag","pieceId":4,"to":{"ix":4,"iy":0,"mode":0}},{"kind":"drag","pieceId":8,"to":{"ix":4,"iy":0,"mode":0}},{"kind":"drag","pieceId":4,"to":{"ix":5,"iy":6,"mode":0}},{"kind":"drag","pieceId":11,"to":{"ix":5,"iy":5,"mode":0}},{"kind":"drag","pieceId":9,"to":{"ix":5,"iy":6,"mode":0}},{"kind":"drag","pieceId":9,"to":{"ix":4,"iy":1,"mode":0}},{"kind":"drag","pieceId":6,"to":{"ix":4,"iy":2,"mode":0}},{"kind":"drag","pieceId":7,"to":{"ix":5,"iy":6,"mode":0}},{"kind":"drag","pieceId":7,"to":{"ix":4,"iy":5,"mode":0}}] },
+  { spec: {"id":12,"yard":{"cols":6,"rows":4},"site":{"cols":2,"rows":3},"wall":{"height":2},"plan":["WW","YY","WY"],"pieces":[["C3_0","Y",2,1],["I3_90","W",2,0],["B1_0","Y",5,2],["C3_0","Y",0,1],["B1_0","Y",5,0],["C3_0","W",4,1],["B1_0","Y",1,2],["D2_90","W",0,0],["B1_0","W",3,2]],"obstacles":[{"type":"crate","x":0,"y":3,"hp":1},{"type":"crate","x":1,"y":3,"hp":1},{"type":"crate","x":2,"y":3,"hp":1},{"type":"crate","x":3,"y":3,"hp":1},{"type":"crate","x":4,"y":3,"hp":1},{"type":"crate","x":5,"y":3,"hp":1}],"moves":30}, log: [{"kind":"drag","pieceId":2,"to":{"ix":7,"iy":1,"mode":0}}] },
+  { spec: {"id":12,"yard":{"cols":5,"rows":4},"site":{"cols":2,"rows":2},"wall":{"height":2},"plan":["YY","YY"],"pieces":[["C3_0","Y",3,1],["C3_0","Y",2,0],["C3_0","Y",1,2],["D2_90","W",0,0],["B1_0","W",4,0],["B1_0","Y",4,2],["D2_90","Y",0,1],["B1_0","W",0,2]],"obstacles":[{"type":"crate","x":0,"y":3,"hp":1},{"type":"crate","x":2,"y":3,"hp":1},{"type":"crate","x":3,"y":3,"hp":1},{"type":"crate","x":4,"y":3,"hp":1}],"moves":30}, log: [{"kind":"drag","pieceId":5,"to":{"ix":6,"iy":1,"mode":0}}] },
+];
 const shuttle = (n, from = 1) => Array.from({ length: n }, (_, i) => D(5, 5, (from + i) % 2));
 
 const SCENARIOS = [
@@ -538,6 +569,14 @@ const SCENARIOS = [
   { name: 'undo around the offer window then decline', spec: { ...STREAK, moves: 2 }, actions: [D(0, 6, 8), D(5, 5, 1), UNDO, COINS, D(1, 7, 8), UNDO, D(1, 7, 8), ...shuttle(4, 0), UNDO, DECLINE] },
   // K-39 Undo of the 4th correct placement (trowel taken back), depth 1, K-43 exit after Undo of the only move
   { name: 'undo streak trowel and depth', spec: STREAK, actions: [D(0, 6, 8), D(1, 7, 8), D(2, 6, 8), D(3, 7, 8), UNDO, UNDO, D(3, 7, 8), { kind: 'goldTrowel', pieceId: 5, x: 6, y: 4 }, D(4, 7, 8), UNDO, EXIT] },
+  // K-30 D1: a jammed yard is reshuffled at step 12 (truck help, RNG in the state), then random valid play (hammer on crates …)
+  ...[1, 2, 3, 4].map((k) => ({ name: `D1 jam reshuffle then random ${k}`, spec: JAM, actions: [D(5, 5, 4), D(6, 5, 4)], randomAfter: true, seed: k })),
+  // K-30 D1 not at zero moves; K-29 after +5 only D1 runs once (E-42), then random valid play
+  ...[1, 2].map((k) => ({ name: `D1 after the offer then random ${k}`, spec: { ...JAM, moves: 2 }, actions: [D(5, 5, 4), D(6, 5, 4), COINS], randomAfter: true, seed: k })),
+  // K-30 D1 removes chains first (Y3 truck help), then random valid play
+  ...[1, 2].map((k) => ({ name: `D1 unchain then random ${k}`, spec: CHAINED, actions: [D(2, 6, 8)], randomAfter: true, seed: k })),
+  // K-30 D1 reshuffle attempts ≥ 1 (RNG shuffle of the other blocks), then random valid play
+  ...D1_RNG.map((x, k) => ({ name: `D1 reshuffle with RNG attempts ${k + 1}`, spec: x.spec, actions: x.log, randomAfter: true, seed: k + 1 })),
 ];
 
 const scenarioFiles = [];
@@ -545,7 +584,7 @@ SCENARIOS.forEach((sc, i) => {
   const data = level(sc.spec);
   if (!roundTrips(data)) throw new Error(`scenario ${sc.name} does not round-trip through JSON`);
   const lvl = compile(data);
-  const seq = playSequence(`scenario ${pad(i + 1, 2)} ${sc.name}`, lvl, 0, [], false, sc);
+  const seq = playSequence(`scenario ${pad(i + 1, 2)} ${sc.name}`, lvl, sc.seed ?? 0, [], false, sc);
   writeSource(`scenario_${pad(i + 1)}.json`, { kind: 'scenario', n: i + 1, label: sc.name }, data, [seq]);
   scenarioFiles.push(sc.name);
 });
