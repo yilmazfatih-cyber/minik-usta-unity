@@ -36,9 +36,12 @@ Faz 1 raporu: web reposunda `docs/UNITY_PORT_FAZ1.md`. TS → C# dosya eşlemesi
 │  │  │                            Faz 3 Q1: Game/ (LevelPlayer, StepRunner, PieceViews, BoardScene, BoardPose, ShadowLook (K-18),
 │  │  │                            HudLayout, LevelCatalog, DebugSolver, ILevelView/IPieceVisual), Art/ (Atlas: prosedürel doku,
 │  │  │                            Symbols, Palette, Rgba), Text/ (Strings: tr.json/en.json, TrText.Upper)
+│  │  │                            Faz 3 Q2 (his): Game/ (Particles (ParticleField), CellWave, Haptics, PressFeel, TruckModel, Economy,
+│  │  │                            StepRunner.Fx), Art/ (kıvılcım, toz, yıldız, sikke, mala, halka karoları)
 │  │  ├─ Unity/                    ince Unity katmanı (asmdef MinikUsta.Unity → Core, Presentation.Core, UnityEngine.UI): GameBootstrap
 │  │  │                            ([RuntimeInitializeOnLoadMethod]), GameRunner (kare döngüsü), UnityLevelView (ILevelView), UnityPieceVisual,
-│  │  │                            UnityBoardView/UnityShadowView, UnityHud (uGUI + LegacyRuntime), PointerInput (eski Input), ProceduralSprites
+│  │  │                            UnityBoardView/UnityShadowView, UnityHud (uGUI + LegacyRuntime), PointerInput (eski Input), ProceduralSprites,
+│  │  │                            Q2: UnitySpark/UnityUiSpark (parçacık), UnityTruckView, OffsetTarget (kamera, şantiye katmanı), PressableButton
 │  │  ├─ Resources/                levels/ (oyunun okuduğu bölümler), config/economy.json, i18n/{tr,en}.json, solutions/ (dev: çözümü oynat)
 │  │  ├─ Scenes/Level.unity        yalnız ortografik Main Camera (elle yazılmış Unity 6 YAML; .meta GUID sabit)
 │  │  ├─ Presentation.Core.Tests/  NUnit 3 testleri (Editor; Golden/tokens.json = web tokens kopyası)
@@ -125,8 +128,9 @@ Unity içinde: Window → General → Test Runner → EditMode; `MinikUsta.Core.
 
 ## Faz 3 — oynanabilir yer tutucu tahta
 
-**Durum (Q3):** Q0 (motor-bağımsız sunum çekirdeği) ve Q1 (oynanabilir tahta, yer tutucu görsel) tamam. Q2 (his, ses,
-parçacık, kamyon ve seri çizimi) sırada. Bu ortamda Unity derlenemedi; ilk gerçek derleme GitHub Actions'ta yapılır
+**Durum (Q2):** Q0 (motor-bağımsız sunum çekirdeği), Q1 (oynanabilir tahta, yer tutucu görsel) ve Q2 (his katmanı: sprite
+parçacıkları, iniş dalgası, mala ve seri boncukları, kamyon ve şantiye kayması, Bonus İnşaat sikkeleri, kazanma yıldızı, düğme
+basışı, kamera sarsıntısı, Android titreşimi) tamam. Ses ve gerçek sanat sırada. Bu ortamda Unity derlenemedi; ilk gerçek derleme GitHub Actions'ta yapılır
 ([`docs/CI.md`](docs/CI.md)). Rapor taslağı: [`docs/PHASE3_REPORT.md`](docs/PHASE3_REPORT.md).
 
 ### Nasıl oynanır
@@ -149,7 +153,7 @@ parçacık, kamyon ve seri çizimi) sırada. Bu ortamda Unity derlenemedi; ilk g
 3. İlk açılış birkaç dakika sürer. Unity eksik `.meta` dosyalarını üretir; `git status` ile değişenleri gözden geçir.
 4. `Assets/MinikUsta/Scenes/Level.unity` dosyasını aç ve **Play**'e bas.
 5. Testler: **Window → General → Test Runner → EditMode → Run All**. Koşan assembly'ler: `MinikUsta.Core.Tests`
-   ve `MinikUsta.Presentation.Core.Tests`. Beklenen sayılar dotnet koşusuna göre: Presentation 238 geçer. Core, `tools/diff/out`
+   ve `MinikUsta.Presentation.Core.Tests`. Beklenen sayılar dotnet koşusuna göre: Presentation 283 geçer. Core, `tools/diff/out`
    (git dışı, `ts-oracle.mjs` çıktısı) varsa 1455 geçer ve 5 atlar; yoksa 1049 geçer ve 7 atlar (DiffFuzz durumları üretilmez).
    Unity içinde bu koşu henüz yapılmadı.
 
@@ -159,9 +163,11 @@ Dotnet tarafı (Unity gerekmez):
 cd dotnet && dotnet build -warnaserror && dotnet test
 ```
 
-### Bilinen eksikler (Q2 ve sonrası)
+### Bilinen eksikler (Q2 sonrası)
 
-- Ses ve titreşim yok. Parçacık, kamyon çizimi, seri boncukları, ↩ iptal rozeti ve ip/eğilme yok.
+- Ses yok. Titreşim yalnız Android'de (`Handheld.Vibrate`, tek sabit darbe). ↩ iptal rozeti, ip/eğilme ve sürükleme izi yok.
+  Q2 ile gelenler: sprite parçacıkları, kamyon, seri boncukları ve mala, şantiye kayması, Bonus İnşaat sikkeleri, kazanma yıldızı,
+  düğme basışı, kamera sarsıntısı (hepsi yer tutucu çizimle; Unity'de görülmedi).
 - Öğretici yok. Güçlendiriciler devre dışı; Geri Al düğmesi yok; +5 hamle teklifi yok.
 - Görseller yer tutucu: prosedürel renkli kutular ve 8 renk sembolü. Tuna çizimi yok.
 - Ayarlar yok; "Animasyonları azalt" kapalı.

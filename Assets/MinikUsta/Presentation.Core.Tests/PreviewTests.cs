@@ -79,6 +79,75 @@ namespace MinikUsta.Presentation.Tests
             }
         }
 
+        /// <summary>Q2 game-feel moments (a correct placement, a landing wave, the trowel, the segment slide, the truck, coins, confetti, the star).</summary>
+        [Test]
+        public void Preview_game_feel_moments_of_the_placeholder_level_screen()
+        {
+            string? dir = Environment.GetEnvironmentVariable("MINIK_PREVIEW_DIR");
+            if (dir == null) return;
+            Directory.CreateDirectory(dir);
+            foreach (var (w, h) in Screens)
+            {
+                string tag = (w / 2) + "x" + (h / 2);
+                void Save(string name, Rig r) => File.WriteAllBytes(Path.Combine(dir, name + "-" + tag + ".png"), Preview.Of(r.View, r.Player, w, h).Png());
+                void Until(Rig r, Func<bool> cond, string what, float maxMs = 8000)
+                {
+                    float t = 0;
+                    while (!cond() && t < maxMs)
+                    {
+                        r.Player.Tick(Rig.FrameMs / 2);
+                        t += Rig.FrameMs / 2;
+                    }
+                    Assert.IsTrue(cond(), "reached: " + what);
+                }
+
+                var place = new Rig(w, h);
+                place.Load(1);
+                var m0 = Play.CraneMoves(1)[0];
+                var pv = place.View.Live[m0.PieceId];
+                place.DragTo(m0);
+                Until(place, () => pv.Grow > 1.15f, "the placement pulse");
+                Save("q2-place-burst", place);
+
+                var land = new Rig(w, h);
+                land.Load(1);
+                land.DragTo(Play.CraneMoves(1)[0]);
+                Until(land, () => land.View.Live.Values.Any(v => v.CellScales.Any(c => c.Y < 0.93f)), "a landing wave");
+                Save("q2-landing-wave", land);
+
+                var trowel = new Rig(w, h);
+                trowel.Load(1);
+                var drags = Play.SolverGolden(1).Drags;
+                for (int i = 0; i < 3; i++) trowel.DragTo(drags[i]);
+                trowel.DragTo(drags[3]);
+                Until(trowel, () => trowel.View.TrowelIcon.Scale.X > 1.3f, "the trowel pop");
+                Save("q2-trowel-pop", trowel);
+
+                var slide = new Rig(w, h);
+                slide.Load(5);
+                var d5 = Play.SolverGolden(5).Drags;
+                for (int i = 0; i < 4; i++) slide.DragTo(d5[i]);
+                slide.DragTo(d5[4]);
+                Until(slide, () => slide.View.SiteLayer.Position.X > 200f, "the segment slide");
+                Save("q2-segment-slide", slide);
+                Until(slide, () => slide.View.Truck.Visible && slide.View.Truck.Rotation > 8f, "the truck tipping");
+                Save("q2-truck", slide);
+
+                var win = new Rig(w, h);
+                win.Load(1);
+                var d1 = Play.SolverGolden(1).Drags;
+                for (int i = 0; i < d1.Length - 1; i++) win.DragTo(d1[i]);
+                win.DragTo(d1[d1.Length - 1]);
+                Until(win, () => win.View.SparkLog.Count(sp => sp.Kind == SparkKind.Confetti) >= 40 && win.View.SparksOut.Count(sp => sp.Kind == SparkKind.Confetti) >= 20, "win confetti");
+                Save("q2-win-confetti", win);
+                Until(win, () => win.Player.CoinsInFlight >= 2, "bonus coins in flight");
+                Save("q2-win-coins", win);
+                Until(win, () => win.View.Panel != null, "the win window");
+                win.Tick(180);
+                Save("q2-win-star", win);
+            }
+        }
+
         private static void HoldOver(Rig rig, int pieceId, DragNode to)
         {
             rig.PressPoint(pieceId, out double x, out double y);

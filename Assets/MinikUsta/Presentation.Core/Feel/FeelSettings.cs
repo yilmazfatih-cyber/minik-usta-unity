@@ -168,8 +168,11 @@ namespace MinikUsta.Presentation.Feel
         public float WrongTintMs = 100;
         /// <summary>JUICE #13 the shake before the bounce (web JUICE_VIEW.wrongShakeMs).</summary>
         public float WrongShakeMs = 120;
-        /// <summary>JUICE #13 "2 px yatay sallanma ×3" (block shake, never the screen: JUICE §0 rule 5).</summary>
-        public float WrongShakePx = 2;
+        /// <summary>
+        /// JUICE #13 says "2 px yatay sallanma ×3" (block shake, never the screen: JUICE §0 rule 5); the Unity brief (Q2 item 2, "8 px
+        /// titreme") asks for 8 px — 2 px on the 1080-wide canvas is under a phone pixel. Set 2 to get the web value back.
+        /// </summary>
+        public float WrongShakePx = 8;
         public int WrongShakeCycles = 3;
         /// <summary>JUICE #13 sallanma Sine.easeInOut.</summary>
         public EaseType WrongShakeEase = EaseType.InOutSine;
@@ -392,6 +395,116 @@ namespace MinikUsta.Presentation.Feel
         public float HintPulsePeak = 1.06f;
         /// <summary>duration.targetPulse — booster target pulse period (UX §5.2).</summary>
         public float TargetPulseMs = 1200;
+
+        // --- Q2 game feel (D-091 list: the brief's "game feel" items in this game's terms; every value tunable) -------------------
+
+        /// <summary>Q2 (1): a released block settles back to scale 1 with Back.easeOut ("bırakma/iniş OutBack"); JUICE #9 / #10 move keeps its own ease.</summary>
+        public EaseType ReleaseScaleEase = EaseType.OutBack;
+        /// <summary>Q2 (3): a multi-cell block lands cell by cell, this many ms apart (the 20–30 ms stagger; 0 = the block squashes as one).</summary>
+        public float CellStaggerMs = 25;
+        /// <summary>Q2 (3): the stagger of the last cell never exceeds this (big blocks stay within one landing beat of `LandMs` 120).</summary>
+        public float CellStaggerCapMs = 60;
+        /// <summary>Q2 (4): a correct placement grows 1,0 → 1,2 and shrinks back into its lock ("küçülerek kilitlenme").</summary>
+        public float PlacePulsePeak = 1.2f;
+        public float PlacePulseMs = 180;
+        /// <summary>Q2 (4): the peak sits at this share of the pulse.</summary>
+        public float PlacePulseSplit = 0.45f;
+        public EaseType PlacePulseEase = EaseType.OutQuad;
+
+        // particles: counts are tokens `particles.*` (JUICE rule 4: ≤ 120 alive, ≤ 40 per burst; reduced motion ≤ 20 %)
+
+        /// <summary>particles.maxOnScreen.</summary>
+        public int ParticleMaxOnScreen = 120;
+        /// <summary>particles.maxPerBurst.</summary>
+        public int ParticleMaxPerBurst = 40;
+        /// <summary>particles.land — JUICE #11 landing dust.</summary>
+        public int ParticleLand = 10;
+        /// <summary>particles.placeOk — JUICE #12 sparks.</summary>
+        public int ParticlePlaceOk = 14;
+        /// <summary>particles.combo — JUICE #16 gold rain.</summary>
+        public int ParticleCombo = 30;
+        /// <summary>particles.segment — JUICE #18 confetti.</summary>
+        public int ParticleSegment = 24;
+        /// <summary>particles.win — JUICE #55 confetti per wave.</summary>
+        public int ParticleWin = 40;
+        /// <summary>particles.winWaves.</summary>
+        public int ParticleWinWaves = 2;
+        /// <summary>particles.starBurst — JUICE #96.</summary>
+        public int ParticleStarBurst = 16;
+        /// <summary>particles.sparkle.</summary>
+        public int ParticleSparkle = 6;
+        /// <summary>JUICE #9 yard drop dust, #44 yard cascade dust (3), #13 bounce dust (3), #15 gold sparks, #56 coin sparks, #19 / #107 dust per block.</summary>
+        public int ParticleDustYard = 4;
+        public int ParticleDustCascade = 3;
+        public int ParticleDustBounce = 3;
+        public int ParticlePip = 4;
+        public int ParticleBonus = 4;
+        public int ParticleDustBlock = 4;
+        /// <summary>JUICE #12 "yukarı 120–220 px".</summary>
+        public float SparkRiseMinPx = 120;
+        public float SparkRiseMaxPx = 220;
+        /// <summary>Half-angle (degrees) of the cone around "up" the sparks fly in.</summary>
+        public float SparkConeDeg = 42;
+        public float SparkLifeMs = 520;
+        public float SparkSizePx = 40;
+        /// <summary>JUICE #11 "yatay yayılım ±60 px".</summary>
+        public float DustSpreadPx = 60;
+        public float DustRisePx = 26;
+        public float DustLifeMs = 380;
+        public float DustSizePx = 64;
+        /// <summary>Dust opacity at its start.</summary>
+        public float DustAlpha = 0.55f;
+        /// <summary>JUICE #16 the gold rain falls this far (px) from above the trowel.</summary>
+        public float GoldRainHeightPx = 260;
+        public float GoldRainLifeMs = 800;
+        public float ConfettiSizePx = 26;
+        /// <summary>JUICE #18 / #55 how far (px) a confetti piece falls.</summary>
+        public float ConfettiFallPx = 620;
+        public float ConfettiSegmentLifeMs = 900;
+        /// <summary>duration.starBurst — JUICE #96 (the win star).</summary>
+        public float StarBurstMs = 600;
+        public float StarBurstMinPx = 160;
+        public float StarBurstMaxPx = 320;
+        public float StarSizePx = 46;
+        /// <summary>JUICE #96: the central star 0 → 1,2 → 1,0 and the ring 0,6 → 1,6 (α 0,6 → 0).</summary>
+        public float WinStarPeak = 1.2f;
+        public float StarRingFrom = 0.6f;
+        public float StarRingTo = 1.6f;
+        public float StarRingAlpha = 0.6f;
+        /// <summary>The confetti waves of the win start this far apart (JUICE #55: 2 waves in the 1,5 s).</summary>
+        public float WinConfettiWaveGapMs = 500;
+
+        // camera shake and haptics (JUICE §0 rules 5, 7; Q2 item 12)
+
+        /// <summary>Q2 (12): one camera shake lasts 120 ms.</summary>
+        public float CameraShakeMs = 120;
+        public int CameraShakeCycles = 3;
+        /// <summary>JUICE #42 glass break shake 2 px (JUICE #18's 3 px is `SegmentShakePx`).</summary>
+        public float GlassShakePx = 2;
+        /// <summary>Q2 (12) asks for a light shake at the win too (JUICE rule 5 lists only #18 and #42); 0 turns it off.</summary>
+        public float WinShakePx = 3;
+        /// <summary>Haptics closer than this are dropped (one buzz per beat).</summary>
+        public float HapticMinGapMs = 120;
+
+        // streak and trowel (JUICE #15, #16, #107), truck (#19), site slide (#18), bonus coins (#56)
+
+        /// <summary>JUICE #16 "dönerek parlar": the trowel icon turns this far while it pops.</summary>
+        public float ComboSpinDeg = 360;
+        /// <summary>JUICE #107 "Usta Serisi boncukları 200 ms'de söner".</summary>
+        public float StreakResetMs = 200;
+        /// <summary>JUICE #19 "kasası kalkar": the truck tips back this far while it unloads.</summary>
+        public float TruckBedTiltDeg = 12;
+        public float TruckBedTiltMs = 120;
+        /// <summary>JUICE #56 the coin peaks at this scale on its way to the gold chip.</summary>
+        public float BonusCoinPeak = 1.25f;
+        /// <summary>The gold chip pops by this much with each coin.</summary>
+        public float GoldChipPeak = 1.18f;
+        public float GoldChipPopMs = 140;
+
+        // stuck pulse glow (K-34 hook 5, Q2 item 10: "tutulabilir bloklar hafif parlar")
+
+        /// <summary>The white glow (0 … 1) the hinted blocks get during the stuck pulse.</summary>
+        public float HintGlowPeak = 0.3f;
 
         /// <summary>The defaults (a fresh instance).</summary>
         public static FeelSettings CreateDefault() => new FeelSettings();

@@ -185,8 +185,30 @@ namespace MinikUsta.Presentation.Art
 
         public static readonly Glyph Brush = new Glyph().Stroke(13, 24, 84, 54, 54).Polygon(50, 50, 74, 18, 88, 32, 60, 60);
 
+        /// <summary>Q2 fx_spark: a four-point sparkle with concave sides.</summary>
+        public static readonly Glyph Spark = new Glyph().Polygon(50, 2, 58, 42, 98, 50, 58, 58, 50, 98, 42, 58, 2, 50, 42, 42);
+
+        /// <summary>Q2 five-point star (win star, star burst): outer radius 47, inner 20, centred a little low so it reads upright.</summary>
+        public static readonly Glyph Star = new Glyph().Polygon(StarPoints(50f, 54f, 47f, 20f));
+
+        /// <summary>Q2 Golden Trowel icon: a kite-shaped blade, the tip at the top left, and a handle toward the bottom right.</summary>
+        public static readonly Glyph Trowel = new Glyph().Polygon(8, 8, 58, 24, 76, 42, 42, 76, 24, 58).Stroke(15, 68, 68, 92, 92);
+
         /// <summary>Pause tool (two rounded bars).</summary>
         public static readonly Glyph PauseBars = new Glyph().Stroke(16, 36, 26, 36, 74).Stroke(16, 64, 26, 64, 74);
+
+        private static float[] StarPoints(float cx, float cy, float outer, float inner)
+        {
+            var o = new float[20];
+            for (int i = 0; i < 10; i++)
+            {
+                double a = -Math.PI / 2 + i * Math.PI / 5;
+                float r = i % 2 == 0 ? outer : inner;
+                o[2 * i] = cx + r * (float)Math.Cos(a);
+                o[2 * i + 1] = cy + r * (float)Math.Sin(a);
+            }
+            return o;
+        }
 
         private static Glyph[] Build()
         {

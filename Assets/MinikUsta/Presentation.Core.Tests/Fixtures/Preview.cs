@@ -25,6 +25,8 @@ namespace MinikUsta.Presentation.Tests.Fixtures
             public bool Sliced;
             public int Order;
             public int Seq;
+            /// <summary>Degrees counter-clockwise on screen, about (Cx, Cy).</summary>
+            public double Rot;
         }
 
         private static Atlas? atlas;
@@ -51,8 +53,8 @@ namespace MinikUsta.Presentation.Tests.Fixtures
             }
         }
 
-        public void Add(Tile t, double cx, double cy, double w, double h, Rgba color, int order, float alpha = 1f, bool sliced = false) =>
-            cmds.Add(new Cmd { Tile = t, Cx = cx, Cy = cy, W = w, H = h, Color = color, Alpha = alpha, Sliced = sliced, Order = order, Seq = cmds.Count });
+        public void Add(Tile t, double cx, double cy, double w, double h, Rgba color, int order, float alpha = 1f, bool sliced = false, double rot = 0) =>
+            cmds.Add(new Cmd { Tile = t, Cx = cx, Cy = cy, W = w, H = h, Color = color, Alpha = alpha, Sliced = sliced, Order = order, Seq = cmds.Count, Rot = rot });
 
         public void Add(Tile t, PxRect r, Rgba color, int order, bool sliced = false) => Add(t, r.CenterX, r.CenterY, r.W, r.H, color, order, 1f, sliced);
 
@@ -61,7 +63,15 @@ namespace MinikUsta.Presentation.Tests.Fixtures
         {
             var o = new Preview(screenW, screenH, p.Viewport);
             var L = p.Layout!;
-            foreach (var item in v.Board!.Items) o.Add(item.Tile, item.Rect, item.Color, item.Order, item.Sliced);
+            foreach (var item in v.Board!.Items)
+            {
+                var rect = item.Rect;
+                // Q2: the site layer (blueprint, plan, platform) slides with the segment change (UnityBoardView.siteRoot)
+                if (item.Kind == BoardItemKind.SitePanel || item.Kind == BoardItemKind.PlanCell || item.Kind == BoardItemKind.HatchCell
+                    || item.Kind == BoardItemKind.HiddenCell || item.Kind == BoardItemKind.Platform)
+                    rect = new PxRect(rect.X + v.SiteLayer.Position.X, rect.Y + v.SiteLayer.Position.Y, rect.W, rect.H);
+                o.Add(item.Tile, rect, item.Color, item.Order, item.Sliced);
+            }
             double c = L.Grid.CellPx;
             foreach (var piece in v.Live.Values)
             {
@@ -71,17 +81,60 @@ namespace MinikUsta.Presentation.Tests.Fixtures
                 if (piece.Dim) baseColor = baseColor.Scale(0.92f);
                 var body = Rgba.Lerp(baseColor, Rgba.White, piece.Flash);
                 body = Rgba.Lerp(body, Rgba.Hex(Palette.GhostInvalid), piece.Tint);
-                foreach (var cell in piece.Shape.Cells)
+                double gx = piece.Scale.X * piece.Grow, gy = piece.Scale.Y * piece.Grow;
+                for (int ci = 0; ci < piece.Shape.Cells.Length; ci++)
                 {
+                    var cell = piece.Shape.Cells[ci];
                     var off = BoardPose.CellOffset(piece.Shape, cell, c);
-                    double x = piece.Position.X + off.X * piece.Scale.X, y = piece.Position.Y - piece.Hop + off.Y * piece.Scale.Y;
-                    double w = c * piece.Scale.X, h = c * piece.Scale.Y;
+                    // Q2: a cell squashed about the bottom centre of the block box (UnityPieceVisual.PlaceCell)
+                    double csx = 1, csy = 1;
+                    if (ci < piece.CellScales.Length)
+                    {
+                        csx = piece.CellScales[ci].X;
+                        csy = piece.CellScales[ci].Y;
+                    }
+                    double bottom = piece.Shape.H * c / 2.0;
+                    double lx = off.X * csx, ly = bottom + (off.Y - bottom) * csy;
+                    double x = piece.Position.X + lx * gx, y = piece.Position.Y - piece.Hop + ly * gy;
+                    double w = c * csx * gx, h = c * csy * gy;
                     var tile = Atlas.Body(BoardPose.NeighbourMask(piece.Shape, cell));
                     if (piece.Lifted) o.Add(tile, x, y + Palette.LiftedShadowY * piece.Scale.Y, w, h, Rgba.Black.WithAlpha(Palette.LiftedShadowAlpha), b - 1, piece.Alpha);
                     o.Add(tile, x, y, w, h, body, b, piece.Alpha);
                     o.Add(Tile.Gloss, x, y, w, h, Rgba.White, b + 1, piece.Alpha);
                     o.Add(Atlas.Symbol(piece.Color), x, y, w * 0.42, h * 0.42, Palette.SymbolInk(piece.Color), b + 2, piece.Alpha);
                 }
+            }
+            // Q2: the truck (behind the blocks), sprite particles (over everything on the board)
+            if (v.Truck.Visible)
+            {
+                var truck = v.Truck;
+                double cp = truck.CellPx > 0 ? truck.CellPx : c;
+                double th = truck.Rotation * Math.PI / 180.0;
+                int z = 0;
+                foreach (var part in TruckModel.Parts())
+                {
+                    double px = part.X * cp * truck.Scale.X, py = part.Y * cp * truck.Scale.Y;
+                    // rotate the part's offset about the truck centre (counter-clockwise on screen, y down)
+                    double rx = px * Math.Cos(th) + py * Math.Sin(th), ry = -px * Math.Sin(th) + py * Math.Cos(th);
+                    o.Add(part.Tile, truck.Position.X + rx, truck.Position.Y + ry, part.W * cp * truck.Scale.X, part.H * cp * truck.Scale.Y, part.Color, 90 + z, truck.Alpha, part.Sliced, truck.Rotation);
+                    z++;
+                }
+            }
+            foreach (var sp in v.SparksOut)
+            {
+                if (!sp.Visible) continue;
+                Tile tile;
+                switch (sp.Kind)
+                {
+                    case SparkKind.Dust: tile = Tile.Soft; break;
+                    case SparkKind.Star: tile = Tile.Star; break;
+                    case SparkKind.Coin: tile = Tile.Coin; break;
+                    case SparkKind.Confetti: tile = Tile.Plain; break;
+                    case SparkKind.Ring: tile = Tile.Ring; break;
+                    default: tile = Tile.Spark; break;
+                }
+                double aspect = sp.Kind == SparkKind.Confetti ? 0.5 : 1.0;
+                o.Add(tile, sp.Position.X, sp.Position.Y, sp.SizePx * sp.Scale.X, sp.SizePx * aspect * sp.Scale.Y, sp.Color, Order.Flyer + (sp.Kind == SparkKind.Ring ? 1 : 2), sp.Alpha, false, sp.Rotation);
             }
             var s = v.Shadow;
             if (s != null)
@@ -118,6 +171,25 @@ namespace MinikUsta.Presentation.Tests.Fixtures
                 o.Add(Tile.Panel, r, neutral.WithAlpha(0.55f), hud, true);
                 o.Add(icons[i], new PxRect(r.X + 28, r.Y + 28, r.W - 56, r.H - 56), Rgba.Hex(Palette.Ink, 0.45f), hud + 1);
             }
+            // Q2: streak capsule (beads, trowel), gold chip
+            o.Add(Tile.Panel, HudLayout.Streak(L), new Rgba(20, 15, 51, 199), hud, true);
+            var goldC = Rgba.Hex(Palette.Gold);
+            for (int i = 0; i < 4; i++)
+            {
+                var br = HudLayout.Bead(L, i);
+                double bs = v.Beads[i].Scale.X;
+                o.Add(Tile.Circle, br.CenterX, br.CenterY, br.W * bs, br.H * bs, i < v.StreakBeads ? goldC : Rgba.White.WithAlpha(0.25f), hud + 1);
+            }
+            var tr = HudLayout.TrowelIcon(L);
+            double ts = v.TrowelIcon.Scale.X;
+            o.Add(Tile.Trowel, tr.CenterX, tr.CenterY, tr.W * ts, tr.H * ts, v.StreakTrowels > 0 ? goldC : Rgba.White.WithAlpha(0.35f), hud + 1, 1f, false, v.TrowelIcon.Rotation);
+            if (v.Gold >= 0)
+            {
+                var gc = HudLayout.GoldChip(L);
+                double gs = v.GoldChip.Scale.X;
+                o.Add(Tile.Panel, gc.CenterX, gc.CenterY, gc.W * gs, gc.H * gs, neutral, hud, 1f, true);
+                o.Add(Tile.Coin, gc.X + 32 * gs + (gc.W * (1 - gs)) / 2, gc.CenterY, 44 * gs, 44 * gs, goldC, hud + 1);
+            }
             if (v.Panel != null)
             {
                 double extraH = (screenH / p.Viewport.Scale - L.H) / 2, extraW = (screenW / p.Viewport.Scale - L.W) / 2;
@@ -126,6 +198,12 @@ namespace MinikUsta.Presentation.Tests.Fixtures
                 o.Add(Tile.Panel, w.Panel, Rgba.Hex(Palette.Panel), hud + 11, true);
                 for (int i = 0; i < v.Panel.Buttons.Length; i++)
                     o.Add(Tile.Panel, w.Options[i], v.Panel.Buttons[i].Primary ? Rgba.Hex(Palette.Primary) : Rgba.Hex(Palette.Neutral), hud + 12, true);
+                if (v.Panel.Star)
+                {
+                    var sr = HudLayout.WindowStar(L, p.LayoutSettings, v.Panel.Buttons.Length);
+                    double ss = v.StarTarget.Scale.X;
+                    o.Add(Tile.Star, sr.CenterX, sr.CenterY, sr.W * ss, sr.H * ss, goldC, hud + 13);
+                }
             }
             return o;
         }
@@ -143,16 +221,38 @@ namespace MinikUsta.Presentation.Tests.Fixtures
             double sw = c.W * vp.Scale, sh = c.H * vp.Scale;
             int x0 = Math.Max(0, (int)Math.Floor(sx0)), x1 = Math.Min(width, (int)Math.Ceiling(sx0 + sw));
             int y0 = Math.Max(0, (int)Math.Floor(sy0)), y1 = Math.Min(height, (int)Math.Ceiling(sy0 + sh));
+            double th = c.Rot * Math.PI / 180.0, cs = Math.Cos(th), sn = Math.Sin(th);
+            double ccx = (c.Cx) * vp.Scale + vp.PillarboxPx / 2, ccy = (c.Cy) * vp.Scale + vp.LetterboxPx / 2;
+            if (c.Rot != 0)
+            {
+                double rad = Math.Sqrt(sw * sw + sh * sh) / 2 + 1;
+                x0 = Math.Max(0, (int)Math.Floor(ccx - rad));
+                x1 = Math.Min(width, (int)Math.Ceiling(ccx + rad));
+                y0 = Math.Max(0, (int)Math.Floor(ccy - rad));
+                y1 = Math.Min(height, (int)Math.Ceiling(ccy + rad));
+            }
             // 9-slice border: tile px → design px (sprite ppu = Content, world unit = 100 design px)
             double bd = Atlas.PanelBorder / (double)Atlas.Content * ScreenFit.DefaultPixelsPerUnit;
             for (int y = y0; y < y1; y++)
             {
-                double ly = (y + 0.5 - sy0) / vp.Scale; // design px from the sprite top
-                if (ly < 0 || ly >= c.H) continue;
-                double v = c.Sliced ? SliceMap(ly, c.H, bd) : ly / c.H * Atlas.Content;
                 for (int x = x0; x < x1; x++)
                 {
-                    double lx = (x + 0.5 - sx0) / vp.Scale;
+                    double lx, ly;
+                    if (c.Rot != 0)
+                    {
+                        // rotate the pixel back into the sprite's frame (counter-clockwise on screen, y down)
+                        double dx = x + 0.5 - ccx, dy = y + 0.5 - ccy;
+                        double qx = dx * cs - dy * sn, qy = dx * sn + dy * cs;
+                        lx = (qx + sw / 2) / vp.Scale;
+                        ly = (qy + sh / 2) / vp.Scale;
+                    }
+                    else
+                    {
+                        lx = (x + 0.5 - sx0) / vp.Scale;
+                        ly = (y + 0.5 - sy0) / vp.Scale;
+                    }
+                    if (ly < 0 || ly >= c.H) continue;
+                    double v = c.Sliced ? SliceMap(ly, c.H, bd) : ly / c.H * Atlas.Content;
                     if (lx < 0 || lx >= c.W) continue;
                     double u = c.Sliced ? SliceMap(lx, c.W, bd) : lx / c.W * Atlas.Content;
                     Sample(r, u, Atlas.Content - v, out float sr, out float sg, out float sb, out float sa);

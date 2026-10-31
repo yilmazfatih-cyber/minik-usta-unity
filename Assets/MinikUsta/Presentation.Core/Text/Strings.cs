@@ -18,7 +18,7 @@ namespace MinikUsta.Presentation.Text
         public static readonly string[] UsedKeys =
         {
             Keys.LevelLabel, Keys.Moves, Keys.Blocks, Keys.WinTitle, Keys.WinBonus, Keys.WinClear, Keys.LoseTitle, Keys.LoseBlocksLeft,
-            Keys.LoseRetry, Keys.PauseTitle, Keys.Restart, Keys.Continue, Keys.Count,
+            Keys.LoseRetry, Keys.PauseTitle, Keys.Restart, Keys.Continue, Keys.Count, Keys.Streak, Keys.Times,
         };
 
         public static class Keys
@@ -40,6 +40,10 @@ namespace MinikUsta.Presentation.Text
             public const string Continue = "common.continue";
             /// <summary>"{n}/{max}" (segment counter).</summary>
             public const string Count = "common.count";
+            /// <summary>"Usta Serisi" (streak capsule label, UX §5.1).</summary>
+            public const string Streak = "hud.streak";
+            /// <summary>"×{n}" (Golden Trowels held).</summary>
+            public const string Times = "common.times";
         }
 
         public static Strings Empty => new Strings();

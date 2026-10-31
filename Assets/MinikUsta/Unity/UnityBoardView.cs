@@ -4,6 +4,7 @@
 // pool only grows to the largest board seen.
 using System.Collections.Generic;
 using MinikUsta.Presentation.Game;
+using MinikUsta.Presentation.Tweening;
 using UnityEngine;
 
 namespace MinikUsta.Unity
@@ -12,13 +13,25 @@ namespace MinikUsta.Unity
     {
         private readonly DesignSpace space;
         private readonly Transform parent;
+        private readonly Transform siteRoot;
         private readonly List<SpriteRenderer> pool = new List<SpriteRenderer>();
 
         public UnityBoardView(DesignSpace space, Transform parent)
         {
             this.space = space;
             this.parent = parent;
+            // the site layer (blueprint, plan, platform) hangs under its own root so the segment slide (JUICE #18) can move it
+            siteRoot = new GameObject("Site").transform;
+            siteRoot.SetParent(parent, false);
+            SiteLayer = new OffsetTarget(siteRoot);
         }
+
+        /// <summary>The site layer's offset (design px): the next segment slides in from the right edge.</summary>
+        public ITweenTarget SiteLayer { get; }
+
+        private static bool IsSiteLayer(BoardItemKind kind) =>
+            kind == BoardItemKind.SitePanel || kind == BoardItemKind.PlanCell || kind == BoardItemKind.HatchCell || kind == BoardItemKind.HiddenCell
+            || kind == BoardItemKind.Platform;
 
         public void Build(BoardScene scene)
         {
@@ -38,6 +51,8 @@ namespace MinikUsta.Unity
                     continue;
                 }
                 var item = items[i];
+                var want = IsSiteLayer(item.Kind) ? siteRoot : parent;
+                if (sr.transform.parent != want) sr.transform.SetParent(want, false);
                 sr.gameObject.SetActive(true);
                 sr.sprite = ProceduralSprites.Get(item.Tile);
                 sr.color = UnityConvert.ToColor(item.Color);

@@ -53,6 +53,11 @@ namespace MinikUsta.Presentation.Tests
             ("ScrewCollectMs", "duration.screwCollect"), ("DebrisMs", "duration.debris"), ("GlassBreakMs", "duration.glassBreak"),
             ("SteerMs", "duration.steer"), ("WindDriftMs", "duration.steer"), ("CarouselMs", "duration.carousel"), ("ElevatorMs", "duration.elevator"),
             ("RevealMs", "duration.reveal"), ("TargetPulseMs", "duration.targetPulse"),
+            // Faz 3 Q2: the particle budget and counts, the star burst
+            ("ParticleMaxOnScreen", "particles.maxOnScreen"), ("ParticleMaxPerBurst", "particles.maxPerBurst"), ("ParticleLand", "particles.land"),
+            ("ParticlePlaceOk", "particles.placeOk"), ("ParticleCombo", "particles.combo"), ("ParticleSegment", "particles.segment"),
+            ("ParticleWin", "particles.win"), ("ParticleWinWaves", "particles.winWaves"), ("ParticleStarBurst", "particles.starBurst"),
+            ("ParticleSparkle", "particles.sparkle"), ("StarBurstMs", "duration.starBurst"),
         };
 
         /// <summary>FeelSettings ease field → tokens.json `easing.*` name.</summary>
@@ -144,7 +149,8 @@ namespace MinikUsta.Presentation.Tests
             Assert.AreEqual(6f, f.LiftHopPx);
             Assert.AreEqual(0.94f, f.YardDropSquashY);
             Assert.AreEqual((1.12f, 0.86f), (f.LandSquashX, f.LandSquashY));
-            Assert.AreEqual((0.5f, 100f, 120f, 2f, 3), (f.WrongTintAlpha, f.WrongTintMs, f.WrongShakeMs, f.WrongShakePx, f.WrongShakeCycles));
+            // WrongShakePx is 8, not the JUICE #13 value 2: Faz 3 Q2 item 2 asks for an 8 px shake (a design-lead call; see FeelSettings)
+            Assert.AreEqual((0.5f, 100f, 120f, 8f, 3), (f.WrongTintAlpha, f.WrongTintMs, f.WrongShakeMs, f.WrongShakePx, f.WrongShakeCycles));
             Assert.AreEqual(1.5f, f.BounceArcCells);
             Assert.AreEqual(0.5f, f.CancelArcCells);
             Assert.AreEqual(0.3f, f.QueueShrink);

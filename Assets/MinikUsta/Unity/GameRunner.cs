@@ -34,10 +34,14 @@ namespace MinikUsta.Unity
                 cam = go.AddComponent<Camera>();
             }
             var layout = new LayoutSettings();
-            var view = new UnityLevelView(cam, () => player?.PausePressed(), layout);
+            var feel = new FeelSettings();
+            var view = new UnityLevelView(cam, () => player?.PausePressed(), layout, feel);
             var strings = Strings.FromText(ReadText("i18n/tr"));
             var catalog = new LevelCatalog(n => ReadText(LevelCatalog.ResourceName(n)));
-            player = new LevelPlayer(view, catalog, strings, new FeelSettings(), layout);
+            // Q2 item 12: Handheld.Vibrate buzzes one fixed pulse and only Android is asked (the brief); everywhere else the sink is silent
+            var haptics = new FixedPulseHaptics(Application.platform == RuntimePlatform.Android, Handheld.Vibrate);
+            var economy = EconomyInfo.FromText(ReadText("config/economy"));
+            player = new LevelPlayer(view, catalog, strings, feel, layout, haptics, economy);
             input = new PointerInput();
             screenW = Screen.width;
             screenH = Screen.height;

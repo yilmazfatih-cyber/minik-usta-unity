@@ -91,6 +91,8 @@ namespace MinikUsta.Presentation.Game
                 v.Flash = 0;
                 v.Tint = 0;
                 v.Hop = 0;
+                v.Grow = 1f;
+                v.ResetCells();
                 v.Lifted = false;
                 v.Raised = false;
                 bool dim = holdable != null && PieceZone(s, id) == Zone.Yard && !holdable.Contains(id);

@@ -64,6 +64,18 @@ namespace MinikUsta.Presentation.Art
         CraneHook = 40,
         Brush = 41,
         Undo = 42,
+        /// <summary>Q2: four-point sparkle (fx_spark / fx_sparkle4; white mask, tinted by the particle colour).</summary>
+        Spark = 43,
+        /// <summary>Q2: soft round puff (dust; white, radial falloff).</summary>
+        Soft = 44,
+        /// <summary>Q2: five-point star (win star, star burst; white mask).</summary>
+        Star = 45,
+        /// <summary>Q2: coin (tinted gold): a disc with a darker rim and an inner ring.</summary>
+        Coin = 46,
+        /// <summary>Q2: the Golden Trowel icon (white mask).</summary>
+        Trowel = 47,
+        /// <summary>Q2: ring outline (star burst ring, lock flash; white).</summary>
+        Ring = 48,
     }
 
     public readonly struct TileRect
@@ -104,7 +116,7 @@ namespace MinikUsta.Presentation.Art
         }
 
         /// <summary>The last tile (the atlas holds `Last + 1` tiles).</summary>
-        public const Tile Last = Tile.Undo;
+        public const Tile Last = Tile.Ring;
 
         public static Tile Body(int mask) => (Tile)((int)Tile.Body0 + (mask & 15));
 
@@ -350,13 +362,57 @@ namespace MinikUsta.Presentation.Art
                 case Tile.CancelBadge:
                     DrawBadge(c, r, Symbols.Cancel);
                     return;
+                case Tile.Soft:
+                    Fill(c, r, (float u, float v, out float cr, out float cg, out float cb, out float ca) =>
+                    {
+                        // a puff: alpha falls off with the square of the distance from the centre (no hard edge)
+                        float d = ArtMath.Length(u - Content / 2f, v - Content / 2f) / (Content / 2f);
+                        float k = ArtMath.Clamp01(1f - d);
+                        cr = cg = cb = 1f;
+                        ca = k * k * (3f - 2f * k);
+                    });
+                    return;
+                case Tile.Coin:
+                    Fill(c, r, (float u, float v, out float cr, out float cg, out float cb, out float ca) =>
+                    {
+                        float dist = ArtMath.Length(u - Content / 2f, v - Content / 2f);
+                        float d = dist - (Content / 2f - 3);
+                        ca = Sdf.Cover(d);
+                        float rim = -d < 9 ? 0.72f : 1f;
+                        float inner = Math.Abs(dist - 0.58f * Content / 2f) < 3f ? 0.8f : 1f;
+                        float shade = ArtMath.Lerp(0.94f, 1f, ArtMath.Clamp01(v / Content));
+                        cr = cg = cb = Math.Min(rim, inner) * shade;
+                    });
+                    return;
+                case Tile.Ring:
+                    Fill(c, r, (float u, float v, out float cr, out float cg, out float cb, out float ca) =>
+                    {
+                        float d = ArtMath.Length(u - Content / 2f, v - Content / 2f) - (Content / 2f - 8);
+                        cr = cg = cb = 1f;
+                        ca = Sdf.Cover(Math.Abs(d + 4f) - 4f);
+                    });
+                    return;
                 case Tile.Hammer:
                 case Tile.CraneHook:
                 case Tile.Brush:
                 case Tile.Undo:
                 case Tile.Pause:
+                case Tile.Spark:
+                case Tile.Star:
+                case Tile.Trowel:
                     {
-                        var p = t == Tile.Pause ? Symbols.PauseBars : t == Tile.Hammer ? Symbols.Hammer : t == Tile.CraneHook ? Symbols.CraneHook : t == Tile.Brush ? Symbols.Brush : Symbols.Cancel;
+                        Glyph p;
+                        switch (t)
+                        {
+                            case Tile.Pause: p = Symbols.PauseBars; break;
+                            case Tile.Hammer: p = Symbols.Hammer; break;
+                            case Tile.CraneHook: p = Symbols.CraneHook; break;
+                            case Tile.Brush: p = Symbols.Brush; break;
+                            case Tile.Spark: p = Symbols.Spark; break;
+                            case Tile.Star: p = Symbols.Star; break;
+                            case Tile.Trowel: p = Symbols.Trowel; break;
+                            default: p = Symbols.Cancel; break;
+                        }
                         Fill(c, r, (float u, float v, out float cr, out float cg, out float cb, out float ca) =>
                         {
                             cr = cg = cb = 1f;

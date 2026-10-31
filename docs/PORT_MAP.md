@@ -178,6 +178,30 @@ geçersiz bölüm; K-34 kanca 5; K-49 her bölüm 4 ekran boyutunda sığar; bel
 `AtlasTests`, `PaletteTests`, `BoardSceneTests`, `ShadowLookTests` (web `shadowLook.test.ts` portu), `StringsTests`,
 `PreviewTests` (`Fixtures/Preview.cs`: Unity görünümünün yazılımsal kopyası; `MINIK_PREVIEW_DIR` ile PNG).
 
+### Faz 3 Q2 — his katmanı (`Presentation.Core/Game`, `Art`, `Feel` + Unity ek dosyaları)
+
+Brifteki "game feel" maddeleri D-091 eşlemesiyle bu oyunun terimlerine çevrildi; her süre, sayı ve ease `FeelSettings` alanıdır
+(`Q2` başlıklı bölüm). Hepsi motor-bağımsız ve NUnit ile sınanır; Unity yalnız sprite / uGUI çizer.
+
+| Brif maddesi | JUICE | C# | Not |
+| --- | --- | --- | --- |
+| (1) kaldırma %8 büyüme + gölge + parmak ofseti; bırakma / iniş OutBack | #1, #9, #10, #11, #23, #91 | `LevelPlayer.DragFrame` (Q1), `FeelSettings.ReleaseScaleEase`, `StepRunner` | Kaldırma Q1'de vardı; bırakınca 1,08 → 1,0 ölçeği Back.easeOut ile (`ReleaseEase`; azaltılmış harekette satırın kendi ease'i) |
+| (2) kötü geçiş: hedefe gidip geri sekme + 8 px titreme | #13, #88 | `StepKind.PlaceWrong`, `FeelSettings.WrongShakePx` | **JUICE 2 px, brif 8 px**: varsayılan 8 (tek alan; 2 yazılırsa web değeri). Geri sekme sonunda 3 gri toz |
+| (3) şantiye düşüşü: ivmeli düşüş, inişte ezilme + sekme, hücreler arası 20–30 ms | #10, #11, #44 | `Game/CellWave.cs`, `StepRunner.LandSquash`, `IPieceVisual.SetCellScale` | Hücre sırası sol-alt hücreden (x + y); gecikme `CellStaggerMs` 25, tavan 60 ms ve ezilmenin %60'ı (adım süresi değişmez); 10 toz |
+| (4) doğru yerleşim: 1,0 → 1,2 büyüme + küçülerek kilitlenme + sprite patlaması + parlama | #12, #92 | `StepRunner.GrowPulse` (`IPieceVisual.Grow` kanalı: #11 ezilmesiyle çakışmaz), `ParticleField.Sparks` | JUICE'ta ölçek nabzı yoktu (Q0 notu); brife göre eklendi. 14 kıvılcım (blok rengi + beyaz) 120–220 px yukarı |
+| (5) Altın Mala: seri boncukları dolar, mala pop | #15, #16, #107 | `StepRunner.Fx` (`StreakPip`, `TrowelEarned`, `StreakReset`), `HudLayout.Streak/Bead/TrowelIcon`, `ILevelView.SetStreak` | Boncuk 0,6 → 1,2 → 1; 4. boncukta boncuklar boşalır, mala 1,0 → 1,4 → 1,1 + 360° (Elastic), 30 altın kıvılcım yağmuru |
+| (6) dilim bitişi + kamyon: şantiye kayması, yeni partinin düşüşü | #18, #19, #20 | `StepRunner.SiteSlideIn`, `TruckRide`, `TruckModel`, `ILevelView.SiteLayer / Truck` | Yeni şantiye sağ kenardan kayarak girer; kamyon 300 ms girer, kasa 12° kalkar, bloklar 60 ms arayla düşer + 4 toz, 200 ms'de çıkar |
+| (7) Söküm: kavisli dönüş uçuşu + toz | #107 | `StepKind.Teardown` | Uçuş Q1'de vardı (yay 1,5 hücre); blok başına kalkışta ve inişte 4 toz |
+| (8) kalan blok çipine kavisli uçuş + sayaç pop | D-091 | `StepKind.BlocksChipFly` (Q1) | Q2'de yalnız sınandı (`K48_…`: yay yüksekliği, çip 1,15 pop) |
+| (9) kazanma: kalan hamleler teker teker altına + yıldız | #55, #56, #96 | `StepRunner.BonusBuild`, `WinFx`, `LevelPlayer.FlyCoin / StarFx`, `Game/Economy.cs` | Hamle başına bir sikke (en çok 10, `economy.json` `bonusCoinsPerMoveLeft` 3), altın çipi sayar ve pop eder; konfeti 2 × 40; ilk kazanmada yıldız 0 → 1,2 → 1 + 16 küçük yıldız + halka. Pencere son sikke inince açılır |
+| (10) hareketsizlikte takılma nabzı: bloklar hafif parlar | K-34 kanca 5 | `LevelPlayer.StuckPulseCheck`, `FeelSettings.HintGlowPeak` | Süre kural değeri (Kolay 6, Normal 12 s; brifteki "5 sn" değil); nabza %30 beyaz parıltı eklendi |
+| (11) düğmeler: basınca 0,94, bırakınca OutBack | #69 | `Game/PressFeel.cs`, `Unity/PressableButton.cs` | Duraklat ve pencere seçenekleri; dışarı kayan işaretçi basışı iptal eder (tık yok, pop yok) |
+| (12) kamera sarsıntısı 120 ms + Android titreşimi | #18, #42, #55 | `LevelPlayer.CameraShake`, `Unity/OffsetTarget.cs`, `Game/Haptics.cs` | Dilim bitişi 3 px, cam kırılması 2 px, kazanma 3 px (JUICE kural 5 yalnız ilk ikisini sayar; `WinShakePx` 0 = kapalı); HUD sallanmaz; `Handheld.Vibrate()` yalnız Android'de ve yalnız orta ve üstü güçte |
+
+Testler: `GameFeelTests` (44), `FeelSettingsTests` (`particles.*`, `duration.starBurst` eşlemesi), `AtlasTests` (yeni karolar).
+Yazılımsal ön izleme: `MINIK_PREVIEW_DIR=… dotnet test --filter Preview_game_feel` → `q2-*.png` (patlama, iniş dalgası, mala, dilim kayması,
+kamyon, sikkeler, konfeti, yıldız; 390×844 ve 360×800).
+
 ### Faz 3 Q3 — Unity katmanı dosya tablosu, web `src/scenes/level/**` kapsamı, veri yolları
 
 Q3 denetimi kod değiştirmedi. Doğrulananlar: web `src/core`, `tests`, `levels`, `config` `4ce980f`'den bu yana değişmedi;
@@ -198,6 +222,10 @@ karşı) derlenir; gerçek Unity derlemesi GameCI'da (`docs/CI.md`).
 | `UnityPieceVisual.cs` | `IPieceVisual`: hücre başına gövde (`Atlas.Body`), parlama, renk sembolü, kaldırma gölgesi. İç sınıf `UnityFlyer` (`IFlyer`, havuzlu uçan parça) | Q1 |
 | `UnityHud.cs` | uGUI: ScreenSpaceOverlay Canvas, CanvasScaler 1080×1920 `Shrink` (= FIT), LegacyRuntime fontu, pencereler (kazanma, hamle bitti, mola). `UiTarget : ITweenTarget` | Q1 |
 | `UnityConvert.cs` | `DesignSpace` (tasarım px, y aşağı ↔ dünya birimi, 100 px = 1 birim) ve `UnityConvert` (`Rgba` ↔ `Color`) | Q1 |
+| `UnitySpark.cs`, `UnityUiSpark.cs` | `ISpark`: havuzlu sprite parçacığı (atlas karosu: kıvılcım, toz, yıldız, sikke, konfeti, halka); kazanma yıldızı patlaması uGUI üzerinde (üst katman tuvali sprite'ların üstünde çizilir) | Q2 |
+| `UnityTruckView.cs` | `IPropView`: `TruckModel.Parts` → SpriteRenderer'lar (sıra 90–98, bloklardan arkada) | Q2 |
+| `OffsetTarget.cs` | Bir Transform'un tasarım px ofseti (kamera titreşimi, şantiye katmanı kayması) | Q2 |
+| `PressableButton.cs` | uGUI düğmesine `IPointerDown/Up/ExitHandler` ile `PressFeel` (0,94 / 1,04 → 1,0 Back.easeOut, JUICE #69) | Q2 |
 | `ProceduralSprites.cs` | `Art/Atlas` piksellerini açılışta bir kez tek `Texture2D`'ye kopyalar; her sprite onun dilimi (tek malzeme) | Q1 |
 | `Scenes/Level.unity` (+ `.meta`) | Elle yazılmış Unity 6 YAML. Yalnız ortografik Main Camera: arka plan `#1F1850`, boyut 9,6 (= 1920 / 2 / 100). GUID `a7cea9e5c5164f70b12f92c99359b9a4` | Q1 |
 | `Editor/CiBuild.cs` (asmdef `MinikUsta.Editor`, yalnız Editor) | GameCI `BuildWebGL` / `BuildAndroid`; WebGL sıkıştırması kapalı | Q1 (CI) |
@@ -219,8 +247,8 @@ Durum anlamı: **Q0 / Q1** taşındı · **kısmen** bazı satırlar taşındı 
 | Web dosyası | C# karşılığı | Durum | Not |
 | --- | --- | --- | --- |
 | `LevelScene.ts` | `Game/LevelPlayer.cs` | Q1 | Oturum, girdi akışı, pencere kararları; +5 teklifi ve çıkış penceresi yok |
-| `EventPlayer.ts` | `Game/StepRunner.cs` | Q1 kısmen | `runCue` ve tween adımları; ses, parçacık, titreşim adımları Q2 |
-| `juice/handlers.ts` | `Game/StepRunner.cs` | Q1 kısmen | P0 satırları (tween); parçacık, ses, titreşim satırları Q2 |
+| `EventPlayer.ts` | `Game/StepRunner.cs`, `Game/StepRunner.Fx.cs` | Q1 + **Q2** | `runCue` ve tween adımları; Q2: parçacık, kamera sarsıntısı, titreşim, kamyon, seri, Bonus İnşaat; ses Q2+ |
+| `juice/handlers.ts` | `Game/StepRunner.cs`, `Game/StepRunner.Fx.cs` | Q1 + **Q2** | P0 satırları (tween) + Q2 satırları (#9, #11, #12, #13, #15, #16, #18, #19, #44, #55, #56, #96, #107, #42: parçacık, sarsıntı, titreşim); ses yok |
 | `juice/stage.ts` | `Game/Views.cs` (`ILevelView`, `IPieceVisual`, `IFlyer`) | Q1 | Arayüz karşılığı |
 | `juice/plan.ts` | `Animation/AnimationPlanner.cs` | Q0 | 43 olay türü, K-35 |
 | `juice/playback.ts` | `Animation/AnimationQueue.cs` | Q0 | |
@@ -244,12 +272,12 @@ Durum anlamı: **Q0 / Q1** taşındı · **kısmen** bazı satırlar taşındı 
 | `theme/textures.ts` | `Art/Atlas.cs` | Q1 | Prosedürel doku |
 | `LevelWindows.ts` | `Game/LevelPlayer.cs`, `Unity/UnityHud.cs` | Q1 kısmen | Kazanma, hamle bitti, mola. +5 teklifi, çıkış onayı, Söküm ve kayıp penceresi Q2+ |
 | `Trail.ts` | — | Q2 | İz (JUICE #3, #6, #10) |
-| `ParticleLayer.ts`, `juice/particles.ts` | — | Q2 | Havuzlu sprite parçacıkları; ParticleSystem kullanılmaz |
+| `ParticleLayer.ts`, `juice/particles.ts` | `Game/Particles.cs` (`ParticleField`), `Unity/UnitySpark.cs`, `Unity/UnityUiSpark.cs` | **Q2** | Havuzlu sprite parçacıkları, kapalı biçimli hareket (tween yok), tohumlu dağılım, ekranda ≤ 120 / patlama ≤ 40 (en eski patlama önce biter), azaltılmış hareket ≤ %20; ParticleSystem kullanılmaz |
 | `juice/fx.ts` | — | Q2 | Genel zaman animasyonu çalıştırıcısı. Q1 efektleri StepRunner'da Tween ile |
-| `Truck.ts` | — | Q2 | Kamyon çizimi. Kamyon düşüş adımları (#19) Q1'de var |
+| `Truck.ts` | `Game/TruckModel.cs`, `Unity/UnityTruckView.cs` | **Q2** | Yer tutucu kamyon (yuvarlatılmış kutular + tekerlekler); sağdan girer, kasası kalkar, bloklar düşer, sola çıkar (700 ms) |
 | `TrowelPicker.ts` | — | Q2+ | Güçlendirici hedef seçimi; Q1'de güçlendiriciler devre dışı |
 | `TutorialView.ts`, `tutorial/TutorialController.ts`, `TutorialPresence.ts`, `contextTips.ts`, `glove.ts`, `highlights.ts`, `tutorialEvents.ts` | — | Q2+ | Öğretici (K-53); kapsam kararı bekliyor |
-| `sceneServices.ts` | — | Q2 | Ses ve titreşim servisleri |
+| `sceneServices.ts` | `Game/Haptics.cs` (`HapticRouter`, `FixedPulseHaptics`), `Unity/GameRunner.cs` | **Q2** kısmen | Titreşim: `Handheld.Vibrate()` yalnız Android'de; ses Q2+ |
 | `frameImage.ts` | — | kapsam dışı | Phaser kare yardımcısı; Unity'de Sprite pivotu |
 
 #### Veri yolları (Q3 denetimi)

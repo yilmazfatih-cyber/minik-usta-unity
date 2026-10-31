@@ -273,6 +273,12 @@ namespace UnityEngine
         public static bool isEditor => false;
     }
 
+    /// <summary>Handheld.Vibrate() — Unity: `public static extern void Vibrate()`, UnityCsReference 6000.0 Runtime/Export/Handheld/Handheld.bindings.cs.</summary>
+    public class Handheld
+    {
+        public static void Vibrate() { }
+    }
+
     public class Debug
     {
         public static bool isDebugBuild => false;
@@ -597,6 +603,38 @@ namespace UnityEngine.EventSystems
 
     public abstract class BaseRaycaster : UIBehaviour
     {
+    }
+
+    // com.unity.ugui 2.0 Runtime/EventSystem/EventInterfaces.cs, EventData/*.cs
+    public abstract class AbstractEventData
+    {
+    }
+
+    public class BaseEventData : AbstractEventData
+    {
+    }
+
+    public class PointerEventData : BaseEventData
+    {
+    }
+
+    public interface IEventSystemHandler
+    {
+    }
+
+    public interface IPointerExitHandler : IEventSystemHandler
+    {
+        void OnPointerExit(PointerEventData eventData);
+    }
+
+    public interface IPointerDownHandler : IEventSystemHandler
+    {
+        void OnPointerDown(PointerEventData eventData);
+    }
+
+    public interface IPointerUpHandler : IEventSystemHandler
+    {
+        void OnPointerUp(PointerEventData eventData);
     }
 }
 

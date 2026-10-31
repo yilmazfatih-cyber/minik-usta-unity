@@ -6,6 +6,7 @@ using System;
 using System.Collections.Generic;
 using MinikUsta.Core;
 using MinikUsta.Presentation.Art;
+using MinikUsta.Presentation.Feel;
 using MinikUsta.Presentation.Game;
 using MinikUsta.Presentation.Layout;
 using MinikUsta.Presentation.Tweening;
@@ -24,8 +25,11 @@ namespace MinikUsta.Unity
         private readonly Transform pieceRoot;
         private readonly Stack<UnityPieceVisual> piecePool = new Stack<UnityPieceVisual>();
         private readonly Stack<UnityFlyer> flyerPool = new Stack<UnityFlyer>();
+        private readonly Stack<UnitySpark> sparkPool = new Stack<UnitySpark>();
+        private readonly Transform sparkRoot;
+        private readonly UnityTruckView truck;
 
-        public UnityLevelView(Camera camera, Action onPause, LayoutSettings settings)
+        public UnityLevelView(Camera camera, Action onPause, LayoutSettings settings, FeelSettings feel)
         {
             this.camera = camera;
             ProceduralSprites.Build();
@@ -36,13 +40,17 @@ namespace MinikUsta.Unity
             pieceRoot.SetParent(world, false);
             var shadowRoot = new GameObject("Shadow").transform;
             shadowRoot.SetParent(world, false);
+            sparkRoot = new GameObject("Particles").transform;
+            sparkRoot.SetParent(world, false);
             board = new UnityBoardView(space, boardRoot);
             shadow = new UnityShadowView(space, shadowRoot);
-            hud = new UnityHud(onPause, settings);
+            truck = new UnityTruckView(space, world);
+            hud = new UnityHud(onPause, settings, feel);
             camera.orthographic = true;
             camera.clearFlags = CameraClearFlags.SolidColor;
             camera.backgroundColor = UnityConvert.ToColor(Rgba.Hex(Palette.GameBottom));
             camera.transform.position = new Vector3(0f, 0f, -10f);
+            CameraRig = new OffsetTarget(camera.transform);
         }
 
         public void SetViewport(DesignViewport viewport, ScreenLayout layout)
@@ -97,5 +105,46 @@ namespace MinikUsta.Unity
         public void ShowPanel(PanelModel? panel, Action<PanelAction> onAction) => hud.ShowPanel(panel, onAction);
 
         public ITweenTarget PanelTarget => hud.PanelTarget;
+
+        // --- Q2 --------------------------------------------------------------------------------------------------------------------
+
+        public ISpark AcquireSpark(SparkKind kind, Rgba color, double sizePx)
+        {
+            // the win star burst must show above the window: uGUI particles (the overlay canvas draws over every sprite)
+            if (kind == SparkKind.Star || kind == SparkKind.Ring) return hud.AcquireWindowSpark(kind, color, sizePx);
+            var s = sparkPool.Count > 0 ? sparkPool.Pop() : new UnitySpark(space, sparkRoot);
+            s.Configure(kind, color, sizePx);
+            return s;
+        }
+
+        public void ReleaseSpark(ISpark spark)
+        {
+            if (spark is UnityUiSpark ui)
+            {
+                hud.ReleaseWindowSpark(ui);
+                return;
+            }
+            var s = (UnitySpark)spark;
+            s.Visible = false;
+            sparkPool.Push(s);
+        }
+
+        public ITweenTarget CameraRig { get; }
+
+        public ITweenTarget SiteLayer => board.SiteLayer;
+
+        public IPropView Truck => truck;
+
+        public void SetStreak(int beads, int trowels, string label, string trowelText) => hud.SetStreak(beads, trowels, label, trowelText);
+
+        public ITweenTarget StreakBead(int index) => hud.StreakBead(index);
+
+        public ITweenTarget TrowelIcon => hud.TrowelIcon;
+
+        public void SetGold(int gold) => hud.SetGold(gold);
+
+        public ITweenTarget GoldChip => hud.GoldChip;
+
+        public ITweenTarget StarTarget => hud.StarTarget;
     }
 }

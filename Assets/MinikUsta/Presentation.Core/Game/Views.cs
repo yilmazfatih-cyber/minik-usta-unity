@@ -4,6 +4,7 @@
 // plain fields. Nothing here decides a rule: the views only show what `LevelPlayer` hands them.
 using System;
 using MinikUsta.Core;
+using MinikUsta.Presentation.Art;
 using MinikUsta.Presentation.Layout;
 using MinikUsta.Presentation.Tweening;
 
@@ -29,6 +30,52 @@ namespace MinikUsta.Presentation.Game
         float Hop { get; set; }
         /// <summary>Colour (K-38 brush, W6 paint gate) and state look: `dim` = not holdable (K-09, blockV2.notHoldableTint).</summary>
         void SetLook(int colorIndex, bool dim);
+
+        /// <summary>Q2: a factor on top of `Scale` (1 = rest); the #12 grow-and-lock pulse runs on it so it does not fight the #11 squash.</summary>
+        float Grow { get; set; }
+
+        /// <summary>Q2: number of cells (= the shape's cell count; cell `i` is `ShapeDef.Cells[i]`).</summary>
+        int CellCount { get; }
+
+        /// <summary>
+        /// Q2 (JUICE #11 stagger): squashes cell `cell` alone, about the bottom centre of the block box so the block keeps its
+        /// footing. (1, 1) = rest. `Scale` and `Grow` still apply to the whole block.
+        /// </summary>
+        void SetCellScale(int cell, float sx, float sy);
+
+        /// <summary>Every cell back to rest (1, 1).</summary>
+        void ResetCells();
+    }
+
+    public enum SparkKind
+    {
+        /// <summary>Four-point sparkle (JUICE fx_spark): placement sparks, gold sparks.</summary>
+        Spark,
+        /// <summary>Soft dust puff (fx_dust).</summary>
+        Dust,
+        /// <summary>Five-point star (JUICE #96).</summary>
+        Star,
+        /// <summary>Bonus İnşaat coin (JUICE #56).</summary>
+        Coin,
+        /// <summary>Confetti piece (JUICE #18, #55): a small rectangle.</summary>
+        Confetti,
+        /// <summary>Ring outline (JUICE #96 white ring).</summary>
+        Ring,
+    }
+
+    /// <summary>A pooled sprite particle (D-096: no ParticleSystem; the field in `ParticleField` moves it).</summary>
+    public interface ISpark : ITweenTarget
+    {
+        bool Visible { get; set; }
+    }
+
+    /// <summary>A scenery prop above the board (the delivery truck): shown / hidden, placed by `Position` (its centre), turned by `Rotation`.</summary>
+    public interface IPropView : ITweenTarget
+    {
+        bool Visible { get; set; }
+
+        /// <summary>The cell size (design px) the prop is drawn for: `TruckModel` sizes are in cells.</summary>
+        double CellPx { get; set; }
     }
 
     /// <summary>A small icon flying to a HUD chip (D-091 blocks-left chip flight).</summary>
@@ -75,13 +122,16 @@ namespace MinikUsta.Presentation.Game
         public readonly string Title;
         public readonly string Body;
         public readonly PanelButton[] Buttons;
+        /// <summary>Q2 (META §1): a first win shows the level star on the window (JUICE #96 star burst).</summary>
+        public readonly bool Star;
 
-        public PanelModel(PanelKind kind, string title, string body, PanelButton[] buttons)
+        public PanelModel(PanelKind kind, string title, string body, PanelButton[] buttons, bool star = false)
         {
             Kind = kind;
             Title = title;
             Body = body;
             Buttons = buttons;
+            Star = star;
         }
     }
 
@@ -116,5 +166,38 @@ namespace MinikUsta.Presentation.Game
 
         /// <summary>The open window (JUICE #70 pop: scale).</summary>
         ITweenTarget PanelTarget { get; }
+
+        // --- Q2 additions -----------------------------------------------------------------------------------------------
+
+        /// <summary>A sprite particle of `kind`, `color` and `sizePx` (a pooled sprite; hidden until `Visible` is set).</summary>
+        ISpark AcquireSpark(SparkKind kind, Rgba color, double sizePx);
+
+        void ReleaseSpark(ISpark spark);
+
+        /// <summary>The camera offset (design px, y down) the shakes move; the HUD canvas does not shake.</summary>
+        ITweenTarget CameraRig { get; }
+
+        /// <summary>The site layer of the board (blueprint, plan, platform): `Position` is its offset (the #18 slide).</summary>
+        ITweenTarget SiteLayer { get; }
+
+        /// <summary>The delivery truck (JUICE #19).</summary>
+        IPropView Truck { get; }
+
+        /// <summary>The streak capsule (UX §5.1 status strip): `beads` of 4 filled, `trowels` Golden Trowels held (`trowelText` = "×n"), `label` = "Usta Serisi".</summary>
+        void SetStreak(int beads, int trowels, string label, string trowelText);
+
+        /// <summary>Bead `i` (0 … 3) of the streak capsule: `Scale` pops (JUICE #15).</summary>
+        ITweenTarget StreakBead(int index);
+
+        /// <summary>The Golden Trowel icon of the streak capsule (JUICE #16: pop and spin).</summary>
+        ITweenTarget TrowelIcon { get; }
+
+        /// <summary>The gold chip (JUICE #56 coins fly there); `gold` &lt; 0 hides it.</summary>
+        void SetGold(int gold);
+
+        ITweenTarget GoldChip { get; }
+
+        /// <summary>The level star on the open window (JUICE #96 central star: 0 → 1,2 → 1).</summary>
+        ITweenTarget StarTarget { get; }
     }
 }

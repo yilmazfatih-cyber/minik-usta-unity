@@ -5,6 +5,7 @@
 using System;
 using System.Collections.Generic;
 using MinikUsta.Core;
+using MinikUsta.Presentation.Feel;
 using MinikUsta.Presentation.Game;
 using MinikUsta.Presentation.Input;
 using MinikUsta.Presentation.Text;
@@ -20,9 +21,9 @@ namespace MinikUsta.Presentation.Tests.Fixtures
         public readonly List<GameEvent> Events = new List<GameEvent>();
         public int FastForwardedPresses;
 
-        public Rig(double screenW = 1080, double screenH = 1920, Func<int, string?>? read = null)
+        public Rig(double screenW = 1080, double screenH = 1920, Func<int, string?>? read = null, IHapticSink? haptics = null, FeelSettings? feel = null)
         {
-            Player = new LevelPlayer(View, new LevelCatalog(read ?? ReadLevel), Tr());
+            Player = new LevelPlayer(View, new LevelCatalog(read ?? ReadLevel), Tr(), feel, null, haptics, new EconomyInfo());
             Player.SetScreen(screenW, screenH);
         }
 

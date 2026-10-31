@@ -20,6 +20,11 @@ namespace MinikUsta.Unity
             public SpriteRenderer GlossSr = null!;
             public SpriteRenderer SymbolSr = null!;
             public SpriteRenderer ShadowSr = null!;
+            /// <summary>Centre of the cell in the piece's local frame (world units, y up).</summary>
+            public Vector3 Local;
+            /// <summary>Q2 per-cell squash (1, 1 = rest), about the bottom centre of the block box.</summary>
+            public float Sx = 1f;
+            public float Sy = 1f;
         }
 
         /// <summary>blockV2.symbolSizeRatio: the symbol box is 0,42 c.</summary>
@@ -30,6 +35,11 @@ namespace MinikUsta.Unity
         private readonly Transform tr;
         private readonly List<CellParts> parts = new List<CellParts>();
         private int used;
+        /// <summary>Cell edge (world units) and the local y of the block box's bottom edge (the squash origin).</summary>
+        private float unit = 1f;
+        private float bottomY;
+        private bool cellsDirty;
+        private float grow = 1f;
         private int colorIndex;
         private bool dim;
         private Vec2 position;
@@ -62,7 +72,8 @@ namespace MinikUsta.Unity
             dim = false;
             used = shape.Cells.Length;
             while (parts.Count < used) parts.Add(NewCell());
-            float unit = DesignSpace.Units(cellPx);
+            unit = DesignSpace.Units(cellPx);
+            bottomY = -shape.H * unit / 2f;
             for (int i = 0; i < parts.Count; i++)
             {
                 var p = parts[i];
@@ -74,15 +85,16 @@ namespace MinikUsta.Unity
                 if (!on) continue;
                 var c = shape.Cells[i];
                 var o = BoardPose.CellOffset(shape, c, cellPx);
-                var local = new Vector3(DesignSpace.Units(o.X), -DesignSpace.Units(o.Y), 0f);
+                p.Local = new Vector3(DesignSpace.Units(o.X), -DesignSpace.Units(o.Y), 0f);
+                p.Sx = 1f;
+                p.Sy = 1f;
                 p.BodySr.sprite = ProceduralSprites.Get(Atlas.Body(BoardPose.NeighbourMask(shape, c)));
-                Place(p.BodySr.transform, local, unit);
-                Place(p.GlossSr.transform, local, unit);
-                Place(p.SymbolSr.transform, local, unit * SymbolRatio);
                 p.SymbolSr.sprite = ProceduralSprites.Get(Atlas.Symbol(color));
                 p.ShadowSr.sprite = p.BodySr.sprite;
-                Place(p.ShadowSr.transform, local + new Vector3(0f, -DesignSpace.Units(Palette.LiftedShadowY), 0f), unit);
+                PlaceCell(p);
             }
+            cellsDirty = false;
+            grow = 1f;
             position = Vec2.Zero;
             scale = Vec2.One;
             rotation = 0;
@@ -99,10 +111,21 @@ namespace MinikUsta.Unity
             ApplyOrder();
         }
 
-        private static void Place(Transform t, Vector3 local, float size)
+        private static void Place(Transform t, Vector3 local, float sizeX, float sizeY)
         {
             t.localPosition = local;
-            t.localScale = new Vector3(size, size, 1f);
+            t.localScale = new Vector3(sizeX, sizeY, 1f);
+        }
+
+        /// <summary>Writes the four sprites of a cell: at rest the cell's own place and size, squashed about the bottom centre of the block box (Q2 landing wave).</summary>
+        private void PlaceCell(CellParts p)
+        {
+            float sx = p.Sx, sy = p.Sy;
+            var pos = new Vector3(p.Local.x * sx, bottomY + (p.Local.y - bottomY) * sy, 0f);
+            Place(p.BodySr.transform, pos, unit * sx, unit * sy);
+            Place(p.GlossSr.transform, pos, unit * sx, unit * sy);
+            Place(p.SymbolSr.transform, pos, unit * SymbolRatio * sx, unit * SymbolRatio * sy);
+            Place(p.ShadowSr.transform, pos + new Vector3(0f, -DesignSpace.Units(Palette.LiftedShadowY) * sy, 0f), unit * sx, unit * sy);
         }
 
         private CellParts NewCell()
@@ -149,6 +172,41 @@ namespace MinikUsta.Unity
             {
                 scale = value;
                 ApplyTransform();
+            }
+        }
+
+        public float Grow
+        {
+            get => grow;
+            set
+            {
+                grow = value;
+                ApplyTransform();
+            }
+        }
+
+        public int CellCount => used;
+
+        public void SetCellScale(int cell, float sx, float sy)
+        {
+            if (cell < 0 || cell >= used) return;
+            var p = parts[cell];
+            p.Sx = sx;
+            p.Sy = sy;
+            cellsDirty = true;
+            PlaceCell(p);
+        }
+
+        public void ResetCells()
+        {
+            if (!cellsDirty) return;
+            cellsDirty = false;
+            for (int i = 0; i < used; i++)
+            {
+                var p = parts[i];
+                p.Sx = 1f;
+                p.Sy = 1f;
+                PlaceCell(p);
             }
         }
 
@@ -251,7 +309,7 @@ namespace MinikUsta.Unity
         private void ApplyTransform()
         {
             tr.localPosition = space.World(position.X, position.Y - hop);
-            tr.localScale = new Vector3(scale.X, scale.Y, 1f);
+            tr.localScale = new Vector3(scale.X * grow, scale.Y * grow, 1f);
             tr.localRotation = Quaternion.Euler(0f, 0f, rotation);
         }
 

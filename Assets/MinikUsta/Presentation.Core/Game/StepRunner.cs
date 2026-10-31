@@ -4,16 +4,23 @@
 // haptics yet). The state is already final when a step runs (TECH §1.4); intermediate poses come from the step's event
 // (K-35 order), the final pose from the state at `End`. Board motions carry `LevelPlayer.BoardTag` so a grab can finish
 // them (R-12); `instant` steps (fast-forward, flush) complete at once, after the running board motions completed.
+//
+// Faz 3 Q2 adds the game-feel layer on top of the same rows (the D-091 list): grow-and-lock pulse and sprite sparks on a
+// correct placement, landing dust and the cell-by-cell landing wave, streak beads and the trowel pop, the delivery truck and
+// the site slide, confetti, camera shakes, Söküm dust, Bonus İnşaat coins and the win star. The helpers of that layer are in
+// StepRunner.Fx.cs.
 using System;
+using System.Collections.Generic;
 using MinikUsta.Core;
 using MinikUsta.Presentation.Animation;
+using MinikUsta.Presentation.Art;
 using MinikUsta.Presentation.Feel;
 using MinikUsta.Presentation.Tweening;
 using static MinikUsta.Core.State;
 
 namespace MinikUsta.Presentation.Game
 {
-    internal sealed class StepRunner
+    internal sealed partial class StepRunner
     {
         private readonly LevelPlayer p;
 
@@ -54,10 +61,12 @@ namespace MinikUsta.Presentation.Game
                         var v = Piece(e.PieceId);
                         if (v == null) return;
                         var shape = BoardPose.ShapeOf(s, e.PieceId);
+                        var to = BoardPose.Center(g, e.To, shape);
                         v.Lifted = false;
-                        Play(Tweens.Move(v, BoardPose.Center(g, e.To, shape), step.Ms, step.Ease), time, instant, true);
-                        Play(Tweens.Scale(v, 1f, step.Ms, step.Ease), time, instant, true);
+                        Play(Tweens.Move(v, to, step.Ms, step.Ease), time, instant, true);
+                        Play(Tweens.Scale(v, 1f, step.Ms, ReleaseEase(step.Ease)), time, instant, true);
                         if (!p.Reduced) Play(Squash(v, 1f, F.YardDropSquashY, step.Ms, step.Ease).SetDelay(step.Ms), time, instant, true);
+                        DustAfter(step.Ms, Bottom(to, shape, c), F.ParticleDustYard, time, instant);
                         return;
                     }
                 case StepKind.RailClamp:
@@ -78,16 +87,18 @@ namespace MinikUsta.Presentation.Game
                         v.Lifted = false;
                         var to = BoardPose.Center(g, e.To, BoardPose.ShapeOf(s, e.PieceId));
                         Play(Tweens.Move(v, to, step.Ms).SetCurve(FallMotion.ReleaseFallCurve(e.Rows, session.Lvl.Gravity.Build, F)), time, instant, true);
-                        Play(Tweens.Scale(v, 1f, Math.Min(step.Ms, F.YardDropMs), EaseType.OutQuad), time, instant, true);
+                        Play(Tweens.Scale(v, 1f, Math.Min(step.Ms, F.YardDropMs), ReleaseEase(EaseType.OutQuad)), time, instant, true);
                         return;
                     }
                 case StepKind.Landing:
                     {
                         var v = Piece(step.PieceId);
                         if (v == null) return;
+                        var shape = BoardPose.ShapeOf(s, step.PieceId);
                         float sx = p.Reduced ? F.ReducedScaleMax : F.LandSquashX;
                         float sy = p.Reduced ? 2 - sx : F.LandSquashY;
-                        Play(Squash(v, sx, sy, step.Ms, step.Ease), time, instant, true);
+                        Play(LandSquash(v, shape, sx, sy, step.Ms, step.Ease), time, instant, true);
+                        p.Particles.Dust(Bottom(v.Position, shape, c), F.ParticleLand);
                         return;
                     }
                 case StepKind.YardFall:
@@ -95,13 +106,15 @@ namespace MinikUsta.Presentation.Game
                         if (!(step.Event is PieceFellEvent e)) return;
                         var v = Piece(e.PieceId);
                         if (v == null) return;
-                        var to = BoardPose.Center(g, e.To, BoardPose.ShapeOf(s, e.PieceId));
+                        var shape = BoardPose.ShapeOf(s, e.PieceId);
+                        var to = BoardPose.Center(g, e.To, shape);
                         Play(Tweens.Move(v, to, step.Ms).SetCurve(FallMotion.YardFallLeg(e.Rows, F).Progress), time, instant, true);
                         if (!p.Reduced)
                         {
                             float sx = 1 + (F.LandSquashX - 1) / 2;
-                            Play(Squash(v, sx, 2 - sx, F.LandMs, F.LandEase).SetDelay(step.Ms), time, instant, true);
+                            Play(LandSquash(v, shape, sx, 2 - sx, F.LandMs, F.LandEase).SetDelay(step.Ms), time, instant, true);
                         }
+                        DustAfter(step.Ms, Bottom(to, shape, c), F.ParticleDustCascade, time, instant);
                         return;
                     }
                 case StepKind.BalloonGlide:
@@ -128,6 +141,9 @@ namespace MinikUsta.Presentation.Game
                         var v = Piece(step.PieceId);
                         if (v == null) return;
                         Play(FlashPulse(v, F.PlaceFlashPeak, step.Ms), time, instant, true);
+                        // Q2 (4): grow 1,0 → 1,2 and shrink into the lock, with a burst of sprite sparks in the block's colour
+                        Play(GrowPulse(v, p.Reduced ? F.ReducedScaleMax : F.PlacePulsePeak, F.PlacePulseMs, F.PlacePulseSplit, F.PlacePulseEase), time, instant, true);
+                        p.Particles.Sparks(v.Position, Palette.Block(PieceColor(s, step.PieceId)), F.ParticlePlaceOk);
                         return;
                     }
                 case StepKind.BlocksChipFly:
@@ -164,6 +180,7 @@ namespace MinikUsta.Presentation.Game
                         if (v == null) return;
                         v.Raised = true;
                         Play(Pulse01(x => v.Tint = x, F.WrongTintAlpha, F.WrongTintMs), time, instant, true);
+                        p.Buzz(HapticKind.DoubleLight);
                         if (step.Flag || !e.To.HasValue) return; // into the truck queue: #88
                         var to = e.To.Value;
                         var shape = BoardPose.ShapeOf(s, e.PieceId);
@@ -175,6 +192,8 @@ namespace MinikUsta.Presentation.Game
                         if (shake > 0) seq.Append(Tweens.Shake(v, new Vec2(F.WrongShakePx, 0), F.WrongShakeCycles, shake, F.WrongShakeEase));
                         seq.Append(Tweens.Move(v, BoardPose.Center(g, to.X, to.Y + rows, shape), flight, F.BounceEase, p.Reduced ? 0 : F.BounceArcCells * c));
                         if (fall > 0) seq.Append(Tweens.Move(v, BoardPose.Center(g, to.X, to.Y, shape), fall).SetCurve(FallMotion.YardFallLeg(rows, F).Progress));
+                        var rest = Bottom(BoardPose.Center(g, to.X, to.Y, shape), shape, c);
+                        seq.AppendCallback(() => p.Particles.Dust(rest, F.ParticleDustBounce)); // JUICE #13: 3 small grey dust puffs where it comes to rest
                         Play(seq, time, instant, true);
                         return;
                     }
@@ -260,8 +279,19 @@ namespace MinikUsta.Presentation.Game
                     {
                         var v = Piece(step.PieceId);
                         if (v != null) Play(FlashPulse(v, F.PlaceFlashPeak, step.Ms), time, instant, true);
+                        p.CameraShake(F.GlassShakePx); // JUICE #42: the screen shakes 2 px
+                        p.Buzz(HapticKind.Medium);
                         return;
                     }
+                case StepKind.StreakPip:
+                    StreakPip(step, L, time, instant);
+                    return;
+                case StepKind.TrowelEarned:
+                    TrowelEarned(step, L, time, instant);
+                    return;
+                case StepKind.StreakReset:
+                    StreakReset(step, time, instant);
+                    return;
                 case StepKind.MovesTick:
                 case StepKind.MovesAdded:
                     {
@@ -305,9 +335,20 @@ namespace MinikUsta.Presentation.Game
                             seq.Insert(slideStart, Tweens.Scale(v, 0.25f, slideMs, step.Ease));
                             seq.Insert(slideStart + slideMs * 0.7f, Tweens.Fade(v, 0f, slideMs * 0.3f));
                         }
-                        if (step.Flag) seq.InsertCallback(slideStart, () => p.RebuildBoard());
+                        if (step.Flag)
+                        {
+                            seq.InsertCallback(slideStart, () => p.RebuildBoard());
+                            // JUICE #18 "sıradaki dilim ekranın sağ kenarından girer": the new site slides in over the board's right edge
+                            if (!p.Reduced) seq.Insert(slideStart, SiteSlideIn(L, slideMs, step.Ease));
+                        }
                         seq.AppendInterval(Math.Max(0, step.Ms - seq.Duration));
                         Play(seq, time, instant, true);
+                        // Q2 (6, 12): a burst of confetti in the segment's colours, a light camera shake, a strong buzz
+                        var site = L.Board.Site;
+                        p.Particles.Confetti(new Vec2((float)site.CenterX, (float)site.Y - 40f), (float)site.W + 160f, F.ParticleSegment, SegmentPalette(s, e.Seg),
+                            F.ConfettiSegmentLifeMs, (float)site.H * 0.9f);
+                        p.CameraShake(F.SegmentShakePx);
+                        p.Buzz(HapticKind.Heavy);
                         return;
                     }
                 case StepKind.TruckDelivery:
@@ -325,9 +366,13 @@ namespace MinikUsta.Presentation.Game
                             v.Visible = false;
                             Func<float, float> curve = fromChip ? (Func<float, float>)(u => (float)Easing.Evaluate(F.BounceToQueueEase, u)) : FallMotion.YardFallLeg(d.Rows, F).Progress;
                             seq.Insert(d.Delay, DropFromTo(v, from, to, d.Ms, curve, fromChip ? F.QueueShrink : 1f));
-                            if (!fromChip && !p.Reduced) seq.Insert(d.Delay + d.Ms, Squash(v, 1 + (F.LandSquashX - 1) / 2, 2 - (1 + (F.LandSquashX - 1) / 2), F.LandMs, F.LandEase));
+                            if (!fromChip && !p.Reduced) seq.Insert(d.Delay + d.Ms, LandSquash(v, shape, 1 + (F.LandSquashX - 1) / 2, 2 - (1 + (F.LandSquashX - 1) / 2), F.LandMs, F.LandEase));
+                            var landed = Bottom(to, shape, c);
+                            int dust = fromChip ? F.ParticleDustCascade : F.ParticleDustBlock; // JUICE #19: 4 dust per block
+                            seq.InsertCallback(d.Delay + d.Ms, () => p.Particles.Dust(landed, dust));
                         }
                         if (fromChip) seq.Insert(0, Tweens.Pop(p.View.BlocksChip, 1f, F.QueueChipPeak, 1f, F.QueueChipMs));
+                        else TruckRide(seq, step, L, s);
                         Play(seq, time, instant, true);
                         return;
                     }
@@ -339,26 +384,14 @@ namespace MinikUsta.Presentation.Game
                             if (PieceZone(s, id) != Zone.Site) continue;
                             seq.Insert(0, FlashPulse(p.Pieces.Get(id)!, F.PlaceFlashPeak, F.WinGlowMs));
                         }
+                        WinFx(seq, L);
                         seq.AppendInterval(Math.Max(0, step.Ms - seq.Duration));
                         Play(seq, time, instant, true);
                         return;
                     }
                 case StepKind.BonusBuild:
-                    {
-                        // JUICE #56 Bonus İnşaat: the left-over moves count down on the plate, one by one
-                        int n = step.N ?? 0;
-                        if (n <= 0) return;
-                        int shown = n;
-                        var t = new Tween(step.Ms, (u, k) =>
-                        {
-                            int now = u >= 1 ? 0 : n - (int)Math.Floor(u * n);
-                            if (now == shown) return;
-                            shown = now;
-                            p.ShowMoves(now, danger: false);
-                        }, null, EaseType.Linear);
-                        Play(t, time, instant, false);
-                        return;
-                    }
+                    BonusBuild(step, L, time, instant);
+                    return;
                 case StepKind.Teardown:
                     {
                         if (!(step.Event is TeardownEvent e)) return;
@@ -369,8 +402,16 @@ namespace MinikUsta.Presentation.Game
                             var v = p.Pieces.Get(id);
                             if (v == null) continue;
                             float at = F.TeardownSettleMs + i * F.TeardownStaggerMs;
+                            var shape = BoardPose.ShapeOf(s, id);
                             if (BoardPose.RestAnchor(s, id, out int ax, out int ay))
-                                seq.Insert(at, Tweens.Move(v, BoardPose.Center(g, ax, ay, BoardPose.ShapeOf(s, id)), F.TeardownMs, step.Ease, p.Reduced ? 0 : F.TeardownArcCells * c));
+                            {
+                                var home = BoardPose.Center(g, ax, ay, shape);
+                                seq.Insert(at, Tweens.Move(v, home, F.TeardownMs, step.Ease, p.Reduced ? 0 : F.TeardownArcCells * c));
+                                // JUICE #107 "inişte toz" (4 per block) — and a puff where it leaves the site
+                                var landed = Bottom(home, shape, c);
+                                seq.InsertCallback(at, () => p.Particles.Dust(Bottom(v.Position, shape, c), F.ParticleDustBlock));
+                                seq.InsertCallback(at + F.TeardownMs, () => p.Particles.Dust(landed, F.ParticleDustBlock));
+                            }
                             else seq.Insert(at, Tweens.Fade(v, 0f, F.TeardownMs));
                         }
                         seq.AppendInterval(Math.Max(0, step.Ms - seq.Duration));

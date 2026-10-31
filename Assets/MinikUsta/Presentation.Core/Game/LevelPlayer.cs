@@ -17,6 +17,7 @@ using System.Collections.Generic;
 using MinikUsta.Core;
 using MinikUsta.Core.Level;
 using MinikUsta.Presentation.Animation;
+using MinikUsta.Presentation.Art;
 using MinikUsta.Presentation.Feel;
 using MinikUsta.Presentation.Input;
 using MinikUsta.Presentation.Layout;
@@ -37,18 +38,27 @@ namespace MinikUsta.Presentation.Game
         private readonly StepRunner runner;
         private readonly HashSet<IFlyer> flyers = new HashSet<IFlyer>();
         private readonly List<IFlyer> flyerScratch = new List<IFlyer>();
+        private readonly HashSet<ISpark> coins = new HashSet<ISpark>();
+        private readonly List<ISpark> coinScratch = new List<ISpark>();
+        private readonly HashSet<int> wonLevels = new HashSet<int>();
+        private PanelModel? pendingPanel;
+        private bool reduced;
         private double screenW = 1080;
         private double screenH = 1920;
         private int lastShadowPiece = -1;
         private string? lastShadowKey;
 
-        public LevelPlayer(ILevelView view, LevelCatalog catalog, Strings strings, FeelSettings? feel = null, LayoutSettings? layout = null)
+        public LevelPlayer(ILevelView view, LevelCatalog catalog, Strings strings, FeelSettings? feel = null, LayoutSettings? layout = null,
+            IHapticSink? haptics = null, EconomyInfo? economy = null)
         {
             View = view ?? throw new ArgumentNullException(nameof(view));
             this.catalog = catalog ?? throw new ArgumentNullException(nameof(catalog));
             Text = strings ?? Strings.Empty;
             Feel = feel ?? new FeelSettings();
             LayoutSettings = layout ?? new LayoutSettings();
+            Economy = economy ?? new EconomyInfo();
+            Haptics = new HapticRouter(haptics);
+            Particles = new ParticleField(view, Feel);
             runner = new StepRunner(this);
             Queue = new AnimationQueue((step, time, instant) => runner.Run(step, time, instant), Feel.LockSpeedUp);
             Mapper = new DragMapper(Feel);
@@ -65,6 +75,11 @@ namespace MinikUsta.Presentation.Game
         public DragMapper Mapper { get; }
         public StuckPulse Stuck { get; } = new StuckPulse();
         public PieceViews Pieces { get; }
+        /// <summary>Q2: the sprite particles (sparks, dust, confetti, stars).</summary>
+        public ParticleField Particles { get; }
+        /// <summary>Q2: the vibration policy ("Titreşim" switch, minimum gap); the sink is the engine's.</summary>
+        public HapticRouter Haptics { get; }
+        public EconomyInfo Economy { get; }
         public DesignViewport Viewport { get; private set; }
         public ScreenLayout? Layout { get; private set; }
         public GameSession? Session { get; private set; }
@@ -74,8 +89,16 @@ namespace MinikUsta.Presentation.Game
         public PanelKind Panel { get; private set; } = PanelKind.None;
         /// <summary>Why the last `Load` failed (invalid or missing level file); null after a successful load.</summary>
         public string? LoadError { get; private set; }
-        /// <summary>"Animasyonları azalt" (JUICE §0 rule 8). Off in Faz 3 Q1 (no settings screen yet).</summary>
-        public bool Reduced { get; set; }
+        /// <summary>"Animasyonları azalt" (JUICE §0 rule 8). Off in Faz 3 (no settings screen yet).</summary>
+        public bool Reduced
+        {
+            get => reduced;
+            set
+            {
+                reduced = value;
+                Particles.Reduced = value;
+            }
+        }
         /// <summary>The last `TurnSummary` (after the level start or the last package).</summary>
         public TurnSummary? Summary { get; private set; }
         /// <summary>Blocks left (K-48) of the last summary.</summary>
@@ -90,6 +113,15 @@ namespace MinikUsta.Presentation.Game
         public int MaxEndSnapPiece { get; private set; } = -1;
         /// <summary>The last applied action's result (tests, debug).</summary>
         public ActionResult? LastResult { get; private set; }
+        /// <summary>Streak beads and trowels the capsule shows now (the animation steps move them ahead of the state).</summary>
+        public int ShownBeads { get; private set; }
+        public int ShownTrowels { get; private set; }
+        /// <summary>Gold the chip shows (JUICE #56); −1 = hidden.</summary>
+        public int GoldShown { get; private set; } = -1;
+        /// <summary>Bonus coins flying to the gold chip now.</summary>
+        public int CoinsInFlight => coins.Count;
+        /// <summary>Camera shakes played since the start (tests).</summary>
+        public int Shakes { get; private set; }
 
         // --- screen and level ------------------------------------------------------------------------------------------
 
@@ -106,7 +138,9 @@ namespace MinikUsta.Presentation.Game
             Clock.Complete();
             Layout = ScreenLayout.Create(LayoutSettings, Viewport.H, Session.Lvl.Geo);
             View.SetViewport(Viewport, Layout);
+            View.Truck.CellPx = Layout.Grid.CellPx;
             Pieces.CellPx = Layout.Grid.CellPx;
+            Particles.Reset(LevelNumber);
             SyncAll();
         }
 
@@ -127,8 +161,8 @@ namespace MinikUsta.Presentation.Game
         /// <summary>A new attempt of a compiled level (tests, debug boards).</summary>
         public void Start(CompiledLevel lvl, int number)
         {
-            ResetPlayback();
             LevelNumber = number;
+            ResetPlayback();
             Session = GameSession.Start(lvl);
             Packages = 0;
             EndSnaps.Clear();
@@ -139,6 +173,7 @@ namespace MinikUsta.Presentation.Game
             View.SetViewport(Viewport, Layout);
             Pieces.Clear();
             Pieces.CellPx = Layout.Grid.CellPx;
+            View.Truck.CellPx = Layout.Grid.CellPx;
             Panel = PanelKind.None;
             View.ShowPanel(null, OnPanelAction);
             View.SetLevel(Text.Format(Strings.Keys.LevelLabel, number), lvl.Data.Name.Tr);
@@ -168,6 +203,20 @@ namespace MinikUsta.Presentation.Game
             flyerScratch.Clear();
             flyerScratch.AddRange(flyers);
             foreach (var f in flyerScratch) ReleaseFlyer(f);
+            coinScratch.Clear();
+            coinScratch.AddRange(coins);
+            foreach (var c in coinScratch) ReleaseCoin(c);
+            Particles.Reset(LevelNumber);
+            Haptics.Reset();
+            pendingPanel = null;
+            ShownBeads = 0;
+            ShownTrowels = 0;
+            GoldShown = -1;
+            Shakes = 0;
+            View.CameraRig.Position = Vec2.Zero;
+            View.SiteLayer.Position = Vec2.Zero;
+            View.Truck.Visible = false;
+            View.SetGold(-1);
         }
 
         // --- frame -----------------------------------------------------------------------------------------------------
@@ -178,7 +227,9 @@ namespace MinikUsta.Presentation.Game
             if (!(dtMs >= 0)) dtMs = 0;
             float rate = Queue.Rate(Clock.Now);
             Clock.TimeScale = rate;
+            float before = Clock.Now;
             Clock.Advance(dtMs);
+            Particles.Advance(Clock.Now - before); // the particles follow the animation clock (the lock speed-up included)
             Queue.Advance(Clock.Now);
             if (Layout != null)
             {
@@ -186,6 +237,12 @@ namespace MinikUsta.Presentation.Game
                 if (f != null) DragFrame(f);
             }
             StuckPulseCheck();
+            if (pendingPanel != null && coins.Count == 0)
+            {
+                var model = pendingPanel;
+                pendingPanel = null;
+                ShowPanel(model);
+            }
         }
 
         // --- pointer (design px, y down) ---------------------------------------------------------------------------------
@@ -258,6 +315,7 @@ namespace MinikUsta.Presentation.Game
         {
             var session = Session ?? throw new InvalidOperationException("LevelPlayer.Commit: no level");
             var ctx = PlanContext.Capture(session, Reduced);
+            ctx.BonusMaxMoves = Economy.BonusMaxMovesCounted;
             var res = session.Apply(action);
             Packages++;
             LastResult = res;
@@ -312,6 +370,20 @@ namespace MinikUsta.Presentation.Game
             var pop = Tweens.Pop(t, Reduced ? 1f : Feel.PopupFrom, Reduced ? 1f : Feel.PopupPeak, 1f, Feel.PopupOpenMs, 0.6f);
             pop.Tag = HudTag;
             Clock.Play(pop);
+            if (model.Star) StarFx(model);
+        }
+
+        /// <summary>JUICE #96: the level star 0 → 1,2 → 1,0 (Expo.easeOut) with 16 small stars and a white ring around it; a success buzz.</summary>
+        private void StarFx(PanelModel model)
+        {
+            var L = Layout;
+            if (L == null) return;
+            var star = View.StarTarget;
+            var pop = Tweens.Pop(star, Reduced ? 1f : 0f, Reduced ? Feel.ReducedScaleMax : Feel.WinStarPeak, 1f, Feel.StarBurstMs, 0.5f, EaseType.OutExpo);
+            pop.Tag = HudTag;
+            Clock.Play(pop);
+            Particles.StarBurst(HudLayout.Center(HudLayout.WindowStar(L, LayoutSettings, model.Buttons.Length)), Feel.ParticleStarBurst);
+            Buzz(HapticKind.Success);
         }
 
         private void HidePanel()
@@ -338,10 +410,15 @@ namespace MinikUsta.Presentation.Game
             if (outcome == BoosterOutcomes.Won)
             {
                 int moves = session.MovesLeft;
-                ShowPanel(new PanelModel(PanelKind.Win, Text.Get(Strings.Keys.WinTitle), Text.Format(Strings.Keys.WinBonus, moves), new[]
+                // META §1: the first win of a level gives its star (a repeat does not)
+                bool star = wonLevels.Add(LevelNumber);
+                var win = new PanelModel(PanelKind.Win, Text.Get(Strings.Keys.WinTitle), Text.Format(Strings.Keys.WinBonus, moves), new[]
                 {
                     new PanelButton(Text.Get(Strings.Keys.Continue), PanelAction.Next, true),
-                }));
+                }, star);
+                // the last bonus coins land first, then the window opens (`Tick`)
+                if (coins.Count > 0) pendingPanel = win;
+                else ShowPanel(win);
             }
             else if (outcome == BoosterOutcomes.OutOfMoves || outcome == BoosterOutcomes.Lost)
             {
@@ -363,6 +440,7 @@ namespace MinikUsta.Presentation.Game
             RebuildBoard();
             Summary = session.Summary();
             Pieces.Sync(session.State, L, Summary.Holdable, Mapper.Active ? Mapper.PieceId : -1);
+            ShowStreak(Combo.ComboOf(session.State), Combo.TrowelsOf(session.State));
             // #56 counts the moves down on a won level: the plate keeps that count (web hudSync)
             if (session.Outcome != BoosterOutcomes.Won) ShowMoves(session.MovesLeft);
             ShowBlocks(Summary.BlocksLeft);
@@ -394,6 +472,98 @@ namespace MinikUsta.Presentation.Game
                 segs = Text.Format(Strings.Keys.Count, ("n", done), ("max", total));
             }
             View.SetBlocks(n, Text.Get(Strings.Keys.Blocks), segs);
+        }
+
+        /// <summary>The streak capsule: `beads` filled of 4, `trowels` held (the steps move it ahead of the state; `SyncAll` brings it back).</summary>
+        internal void ShowStreak(int beads, int trowels)
+        {
+            ShownBeads = beads;
+            ShownTrowels = trowels;
+            View.SetStreak(beads, trowels, Text.Get(Strings.Keys.Streak), Text.Format(Strings.Keys.Times, ("n", trowels)));
+            float rest = trowels > 0 ? Feel.ComboIconRest : 1f; // JUICE #16: a trowel in hand sits a little bigger (1,1)
+            View.TrowelIcon.Scale = new Vec2(rest, rest);
+        }
+
+        internal void ShowGold(int gold)
+        {
+            GoldShown = gold;
+            View.SetGold(gold);
+        }
+
+        internal void AddGold(int n) => ShowGold(Math.Max(0, GoldShown) + n);
+
+        /// <summary>
+        /// Q2 (12): a camera shake of `px` (design px) for `CameraShakeMs`, decaying; none in reduced motion (JUICE §0 rule 8). It moves
+        /// `ILevelView.CameraRig` from and back to zero, so overlapping shakes never leave an offset.
+        /// </summary>
+        public void CameraShake(float px)
+        {
+            if (Reduced || !(px > 0)) return;
+            Shakes++;
+            var rig = View.CameraRig;
+            int cycles = Math.Max(1, Feel.CameraShakeCycles);
+            float ay = px * 0.7f;
+            var t = new Tween(Feel.CameraShakeMs, (u, k) =>
+            {
+                if (u >= 1f)
+                {
+                    rig.Position = Vec2.Zero;
+                    return;
+                }
+                float decay = 1f - u;
+                rig.Position = new Vec2(px * decay * (float)Math.Sin(2 * Math.PI * cycles * u), ay * decay * (float)Math.Sin(3 * Math.PI * cycles * u));
+            }, null, EaseType.Linear);
+            t.Tag = HudTag;
+            Clock.Play(t);
+        }
+
+        /// <summary>Asks the haptic router for a buzz (JUICE §0 rule 7): off, closer than `HapticMinGapMs` to the last one, or no sink = dropped.</summary>
+        public void Buzz(HapticKind kind) => Haptics.Pulse(kind, Clock.Now, Feel.HapticMinGapMs);
+
+        private const double CoinPx = 60;
+
+        /// <summary>JUICE #56: one coin leaves `from` (the moves plate), arcs to `to` (the gold chip), adds `gold`, pops the chip, sparkles.</summary>
+        internal void FlyCoin(Vec2 from, Vec2 to, int gold)
+        {
+            var coin = View.AcquireSpark(SparkKind.Coin, Rgba.Hex(Palette.Gold), CoinPx);
+            coins.Add(coin);
+            coin.Visible = true;
+            coin.Position = from;
+            coin.Scale = new Vec2(0.6f, 0.6f);
+            coin.Rotation = 0f;
+            coin.Alpha = 1f;
+            float arc = (float)(Layout != null ? Layout.Grid.CellPx : 120.0);
+            float peak = Feel.BonusCoinPeak;
+            var fly = new Tween(Feel.BonusCoinFlyMs, (u, k) =>
+            {
+                if (u >= 1f)
+                {
+                    coin.Position = to;
+                    return;
+                }
+                var pos = Vec2.Lerp(from, to, k);
+                coin.Position = new Vec2(pos.X, pos.Y - arc * 4f * u * (1f - u));
+                float sc = Tweens.PopCurve(u, 0.6f, peak, 0.9f, 0.4f);
+                coin.Scale = new Vec2(sc, sc);
+            }, null, EaseType.InOutQuad);
+            var seq = new Sequence()
+                .Append(fly)
+                .AppendCallback(() =>
+                {
+                    ReleaseCoin(coin);
+                    AddGold(gold);
+                    Particles.Sparks(to, Rgba.Hex(Palette.Gold), Feel.ParticleBonus, 0.3f);
+                })
+                .Append(Tweens.Pop(View.GoldChip, 1f, Feel.GoldChipPeak, 1f, Feel.GoldChipPopMs));
+            seq.Tag = HudTag;
+            Clock.Play(seq);
+        }
+
+        private void ReleaseCoin(ISpark coin)
+        {
+            if (!coins.Remove(coin)) return;
+            coin.Visible = false;
+            View.ReleaseSpark(coin);
         }
 
         internal IFlyer AcquireFlyer(int colorIndex, double sizePx)
@@ -509,6 +679,10 @@ namespace MinikUsta.Presentation.Game
                 var t = Tweens.Pulse(v, Feel.HintPulsePeak, Feel.HintPulseMs, StuckPulse.Pulses);
                 t.Tag = BoardTag;
                 Clock.Play(t);
+                // Q2 (10): "hafif parlar" — a soft white glow with each beat
+                var glow = StepRunner.Flashes(v, Feel.HintGlowPeak, Feel.HintPulseMs * StuckPulse.Pulses, StuckPulse.Pulses);
+                glow.Tag = BoardTag;
+                Clock.Play(glow);
             }
         }
     }
