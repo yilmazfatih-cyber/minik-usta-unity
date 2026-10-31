@@ -1,0 +1,116 @@
+{
+  "schemaVersion": 1,
+  "id": 3,
+  "chapter": 1,
+  "name": {
+    "tr": "Test",
+    "en": "Test"
+  },
+  "difficulty": "easy",
+  "moves": 12,
+  "goals": [
+    {
+      "type": "build"
+    }
+  ],
+  "gravity": {
+    "build": "normal",
+    "yard": false
+  },
+  "wall": {
+    "height": 4,
+    "gaps": []
+  },
+  "site": {
+    "cols": 2,
+    "rows": 6
+  },
+  "build": {
+    "mode": "segments",
+    "segments": [
+      {
+        "name": {
+          "tr": "A",
+          "en": "A"
+        },
+        "rows": ["WW", "YY", "GG", "GG", "YW", "YW"]
+      }
+    ]
+  },
+  "yard": {
+    "cols": 4,
+    "rows": 4,
+    "batches": [
+      {
+        "forSegment": 0,
+        "pieces": [
+          {
+            "shape": "D2_0",
+            "color": "Y",
+            "x": 0,
+            "y": 0
+          },
+          {
+            "shape": "D2_0",
+            "color": "W",
+            "x": 1,
+            "y": 0
+          },
+          {
+            "shape": "O4_0",
+            "color": "G",
+            "x": 0,
+            "y": 2
+          },
+          {
+            "shape": "D2_90",
+            "color": "Y",
+            "x": 2,
+            "y": 0
+          },
+          {
+            "shape": "D2_90",
+            "color": "Y",
+            "x": 2,
+            "y": 1
+          }
+        ]
+      }
+    ]
+  },
+  "obstacles": [],
+  "tutorial": [
+    {
+      "step": 1,
+      "highlight": ["piece:2"],
+      "hand": {
+        "kind": "drag",
+        "path": [
+          [0, 3],
+          [2, 3]
+        ]
+      },
+      "textKey": "tut.m.dig",
+      "done": {
+        "event": "yardMove",
+        "count": 1,
+        "piece": "piece:2"
+      }
+    },
+    {
+      "step": 2,
+      "mode": "soft",
+      "highlight": ["piece:0", "piece:1"],
+      "textKey": "tut.m.free",
+      "done": {
+        "event": "placementCorrect",
+        "count": 1
+      }
+    }
+  ],
+  "targets": {
+    "minShifts": [1, 1],
+    "firstNeedDepth": [1, 1],
+    "deadRate": [0, 0]
+  }
+}

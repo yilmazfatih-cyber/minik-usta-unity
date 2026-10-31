@@ -144,6 +144,41 @@ namespace MinikUsta.Core.Json
         /// <summary>Sets a member when `value` is not null (TS: an `undefined` field is dropped by canonical JSON anyway).</summary>
         public JsonValue SetOpt(string key, JsonValue? value) => value == null ? this : Set(key, value);
 
+        /// <summary>Removes a member (TS `delete obj[key]`); a missing key is a no-op.</summary>
+        public JsonValue Remove(string key)
+        {
+            if (Kind != JsonKind.Object) throw new InvalidOperationException("not an object");
+            int i = keys!.IndexOf(key);
+            if (i >= 0)
+            {
+                keys.RemoveAt(i);
+                values!.RemoveAt(i);
+            }
+            return this;
+        }
+
+        /// <summary>Deep copy (containers are copied recursively; scalars are immutable and shared).</summary>
+        public JsonValue Clone()
+        {
+            switch (Kind)
+            {
+                case JsonKind.Array:
+                {
+                    var a = Array();
+                    foreach (var v in items!) a.Add(v.Clone());
+                    return a;
+                }
+                case JsonKind.Object:
+                {
+                    var o = Object();
+                    for (int i = 0; i < keys!.Count; i++) o.Set(keys[i], values![i].Clone());
+                    return o;
+                }
+                default:
+                    return this;
+            }
+        }
+
         public override string ToString() => JsonWriter.Write(this, false);
 
         /// <summary>Deep structural equality (`canonicalJson(a) === canonicalJson(b)`).</summary>

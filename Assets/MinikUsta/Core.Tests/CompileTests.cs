@@ -170,6 +170,21 @@ namespace MinikUsta.Core.Tests
             Assert.AreEqual(L.Revealed + 1, L.Size);
         }
 
+        [Test(Description = "K-45 loadLevel runs schema + runtime checks and refuses invalid levels")]
+        public void K45_loadLevel_runs_schema_and_runtime_checks_and_refuses_invalid_levels()
+        {
+            var good = Compiler.LoadLevel(TestPaths.LoadFixture("valid", "base"));
+            Assert.IsTrue(good.Ok);
+            var badSchema = Compiler.LoadLevel(TestPaths.LoadFixture("invalid", "schema_invalid"));
+            Assert.IsFalse(badSchema.Ok);
+            Assert.AreEqual(LoadResult.StageSchema, badSchema.Stage);
+            var badLogic = Compiler.LoadLevel(TestPaths.LoadFixture("invalid", "gap_touches_top"));
+            Assert.IsFalse(badLogic.Ok);
+            Assert.AreEqual(LoadResult.StageLogic, badLogic.Stage);
+            // yard fill is a tool-time check, not a load-time one (TECH §8.3)
+            Assert.IsTrue(Compiler.LoadLevel(TestPaths.LoadFixture("invalid", "yard_fill_low")).Ok);
+        }
+
         [Test(Description = "K-44 K-47 cargo pieces (I5/Q9) are colourless and leave supply; mechanics derive Y5")]
         public void K44_K47_cargo_pieces_are_colourless_and_leave_supply_mechanics_derive_Y5()
         {

@@ -1,0 +1,82 @@
+{
+  "schemaVersion": 1,
+  "id": 12,
+  "chapter": 2,
+  "name": {
+    "tr": "Test",
+    "en": "Test"
+  },
+  "difficulty": "normal",
+  "moves": 12,
+  "goals": [
+    {
+      "type": "build"
+    }
+  ],
+  "gravity": {
+    "build": "normal",
+    "yard": false
+  },
+  "wall": {
+    "height": 3,
+    "gaps": []
+  },
+  "site": {
+    "cols": 3,
+    "rows": 4
+  },
+  "build": {
+    "mode": "segments",
+    "segments": [
+      {
+        "name": {
+          "tr": "A",
+          "en": "A"
+        },
+        "rows": ["WWW", "YYY", "GGG", "GGG"]
+      }
+    ]
+  },
+  "yard": {
+    "cols": 4,
+    "rows": 4,
+    "batches": [
+      {
+        "forSegment": 0,
+        "pieces": [
+          {
+            "shape": "O4_0",
+            "color": "G",
+            "x": 0,
+            "y": 0
+          },
+          {
+            "shape": "D2_0",
+            "color": "G",
+            "x": 2,
+            "y": 0
+          },
+          {
+            "shape": "I3_90",
+            "color": "W",
+            "x": 0,
+            "y": 2
+          },
+          {
+            "shape": "I3_90",
+            "color": "Y",
+            "x": 0,
+            "y": 3
+          }
+        ]
+      }
+    ]
+  },
+  "obstacles": [],
+  "targets": {
+    "minShifts": [1, 1],
+    "firstNeedDepth": [1, 1],
+    "deadRate": [0, 0]
+  },
+  "teaches": "S9"
+}

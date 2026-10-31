@@ -1,0 +1,105 @@
+{
+  "schemaVersion": 1,
+  "id": 17,
+  "chapter": 2,
+  "name": {
+    "tr": "Test",
+    "en": "Test"
+  },
+  "difficulty": "normal",
+  "moves": 12,
+  "goals": [
+    {
+      "type": "build"
+    },
+    {
+      "type": "clear",
+      "target": "debris",
+      "count": 1
+    }
+  ],
+  "gravity": {
+    "build": "normal",
+    "yard": false
+  },
+  "wall": {
+    "height": 4,
+    "gaps": []
+  },
+  "site": {
+    "cols": 2,
+    "rows": 6
+  },
+  "build": {
+    "mode": "segments",
+    "segments": [
+      {
+        "name": {
+          "tr": "A",
+          "en": "A"
+        },
+        "rows": ["WW", "YY", "GG", "GG", "YW", "YW"]
+      }
+    ],
+    "debris": [
+      {
+        "shape": "D2_0",
+        "color": "W",
+        "x": 4,
+        "y": 0
+      }
+    ]
+  },
+  "yard": {
+    "cols": 4,
+    "rows": 4,
+    "batches": [
+      {
+        "forSegment": 0,
+        "pieces": [
+          {
+            "shape": "D2_0",
+            "color": "Y",
+            "x": 0,
+            "y": 0
+          },
+          {
+            "shape": "O4_0",
+            "color": "G",
+            "x": 0,
+            "y": 2
+          },
+          {
+            "shape": "D2_90",
+            "color": "Y",
+            "x": 2,
+            "y": 0
+          },
+          {
+            "shape": "D2_90",
+            "color": "W",
+            "x": 2,
+            "y": 1
+          }
+        ]
+      }
+    ]
+  },
+  "obstacles": [],
+  "targets": {
+    "minShifts": [1, 1],
+    "firstNeedDepth": [1, 1],
+    "deadRate": [0, 0]
+  },
+  "teaches": "S4",
+  "tutorial": [
+    {
+      "step": 1,
+      "highlight": ["debris:3"],
+      "textKey": "tut.l17.debris",
+      "done": {
+        "event": "yardMove"
+      }
+    }
+  ]
+}

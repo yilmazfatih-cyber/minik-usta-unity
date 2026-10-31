@@ -74,9 +74,70 @@ namespace MinikUsta.Core.Tests.Fixtures
 
         public static GameState Init(LevelSpec spec) => Builders.InitialState(spec);
 
-        /// <summary>`levels/level_NNN.json` compiled (TS `levelFile`: schema + runtime checks; the runtime checks (logic.ts) come with a later package).</summary>
-        public static CompiledLevel LevelFile(int id) => Compiler.Compile(LevelJson.ParseOrThrow(TestPaths.LoadLevelJson(id)));
+        /// <summary>`levels/level_NNN.json` loaded like the game does (TS `levelFile`: schema + runtime checks, then compile).</summary>
+        public static CompiledLevel LevelFile(int id) => Compiler.LoadLevel(TestPaths.LoadLevelJson(id)).LevelOrThrow();
         public static GameState LevelState(int id) => CreateInitialState(LevelFile(id));
+
+        /// <summary>What `Drop` did: the K-07 class of the release and, for a site release, the K-35 step 3 outcome.</summary>
+        public sealed class DropResult
+        {
+            public readonly DropClass Drop;
+            public readonly PlacementOutcome? Outcome;
+            public readonly SegmentCompletion? Completed;
+            public readonly DeliveryResult Delivery;
+
+            public DropResult(DropClass drop, PlacementOutcome? outcome, SegmentCompletion? completed, DeliveryResult delivery)
+            {
+                Drop = drop;
+                Outcome = outcome;
+                Completed = completed;
+                Delivery = delivery;
+            }
+
+            public bool Correct => Outcome != null && Outcome.Kind == PlacementOutcome.KindCorrect;
+        }
+
+        /// <summary>
+        /// C# stand-in for the TS test helper `run(s, dragTo(id, ix, iy[, gap]))` until the K-35 pipeline (`applyMove`) is ported:
+        /// the deterministic core steps of one drag without events — 0 classify (a cancel throws: the TS tests run strict), 1
+        /// move (yard release), 2 fall (`ComputeFall` with `hooks.Fall`), 3 settle (`SettlePlacement` with `hooks.Placement`),
+        /// 4 base cost 1 (`movesLeft`, `turn`, `movesSpent`), 6 `SettleYard`, 7 `CountDebrisLeftSite`, 8 segment completion +
+        /// build goal, 9 delivery. Steps 5 (neighbour effects), 10 (timers), 11 (win flag) and 12 (deadlock) are NOT run.
+        /// </summary>
+        public static DropResult Drop(GameState s, int id, int ix, int iy, int? gap = null, MoveHooks? hooks = null)
+        {
+            hooks ??= MoveHooks.None;
+            var attempt = Movement.TryBeginDrag(s, id, hooks.Drag);
+            if (!attempt.Ok) throw new InvalidOperationException("Drop: piece " + id + " cannot be picked (" + attempt.Reason + ")");
+            var node = new DragNode(ix, iy, gap.HasValue ? Movement.RailMode(gap.Value) : Movement.Free);
+            var drop = attempt.Session!.Classify(node);
+            if (drop.IsCancelled) throw new InvalidOperationException("Drop: release " + Key(node) + " of piece " + id + " is cancelled (" + drop.Reason + ")");
+            var start = Placement.PiecePlace(s, id);
+            int startZone = PieceZone(s, id);
+            PlacementOutcome? outcome = null;
+            if (drop.Kind == DropKinds.Yard) Placement.MovePiece(s, id, Placement.YardPlace(new Anchor(ix, iy)));
+            else
+            {
+                var fall = Gravity.ComputeFall(s, id, node, new FallOptions(null, hooks.Fall));
+                if (fall.Effect.Kind == LandingEffect.KindBreak) Placement.ReturnBrokenPiece(s, id, start);
+                else outcome = Placement.SettlePlacement(s, id, fall.Landing, fall.Verdict, new SettleOptions(start, hooks.Placement));
+            }
+            if (outcome != null)
+            {
+                if (outcome.Kind == PlacementOutcome.KindCorrect) Combo.ComboOnCorrect(s);
+                else Combo.ComboReset(s);
+            }
+            int left = Hdr(s, H.MovesLeft);
+            SetHdr(s, H.MovesLeft, left - Math.Min(left, 1));
+            SetHdr(s, H.Turn, Hdr(s, H.Turn) + 1);
+            SetHdr(s, H.MovesSpent, Hdr(s, H.MovesSpent) + 1);
+            Gravity.SettleYard(s);
+            Goals.CountDebrisLeftSite(s, id, startZone);
+            var done = Core.Site.SiteStrategy(s.Lvl).CompleteIfDone(s);
+            if (done != null) Goals.SetBuildProgress(s, done.Completed);
+            var delivery = Delivery.DeliverQueue(s);
+            return new DropResult(drop, outcome, done, delivery);
+        }
 
         // --- state setup -----------------------------------------------------------------------------------------------------
 

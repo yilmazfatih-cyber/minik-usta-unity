@@ -352,7 +352,7 @@ namespace MinikUsta.Core.Level
         }
     }
 
-    public static class Compiler
+    public static partial class Compiler
     {
         public const int PlanDot = -1;
         public const int PlanOutside = -2;

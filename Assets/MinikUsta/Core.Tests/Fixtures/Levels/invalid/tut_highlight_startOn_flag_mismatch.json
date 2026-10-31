@@ -1,0 +1,122 @@
+{
+  "schemaVersion": 1,
+  "id": 35,
+  "chapter": 4,
+  "name": {
+    "tr": "Test",
+    "en": "Test"
+  },
+  "difficulty": "hard",
+  "moves": 12,
+  "goals": [
+    {
+      "type": "build"
+    }
+  ],
+  "gravity": {
+    "build": "normal",
+    "yard": false
+  },
+  "wall": {
+    "height": 3,
+    "gaps": []
+  },
+  "site": {
+    "cols": 2,
+    "rows": 4
+  },
+  "build": {
+    "mode": "segments",
+    "segments": [
+      {
+        "name": {
+          "tr": "A",
+          "en": "A"
+        },
+        "rows": ["GG", "GG", "YW", "YW"]
+      },
+      {
+        "name": {
+          "tr": "B",
+          "en": "B"
+        },
+        "rows": ["WW", "WW", "YY", "YY"]
+      }
+    ]
+  },
+  "yard": {
+    "cols": 4,
+    "rows": 4,
+    "batches": [
+      {
+        "forSegment": 0,
+        "pieces": [
+          {
+            "shape": "D2_0",
+            "color": "Y",
+            "x": 0,
+            "y": 0
+          },
+          {
+            "shape": "D2_0",
+            "color": "W",
+            "x": 1,
+            "y": 0
+          },
+          {
+            "shape": "O4_0",
+            "color": "G",
+            "x": 0,
+            "y": 2
+          },
+          {
+            "shape": "O4_0",
+            "color": "Y",
+            "x": 2,
+            "y": 0
+          }
+        ]
+      },
+      {
+        "forSegment": 1,
+        "pieces": [
+          {
+            "shape": "D2_0",
+            "color": "W",
+            "x": 0,
+            "y": 4,
+            "flags": ["mortar"]
+          },
+          {
+            "shape": "D2_0",
+            "color": "W",
+            "x": 1,
+            "y": 4
+          }
+        ]
+      }
+    ]
+  },
+  "obstacles": [],
+  "targets": {
+    "minShifts": [1, 1],
+    "firstNeedDepth": [1, 1],
+    "deadRate": [0, 0]
+  },
+  "teaches": "S1",
+  "tutorial": [
+    {
+      "step": 1,
+      "highlight": ["piece:k1_1"],
+      "textKey": "tut.l35.mortar",
+      "startOn": {
+        "event": "deliveryDone",
+        "flag": "mortar"
+      },
+      "done": {
+        "event": "placementCorrect",
+        "count": 1
+      }
+    }
+  ]
+}

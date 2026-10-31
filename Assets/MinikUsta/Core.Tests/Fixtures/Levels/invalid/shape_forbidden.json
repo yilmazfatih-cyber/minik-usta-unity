@@ -1,0 +1,92 @@
+{
+  "schemaVersion": 1,
+  "id": 8,
+  "chapter": 1,
+  "name": {
+    "tr": "Test",
+    "en": "Test"
+  },
+  "difficulty": "easy",
+  "moves": 12,
+  "goals": [
+    {
+      "type": "build"
+    }
+  ],
+  "gravity": {
+    "build": "normal",
+    "yard": false
+  },
+  "wall": {
+    "height": 4,
+    "gaps": []
+  },
+  "site": {
+    "cols": 2,
+    "rows": 6
+  },
+  "build": {
+    "mode": "segments",
+    "segments": [
+      {
+        "name": {
+          "tr": "A",
+          "en": "A"
+        },
+        "rows": ["WW", "YY", "GG", "GG", "YW", "YW"]
+      }
+    ]
+  },
+  "yard": {
+    "cols": 5,
+    "rows": 5,
+    "batches": [
+      {
+        "forSegment": 0,
+        "pieces": [
+          {
+            "shape": "D2_0",
+            "color": "Y",
+            "x": 0,
+            "y": 0
+          },
+          {
+            "shape": "D2_0",
+            "color": "W",
+            "x": 1,
+            "y": 0
+          },
+          {
+            "shape": "O4_0",
+            "color": "G",
+            "x": 0,
+            "y": 2
+          },
+          {
+            "shape": "D2_90",
+            "color": "Y",
+            "x": 2,
+            "y": 0
+          },
+          {
+            "shape": "D2_90",
+            "color": "W",
+            "x": 2,
+            "y": 1
+          },
+          {
+            "shape": "I5_90",
+            "x": 4,
+            "y": 0
+          }
+        ]
+      }
+    ]
+  },
+  "obstacles": [],
+  "targets": {
+    "minShifts": [1, 1],
+    "firstNeedDepth": [1, 1],
+    "deadRate": [0, 0]
+  }
+}
