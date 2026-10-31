@@ -32,9 +32,11 @@ obj/
 TestResults/
 *.binlog
 
-# generated diagnostics (node tools/gen-p1-vectors.ts --verbose, node tools/gen-p2-vectors.ts --verbose)
+# generated diagnostics (node tools/gen-p{1,2,3}-vectors.ts --verbose; C# lines of a failing P3 sequence)
 /Assets/MinikUsta/Core.Tests/Golden/p1_vectors.verbose.json
 /Assets/MinikUsta/Core.Tests/Golden/p2_vectors.verbose.json
+/Assets/MinikUsta/Core.Tests/Golden/p3_vectors.verbose.json
+/Assets/MinikUsta/Core.Tests/Golden/p3_csharp.*.txt
 
 # IDE
 .idea/
