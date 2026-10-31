@@ -37,7 +37,6 @@ namespace MinikUsta.Core.Tests.Fixtures
         public static P Pc(string shape, string color, int x, int y, string[]? flags = null, int? wetMoves = null) => new P(shape, color, x, y, flags, wetMoves);
         public static P[] Ps(params P[] pieces) => pieces;
         public static P[] Plus(this P[] a, params P[] b) => a.Concat(b).ToArray();
-        public static P[] Plus(this P[] a, P[] b) => a.Concat(b).ToArray();
         public static JsonValue Gap(int y, int size = 1) => J.O("type", "static", "y", y, "size", size);
         public static JsonValue LockedGap(int y, int size, string keyId) => J.O("type", "locked", "y", y, "size", size, "keyId", keyId);
         public static WallSpec Wall(int height, params JsonValue[] gaps) => new WallSpec { Height = height, Gaps = gaps };
