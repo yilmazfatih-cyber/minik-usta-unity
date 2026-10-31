@@ -1,7 +1,8 @@
 #nullable enable
-// Port of tests/core/site.test.ts. The two K-22 tests of the TS file drive the strategy through `applyMove` (events, win) and
-// come with the K-35 package; `K22_completeIfDone_direct` is a C# addition that exercises the same strategy code directly.
+// Port of tests/core/site.test.ts: the K-22 / K-15 tests drive the strategy through `Moves.ApplyMove` (`Run`, events, win);
+// `K22_completeIfDone_direct` is a C# addition that exercises the same strategy code directly.
 using System;
+using System.Linq;
 using MinikUsta.Core.Tests.Fixtures;
 using NUnit.Framework;
 using static MinikUsta.Core.State;
@@ -20,6 +21,59 @@ namespace MinikUsta.Core.Tests
             Pieces = Ps(Pc("D2_90", "W", 0, 0)),
             Batches = new[] { new BatchSpec { ForSegment = 1, Pieces = Ps(Pc("D2_90", "Y", 0, 8)) } },
         };
+
+        [Test(Description = "K-22 a completed segment shifts the site, counts it and queues the next batch, delivered in step 9")]
+        public void K22_a_completed_segment_shifts_the_site_counts_it_and_queues_the_next_batch_delivered_in_step_9()
+        {
+            var s = Init(TwoSegments());
+            var site = Site.SiteStrategy(s.Lvl);
+            Assert.AreEqual("segments", site.Mode);
+            Assert.IsNull(site.CompleteIfDone(s));
+            var r = Run(s, DragTo(0, 6, 8));
+            CollectionAssert.AreEqual(
+                new[] { "segmentCompleted:8", "goalProgress:8", "siteShifted:8", "deliveryArrived:9", "pieceFell:9" },
+                r.Ev.Where(e => e.Step >= 8).Select(e => e.TypeName + ":" + e.Step).ToArray());
+            var arrived = Find<DeliveryArrivedEvent>(r.Ev);
+            Assert.AreEqual(1, arrived.Seg);
+            CollectionAssert.AreEqual(new[] { 1 }, arrived.Pieces);
+            CollectionAssert.AreEqual(new[] { 1, 1, 1 }, new[] { Hdr(s, H.ActiveSeg), Hdr(s, H.DeliveryCursor), Grid.VisibleSegment(s) });
+            Assert.AreEqual(1, site.ActiveSegment(s));
+            Assert.AreEqual(0, site.FrameOffset(s));
+            // the delivered domino drops into the column its batch names (K-25 stage 1)
+            CollectionAssert.AreEqual(new[] { Zone.Yard, 0, 0 }, new[] { PieceZone(s, 1), PieceX(s, 1), PieceY(s, 1) });
+            // the completed segment keeps its locked block (panorama, K-06)
+            CollectionAssert.AreEqual(new[] { Zone.Site, 1 }, new[] { PieceZone(s, 0), Hdr(s, H.Turn) });
+            ExpectConsistent(s);
+        }
+
+        [Test(Description = "K-22 the last segment does not shift: the win is checked instead (K-28)")]
+        public void K22_the_last_segment_does_not_shift_the_win_is_checked_instead()
+        {
+            var s = Init(TwoSegments());
+            Run(s, DragTo(0, 6, 8));
+            var r = Run(s, DragTo(1, 6, 8));
+            CollectionAssert.AreEqual(new[] { "segmentCompleted", "goalProgress", "levelWon" }, Types(r.Ev).Skip(r.Ev.Count - 3).ToArray());
+            CollectionAssert.AreEqual(new[] { 1, 2 }, new[] { Hdr(s, H.ActiveSeg), Hdr(s, H.DeliveryCursor) });
+            Assert.IsTrue(r.Res.Won);
+        }
+
+        [Test(Description = "K-15 a segment is complete only without any other block in its area: debris on a `.` cell holds it back")]
+        public void K15_a_segment_is_complete_only_without_any_other_block_in_its_area()
+        {
+            var s = Init(new LevelSpec
+            {
+                Wall = Wall(2),
+                Plan = new[] { "W." },
+                Pieces = Ps(Pc("B1_0", "W", 0, 0)),
+                Debris = new[] { new D("B1_0", "R", 7, 0) },
+            });
+            var placed = Run(s, DragTo(0, 6, 8));
+            Assert.AreEqual(0, Find<PlacementCorrectEvent>(placed.Ev).PieceId);
+            CollectionAssert.DoesNotContain(Types(placed.Ev), "segmentCompleted");
+            var cleared = Run(s, DragTo(1, 5, 2)); // the debris leaves the site → complete in the same move's step 8
+            CollectionAssert.Contains(Types(cleared.Ev), "segmentCompleted");
+            Assert.IsFalse(cleared.Res.Won); // K-48 (3): the debris is a material block, now in the yard
+        }
 
         [Test(Description = "K-22 (direct, C# addition) a completed segment shifts the site, counts it and queues the next batch; the last segment does not shift")]
         public void K22_completeIfDone_direct_a_completed_segment_shifts_the_site_counts_it_and_queues_the_next_batch()

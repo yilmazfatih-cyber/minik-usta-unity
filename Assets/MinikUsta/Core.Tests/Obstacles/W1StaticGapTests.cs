@@ -1,6 +1,7 @@
 #nullable enable
-// Port of tests/obstacles/W1_staticGap.test.ts (web repo). Drags go through `Boards.Drop` / `Boards.Play`; the i18n card text
-// check (src/i18n of the web repo) and the K-46 YAO counters (`measureYao`, pipeline step 3) come with the K-35 package.
+// Port of tests/obstacles/W1_staticGap.test.ts (web repo). Drags go through the K-35 pipeline (`Boards.Drop` / `Boards.Play` /
+// `Run`), the K-46 YAO counters through `Moves.MeasureYao` (P3); the i18n card text check reads src/i18n of the web repo and
+// stays there.
 using System;
 using System.Linq;
 using MinikUsta.Core.Level;
@@ -123,6 +124,17 @@ namespace MinikUsta.Core.Tests.Obstacles
             Assert.Throws<InvalidOperationException>(() => Drop(s, 0, 5, 2, 0)); // the strict TS `run` refuses a cancelled release too
             Assert.AreEqual(before, Hdr(s, H.MovesLeft));
             CollectionAssert.AreEqual(new[] { 4, 2 }, new[] { PieceX(s, 0), PieceY(s, 0) });
+        }
+
+        [Test(Description = "W1 K-46 correct rail placements count as through the gap, not over the wall (level 4: YAO 4/5, level 9: 3/4)")]
+        public void W1_K46_correct_rail_placements_count_as_through_the_gap()
+        {
+            var four = LevelState(4);
+            foreach (var m in HandMoves(4)) Run(four, new DragMove(m.PieceId, m.To));
+            Assert.AreEqual(new YaoMeasure(4, 1, 4.0 / 5), Moves.MeasureYao(four));
+            var nine = LevelState(9);
+            foreach (var m in HandMoves(9)) Run(nine, new DragMove(m.PieceId, m.To));
+            Assert.AreEqual(new YaoMeasure(3, 1, 3.0 / 4), Moves.MeasureYao(nine));
         }
 
         [Test(Description = "W1 K-45 a gap must leave a closed wall row above it: y + size ≤ height − 1 (gap_touches_top)")]

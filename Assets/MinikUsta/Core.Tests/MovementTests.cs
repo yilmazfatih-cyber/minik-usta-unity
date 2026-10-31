@@ -1,7 +1,7 @@
 #nullable enable
-// Port of tests/core/movement.test.ts. Two tests of the TS file need the move pipeline (`run` / HAND replays: "K-12
-// dragEnteredRail fires on the first FREE → RAIL step (Bölüm 4 gapPass)") and come with the K-35 package; the Bölüm 1–10
-// start-position test reads the canonical first move straight from the golden `log` instead.
+// Port of tests/core/movement.test.ts. "K-12 dragEnteredRail … (Bölüm 4 gapPass)" replays the canonical moves through
+// `Moves.ApplyMove` (`Run`, P3); the Bölüm 1–10 start-position test reads the canonical first move straight from the golden
+// `log`.
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -794,6 +794,23 @@ namespace MinikUsta.Core.Tests
             Assert.AreEqual(DropKinds.SiteFree, d.Classify().Kind);
             Assert.IsFalse(d.Follow(3, 4).CrossedWall);
             Assert.IsFalse(d.Follow(4, 4).CrossedWall);
+        }
+
+        [Test(Description = "K-12 dragEnteredRail fires on the first FREE → RAIL step (Bölüm 4 gapPass)")]
+        public void K12_dragEnteredRail_fires_on_the_first_FREE_to_RAIL_step_Bolum_4_gapPass()
+        {
+            var s = LevelState(4);
+            var hand = HandMoves(4);
+            Run(s, new DragMove(hand[0].PieceId, hand[0].To)); // e: shift (LEVELS §2 Bölüm 4 moves 1–2)
+            Run(s, new DragMove(hand[1].PieceId, hand[1].To)); // c: shift, the corridor x 2–3 is open
+            var d = Drag(s, 0); // `a`, O4 W at (0,0)
+            Assert.IsTrue(d.CanEnterRail);
+            Assert.IsFalse(d.CanCrossWall);
+            var r = d.Follow(4, 0);
+            CollectionAssert.AreEqual(new[] { "F(1,0)", "F(2,0)", "R0(3,0)", "R0(4,0)" }, Keys(r.Path));
+            Assert.IsTrue(r.EnteredRail);
+            Assert.IsFalse(r.CrossedWall);
+            AssertDrop(d.Classify(), DropKinds.SiteRail, null, null, 0);
         }
 
         [Test(Description = "K-12 a debris RAIL start is not a rail entry; leaving to the yard and re-entering from FREE is")]
