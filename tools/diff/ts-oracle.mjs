@@ -322,19 +322,20 @@ function snapshot(game, events) {
   };
 }
 
-function playSequence(name, lvl, seed, prefixMoves, burn) {
+function playSequence(name, lvl, seed, prefixMoves, burn, script = null) {
   let h = 2166136261;
   for (const ch of name) h = Math.imul(h ^ ch.charCodeAt(0), 16777619) >>> 0;
   const rng = mulberry32(h);
-  const preBoosters = PRE[seed % PRE.length];
-  const streakTier = seed % 3;
+  const preBoosters = script ? (script.preBoosters ?? []) : PRE[seed % PRE.length];
+  const streakTier = script ? (script.streakTier ?? 0) : seed % 3;
   const startSink = new ArraySink();
   const game = GameSession.start(lvl, { preBoosters, streakTier }, { streakBonus }, startSink);
   const steps = [{ i: 0, a: { kind: 'start', preBoosters, streakTier }, st: 'start', ...snapshot(game, startSink.events) }];
   const prefix = prefixMoves.length === 0 ? 0 : seed % (prefixMoves.length + 1);
-  for (let k = 0; k < MOVES; k++) {
+  const cap = script ? script.actions.length : MOVES;
+  for (let k = 0; k < cap; k++) {
     if (game.outcome === 'won' || game.outcome === 'lost' || game.outcome === 'exited') break;
-    const a = k < prefix ? prefixMoves[k] : randomAction(game, rng, burn, k);
+    const a = script ? script.actions[k] : k < prefix ? prefixMoves[k] : randomAction(game, rng, burn, k);
     if (!a) break;
     bump(totals.actions, a.kind);
     const i = steps.length;
@@ -474,6 +475,81 @@ for (let g = 0; g < GEOS.length; g++) {
   }
 }
 
+// --- scripted scenarios (P4 item 3): Söküm / deadlock, +5 offers, Undo, truck queue -----------------------------------
+// Fixed action lists on the fixtures of tests/core/deadlock.test.ts and tests/review/pipeline.review.test.ts (copied:
+// test data, not core). The C# test compares them step by step like the random sequences; ScenarioTests.cs asserts
+// their GDD meaning.
+
+const D = (pieceId, ix, iy, mode = 0) => ({ kind: 'drag', pieceId, to: { ix, iy, mode } });
+const UNDO = { kind: 'undo' };
+const COINS = { kind: 'addMoves', amount: 5, source: 'offerCoins' };
+const AD = { kind: 'addMoves', amount: 5, source: 'offerAd' };
+const EXIT = { kind: 'exit' };
+const DECLINE = { kind: 'decline' };
+const fullColumn = (x) => [['I4_0', 'Y', x, 0], ['I4_0', 'Y', x, 4]];
+const column7 = (x) => [['I4_0', 'Y', x, 0], ['I3_0', 'Y', x, 4]];
+const TILING = {
+  wall: { height: 2 },
+  site: { cols: 2, rows: 4 },
+  plan: ['WW', 'WW', 'YW', 'YW'],
+  pieces: [['D2_0', 'Y', 0, 0], ['D2_0', 'W', 1, 0], ['O4_0', 'W', 2, 0]],
+};
+const E26 = { wall: { height: 2 }, site: { cols: 2, rows: 2 }, plan: ['WY', 'WW'], pieces: [['D2_0', 'W', 0, 0], ['B1_0', 'W', 2, 0], ['B1_0', 'Y', 3, 0]] };
+const FIFO = {
+  plan: [['W.'], ['W.'], ['W.']],
+  pieces: [['B1_0', 'W', 0, 7], ['B1_0', 'W', 5, 7], ...column7(0), ...column7(5), ...fullColumn(1), ...fullColumn(2), ...fullColumn(3), ...fullColumn(4)],
+  batches: [{ forSegment: 1, pieces: [['B1_0', 'R', 0, 8], ['B1_0', 'R', 0, 8]] }, { forSegment: 2, pieces: [['B1_0', 'G', 5, 8]] }],
+};
+const E03 = {
+  plan: [['W.'], ['WW']],
+  pieces: [['B1_0', 'W', 5, 7], ...column7(5), ...fullColumn(2), ...fullColumn(3), ...fullColumn(4), ['I4_0', 'Y', 0, 0], ['D2_0', 'Y', 0, 4], ['I4_0', 'Y', 1, 0], ['D2_0', 'Y', 1, 4], ['B1_0', 'Y', 1, 6]],
+  batches: [{ forSegment: 1, pieces: [['O4_0', 'R', 0, 8]] }],
+};
+const WIN_WITH_TRUCK = {
+  plan: [['W.'], ['W.']],
+  pieces: [['B1_0', 'W', 0, 7], ...column7(0), ...fullColumn(1), ...fullColumn(2), ...fullColumn(3), ...fullColumn(4), ...fullColumn(5)],
+  batches: [{ forSegment: 1, pieces: [['B1_0', 'W', 0, 8], ['O4_0', 'R', 0, 8]] }],
+};
+const STREAK = {
+  moves: 20,
+  wall: { height: 2 },
+  plan: ['WW', 'WW', 'WW', 'WW', 'WW'],
+  pieces: [['D2_0', 'W', 0, 0], ['D2_0', 'W', 1, 0], ['D2_0', 'W', 2, 0], ['D2_0', 'W', 3, 0], ['B1_0', 'Y', 4, 0], ['B1_0', 'W', 5, 0]],
+};
+const shuttle = (n, from = 1) => Array.from({ length: n }, (_, i) => D(5, 5, (from + i) % 2));
+
+const SCENARIOS = [
+  // K-30 Söküm (tiling dead end) → E-37 Undo → the same Söküm again → the right placement → win
+  { name: 'teardown tiling undo redo win', spec: TILING, actions: [D(0, 6, 8), D(1, 6, 8), UNDO, D(1, 6, 8), D(1, 7, 8), D(2, 6, 8)] },
+  // K-30 Söküm on the last move: step 12 before the window (E-58) → +5 (K-29) → finish
+  { name: 'teardown on the last move then offer', spec: { ...TILING, moves: 2 }, actions: [D(0, 6, 8), D(1, 6, 8), UNDO, COINS, D(1, 7, 8), D(2, 6, 8)] },
+  // K-30 Söküm with a Golden Trowel and Termos in play, then a K-43 exit after the torn-down move (movesSpent)
+  { name: 'teardown then exit is a loss', spec: E26, preBoosters: ['thermos'], actions: [D(1, 6, 8), EXIT] },
+  { name: 'teardown with start bonuses then trowel', spec: TILING, preBoosters: ['trowelStart', 'thermos'], streakTier: 2, actions: [D(0, 6, 8), D(1, 6, 8), { kind: 'goldTrowel', pieceId: 1, x: 7, y: 0 }, UNDO, D(2, 6, 8)] },
+  // K-26 / E-04 FIFO queue across two segment shifts, E-21 Undo of a shift + delivery, redo
+  { name: 'truck fifo undo redo', spec: FIFO, actions: [D(0, 6, 8), D(1, 6, 8), UNDO, D(1, 6, 8), D(14, 6, 8)] },
+  // E-03 a yard move delivers the queued block; then the queue empties and the level goes on
+  { name: 'truck queue delivered by a yard move', spec: E03, actions: [D(0, 6, 8), D(13, 5, 7), UNDO, D(13, 5, 7), D(14, 6, 8)] },
+  // K-48 (3) the win waits for the truck queue
+  { name: 'truck queue holds back the win', spec: WIN_WITH_TRUCK, actions: [D(0, 6, 8), D(13, 6, 8), UNDO, D(13, 6, 8)] },
+  // K-29 three offers (ad, coins, coins), then the loss without a window
+  { name: 'offers exhausted then loss', spec: { ...STREAK, moves: 1 }, actions: [...shuttle(1), AD, ...shuttle(5, 0), COINS, ...shuttle(5, 1), COINS, ...shuttle(5, 0), COINS, D(0, 6, 8)] },
+  // K-29 / K-39 Undo closed in the window, Undo after an accepted offer, decline → lost
+  { name: 'undo around the offer window then decline', spec: { ...STREAK, moves: 2 }, actions: [D(0, 6, 8), D(5, 5, 1), UNDO, COINS, D(1, 7, 8), UNDO, D(1, 7, 8), ...shuttle(4, 0), UNDO, DECLINE] },
+  // K-39 Undo of the 4th correct placement (trowel taken back), depth 1, K-43 exit after Undo of the only move
+  { name: 'undo streak trowel and depth', spec: STREAK, actions: [D(0, 6, 8), D(1, 7, 8), D(2, 6, 8), D(3, 7, 8), UNDO, UNDO, D(3, 7, 8), { kind: 'goldTrowel', pieceId: 5, x: 6, y: 4 }, D(4, 7, 8), UNDO, EXIT] },
+];
+
+const scenarioFiles = [];
+SCENARIOS.forEach((sc, i) => {
+  const data = level(sc.spec);
+  if (!roundTrips(data)) throw new Error(`scenario ${sc.name} does not round-trip through JSON`);
+  const lvl = compile(data);
+  const seq = playSequence(`scenario ${pad(i + 1, 2)} ${sc.name}`, lvl, 0, [], false, sc);
+  writeSource(`scenario_${pad(i + 1)}.json`, { kind: 'scenario', n: i + 1, label: sc.name }, data, [seq]);
+  scenarioFiles.push(sc.name);
+});
+
 let webCommit = '?';
 try {
   webCommit = execSync('git rev-parse --short HEAD', { cwd: WEB }).toString().trim();
@@ -492,7 +568,7 @@ const manifest = {
   files,
 };
 writeFileSync(join(OUT, 'manifest.json'), JSON.stringify(manifest, null, 1) + '\n');
-console.log(`ts-oracle: web ${webCommit}, ${totals.sequences} sequences, ${totals.steps} actions (${geoLevels} random geometry levels, ${truckLevels} truck levels) → ${OUT}`);
+console.log(`ts-oracle: web ${webCommit}, ${totals.sequences} sequences, ${totals.steps} actions (${geoLevels} random geometry levels, ${truckLevels} truck levels, ${scenarioFiles.length} scenarios) → ${OUT}`);
 console.log('actions ', JSON.stringify(manifest.actions));
 console.log('statuses', JSON.stringify(manifest.statuses));
 console.log('outcomes', JSON.stringify(manifest.outcomes));
