@@ -127,6 +127,33 @@ P4'te ad değişikliği (gövde aynı, TS başlığındaki kimlik ada eklendi; k
 Toplam: 1 460 test (P1 sonunda 366; P2 sonunda 618; P3 sonunda 937; P4 +483: 406 fuzz durumu dahil — kehanet çıktısıyla; inceleme +26; P6 +14: 1 455 geçer, 5 `Ignore`),
 `dotnet build -warnaserror` 0 uyarı; `fi_FI`, `ar_SA`, `sv_SE`, `tr_TR` yerel ayarlarında da 0 kırmızı.
 
+## Sunum çekirdeği (`Assets/MinikUsta/Presentation.Core`, Faz 3 Q0)
+
+Motor-bağımsız sunum katmanı (asmdef `noEngineReferences`, netstandard2.1, C# 9; D-093, D-096). Kaynak gerçek: web
+`src/scenes/level/**` (Phaser sunum kodu = davranış referansı), `src/theme/layout.ts`, `docs/JUICE.md`, `tokens.json`.
+Unity katmanı (Q1, `Assets/MinikUsta/Unity`) yalnız bunları çağırır; kural kararı vermez.
+
+| Web dosyası | C# dosyası | Durum | Not |
+| --- | --- | --- | --- |
+| Phaser `Tweens` (DOTween yerine, D-096) + `easing.ts` | `Tween/Easing.cs` | **Q0** | `EaseType` (16: Linear, In/Out/InOut Quad, Cubic, InBack, OutBack (1.70158), OutBounce, OutElastic (Phaser varsayılanı genlik 0.1 → 1, periyot 0.1), In/Out/InOut Sine, In/Out Expo); `Easing.Evaluate` Phaser 4.2.1 formülleri, uçlar tam 0 / 1 (Expo'da Phaser 1 − 2⁻¹⁰ verir; bilinçli sapma); `FromPhaserName` / `TryFromPhaserName` / `PhaserName` (tokens `easing.*` adları) |
+| — | `Tween/Tweenable.cs`, `Tween/Tween.cs`, `Tween/Sequence.cs`, `Tween/TweenClock.cs` | **Q0** | `Tweenable` (Delay, Duration, Span, OnStart, OnComplete, Complete, Kill, Tag, `Goto(ms)` yalnız ileri), `Tween` (`SetEase`, `SetCurve`), `ITweenTarget` (Position tasarım px y aşağı, Scale, Rotation derece saat yönü tersi, Alpha), `Tweens.Value/Move(arcPx)/Scale/Squash/Pulse/Pop/PopCurve/Rotate/Fade/Shake/Nudge/Call`, `Sequence` (Append, Join, Insert, AppendInterval, AppendCallback, InsertCallback; uzun adım bütün iç sınırlarda bölünür → geri çağrılar zaman sırasında), `TweenClock` (`Advance(dtMs)`, `TimeScale`, `Play(t, elapsedMs)`, `Complete(tag)`, `Kill(tag)`, `IsRunning(tag)`) |
+| `juice/catalog.ts` + `viewConstants.ts` (`VIEW`, `JUICE_VIEW`) + tokens `duration/easing/drag/physics/particles/a11y` | `Feel/FeelSettings.cs` | **Q0** | Tek veri sınıfı (`[Serializable]`, yalnız float/int/EaseType alanları; Q1 ScriptableObject sarar), `Validate()`, `Clone()`; varsayılanlar `FeelSettingsTests` ile tokens.json kopyasına karşı denetlenir |
+| `motion.ts` (`fallDurationMs`, `fallDistanceAt`, `fallLeg`, `glideMs`) + `plan.ts` (`releaseFallMs`, `yardFallMs`, `dropRows`) | `Feel/FallMotion.cs` | **Q0** | `FallLeg.Progress` = `Tween.SetCurve` eğrisi (ivmeli düşüş, mesafe oranı) |
+| `stuckPulse.ts` | `Feel/StuckPulse.cs` | **Q0** | GDD K-34 kanca 5: Kolay 6000 ms, Normal 12000 ms, Zor/Çok Zor yok, 2 nabız (kural değeri, FeelSettings'te değil) |
+| `theme/layout.ts` (`adaptiveCellPx`, `boardLayout`, `createLayout`, `designHeight`, `fitViewport`, `hitArea`) | `Layout/LayoutSettings.cs`, `Layout/BoardLayout.cs` (`BoardGeometry`, `BoardLayout`, `ScreenLayout`), `Layout/ScreenFit.cs` (`ScaleMode`, `DesignViewport`) | **Q0** | UX §5.8 tablosu birebir; `ScreenLayout.OnBoard` = DragController `onBoard`; `DesignViewport` Unity ekranı (sol alt köken) ↔ tasarım px ↔ dünya (kamera tuvalin ortasında, 100 px = 1 birim), `OrthographicSize` |
+| `hitTest.ts` | `Layout/HitTest.cs` | **Q0** | `PieceAtPoint(s, grid, px, py, slop)` (−1 = yok) |
+| `dragMath.ts` | `Input/DragMath.cs` | **Q0** | `Grab`, `Edges`, `ExceedsThreshold`, `GrabAt`, `TargetAnchor`, `FingerFor` (ters; bot/test/debug), `EdgesOf`, `DrawAnchor`, `PathDurationMs`, `PathPoint` |
+| `DragController.ts` (Phaser'sız yarısı) | `Input/DragMapper.cs` | **Q0** | `Down → PressResult` (K-09 kapısı + tek BFS), `Move/Update → DragFrame` (yeniden kullanılan nesne; K-08 takip, çizim çapası, BFS yol izleme, sinyaller), `Up → ReleaseResult` (Tap / Aborted / Drag + çekirdek `DragMove`), `Abort` |
+| `juice/plan.ts` (`planMove`) | `Animation/AnimationStep.cs`, `Animation/AnimationPlanner.cs` | **Q0** | `StepKind` (57), `AnimationStep` (Kind, Juice, At, Ms, Ease, Lock, FastForward, Group, Event, Also, PieceId, Cells, N, First, Flag, ToSeg, Drops), `AnimationGroup`, `AnimationPlan` (`Steps`, `Groups`, `Ms`, `CoveredEvents`, `FromSteps`), `PlanContext.Capture(session)`, `AnimationPlanner.Plan(ActionResult | events, ctx, feel)`. Web P0 sırası birebir; 43 olay türünün hepsi bir adıma düşer (yoksa `Instant`); iki bilinçli ek: D-091 `BlocksChipFly` ve #57'nin #107'den sonra oynaması (JUICE §0 kural 10) |
+| `juice/playback.ts` | `Animation/AnimationQueue.cs` | **Q0** | `Schedule`, `Advance`, `Locked`, `LockEnd`, `FastForward` (R-12), `SpeedUp` / `Rate` (3×), `Flush`, `Clear`, `Pending`, `Busy`, `LastStart` |
+
+Testler (`Assets/MinikUsta/Presentation.Core.Tests`, `dotnet/MinikUsta.Presentation.Core.Tests`): `EasingTests`, `TweenTests`,
+`FeelSettingsTests` (tokens.json eşlemesi), `FallAndHintTests` (JUICE §0.1, K-34 kanca 5), `BoardLayoutTests` (web
+`boardLayout.test.ts`: UX §5.8 tablosu, EXPAND, 9 geometri, hit-test gidiş-dönüş, `ScreenFit`), `DragMapperTests` (web
+`dragMath.test.ts` + Bölüm 1–10 kanonik çözümleri parmak simülasyonuyla → aynı `DragMove` ve TS `eventLogHash`),
+`AnimationPlannerTests` (web `juice.test.ts` zamanlama testleri + 43 olay türü + JUICE kural 14 + saflık),
+`AnimationQueueTests` (web oynatma testleri + gerçek plan uçtan uca). Veri: `Golden/tokens.json` (`tools/sync-from-web.sh`).
+
 ## Veri
 
 | Web | Unity | Araç |
@@ -141,6 +168,7 @@ Toplam: 1 460 test (P1 sonunda 366; P2 sonunda 618; P3 sonunda 937; P4 +483: 406
 | web `docs/GDD.md`, `docs/TECH_DESIGN.md` §12.4, `docs/OBSTACLES.md` (`tools/rule-coverage.ts` `ruleIds`) | `Assets/MinikUsta/Core.Tests/Golden/rule_ids.json` (181 kimlik, Faz 2R'ye kadar 76) | `node tools/gen-rule-ids.ts` |
 | TS çekirdeği (fuzz kehaneti) | `tools/diff/out/*.json` + `manifest.json` (~12 MB, git dışı) | `node tools/diff/ts-oracle.mjs [/yol/minik-usta] [--seeds N] [--moves M]` |
 | TS çekirdeği (inceleme vektörleri) | `Assets/MinikUsta/Core.Tests/Golden/review_json_vectors.json`, `review_follow_vectors.json`, `review_d3a_vectors.json` | `node tools/review/gen-json-vectors.ts`, `gen-follow-vectors.ts`, `gen-d3a-vectors.ts` (stdout → dosya; `docs/REVIEW_PHASE2.md`) |
+| `src/theme/tokens.json` (design-lead) | `Assets/MinikUsta/Presentation.Core.Tests/Golden/tokens.json` | `tools/sync-from-web.sh` (Faz 3 Q0; `FeelSettingsTests`) |
 | TS çekirdeği (P3 vektörleri) | `Assets/MinikUsta/Core.Tests/Golden/p3_vectors.json` (~360 KB, dizi başına bir satır) | `node tools/gen-p3-vectors.ts` (`--verbose`: `p3_vectors.verbose.json`, her satır + her paketin kanonik olay JSON'u, git dışı; uyuşmayan dizinin C# satırları `Golden/p3_csharp.<dizi>.txt`, git dışı) |
 
 Web reposu değişince: `bash tools/sync-from-web.sh`, `node tools/gen-p0-vectors.ts`, `node tools/gen-p1-vectors.ts`,

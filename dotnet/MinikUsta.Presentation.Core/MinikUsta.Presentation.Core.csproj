@@ -1,0 +1,27 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <!-- Compiles the engine-independent presentation assembly (Assets/MinikUsta/Presentation.Core, asmdef noEngineReferences)
+       outside Unity (D-093, D-096): tween engine, feel settings, animation planner, board layout, drag mapping.
+       netstandard2.1 = the API surface Unity 6 offers; LangVersion 9 = Unity's compiler. -->
+  <PropertyGroup>
+    <TargetFramework>netstandard2.1</TargetFramework>
+    <LangVersion>9.0</LangVersion>
+    <Nullable>enable</Nullable>
+    <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+    <WarningLevel>4</WarningLevel>
+    <EnableDefaultCompileItems>false</EnableDefaultCompileItems>
+    <AssemblyName>MinikUsta.Presentation.Core</AssemblyName>
+    <RootNamespace>MinikUsta.Presentation</RootNamespace>
+    <GenerateDocumentationFile>false</GenerateDocumentationFile>
+    <ImplicitUsings>disable</ImplicitUsings>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Compile Include="../../Assets/MinikUsta/Presentation.Core/**/*.cs" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="../MinikUsta.Core/MinikUsta.Core.csproj" />
+  </ItemGroup>
+
+</Project>

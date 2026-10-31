@@ -1,0 +1,34 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <!-- Runs the Unity EditMode tests of the presentation core (Assets/MinikUsta/Presentation.Core.Tests) under NUnit 3
+       outside Unity (D-093). NUnit stays on 3.x (Unity's bundled NUnit is 3.5). Test data is read from the repo
+       (PresentationPaths walks up to Assets/MinikUsta/Core/MinikUsta.Core.asmdef), as the core tests do. -->
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
+    <LangVersion>9.0</LangVersion>
+    <Nullable>enable</Nullable>
+    <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+    <EnableDefaultCompileItems>false</EnableDefaultCompileItems>
+    <IsPackable>false</IsPackable>
+    <IsTestProject>true</IsTestProject>
+    <AssemblyName>MinikUsta.Presentation.Core.Tests</AssemblyName>
+    <RootNamespace>MinikUsta.Presentation.Tests</RootNamespace>
+    <ImplicitUsings>disable</ImplicitUsings>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Compile Include="../../Assets/MinikUsta/Presentation.Core.Tests/**/*.cs" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.14.1" />
+    <PackageReference Include="NUnit" Version="3.14.0" />
+    <PackageReference Include="NUnit3TestAdapter" Version="4.6.0" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="../MinikUsta.Core/MinikUsta.Core.csproj" />
+    <ProjectReference Include="../MinikUsta.Presentation.Core/MinikUsta.Presentation.Core.csproj" />
+  </ItemGroup>
+
+</Project>
