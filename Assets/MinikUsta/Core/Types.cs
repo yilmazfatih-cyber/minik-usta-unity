@@ -1209,10 +1209,10 @@ namespace MinikUsta.Core
     public sealed class BoosterAppliedEvent : GameEvent
     {
         public readonly string Booster;
-        /// <summary>TS `detail: unknown` (booster specific payload; written by the booster package).</summary>
-        public readonly object? Detail;
+        /// <summary>TS `detail: unknown`: the booster-specific payload as JSON (hammer `{target, pieceId|obstacle}`, crane `{pieceId, to, rotation}`, paint `{a, b}`, trowel `{pieceId, to, trowels}`), written by the move pipeline (Moves.cs).</summary>
+        public readonly MinikUsta.Core.Json.JsonValue? Detail;
 
-        public BoosterAppliedEvent(string booster, object? detail)
+        public BoosterAppliedEvent(string booster, MinikUsta.Core.Json.JsonValue? detail)
         {
             Booster = booster;
             Detail = detail;
