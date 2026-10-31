@@ -42,3 +42,6 @@ TestResults/
 .idea/
 *.swp
 .DS_Store
+
+# differential fuzz oracle output (node tools/diff/ts-oracle.mjs; DiffFuzzTests reads it)
+/tools/diff/out/
