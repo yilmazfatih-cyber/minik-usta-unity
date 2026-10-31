@@ -1,0 +1,71 @@
+name: Unity WebGL → Pages
+on:
+  push:
+    branches: [main]
+    paths: ['Assets/**', 'Packages/**', 'ProjectSettings/**', '.github/workflows/unity-webgl.yml']
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: unity-webgl
+  cancel-in-progress: true
+
+jobs:
+  build:
+    name: Build WebGL (GameCI)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Check for a scene
+        id: scene
+        run: |
+          if ls Assets/MinikUsta/Scenes/*.unity >/dev/null 2>&1; then echo "has=true" >> "$GITHUB_OUTPUT"; else echo "has=false" >> "$GITHUB_OUTPUT"; echo "::notice::No scene yet (Phase 3 adds Assets/MinikUsta/Scenes); build skipped."; fi
+      - name: Cache Library
+        if: steps.scene.outputs.has == 'true'
+        uses: actions/cache@v4
+        with:
+          path: Library
+          key: Library-WebGL-${{ hashFiles('Assets/**', 'Packages/**', 'ProjectSettings/**') }}
+          restore-keys: Library-WebGL-
+      - name: Build
+        if: steps.scene.outputs.has == 'true'
+        uses: game-ci/unity-builder@v4
+        env:
+          UNITY_LICENSE: ${{ secrets.UNITY_LICENSE }}
+          UNITY_EMAIL: ${{ secrets.UNITY_EMAIL }}
+          UNITY_PASSWORD: ${{ secrets.UNITY_PASSWORD }}
+        with:
+          unityVersion: 6000.0.85f1
+          targetPlatform: WebGL
+          buildName: MinikUsta
+          buildMethod: MinikUsta.Editor.CiBuild.BuildWebGL
+          allowDirtyBuild: true
+      - name: Prepare Pages artifact
+        if: steps.scene.outputs.has == 'true'
+        run: |
+          sudo chown -R "$USER" build
+          ls -la build/WebGL/MinikUsta
+          touch build/WebGL/MinikUsta/.nojekyll
+      - name: Upload Pages artifact
+        if: steps.scene.outputs.has == 'true'
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: build/WebGL/MinikUsta
+    outputs:
+      has_scene: ${{ steps.scene.outputs.has }}
+
+  deploy:
+    name: Deploy to GitHub Pages
+    needs: build
+    if: needs.build.outputs.has_scene == 'true'
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@v4

@@ -1,0 +1,20 @@
+name: Unity activation file
+# Manual, one-time: produces the .alf file you upload at https://license.unity3d.com/manual to get a .ulf
+# (then paste the .ulf contents into the UNITY_LICENSE secret). See docs/CI.md.
+on:
+  workflow_dispatch:
+
+jobs:
+  activation:
+    name: Request manual activation file
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - id: getManualLicenseFile
+        uses: game-ci/request-manual-activation-file@v2
+        with:
+          unityVersion: 6000.0.85f1
+      - uses: actions/upload-artifact@v4
+        with:
+          name: Unity_v6000.0.85f1.alf
+          path: ${{ steps.getManualLicenseFile.outputs.filePath }}
