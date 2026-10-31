@@ -52,6 +52,11 @@ namespace MinikUsta.Core.Tests.Fixtures
         /// <summary>`p0_vectors.json`: values generated from the TypeScript core by tools/gen-p0-vectors.ts.</summary>
         public static JsonValue Vectors => vectors ??= LoadGolden("p0_vectors.json");
 
+        private static JsonValue? p1Vectors;
+
+        /// <summary>`p1_vectors.json`: movement / gravity / placement / delivery results generated from the TypeScript core by tools/gen-p1-vectors.ts.</summary>
+        public static JsonValue P1Vectors => p1Vectors ??= LoadGolden("p1_vectors.json");
+
         public static JsonValue LevelVector(int n)
         {
             foreach (var l in Vectors["levels"]!.Items) if (l["level"]!.AsInt == n) return l;

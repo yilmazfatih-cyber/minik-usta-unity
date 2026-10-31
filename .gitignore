@@ -32,6 +32,9 @@ obj/
 TestResults/
 *.binlog
 
+# generated diagnostics (node tools/gen-p1-vectors.ts --verbose)
+/Assets/MinikUsta/Core.Tests/Golden/p1_vectors.verbose.json
+
 # IDE
 .idea/
 *.swp

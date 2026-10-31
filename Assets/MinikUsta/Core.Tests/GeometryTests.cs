@@ -1,8 +1,9 @@
 #nullable enable
 // Port of tests/core/geometry.test.ts (K-49, TECH §2R.1 geometry set G) — the blocks that need only the P0 modules
 // (geometry, coords, state, grid, compile, hash, ASCII) — and of tests/core/geometry.gate.test.ts (the number gate).
-// The blocks that need movement / session / placement / delivery (random-play invariants, edge model ≡ cell model,
-// E-56 yard air, E-57 truck drops, K-44 cargo) are ported together with those modules (P2+), see docs/PORT_MAP.md.
+// The blocks that need the P1 modules (edge model ≡ cell model in G, E-56 classify half, K-05 short board, E-57 truck
+// drops, K-17 step 2/3, K-44 cargo) are in GeometryTests.P1.cs (same partial class). Still deferred to the K-35 /
+// session packages: the random-play invariants + replay, the E-56 applyMove half, the K-44 pipeline test.
 // The ESLint half of the gate (no-restricted-imports) has no C# equivalent; its intent — no pre-2R board constant left
 // outside the geometry — is checked by `K49_the_only_pre_2R_board_constant_left_is_obsolete_and_unreferenced`.
 using System;
@@ -18,11 +19,11 @@ using NUnit.Framework;
 namespace MinikUsta.Core.Tests
 {
     [TestFixture]
-    public class GeometryTests
+    public partial class GeometryTests
     {
         // --- the geometry set G (TECH §2R.1) ---------------------------------------------------------------------------
 
-        private readonly struct GeoCase
+        internal readonly struct GeoCase
         {
             public readonly int Wy;
             public readonly int Hy;
@@ -40,7 +41,7 @@ namespace MinikUsta.Core.Tests
             public string Label => Wy + "x" + Hy + "|" + Ws + "x" + Hs;
         }
 
-        private static readonly GeoCase[] G =
+        internal static readonly GeoCase[] G =
         {
             new GeoCase(4, 4, 2, 5),
             new GeoCase(4, 4, 2, 6),
@@ -102,7 +103,7 @@ namespace MinikUsta.Core.Tests
         }
 
         /// <summary>A random schema-valid level of geometry `c` (one segment, an optional static gap, yard gravity on or off).</summary>
-        private static CompiledLevel RandomLevel(GeoCase c, IRng rng, int id)
+        internal static CompiledLevel RandomLevel(GeoCase c, IRng rng, int id)
         {
             int h = Math.Max(c.Hy, c.Hs);
             int height = rng.NextInt(h + 1);
@@ -422,14 +423,17 @@ namespace MinikUsta.Core.Tests
 
         // --- the number gate (tests/core/geometry.gate.test.ts, TECH §2R.1, §2R.13 "gizli sabit" risk) -----------------------
 
-        /// <summary>WP-A files (TECH §2R.12) ported so far: every core file that reads the board geometry.
-        /// Later packages append Movement.cs, Gravity.cs, Placement.cs and Delivery.cs with their justified literals.</summary>
+        /// <summary>WP-A files (TECH §2R.12): every core file that reads the board geometry (TS `GEOMETRY_CORE`, same order).</summary>
         private static readonly string[] GeometryCore =
         {
             "Geometry.cs",
             "Coords.cs",
             "State.cs",
             "Grid.cs",
+            "Movement.cs",
+            "Gravity.cs",
+            "Placement.cs",
+            "Delivery.cs",
             "Hash.cs",
             "Ascii.cs",
             "Level/Compile.cs",
@@ -464,6 +468,12 @@ namespace MinikUsta.Core.Tests
                 new Rule(@"^public const int PieceStride = 9;$", "piece record stride"),
                 new Rule(@"^public const int \w+ = 1 << (5|6|7);$", "piece flag bit positions (FlagBit)"),
                 new Rule(@"<< 16\)|>> 6\)|<< 6\)|\(16 - 8 \* k\)|>> 8\)|<< 8\)|<< 24\)", "base64 / little-endian byte packing of the buffer"),
+            },
+            ["Movement.cs"] = new[]
+            {
+                new Rule(@"D2Epsilon = 1e-9;$", "float tolerance"),
+                new Rule(@"new short\[8\];$", "neighbour scratch (4 FREE steps + rails ≤ 3 + spare)"),
+                new Rule(@"new DropClass\(DropKinds\.\w+, [\w.]+, (5|6|7), ", "GDD K-07 release table row numbers"),
             },
             ["Hash.cs"] = new[]
             {
