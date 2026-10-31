@@ -58,6 +58,9 @@ namespace MinikUsta.Core
 
         /// <summary>`ZoneName` by zone value (TS `Object.keys(Zone)` order).</summary>
         public static readonly string[] Names = { "yard", "site", "queue", "gone", "pending" };
+
+        /// <summary>TS `Zone[name]`: the zone value of a zone name; −1 for an unknown name.</summary>
+        public static int IndexOf(string name) => Array.IndexOf(Names, name);
     }
 
     /// <summary>Bottom-left corner of a piece's bounding box, global coordinates (internal = global, R-03).</summary>
@@ -167,7 +170,7 @@ namespace MinikUsta.Core
     }
 
     /// <summary>`Ok ⇔ Reasons.Length == 0` (TECH §5.1).</summary>
-    public sealed class Verdict
+    public sealed class Verdict : IEquatable<Verdict>
     {
         public readonly bool Ok;
         public readonly string[] Reasons;
@@ -179,6 +182,19 @@ namespace MinikUsta.Core
             Reasons = reasons;
             MissingSupport = missingSupport;
         }
+
+        /// <summary>Structural equality (TS `toEqual` on verdicts): same `Ok`, same reasons in order, same missing-support cells in order.</summary>
+        public bool Equals(Verdict? o)
+        {
+            if (o == null || Ok != o.Ok || Reasons.Length != o.Reasons.Length || MissingSupport.Length != o.MissingSupport.Length) return false;
+            for (int i = 0; i < Reasons.Length; i++) if (Reasons[i] != o.Reasons[i]) return false;
+            for (int i = 0; i < MissingSupport.Length; i++) if (!MissingSupport[i].Equals(o.MissingSupport[i])) return false;
+            return true;
+        }
+
+        public override bool Equals(object? obj) => obj is Verdict v && Equals(v);
+        public override int GetHashCode() => (Ok ? 1 : 0) + 2 * Reasons.Length + 64 * MissingSupport.Length;
+        public override string ToString() => Ok ? "ok" : "[" + string.Join(",", Reasons) + "] missing " + string.Join(" ", MissingSupport);
     }
 
     /// <summary>G-L steering input (GDD K-19, S-26 record format). `Dir` is −1 or 1.</summary>
