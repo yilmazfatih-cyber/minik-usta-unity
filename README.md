@@ -24,20 +24,28 @@ Faz 1 raporu: web reposunda `docs/UNITY_PORT_FAZ1.md`. TS → C# dosya eşlemesi
 │  ├─ MinikUsta/
 │  │  ├─ Core/                     saf C# çekirdek (asmdef: noEngineReferences = true, autoReferenced)
 │  │  │  ├─ Types.cs Geometry.cs Coords.cs Shapes.cs Rng.cs Hash.cs Fnv1a.cs State.cs Grid.cs Ascii.cs
+│  │  │  ├─ Movement.cs Gravity.cs Placement.cs Delivery.cs Site.cs Panorama.cs        (P1: hareket hattı)
+│  │  │  ├─ Hooks.cs Goals.cs Combo.cs Boosters.cs Deadlock.cs Summary.cs              (P2: kurallar, çıkmaz, güçlendiriciler)
 │  │  │  ├─ Json/                  bağımlılıksız JSON okuyucu/yazıcı (JsonValue, JsonReader, JsonWriter + canonicalJson)
-│  │  │  └─ Level/                 LevelData (şema modeli), LevelJson (zod şemasının elle yazılmış karşılığı), Compile, Plan, Mechanics
+│  │  │  ├─ Level/                 LevelData, LevelJson (zod şemasının elle yazılmış karşılığı), Logic (K-45 doğrulayıcı), Load (loadLevel), Compile, Plan, Mechanics
+│  │  │  └─ Obstacles/             engel eklenti arayüzü (Types), kayıt + kanca birleştirme (Registry), W1_StaticGap, Y3_Chain, S1_SlidingSite
 │  │  └─ Core.Tests/               NUnit 3 testleri (Editor platformu; Unity EditMode ile aynı dosyalar)
-│  │     ├─ Fixtures/              Builders (tests/fixtures/builders.ts portu), J (JSON literal), TestPaths
-│  │     └─ Golden/                web reposundan kopya: level_NNN.hand.json, level_NNN.solver.json; TS vektörleri p0_vectors.json, p1_vectors.json
-│  └─ StreamingAssets/MinikUsta/levels/   level_001…010.json (web reposundan birebir kopya)
+│  │     ├─ Fixtures/              Builders (tests/fixtures/builders.ts), Boards (ortak tahta yardımcıları, Drop/Play), Cover (cover.ts), ObstacleFixtures, J (JSON literal), TestPaths
+│  │     │  └─ Levels/{valid,invalid}/  K-45 doğrulayıcı fikstürleri (web tests/level/fixtures kopyası)
+│  │     ├─ Obstacles/             RegistryTests, W1StaticGapTests, S1SlidingSiteTests, Y3ChainTests, S2PlanVoidTests
+│  │     └─ Golden/                web reposundan kopya: level_NNN.hand.json, level_NNN.solver.json; TS vektörleri p0_vectors.json, p1_vectors.json, p2_vectors.json
+│  └─ StreamingAssets/MinikUsta/
+│     ├─ levels/                   level_001…010.json (web reposundan birebir kopya)
+│     └─ config/economy.json       güçlendirici açılış seviyeleri (L-17 `booster:` / `pre:` vurguları)
 ├─ dotnet/                         Unity dışı derleme ve test (D-093)
 │  ├─ MinikUsta.sln
 │  ├─ MinikUsta.Core/              Assets/MinikUsta/Core/**/*.cs → netstandard2.1, LangVersion 9, Nullable, TreatWarningsAsErrors
 │  └─ MinikUsta.Core.Tests/        Assets/MinikUsta/Core.Tests/**/*.cs → net8.0, NUnit 3.14 + NUnit3TestAdapter + Microsoft.NET.Test.Sdk
 ├─ tools/
-│  ├─ sync-from-web.sh             levels/*.json ve tests/golden/*.json dosyalarını web reposundan kopyalar
+│  ├─ sync-from-web.sh             levels, golden, K-45 fikstürleri ve economy.json dosyalarını web reposundan kopyalar
 │  ├─ gen-p0-vectors.ts            TS çekirdeğinden bit-eşitlik vektörleri üretir (node 22, ek paket yok)
-│  └─ gen-p1-vectors.ts            hareket / yerçekimi / yerleşim / teslimat vektörleri (10 bölüm + 9 geometri × 5 rastgele tahta)
+│  ├─ gen-p1-vectors.ts            hareket / yerçekimi / yerleşim / teslimat vektörleri (10 bölüm + 9 geometri × 5 rastgele tahta)
+│  └─ gen-p2-vectors.ts            doğrulayıcı / hedef / güçlendirici / çıkmaz / özet / kayıt vektörleri (fikstürler, kanonik çözüm boyunca 90 durum, 40 cover tahtası)
 └─ docs/PORT_MAP.md                TS dosyası → C# dosyası eşleme tablosu (her paket günceller)
 ```
 
@@ -49,10 +57,11 @@ Faz 1 raporu: web reposunda `docs/UNITY_PORT_FAZ1.md`. TS → C# dosya eşlemesi
 | Komut | Ne yapar |
 | ----- | -------- |
 | `cd dotnet && dotnet build -warnaserror` | Çekirdek + testleri derler; uyarı = hata |
-| `cd dotnet && dotnet test` | Tüm NUnit testlerini koşturur (bölüm ve altın JSON'ları çıktıya kopyalanır, testler repo kökünü `Assets/MinikUsta/Core/MinikUsta.Core.asmdef` ile bulur) |
-| `tools/sync-from-web.sh [/yol/minik-usta]` | Bölüm ve altın dosyalarını web reposundan yeniler (varsayılan `../minik-usta`) |
+| `cd dotnet && dotnet test` | Tüm NUnit testlerini koşturur (testler repo kökünü `Assets/MinikUsta/Core/MinikUsta.Core.asmdef` ile bulur ve bölüm / altın / fikstür JSON'larını oradan okur) |
+| `tools/sync-from-web.sh [/yol/minik-usta]` | Bölüm, altın, fikstür ve economy.json dosyalarını web reposundan yeniler (varsayılan `../minik-usta`) |
 | `node tools/gen-p0-vectors.ts [/yol/minik-usta]` | `Core.Tests/Golden/p0_vectors.json` dosyasını TS çekirdeğinden yeniden üretir |
 | `node tools/gen-p1-vectors.ts [/yol/minik-usta] [--verbose]` | `Core.Tests/Golden/p1_vectors.json` dosyasını (P1 modülleri: R, K-07 sınıfları, düşüşler, kararlar, K-08 takip taraması, K-17 dönüş hedefleri, settleYard) yeniden üretir; `--verbose` her satırı `p1_vectors.verbose.json` dosyasına yazar (git dışı, uyuşmazlık teşhisi için) |
+| `node tools/gen-p2-vectors.ts [/yol/minik-usta] [--verbose]` | `Core.Tests/Golden/p2_vectors.json` dosyasını (K-45 doğrulayıcı sonuç listeleri, D1/D2/D3a/Söküm/reshuffle, K-33/36/37/38 hedef kümeleri, K-34 kanca 5, hedef sayaçları, özet, kayıt) yeniden üretir; durumlar TS `applyMove` ile kanonik çözüm boyunca üretilip `encodeState` ile saklanır, C# aynı tamponu çözer; `--verbose` her satırı `p2_vectors.verbose.json` dosyasına yazar (git dışı) |
 
 Unity içinde: Window → General → Test Runner → EditMode; `MinikUsta.Core.Tests` asmdef'i `UNITY_INCLUDE_TESTS` tanımı ve
 `nunit.framework.dll` referansıyla aynı dosyaları koşturur.
@@ -61,13 +70,17 @@ Unity içinde: Window → General → Test Runner → EditMode; `MinikUsta.Core.
 
 - **Saf C#:** `Assets/MinikUsta/Core` içinde `UnityEngine`, `System.Text.Json`, `Newtonsoft` yok. JSON için Core içindeki
   küçük okuyucu kullanılır.
-- **Unity 6 uyumu:** LangVersion 9 (file-scoped namespace, global using, record struct, required üye yok);
-  `#nullable enable`. Core csproj hedefi **netstandard2.1**: Unity'nin sunduğu API yüzeyi; net8.0'a özel bir API
-  yanlışlıkla kullanılamaz (test projesi net8.0'dır).
+- **Unity 6 uyumu:** LangVersion 9 (file-scoped namespace, global using, record struct, required üye yok; `init` erişimcisi de
+  yok — netstandard2.1'de `IsExternalInit` bulunmaz); `#nullable enable`. Core csproj hedefi **netstandard2.1**: Unity'nin
+  sunduğu API yüzeyi; net8.0'a özel bir API yanlışlıkla kullanılamaz (test projesi net8.0'dır).
 - **Belirlenimcilik:** 32-bit tamsayı aritmetiği TS ile bit bit aynı (`Math.imul` → `unchecked(a * b)`, `>>>` →
   `(int)((uint)x >> n)`, `|0` → `unchecked((int)…)`); mulberry32, splitmix32, fmix32, Zobrist tabloları ve FNV-1a 64
   (`ulong`) birebir; karma dizeleri TS ile aynı hex biçiminde. `p0_vectors.json` bunu test eder; `p1_vectors.json` hareket,
-  yerçekimi (kayan nokta hysteresis dahil), yerleşim ve teslimat sonuçlarının 484 parça üzerinde TS ile karma karma eşitliğini test eder.
+  yerçekimi (kayan nokta hysteresis dahil), yerleşim ve teslimat sonuçlarının 484 parça üzerinde TS ile karma karma eşitliğini
+  test eder; `p2_vectors.json` doğrulayıcı mesajlarını, D3a açılım sayılarını (4096 yuvalı memo tablosu dahil), D1 reshuffle
+  hamlelerini ve Söküm olaylarını 130 durum üzerinde TS ile karşılaştırır.
+- **Engeller eklentidir:** `Core/Obstacles/Types.cs` arayüzü (`ObstacleRule`), `Registry.cs` kuralları `Order` sırasına göre
+  `MoveHooks`'a birleştirir; çekirdekte engele özel `if` yoktur (yeni engel = yeni dosya + `Registry.AllRules`'a bir satır).
 - **Kural atıfları:** Her K-xx kuralı yorumlarda ve test adlarında (`K49_…`) korunur.
-- **Veri:** Aynı `level_NNN.json` dosyaları değiştirilmeden okunur; geçersiz bölüm oyuna yüklenmez (şema + mantık
-  denetimleri, K-45).
+- **Veri:** Aynı `level_NNN.json` dosyaları değiştirilmeden okunur; geçersiz bölüm oyuna yüklenmez (`Compiler.LoadLevel`:
+  şema + K-45 çalışma zamanı alt kümesi `Logic.RuntimeChecks`, D-005).

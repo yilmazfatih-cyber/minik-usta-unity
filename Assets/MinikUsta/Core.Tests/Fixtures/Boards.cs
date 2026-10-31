@@ -234,6 +234,49 @@ namespace MinikUsta.Core.Tests.Fixtures
         public static YardMotion Motion(string kind, int id, Anchor from, Anchor to, int dy) => new YardMotion(kind, id, from, to, dy);
         public static YardMotion PieceMotion(int id, int fx, int fy, int tx, int ty) => new YardMotion(YardMotion.KindPiece, id, A(fx, fy), A(tx, ty), ty - fy);
 
+        /// <summary>One drag of a golden log (TS `handMoves`: `{ kind: 'drag', pieceId, to }`).</summary>
+        public readonly struct HandMove
+        {
+            public readonly int PieceId;
+            public readonly DragNode To;
+
+            public HandMove(int pieceId, DragNode to)
+            {
+                PieceId = pieceId;
+                To = to;
+            }
+
+            public int? Gap => To.Mode == Movement.Free ? (int?)null : To.Mode - 1;
+        }
+
+        /// <summary>
+        /// The canonical solution of a Faz 2R level (LEVELS §2 "Kanonik çözüm", GDD K-50 item 4) as drag moves, read from the
+        /// golden file (TS `HAND[level]` / `handMoves(level)`); `start` and `undo` actions are skipped.
+        /// </summary>
+        public static HandMove[] HandMoves(int level)
+        {
+            var golden = TestPaths.LoadGolden("level_" + level.ToString("000") + ".hand.json");
+            var o = new List<HandMove>();
+            foreach (var a in golden["log"]!.Items)
+            {
+                if (a["kind"]!.AsString != "drag") continue;
+                var to = a["to"]!;
+                o.Add(new HandMove(a["pieceId"]!.AsInt, new DragNode(to["ix"]!.AsInt, to["iy"]!.AsInt, to["mode"]!.AsInt)));
+            }
+            return o.ToArray();
+        }
+
+        /// <summary>Plays canonical moves `[from, to)` of `level` on `s` with `Drop` (TS `for (const m of HAND[n].slice(from, to)) run(s, m)`).</summary>
+        public static DropResult? Play(GameState s, int level, int from, int to)
+        {
+            var moves = HandMoves(level);
+            DropResult? last = null;
+            for (int i = from; i < Math.Min(to, moves.Length); i++) last = Drop(s, moves[i].PieceId, moves[i].To.Ix, moves[i].To.Iy, moves[i].Gap);
+            return last;
+        }
+
+        public static DropResult Play(GameState s, HandMove m) => Drop(s, m.PieceId, m.To.Ix, m.To.Iy, m.Gap);
+
         /// <summary>The canonical first move of a golden (`log[1]`) and the described first step (`steps[0]`).</summary>
         public static (int pieceId, DragNode to, string stepKind) FirstHandMove(int level)
         {

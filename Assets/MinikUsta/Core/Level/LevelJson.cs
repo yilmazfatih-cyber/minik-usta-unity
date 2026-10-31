@@ -445,7 +445,7 @@ namespace MinikUsta.Core.Level
                 var tv = v["type"];
                 if (tv == null || !tv.IsString || Array.IndexOf(GoalTypes, tv.AsString) < 0)
                 {
-                    Issue(path, "invalid_union", "Invalid input: `type` must be one of " + string.Join("|", GoalTypes));
+                    Issue(At(path, "type"), "invalid_union", "Invalid input: `type` must be one of " + string.Join("|", GoalTypes)); // zod 4: the issue sits on the discriminator
                     return null;
                 }
                 string type = tv.AsString;
@@ -531,7 +531,7 @@ namespace MinikUsta.Core.Level
                 var tv = v["type"];
                 if (tv == null || !tv.IsString || Array.IndexOf(GapTypes, tv.AsString) < 0)
                 {
-                    Issue(path, "invalid_union", "Invalid input: `type` must be one of " + string.Join("|", GapTypes));
+                    Issue(At(path, "type"), "invalid_union", "Invalid input: `type` must be one of " + string.Join("|", GapTypes)); // zod 4: the issue sits on the discriminator
                     return null;
                 }
                 string type = tv.AsString;
@@ -689,7 +689,7 @@ namespace MinikUsta.Core.Level
                         var kv = hv["kind"];
                         if (kv == null || !kv.IsString || Array.IndexOf(HiddenKinds, kv.AsString) < 0)
                         {
-                            Issue(hp, "invalid_union", "Invalid input: `kind` must be one of " + string.Join("|", HiddenKinds));
+                            Issue(At(hp, "kind"), "invalid_union", "Invalid input: `kind` must be one of " + string.Join("|", HiddenKinds)); // zod 4: the issue sits on the discriminator
                             ok = false;
                         }
                         else if (kv.AsString == "repeat")
@@ -951,7 +951,7 @@ namespace MinikUsta.Core.Level
                 var ev = v["event"];
                 if (ev == null || !ev.IsString || Array.IndexOf(TutEvents.All, ev.AsString) < 0)
                 {
-                    Issue(path, "invalid_union", "Invalid input: `event` must be one of " + string.Join("|", TutEvents.All));
+                    Issue(At(path, "event"), "invalid_union", "Invalid input: `event` must be one of " + string.Join("|", TutEvents.All)); // zod 4: the issue sits on the discriminator
                     return null;
                 }
                 string e = ev.AsString;
