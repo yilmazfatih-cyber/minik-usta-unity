@@ -78,17 +78,78 @@ namespace MinikUsta.Core.Tests.Fixtures
         public static CompiledLevel LevelFile(int id) => Compiler.LoadLevel(TestPaths.LoadLevelJson(id)).LevelOrThrow();
         public static GameState LevelState(int id) => CreateInitialState(LevelFile(id));
 
-        /// <summary>What `Drop` did: the K-07 class of the release and, for a site release, the K-35 step 3 outcome.</summary>
+        // --- the move pipeline (TS tests/core/moves.fixtures.ts) ---------------------------------------------------------------
+
+        /// <summary>TS `dragTo(pieceId, ix, iy, gap?)`: a drag move to a FREE node (or a rail node when `gap` is given).</summary>
+        public static DragMove DragTo(int pieceId, int ix, int iy, int? gap = null) =>
+            new DragMove(pieceId, gap.HasValue ? R(gap.Value, ix, iy) : N(ix, iy));
+
+        /// <summary>TS `Ran`: the result and the events of one `applyMove`.</summary>
+        public sealed class Ran
+        {
+            public readonly MoveResult Res;
+            public readonly List<GameEvent> Ev;
+
+            public Ran(MoveResult res, List<GameEvent> ev)
+            {
+                Res = res;
+                Ev = ev;
+            }
+        }
+
+        /// <summary>TS `run(s, move, opts)`: `applyMove` with an ArraySink; strict by default (an invalid record throws).</summary>
+        public static Ran Run(GameState s, Move move, MoveHooks? hooks = null, bool strict = true, bool noTruckHelp = false, IDeadTable? deadTable = null)
+        {
+            var sink = new ArraySink();
+            var res = Moves.ApplyMove(s, move, sink, new ApplyOptions(hooks, noTruckHelp, strict, null, deadTable));
+            return new Ran(res, sink.Events);
+        }
+
+        /// <summary>TS `types(ev)`: event type names in order.</summary>
+        public static string[] Types(IEnumerable<GameEvent> ev) => ev.Select(e => e.TypeName).ToArray();
+
+        /// <summary>TS `find(ev, t)`: the first event of type `T`; throws when there is none.</summary>
+        public static T Find<T>(IEnumerable<GameEvent> ev) where T : GameEvent
+        {
+            foreach (var e in ev) if (e is T t) return t;
+            throw new InvalidOperationException("no " + typeof(T).Name + " event in [" + string.Join(", ", Types(ev)) + "]");
+        }
+
+        public static IEnumerable<T> OfType<T>(IEnumerable<GameEvent> ev) where T : GameEvent => ev.OfType<T>();
+
+        public static bool Has<T>(IEnumerable<GameEvent> ev) where T : GameEvent => ev.Any(e => e is T);
+
+        /// <summary>TS `toEqual` on a result: status, reason, won, outOfMoves (teardownCause undefined ≡ null).</summary>
+        public static void AssertResult(MoveResult res, string status, string? reason, bool won, bool outOfMoves, string? label = null)
+        {
+            Assert.AreEqual(status, res.Status, label + " status");
+            Assert.AreEqual(reason, res.Reason, label + " reason");
+            Assert.AreEqual(won, res.Won, label + " won");
+            Assert.AreEqual(outOfMoves, res.OutOfMoves, label + " outOfMoves");
+            Assert.IsNull(res.TeardownCause, label + " teardownCause");
+        }
+
+        public static void AssertApplied(MoveResult res, bool won = false, bool outOfMoves = false, string? label = null) =>
+            AssertResult(res, MoveStatuses.Applied, null, won, outOfMoves, label);
+
+        /// <summary>What `Drop` did: the K-07 class of the release, the result, the events and, for a site release, the K-35 step 3 outcome (rebuilt from the events).</summary>
         public sealed class DropResult
         {
             public readonly DropClass Drop;
+            public readonly MoveResult Res;
+            public readonly List<GameEvent> Ev;
+            /// <summary>Step 3 outcome rebuilt from `placementCorrect` / `mortarStuck` / `pieceBounced` (`At` / `Target.To` = the piece's place after the move; `Target.DropFrom` unknown).</summary>
             public readonly PlacementOutcome? Outcome;
+            /// <summary>Step 8 from `segmentCompleted` / `siteShifted` (`Enqueued` is not rebuilt: empty).</summary>
             public readonly SegmentCompletion? Completed;
+            /// <summary>Step 9 from `deliveryArrived` + `pieceFell{delivery}` / `deliveryQueued` (or the queue length after the move).</summary>
             public readonly DeliveryResult Delivery;
 
-            public DropResult(DropClass drop, PlacementOutcome? outcome, SegmentCompletion? completed, DeliveryResult delivery)
+            public DropResult(DropClass drop, MoveResult res, List<GameEvent> ev, PlacementOutcome? outcome, SegmentCompletion? completed, DeliveryResult delivery)
             {
                 Drop = drop;
+                Res = res;
+                Ev = ev;
                 Outcome = outcome;
                 Completed = completed;
                 Delivery = delivery;
@@ -98,45 +159,53 @@ namespace MinikUsta.Core.Tests.Fixtures
         }
 
         /// <summary>
-        /// C# stand-in for the TS test helper `run(s, dragTo(id, ix, iy[, gap]))` until the K-35 pipeline (`applyMove`) is ported:
-        /// the deterministic core steps of one drag without events — 0 classify (a cancel throws: the TS tests run strict), 1
-        /// move (yard release), 2 fall (`ComputeFall` with `hooks.Fall`), 3 settle (`SettlePlacement` with `hooks.Placement`),
-        /// 4 base cost 1 (`movesLeft`, `turn`, `movesSpent`), 6 `SettleYard`, 7 `CountDebrisLeftSite`, 8 segment completion +
-        /// build goal, 9 delivery. Steps 5 (neighbour effects), 10 (timers), 11 (win flag) and 12 (deadlock) are NOT run.
+        /// C# stand-in for the TS test helper `run(s, dragTo(id, ix, iy[, gap]))`: the full K-35 pipeline (`Moves.ApplyMove`,
+        /// strict, step 12 on, the level's registry hooks unless `hooks` is given — like TS `run`). A cancelled release throws
+        /// (the P1/P2 tests were written against that; the TS tests that assert a cancel use `Run` and read `Res.Reason`).
+        /// `DropResult` keeps the step 3 / 8 / 9 views of the P2 tests, rebuilt from the events and the state after the move.
         /// </summary>
         public static DropResult Drop(GameState s, int id, int ix, int iy, int? gap = null, MoveHooks? hooks = null)
         {
-            hooks ??= MoveHooks.None;
-            var attempt = Movement.TryBeginDrag(s, id, hooks.Drag);
+            var attempt = Movement.TryBeginDrag(s, id, (hooks ?? MinikUsta.Core.Obstacles.Registry.LevelHooks(s.Lvl)).Drag);
             if (!attempt.Ok) throw new InvalidOperationException("Drop: piece " + id + " cannot be picked (" + attempt.Reason + ")");
             var node = new DragNode(ix, iy, gap.HasValue ? Movement.RailMode(gap.Value) : Movement.Free);
             var drop = attempt.Session!.Classify(node);
             if (drop.IsCancelled) throw new InvalidOperationException("Drop: release " + Key(node) + " of piece " + id + " is cancelled (" + drop.Reason + ")");
-            var start = Placement.PiecePlace(s, id);
-            int startZone = PieceZone(s, id);
+            var ran = Run(s, new DragMove(id, node), hooks);
+            if (ran.Res.Status != MoveStatuses.Applied) throw new InvalidOperationException("Drop: piece " + id + " to " + Key(node) + " " + ran.Res);
+            var ev = ran.Ev;
+            int elev = Hdr(s, H.Elev);
             PlacementOutcome? outcome = null;
-            if (drop.Kind == DropKinds.Yard) Placement.MovePiece(s, id, Placement.YardPlace(new Anchor(ix, iy)));
-            else
+            foreach (var e in ev)
             {
-                var fall = Gravity.ComputeFall(s, id, node, new FallOptions(null, hooks.Fall));
-                if (fall.Effect.Kind == LandingEffect.KindBreak) Placement.ReturnBrokenPiece(s, id, start);
-                else outcome = Placement.SettlePlacement(s, id, fall.Landing, fall.Verdict, new SettleOptions(start, hooks.Placement));
+                if (e is PlacementCorrectEvent pc && pc.PieceId == id)
+                {
+                    var revealed = ev.OfType<CellsRevealedEvent>().FirstOrDefault(r => r.Step == 3);
+                    outcome = PlacementOutcome.Correct(Placement.PiecePlace(s, id), pc.Cells, revealed != null ? revealed.Cells : new RevealedCell[0]);
+                }
+                else if (e is MortarStuckEvent ms && ms.PieceId == id)
+                {
+                    outcome = PlacementOutcome.Stuck(Placement.PiecePlace(s, id), ms.Reason, ms.MissingSupport);
+                }
+                else if (e is PieceBouncedEvent pb && pb.PieceId == id && pb.Step == 3)
+                {
+                    var place = Placement.PiecePlace(s, id);
+                    int step = pb.ViaDrop ? 2 : place.Zone == Zone.Names[Zone.Queue] ? 3 : 1;
+                    outcome = PlacementOutcome.Bounced(new Anchor(pb.From.X, pb.From.Y - elev), new ReturnTarget(step, place, null), pb.Reason, pb.MissingSupport);
+                }
             }
-            if (outcome != null)
+            SegmentCompletion? completed = null;
+            var seg = ev.OfType<SegmentCompletedEvent>().FirstOrDefault();
+            if (seg != null)
             {
-                if (outcome.Kind == PlacementOutcome.KindCorrect) Combo.ComboOnCorrect(s);
-                else Combo.ComboReset(s);
+                var shifted = ev.OfType<SiteShiftedEvent>().FirstOrDefault();
+                completed = new SegmentCompletion(seg.Seg, Hdr(s, H.DeliveryCursor), shifted != null ? shifted.ToSeg : (int?)null, new int[0]);
             }
-            int left = Hdr(s, H.MovesLeft);
-            SetHdr(s, H.MovesLeft, left - Math.Min(left, 1));
-            SetHdr(s, H.Turn, Hdr(s, H.Turn) + 1);
-            SetHdr(s, H.MovesSpent, Hdr(s, H.MovesSpent) + 1);
-            Gravity.SettleYard(s);
-            Goals.CountDebrisLeftSite(s, id, startZone);
-            var done = Core.Site.SiteStrategy(s.Lvl).CompleteIfDone(s);
-            if (done != null) Goals.SetBuildProgress(s, done.Completed);
-            var delivery = Delivery.DeliverQueue(s);
-            return new DropResult(drop, outcome, done, delivery);
+            var delivered = ev.OfType<PieceFellEvent>().Where(f => f.Cause == FallCauses.Delivery)
+                .Select(f => new Delivered(f.PieceId, new Anchor(f.From.X, f.From.Y), new Anchor(f.To.X, f.To.Y), f.Rows)).ToArray();
+            var queued = ev.OfType<DeliveryQueuedEvent>().LastOrDefault();
+            var delivery = new DeliveryResult(delivered, queued != null ? queued.Queued : Hdr(s, H.QueueLen));
+            return new DropResult(drop, ran.Res, ev, outcome, completed, delivery);
         }
 
         // --- state setup -----------------------------------------------------------------------------------------------------

@@ -1,8 +1,8 @@
 #nullable enable
-// Port of tests/core/deadlock.test.ts (web repo). D3a / D2 / D3b / Söküm / D1 are called directly (the TS tests reach them
-// through `applyMove` step 12 and `GameSession`); drags go through `Boards.Drop`. Deferred to the K-35 / session packages: the
-// step-12 integration (E-58 at zero moves, E-37 undo after teardown, K-43 exit penalty, E-59 shutter phase restore, K-29 D1
-// after +5), the teardown event position and the `MoveResult.teardownCause` field.
+// Port of tests/core/deadlock.test.ts (web repo): D3a / D2 / D3b / Söküm / D1 through K-35 step 12 (`Boards.Run` =
+// TS `run`, `GameSession` for the session halves), plus direct calls where the TS tests call the helpers directly. Complete
+// since the K-35 / session packages (E-58 at zero moves, E-37 undo after teardown, K-43 exit penalty, E-59 shutter phase
+// restore, K-29 D1 after +5, the teardown event position and `MoveResult.TeardownCause`).
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -33,8 +33,8 @@ namespace MinikUsta.Core.Tests
         /// <summary>The pieces after the dead-end placement, as a teardown would list them.</summary>
         private static int[] PlaceOf(GameState s, int id) => new[] { PieceZone(s, id), PieceX(s, id), PieceY(s, id) };
 
-        /// <summary>TS `RULES_VERSION` of core/session.ts (= 2); the session package ports the constant itself.</summary>
-        private const int RulesVersion = 2;
+        /// <summary>TS `RULES_VERSION` of core/session.ts.</summary>
+        private const int RulesVersion = GameSession.RulesVersion;
 
         // --- K-30 D3a tiling (tileRemaining) ----------------------------------------------------------------------------------------
 
@@ -44,9 +44,9 @@ namespace MinikUsta.Core.Tests
             var s = Init(TILING());
             Assert.IsTrue(Deadlock.IsFullCover(s.Lvl));
             Assert.AreEqual(TileResults.Ok, Deadlock.TileRemaining(s));
-            Drop(s, 0, 6, 8);
+            Run(s, DragTo(0, 6, 8), noTruckHelp: true);
             Assert.AreEqual(TileResults.Ok, Deadlock.TileRemaining(s));
-            Drop(s, 1, 6, 8);
+            Run(s, DragTo(1, 6, 8), noTruckHelp: true);
             Assert.IsTrue(HasFlag(s, 1, FlagBit.Locked)); // K-16 correct …
             Assert.AreEqual(TileResults.Dead, Deadlock.TileRemaining(s)); // … but the O4 W fits nowhere
             Assert.LessOrEqual(D3aStats.Expansions, 200);
@@ -142,29 +142,35 @@ namespace MinikUsta.Core.Tests
 
         // --- K-30 Söküm (teardown) ---------------------------------------------------------------------------------------------------
 
-        [Test(Description = "K-30 teardown restores the pre-action state except moves left and moves spent; c = 0 (GDD example; the event position comes with K-35)")]
+        [Test(Description = "K-30 teardown restores the pre-action state except moves left and moves spent; c = 0; it is the last event (GDD example)")]
         public void K30_teardown_restores_the_pre_action_state_except_moves_left_and_moves_spent()
         {
             var s = Init(TILING());
-            Drop(s, 0, 6, 8);
+            Run(s, DragTo(0, 6, 8));
             CollectionAssert.AreEqual(new[] { 1, 1 }, new[] { Hdr(s, H.Combo), Hdr(s, H.MovesSpent) });
             var pre = Snapshot(s);
-            var r = Drop(s, 1, 6, 8);
-            Assert.IsTrue(r.Correct);
-            Assert.AreEqual(TeardownCauses.Tiling, Deadlock.DetectDeadlock(s, null));
-            var ev = Deadlock.Teardown(s, pre, TeardownCauses.Tiling);
-            Assert.AreEqual(1, ev.ToTurn);
-            Assert.AreEqual(TeardownCauses.Tiling, ev.Cause);
-            Assert.AreEqual(1, ev.Pieces.Length);
-            Assert.AreEqual(1, ev.Pieces[0].PieceId);
-            Assert.AreEqual(Site(6, 2, 0), ev.Pieces[0].From.At);
-            Assert.AreEqual(YardAt(1, 0), ev.Pieces[0].To.At);
+            var r = Run(s, DragTo(1, 6, 8));
+            Assert.AreEqual(MoveStatuses.Applied, r.Res.Status);
+            Assert.IsNull(r.Res.Reason);
+            Assert.IsFalse(r.Res.Won);
+            Assert.IsFalse(r.Res.OutOfMoves);
+            Assert.AreEqual(TeardownCauses.Tiling, r.Res.TeardownCause);
+            var last = (TeardownEvent)r.Ev[r.Ev.Count - 1];
+            Assert.AreEqual(r.Ev.Count - 1, last.Seq);
+            Assert.AreEqual(12, last.Step);
+            Assert.AreEqual(1, last.ToTurn);
+            Assert.AreEqual(TeardownCauses.Tiling, last.Cause);
+            Assert.AreEqual(1, last.Pieces.Length);
+            Assert.AreEqual(1, last.Pieces[0].PieceId);
+            Assert.AreEqual(Site(6, 2, 0), last.Pieces[0].From.At);
+            Assert.AreEqual(YardAt(1, 0), last.Pieces[0].To.At);
+            CollectionAssert.Contains(Types(r.Ev), "placementCorrect");
             CollectionAssert.AreEqual(new[] { Zone.Yard, 1, 0 }, PlaceOf(s, 1));
             // every field but the counter, movesSpent and the streak is the pre-action value
             for (int i = 0; i < s.Buf.Length; i++)
                 if (i != H.MovesLeft && i != H.MovesSpent && i != H.Combo) Assert.AreEqual(pre[i], s.Buf[i], "word " + i);
             CollectionAssert.AreEqual(new[] { 1, 18, 2, 0 }, new[] { Hdr(s, H.Turn), Hdr(s, H.MovesLeft), Hdr(s, H.MovesSpent), Hdr(s, H.Combo) });
-            Assert.AreEqual("tiling", Deadlock.AnalyticsCause(TeardownCauses.Tiling));
+            Assert.AreEqual("tiling", Deadlock.AnalyticsCause(r.Res.TeardownCause ?? TeardownCauses.Color));
             Assert.AreEqual("color_balance", Deadlock.AnalyticsCause(TeardownCauses.Color));
             ExpectConsistent(s);
         }
@@ -174,14 +180,64 @@ namespace MinikUsta.Core.Tests
         {
             // plan bottom → top: W W / W Y; blocks D2_0 W, B1 W, B1 Y. A B1 W on (6,0) leaves (6,1) + (7,0) for the D2_0 W
             var s = Init(E26());
-            var pre = Snapshot(s);
-            Assert.IsTrue(Drop(s, 1, 6, 8).Correct);
-            Assert.AreEqual(TeardownCauses.Tiling, Deadlock.DetectDeadlock(s, null));
-            var ev = Deadlock.Teardown(s, pre, TeardownCauses.Tiling);
-            Assert.AreEqual(0, ev.ToTurn);
+            var r = Run(s, DragTo(1, 6, 8));
+            var td = Find<TeardownEvent>(r.Ev);
+            Assert.AreEqual(TeardownCauses.Tiling, td.Cause);
+            Assert.AreEqual(0, td.ToTurn);
             CollectionAssert.AreEqual(new[] { Zone.Yard, 2, 0 }, PlaceOf(s, 1));
             CollectionAssert.AreEqual(new[] { 19, 1 }, new[] { Hdr(s, H.MovesLeft), Hdr(s, H.MovesSpent) });
             Assert.AreEqual(3, Goals.BlocksLeft(s));
+        }
+
+        [Test(Description = "K-30 step 12 runs at zero moves before the offer window; E13 out-of-moves offer only after deadlock check (E-58)")]
+        public void K30_step_12_runs_at_zero_moves_before_the_offer_window_E58()
+        {
+            var lvl = Builders.Compiled(TILING());
+            var game = GameSession.Start(lvl);
+            game.Commit(DragTo(0, 6, 8));
+            SetHdr(game.State, H.MovesLeft, 1);
+            var pack = game.Apply(DragTo(1, 6, 8));
+            CollectionAssert.AreEqual(new object[] { MoveStatuses.Applied, true, TeardownCauses.Tiling }, new object[] { pack.Status, pack.OutOfMoves, pack.TeardownCause! });
+            CollectionAssert.AreEqual(new[] { "outOfMoves", "teardown" }, Types(pack.Events).Skip(pack.Events.Length - 2).ToArray());
+            Assert.IsNotNull(pack.Teardown);
+            Assert.AreEqual(TeardownCauses.Tiling, pack.Teardown!.Cause);
+            Assert.AreEqual(12, pack.Teardown.Step);
+            Assert.AreEqual(BoosterOutcomes.OutOfMoves, game.Outcome);
+            CollectionAssert.AreEqual(new[] { 0, 2, 1 }, new[] { game.MovesLeft, game.MovesSpent, game.MovesMade });
+            // the window shows the post-Söküm board: the torn-down block counts again
+            Assert.AreEqual(2, pack.Summary.BlocksLeft);
+            Assert.AreEqual(new OfferInfo(1, true), game.NextOffer());
+        }
+
+        [Test(Description = "E-37 undo after teardown returns the move: the counter comes back, movesSpent drops by 1 (GDD K-30 \"Geri Al ile\")")]
+        public void E37_undo_after_teardown_returns_the_move()
+        {
+            var game = GameSession.Start(Builders.Compiled(TILING()));
+            game.Commit(DragTo(0, 6, 8));
+            var before = Snapshot(game.State);
+            var r = game.Commit(DragTo(1, 6, 8));
+            Assert.AreEqual(TeardownCauses.Tiling, r.TeardownCause);
+            CollectionAssert.AreEqual(new[] { 18, 2 }, new[] { game.MovesLeft, game.MovesSpent });
+            Assert.IsTrue(game.Undo());
+            CollectionAssert.AreEqual(before, game.State.Buf);
+            CollectionAssert.AreEqual(new[] { 19, 1, 1 }, new[] { game.MovesLeft, game.MovesSpent, game.MovesMade });
+            // E-37: the same placement goes to the same Söküm again
+            Assert.AreEqual(TeardownCauses.Tiling, game.Commit(DragTo(1, 6, 8)).TeardownCause);
+        }
+
+        [Test(Description = "K-43 exit penalty uses movesSpent: a move taken back by a Söküm still makes the exit a loss (GDD K-43 example)")]
+        public void K43_exit_penalty_uses_movesSpent()
+        {
+            var undone = GameSession.Start(Builders.Compiled(TILING()));
+            undone.Commit(DragTo(0, 6, 8));
+            undone.Undo(); // K-39: movesSpent back to 0
+            var free = undone.Exit();
+            CollectionAssert.AreEqual(new object[] { ExitKinds.Free, 0, 0 }, new object[] { free.Kind, free.MovesMade, free.MovesSpent });
+            var torn = GameSession.Start(Builders.Compiled(E26()));
+            Assert.AreEqual(TeardownCauses.Tiling, torn.Commit(DragTo(1, 6, 8)).TeardownCause); // m back to 0 …
+            CollectionAssert.AreEqual(new[] { 0, 1 }, new[] { torn.MovesMade, torn.MovesSpent }); // … movesSpent stays 1
+            var loss = torn.Exit();
+            CollectionAssert.AreEqual(new object[] { ExitKinds.Loss, 0, 1 }, new object[] { loss.Kind, loss.MovesMade, loss.MovesSpent });
         }
 
         [Test(Description = "E-48 teardown undoes the segment shift and the delivery: the segment comes back, the batch is pending again (D3b table cause)")]
@@ -194,16 +250,18 @@ namespace MinikUsta.Core.Tests
             };
             var lvl = Builders.Compiled(spec);
             var probe = CreateInitialState(lvl);
-            Drop(probe, 0, 6, 8);
+            Moves.ApplyMove(probe, DragTo(0, 6, 8), null, new ApplyOptions(noTruckHelp: true));
             CollectionAssert.AreEqual(new[] { 1, Zone.Yard }, new[] { Hdr(probe, H.ActiveSeg), PieceZone(probe, 1) });
             var table = TableOf(probe);
             var s = CreateInitialState(lvl);
             var pre = Snapshot(s);
-            var r = Drop(s, 0, 6, 8);
-            Assert.AreEqual(0, r.Completed!.Seg);
-            Assert.AreEqual(1, r.Delivery.Delivered.Length);
-            Assert.AreEqual(TeardownCauses.Access, Deadlock.DetectDeadlock(s, table));
-            var ev = Deadlock.Teardown(s, pre, TeardownCauses.Access);
+            var sink = new ArraySink();
+            var res = Moves.ApplyMove(s, DragTo(0, 6, 8), sink, new ApplyOptions(deadTable: table));
+            Assert.AreEqual(TeardownCauses.Access, res.TeardownCause);
+            var types = Types(sink.Events);
+            foreach (string t in new[] { "segmentCompleted", "siteShifted", "deliveryArrived", "teardown" }) CollectionAssert.Contains(types, t);
+            var ev = (TeardownEvent)sink.Events[sink.Events.Count - 1];
+            Assert.AreEqual(TeardownCauses.Access, ev.Cause);
             Assert.AreEqual(2, ev.Pieces.Length);
             Assert.AreEqual(0, ev.Pieces[0].PieceId);
             Assert.AreEqual(Site(6, 0, 0), ev.Pieces[0].From.At);
@@ -216,6 +274,30 @@ namespace MinikUsta.Core.Tests
                 if (i != H.MovesLeft && i != H.MovesSpent) Assert.AreEqual(pre[i], s.Buf[i], "word " + i);
         }
 
+        [Test(Description = "E-59 teardown restores the shutter phase: m 3 → 4 opens the shutter, the Söküm takes m back to 3 and closes it")]
+        public void E59_teardown_restores_the_shutter_phase()
+        {
+            var spec = TILING();
+            spec.Wall = Wall(4, J.O("type", "shutter", "y", 0, "size", 1, "period", 2, "phase", 0));
+            var lvl = Builders.Compiled(spec);
+            var hooks = new MoveHooks(timers: new Dictionary<string, Action<RuleContext>> { ["W4"] = ShutterTick, ["K-40"] = _ => { } });
+            var s = CreateInitialState(lvl);
+            Run(s, DragTo(0, 6, 8), hooks); // m 1
+            Run(s, DragTo(2, 2, 2), hooks); // m 2 (yard)
+            Run(s, DragTo(2, 2, 0), hooks); // m 3 (yard)
+            CollectionAssert.AreEqual(new[] { 3, 0 }, new[] { Hdr(s, H.Turn), GapField(s, 0, GF.Open) }); // ⌊3/2⌋ odd → closed
+            var pre = Snapshot(s);
+            var r = Run(s, DragTo(1, 6, 8), hooks);
+            var changed = Find<GapChangedEvent>(r.Ev);
+            Assert.AreEqual(10, changed.Step); // m 4 → open …
+            Assert.IsTrue(changed.Open);
+            Assert.AreEqual(TeardownCauses.Tiling, r.Res.TeardownCause);
+            CollectionAssert.AreEqual(new[] { 3, 0 }, new[] { Hdr(s, H.Turn), GapField(s, 0, GF.Open) }); // … and closed again after the Söküm
+            for (int i = 0; i < s.Buf.Length; i++)
+                if (i != H.MovesLeft && i != H.MovesSpent && i != H.Combo) Assert.AreEqual(pre[i], s.Buf[i], "word " + i);
+            CollectionAssert.AreEqual(new[] { 16, 4 }, new[] { Hdr(s, H.MovesLeft), Hdr(s, H.MovesSpent) });
+        }
+
         [Test(Description = "K-30 teardown after a booster keeps the inventory spent: the hammer stays applied (meta spends it), the board comes back (D3b table)")]
         public void K30_teardown_after_a_booster_keeps_the_inventory_spent_the_board_comes_back()
         {
@@ -224,13 +306,13 @@ namespace MinikUsta.Core.Tests
                 Wall = Wall(2), Site = new SizeSpec(2, 2), Plan = new[] { "RR", "RR" }, Pieces = Ps(Pc("O4_0", "R", 0, 0), Pc("Q9_0", "W", 0, 2)),
             });
             var probe = CreateInitialState(lvl);
-            Boosters.ApplyHammer(ObstacleFixtures.CtxOf(probe).Ctx, HammerTarget.Piece(1), MoveHooks.None);
+            Moves.ApplyMove(probe, new HammerMove(HammerTarget.Piece(1)), null, new ApplyOptions(noTruckHelp: true));
             Assert.AreEqual(Zone.Gone, PieceZone(probe, 1));
             var s = CreateInitialState(lvl);
             var pre = Snapshot(s);
-            Boosters.ApplyHammer(ObstacleFixtures.CtxOf(s).Ctx, HammerTarget.Piece(1), MoveHooks.None);
-            Assert.AreEqual(TeardownCauses.Access, Deadlock.DetectDeadlock(s, TableOf(probe)));
-            Deadlock.Teardown(s, pre, TeardownCauses.Access);
+            var r = Run(s, new HammerMove(HammerTarget.Piece(1)), deadTable: TableOf(probe));
+            Assert.AreEqual(TeardownCauses.Access, r.Res.TeardownCause);
+            CollectionAssert.AreEqual(new[] { "boosterApplied", "cargoSmashed", "teardown" }, Types(r.Ev));
             CollectionAssert.AreEqual(pre, s.Buf); // a booster spends no move: the whole buffer is back
             Assert.AreEqual(Zone.Yard, PieceZone(s, 1));
         }
@@ -281,20 +363,16 @@ namespace MinikUsta.Core.Tests
         {
             var s = Init(JAM());
             Assert.IsTrue(Deadlock.IsFullCover(s.Lvl));
-            Drop(s, 5, 5, 4);
+            Run(s, DragTo(5, 5, 4));
             Assert.IsFalse(Deadlock.NoMoves(s));
             var before = Enumerable.Range(0, 5).Select(id => PieceShape(s, id) * 100 + PieceColor(s, id)).ToArray();
-            var pre = Snapshot(s);
-            Drop(s, 6, 5, 4);
-            Assert.IsTrue(Deadlock.NoMoves(s));
-            var (cause, ctx) = Step12(s, pre, false);
-            Assert.IsNull(cause);
-            var types = ctx.Types();
-            Assert.AreEqual("deadlockDetected", types[0]);
-            Assert.AreEqual(DeadlockReasons.NoMoves, ((DeadlockDetectedEvent)ctx.Events[0]).Reason);
-            var help = (TruckHelpEvent)ctx.Events.First(e => e.TypeName == "truckHelp");
+            var r = Run(s, DragTo(6, 5, 4));
+            var detected = Find<DeadlockDetectedEvent>(r.Ev);
+            Assert.AreEqual(DeadlockReasons.NoMoves, detected.Reason);
+            Assert.AreEqual(12, detected.Step);
+            var help = Find<TruckHelpEvent>(r.Ev);
             Assert.AreEqual(TruckHelpKinds.Reshuffle, help.HelpKind);
-            Assert.Greater(help.Moves!.Length, 0);
+            Assert.Greater((help.Moves ?? new PieceShift[0]).Length, 0);
             Assert.IsFalse(Deadlock.NoMoves(s));
             Assert.IsTrue(Deadlock.AnyOneMoveCorrect(s));
             CollectionAssert.AreEqual(before, Enumerable.Range(0, 5).Select(id => PieceShape(s, id) * 100 + PieceColor(s, id)).ToArray());
@@ -310,36 +388,30 @@ namespace MinikUsta.Core.Tests
                 Wall = Wall(2), Site = new SizeSpec(2, 2), Plan = new[] { "WW", "WW" },
                 Pieces = Ps(Pc("B1_0", "W", 0, 0, new[] { "chained" }), Pc("B1_0", "W", 1, 0, new[] { "chained" }), Pc("D2_0", "W", 4, 0)),
             });
-            var pre = Snapshot(s);
-            Drop(s, 2, 6, 8);
-            var (cause, ctx) = Step12(s, pre, true);
-            Assert.IsNull(cause);
-            CollectionAssert.AreEqual(new[] { "deadlockDetected", "chainReleased", "chainReleased", "truckHelp" }, ctx.Types());
-            Assert.AreEqual(TruckHelpKinds.Unchain, ((TruckHelpEvent)ctx.Events[3]).HelpKind);
+            var r = Run(s, DragTo(2, 6, 8));
+            var types = Types(r.Ev);
+            CollectionAssert.AreEqual(new[] { "deadlockDetected", "chainReleased", "chainReleased", "truckHelp" }, types.Skip(types.Length - 4).ToArray());
+            Assert.AreEqual(TruckHelpKinds.Unchain, Find<TruckHelpEvent>(r.Ev).HelpKind);
             CollectionAssert.AreEqual(new[] { false, false }, new[] { HasFlag(s, 0, FlagBit.Chained), HasFlag(s, 1, FlagBit.Chained) });
         }
 
-        [Test(Description = "K-30 D1 is not run at zero moves (E-58: step 12 at 0 moves runs D2 / D3 only; the +5 offer D1 comes with the session package)")]
+        [Test(Description = "K-30 D1 not run at zero moves; K-29 after +5 only D1 runs once (E-42)")]
         public void K30_D1_is_not_run_at_zero_moves()
         {
-            var lvl = Builders.Compiled(JAM());
-            var s = CreateInitialState(lvl);
-            SetHdr(s, H.MovesLeft, 2);
-            Drop(s, 5, 5, 4);
-            var pre = Snapshot(s);
-            Drop(s, 6, 5, 4); // counter 0 → no D1 help
-            Assert.AreEqual(0, Hdr(s, H.MovesLeft));
-            var (cause, ctx) = Step12(s, pre, false);
-            Assert.IsNull(cause);
-            CollectionAssert.IsEmpty(ctx.Types());
-            Assert.IsTrue(Deadlock.NoMoves(s, Registry.LevelHooks(s.Lvl).Drag));
-            CollectionAssert.IsEmpty(Summary.HoldableIds(s, Registry.LevelHooks(s.Lvl)));
-            // K-29: an accepted +5 offer runs D1 once (afterOffer): the jam is reshuffled, no Söküm
-            SetHdr(s, H.MovesLeft, 5);
-            var offer = ObstacleFixtures.CtxOf(s);
-            Assert.IsNull(Deadlock.RunStep12(offer.Ctx, Registry.LevelHooks(s.Lvl), new Step12Options(null, false, false, null, true)));
-            CollectionAssert.AreEqual(new[] { "deadlockDetected", "truckHelp" }, offer.Types());
-            Assert.Greater(Summary.HoldableIds(s, Registry.LevelHooks(s.Lvl)).Length, 0);
+            var spec = JAM();
+            spec.Moves = 2;
+            var lvl = Builders.Compiled(spec);
+            var game = GameSession.Start(lvl);
+            game.Commit(DragTo(5, 5, 4));
+            var last = game.Apply(DragTo(6, 5, 4)); // counter 0 → no D1 help
+            Assert.IsTrue(last.OutOfMoves);
+            CollectionAssert.DoesNotContain(Types(last.Events), "truckHelp");
+            Assert.IsTrue(Deadlock.NoMoves(game.State, game.Hooks.Drag));
+            CollectionAssert.IsEmpty(last.Summary.Holdable);
+            var offer = game.Apply(new AddMovesMove(5, AddMovesSource.OfferCoins));
+            CollectionAssert.AreEqual(new[] { "movesChanged:1", "deadlockDetected:12", "truckHelp:12" }, offer.Events.Select(e => e.TypeName + ":" + e.Step).ToArray());
+            Assert.Greater(offer.Summary.Holdable.Length, 0);
+            CollectionAssert.AreEqual(new[] { 5, 2, 2 }, new[] { game.MovesLeft, game.MovesMade, game.MovesSpent });
         }
 
         // --- helpers ----------------------------------------------------------------------------------------------------------------
@@ -349,6 +421,22 @@ namespace MinikUsta.Core.Tests
             Wall = Wall(2), Site = new SizeSpec(2, 2), Plan = new[] { "WY", "WW" },
             Pieces = Ps(Pc("D2_0", "W", 0, 0), Pc("B1_0", "W", 2, 0), Pc("B1_0", "Y", 3, 0)),
         };
+
+        /// <summary>W4-like step-10 hook for the test: open ⇔ ⌊(m + phase) / period⌋ even (OBSTACLES W4); emits gapChanged.</summary>
+        private static void ShutterTick(RuleContext ctx)
+        {
+            for (int i = 0; i < ctx.Lvl.Gaps.Length; i++)
+            {
+                var g = ctx.Lvl.Gaps[i];
+                if (g.Type != "shutter") continue;
+                int open = (Hdr(ctx.S, H.Turn) + g.Phase) / g.Period % 2 == 0 ? 1 : 0;
+                if (GapField(ctx.S, i, GF.Open) != open)
+                {
+                    SetGapField(ctx.S, i, GF.Open, open);
+                    ctx.Emit(new GapChangedEvent(i, open == 1, g.Y));
+                }
+            }
+        }
 
         private sealed class OneEntryTable : IDeadTable
         {

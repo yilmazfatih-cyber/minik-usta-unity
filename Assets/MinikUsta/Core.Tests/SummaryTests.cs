@@ -1,7 +1,7 @@
 #nullable enable
 // Port of tests/core/summary.test.ts (web repo): TECH 2R.15 presentation hooks (TurnSummary). The TS tests drive the state
-// through `GameSession.apply`; here the drags go through `Boards.Drop` and the summary is read directly. Deferred to the
-// session package: the package/summary coupling (`pack.summary`, `pack.teardown`, `game.summary().boosterTargets.undo`).
+// through `GameSession.apply`; here most drags go through `Boards.Drop` (the K-35 pipeline) and the summary is read directly;
+// the package/summary coupling (`pack.Summary`, `pack.Teardown`, `game.Summary().BoosterTargets.Undo`) runs on `GameSession`.
 using System.Linq;
 using MinikUsta.Core.Obstacles;
 using MinikUsta.Core.Tests.Fixtures;
@@ -147,44 +147,39 @@ namespace MinikUsta.Core.Tests
             CollectionAssert.IsEmpty(Summary.CarryIds(s));
         }
 
-        [Test(Description = "K-30 the summary describes the state after the Söküm: the torn-down block counts again and is holdable")]
+        [Test(Description = "K-30 teardown is the last event of the package; the summary describes the state after the Söküm")]
         public void K30_the_summary_describes_the_state_after_the_Sokum()
         {
-            var s = Init(new LevelSpec
+            var game = GameSession.Start(Builders.Compiled(new LevelSpec
             {
                 Wall = Wall(2),
                 Site = new SizeSpec(2, 4),
                 Plan = new[] { "WW", "WW", "YW", "YW" },
                 Pieces = Ps(Pc("D2_0", "Y", 0, 0), Pc("D2_0", "W", 1, 0), Pc("O4_0", "W", 2, 0)),
-            });
-            var hooks = Registry.LevelHooks(s.Lvl);
-            Drop(s, 0, 6, 8);
-            var pre = Snapshot(s);
-            Drop(s, 1, 6, 8);
-            Assert.AreEqual(TeardownCauses.Tiling, Deadlock.DetectDeadlock(s, null));
-            Deadlock.Teardown(s, pre, TeardownCauses.Tiling);
-            var pack = Summary.TurnSummary(s, hooks, true);
-            Assert.AreEqual(2, pack.BlocksLeft);
-            CollectionAssert.Contains(pack.Holdable, 1);
-            Assert.IsTrue(Drop(s, 1, 7, 8).Correct);
-            Assert.IsNull(Deadlock.DetectDeadlock(s, null));
+            }));
+            game.Apply(DragTo(0, 6, 8));
+            var pack = game.Apply(DragTo(1, 6, 8));
+            Assert.IsNotNull(pack.Teardown);
+            Assert.AreSame(pack.Events[pack.Events.Length - 1], pack.Teardown);
+            Assert.AreEqual(2, pack.Summary.BlocksLeft);
+            CollectionAssert.Contains(pack.Summary.Holdable, 1);
+            var ok = game.Apply(DragTo(1, 7, 8));
+            Assert.IsNull(ok.Teardown);
         }
 
         [Test(Description = "E-61 hammer slot without target in level 9: grey, no \"+\", no purchase window (K-54); undo becomes a target after a drag")]
         public void E61_hammer_slot_without_target_in_level_9()
         {
-            var s = Init(B9());
-            var hooks = Registry.LevelHooks(s.Lvl);
-            var t0 = Summary.TurnSummary(s, hooks, false).BoosterTargets;
+            var game = GameSession.Start(Builders.Compiled(B9()));
+            var t0 = game.Summary().BoosterTargets;
             Assert.IsFalse(t0.Hammer);
             string hammer = Summary.SlotState(true, t0.Hammer, 0);
             Assert.AreEqual(SlotStates.NoTarget, hammer);
             Assert.IsFalse(Summary.PurchaseOffered(hammer));
             Assert.IsFalse(t0.Undo);
-            Drop(s, 1, 2, 1);
-            var t1 = Summary.TurnSummary(s, hooks, true).BoosterTargets; // K-39: a drag was committed (the session supplies `undoable`)
-            Assert.IsTrue(t1.Undo);
-            Assert.IsFalse(t1.Hammer);
+            var pack = game.Apply(DragTo(1, 2, 1));
+            Assert.IsTrue(pack.Summary.BoosterTargets.Undo);
+            Assert.IsFalse(pack.Summary.BoosterTargets.Hammer);
         }
     }
 }
