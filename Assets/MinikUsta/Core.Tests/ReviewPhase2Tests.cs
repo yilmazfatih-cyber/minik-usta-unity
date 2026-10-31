@@ -67,7 +67,6 @@ namespace MinikUsta.Core.Tests
             new object[] { "textKey", "\"textKey\": \"tut.m.lift\"", "\"textKey\": \"tut.m.lift\\n\"", "schema L-17/tut_key_missing@tutorial[0].textKey" },
         };
 
-        [Ignore("REVIEW_PHASE2 R-01: .NET `$` also matches before a final \\n (JS: only at the end); C# accepts these levels or throws")]
         [Test(Description = "K-45/1 a schema string with a trailing newline is refused at the schema stage like zod (JS `$` = end of input)")]
         [TestCaseSource(nameof(TrailingNewlineCases))]
         public void K45_a_trailing_newline_fails_the_schema_like_zod(string what, string from, string to, string ts)
@@ -94,7 +93,6 @@ namespace MinikUsta.Core.Tests
             new object[] { "textKey tut.l\u0661", "\"textKey\": \"tut.m.lift\"", "\"textKey\": \"tut.l\\u0661.lift\"", "none L-17/tut_key_missing@tutorial[0].textKey" },
         };
 
-        [Ignore("REVIEW_PHASE2 R-02: .NET `\\d` matches every Unicode Nd digit (JS: [0-9]); the validator then throws FormatException in int.Parse")]
         [Test(Description = "K-45 the validator refuses non-ASCII digits at the schema stage (JS `\\d` = [0-9]) and never throws")]
         [TestCaseSource(nameof(NonAsciiDigitCases))]
         public void K45_non_ASCII_digits_fail_the_schema_without_throwing(string what, string from, string to, string ts)
@@ -122,7 +120,6 @@ namespace MinikUsta.Core.Tests
             StringAssert.StartsWith("invalid_format@tutorial[0].highlight[0]:", SchemaSummary(Level1With("\"highlight\": [\"piece:0\"", "\"highlight\": [\"piece:123\"")));
         }
 
-        [Ignore("REVIEW_PHASE2 R-12 (Öneri): zod prints the regex as a JS literal (/…/); C# prints Regex.ToString() without the slashes")]
         [Test(Description = "K-45 schema message of a failed regex equals zod's en locale text (`/^…$/`)")]
         public void K45_regex_schema_message_equals_zod_en_locale()
         {

@@ -63,17 +63,17 @@ namespace MinikUsta.Core.Level
             "fan",
         };
 
-        public static readonly Regex Highlight = new Regex("^(" + string.Join("|", HighlightPatterns) + ")$", RegexOptions.CultureInvariant);
+        public static readonly JsRegex Highlight = new JsRegex("^(" + string.Join("|", HighlightPatterns) + ")$");
         /// <summary>`piece` filter of `yardMove` / `placementCorrect` (GDD §14.1/3, DL-2R-02): a block highlight id.</summary>
-        public static readonly Regex PieceRef = new Regex("^piece:(\\d{1,2}|k[1-9]_\\d{1,2})$", RegexOptions.CultureInvariant);
+        public static readonly JsRegex PieceRef = new JsRegex("^piece:(\\d{1,2}|k[1-9]_\\d{1,2})$");
         /// <summary>`textKey` (GDD §14.1/1, Faz 2R): `tut.l&lt;n&gt;.&lt;topic&gt;`, `tut.m.&lt;topic&gt;` or `tut.ctx.&lt;topic&gt;`.</summary>
-        public static readonly Regex TutTextKey = new Regex("^tut\\.(l\\d{1,2}|m|ctx)\\.[a-z][A-Za-z0-9]*$", RegexOptions.CultureInvariant);
+        public static readonly JsRegex TutTextKey = new JsRegex("^tut\\.(l\\d{1,2}|m|ctx)\\.[a-z][A-Za-z0-9]*$");
         /// <summary>Plan row characters (K-15, K-32); `.` passes the schema so L-05 can name it (`plan_has_window`).</summary>
-        public static readonly Regex PlanRow = new Regex("^[WYGROCBP.?]{1,4}$", RegexOptions.CultureInvariant);
+        public static readonly JsRegex PlanRow = new JsRegex("^[WYGROCBP.?]{1,4}$");
         /// <summary>GDD K-44 (Faz 2R): Ağır Yük shapes. Their `color` is optional and ignored (no colour, not material).</summary>
-        public static readonly Regex CargoShape = new Regex("^(I5|Q9)_", RegexOptions.CultureInvariant);
+        public static readonly JsRegex CargoShape = new JsRegex("^(I5|Q9)_");
         /// <summary>`TÜR_AÇI` shape id format (`ShapeIdSchema`).</summary>
-        public static readonly Regex ShapeId = new Regex("^(B1|D2|I3|I4|O4|C3|L4|J4|T4|S4|Z4|I5|Q9)_(0|90|180|270)$", RegexOptions.CultureInvariant);
+        public static readonly JsRegex ShapeId = new JsRegex("^(B1|D2|I3|I4|O4|C3|L4|J4|T4|S4|Z4|I5|Q9)_(0|90|180|270)$");
 
         /// <summary>
         /// Colour of a parsed Ağır Yük piece written without `color` (K-44: "verideki `color` yok sayılır"). Only a placeholder

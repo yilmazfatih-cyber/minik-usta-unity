@@ -255,20 +255,21 @@ namespace MinikUsta.Core
         private static readonly AsciiSize DefaultAsciiSize = new AsciiSize(
             Geometry.DefaultGeo.Wy, Geometry.DefaultGeo.Hy, Geometry.DefaultGeo.Ws, Geometry.DefaultGeo.Hs, Geometry.DefaultGeo.H);
 
-        private static readonly Regex HeaderRe = new Regex(@"^L(\d+) turn (\d+) moves (\d+) seg (\d+)/(\d+) elev (\d+)( ids)?$", RegexOptions.CultureInvariant);
-        private static readonly Regex SizeRe = new Regex(@"^size (\d)x(\d)\|(\d)x(\d) H(\d)$", RegexOptions.CultureInvariant);
-        private static readonly Regex ColsRe = new Regex(@"^ y {2}\S(?: \S)* \| W \| \S(?: \S)*$", RegexOptions.CultureInvariant);
-        private static readonly Regex RowRe = new Regex(@"^ (\d) {2}(\S(?: \S)*) \| (\S) \| (\S(?: \S)*)$", RegexOptions.CultureInvariant);
-        private static readonly Regex TrailingWs = new Regex(@"\s+$", RegexOptions.CultureInvariant);
-        private static readonly Regex Ws = new Regex(@"\s+", RegexOptions.CultureInvariant);
-        private static readonly Regex CrateRe = new Regex(@"^crate:(\d)", RegexOptions.CultureInvariant);
+        // The TS literals of ascii.ts, translated with JS semantics (JsRegex: `$` = end of input only, `\d` = [0-9], `\s` = JS space set).
+        private static readonly JsRegex HeaderRe = new JsRegex(@"^L(\d+) turn (\d+) moves (\d+) seg (\d+)/(\d+) elev (\d+)( ids)?$");
+        private static readonly JsRegex SizeRe = new JsRegex(@"^size (\d)x(\d)\|(\d)x(\d) H(\d)$");
+        private static readonly JsRegex ColsRe = new JsRegex(@"^ y {2}\S(?: \S)* \| W \| \S(?: \S)*$");
+        private static readonly JsRegex RowRe = new JsRegex(@"^ (\d) {2}(\S(?: \S)*) \| (\S) \| (\S(?: \S)*)$");
+        private static readonly JsRegex TrailingWs = new JsRegex(@"\s+$");
+        private static readonly JsRegex Ws = new JsRegex(@"\s+");
+        private static readonly JsRegex CrateRe = new JsRegex(@"^crate:(\d)");
 
         private static int Num(string s) => int.Parse(s, CultureInfo.InvariantCulture);
 
         private static string[] Words(string rest)
         {
             var o = new List<string>();
-            foreach (var w in Ws.Split(rest.Trim())) if (w.Length > 0) o.Add(w);
+            foreach (var w in Ws.Split(JsRegex.Trim(rest))) if (w.Length > 0) o.Add(w);
             return o.ToArray();
         }
 
@@ -330,14 +331,14 @@ namespace MinikUsta.Core
                 if (line.StartsWith("plan ", StringComparison.Ordinal)) plan = Words(line.Substring(line.IndexOf(':') + 1));
                 else if (line.StartsWith("hidden:", StringComparison.Ordinal))
                 {
-                    string rest = line.Substring(7).Trim();
+                    string rest = JsRegex.Trim(line.Substring(7));
                     hidden = rest == "-" ? new string[0] : Words(rest);
                 }
                 else if (line.StartsWith("queue:", StringComparison.Ordinal)) queue = Nums(line.Substring(6));
                 else if (line.StartsWith("obstacles:", StringComparison.Ordinal)) obstacles = Words(line.Substring(10));
                 else if (line.StartsWith("locked:", StringComparison.Ordinal)) locked = Nums(line.Substring(7));
                 else if (line.StartsWith("stuck:", StringComparison.Ordinal)) stuck = Nums(line.Substring(6));
-                else if (line.Trim().Length != 0) throw new FormatException("ascii: unexpected line \"" + line + "\"");
+                else if (JsRegex.Trim(line).Length != 0) throw new FormatException("ascii: unexpected line \"" + line + "\"");
             }
             if (seen.Count != rows) throw new FormatException("ascii: the board needs rows " + (rows - 1) + " … 0");
             return new AsciiBoard(

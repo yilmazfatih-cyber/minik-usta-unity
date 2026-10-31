@@ -361,8 +361,9 @@ namespace MinikUsta.Core.Level
         }
 
         /// <summary>A tutorial step field that would dim or lock the board (K-53/2: no spotlight, no dimming).</summary>
-        private static readonly Regex BlockingField = new Regex("^(spot|dim)", RegexOptions.IgnoreCase | RegexOptions.CultureInvariant);
-        private static readonly Regex PlanRowChars = new Regex("^[WYGROCBP.?]*$", RegexOptions.CultureInvariant);
+        // TS `/^(spot|dim)/i`: spelled with ASCII classes so no .NET case-folding rule (U+017F, U+212A, Turkish i) can join the match.
+        private static readonly Regex BlockingField = new Regex("^(?:[sS][pP][oO][tT]|[dD][iI][mM])", RegexOptions.CultureInvariant);
+        private static readonly JsRegex PlanRowChars = new JsRegex("^[WYGROCBP.?]*$");
 
         /// <summary>TS `valueAt(json, path)`: null when the path leaves the data (`undefined`).</summary>
         private static JsonValue? ValueAt(JsonValue json, object[] path)
@@ -1225,10 +1226,10 @@ namespace MinikUsta.Core.Level
             }
         }
 
-        private static readonly Regex TruckRef = new Regex("^piece:k(\\d+)_(\\d+)$", RegexOptions.CultureInvariant);
-        private static readonly Regex StartRef = new Regex("^piece:(\\d+)$", RegexOptions.CultureInvariant);
-        private static readonly Regex BatchArg = new Regex("^k(\\d+)_(\\d+)$", RegexOptions.CultureInvariant);
-        private static readonly Regex Digits = new Regex("^\\d+$", RegexOptions.CultureInvariant);
+        private static readonly JsRegex TruckRef = new JsRegex("^piece:k(\\d+)_(\\d+)$");
+        private static readonly JsRegex StartRef = new JsRegex("^piece:(\\d+)$");
+        private static readonly JsRegex BatchArg = new JsRegex("^k(\\d+)_(\\d+)$");
+        private static readonly JsRegex Digits = new JsRegex("^\\d+$");
 
         /// <summary>The block a `piece:&lt;i&gt;` / `piece:k&lt;p&gt;_&lt;i&gt;` id names (batch 0, or truck batch p ≥ 1), or null.</summary>
         private static PieceData? PieceOfRef(LevelData level, string reference)
@@ -1236,15 +1237,15 @@ namespace MinikUsta.Core.Level
             var truck = TruckRef.Match(reference);
             if (truck.Success)
             {
-                int p = int.Parse(truck.Groups[1].Value);
-                int i = int.Parse(truck.Groups[2].Value);
+                int p = JsRegex.DigitsToInt(truck.Groups[1].Value);
+                int i = JsRegex.DigitsToInt(truck.Groups[2].Value);
                 if (p < 1 || p >= level.Yard.Batches.Length) return null;
                 var pieces = level.Yard.Batches[p].Pieces;
                 return i < pieces.Length ? pieces[i] : null;
             }
             var start = StartRef.Match(reference);
             if (!start.Success || level.Yard.Batches.Length == 0) return null;
-            int si = int.Parse(start.Groups[1].Value);
+            int si = JsRegex.DigitsToInt(start.Groups[1].Value);
             var b0 = level.Yard.Batches[0].Pieces;
             return si < b0.Length ? b0[si] : null;
         }
@@ -1412,8 +1413,8 @@ namespace MinikUsta.Core.Level
                             if (NumberOf(arg) >= (batches.Length > 0 ? batches[0].Pieces.Length : 0)) Bad("no such batch-0 block");
                             continue;
                         }
-                        int p = int.Parse(batchMatch.Groups[1].Value);
-                        int pi = int.Parse(batchMatch.Groups[2].Value);
+                        int p = JsRegex.DigitsToInt(batchMatch.Groups[1].Value);
+                        int pi = JsRegex.DigitsToInt(batchMatch.Groups[2].Value);
                         PieceData? piece = p >= 0 && p < batches.Length && pi < batches[p].Pieces.Length ? batches[p].Pieces[pi] : null;
                         if (p < 1 || piece == null)
                         {
@@ -1528,7 +1529,7 @@ namespace MinikUsta.Core.Level
                 int y = 0;
                 if (kind == "piece" && Digits.IsMatch(arg))
                 {
-                    int i = int.Parse(arg);
+                    int i = JsRegex.DigitsToInt(arg);
                     if (level.Yard.Batches.Length > 0 && i < level.Yard.Batches[0].Pieces.Length)
                     {
                         var p = level.Yard.Batches[0].Pieces[i];

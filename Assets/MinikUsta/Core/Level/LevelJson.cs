@@ -257,13 +257,13 @@ namespace MinikUsta.Core.Level
                 return v.AsString;
             }
 
-            private string? Pattern(JsonValue? v, object[] path, Regex re, bool required = true)
+            private string? Pattern(JsonValue? v, object[] path, JsRegex re, bool required = true)
             {
                 var s = Str(v, path, required);
                 if (s == null) return null;
                 if (!re.IsMatch(s))
                 {
-                    Issue(path, "invalid_format", "Invalid string: must match pattern " + re);
+                    Issue(path, "invalid_format", "Invalid string: must match pattern " + re.Literal);
                     return null;
                 }
                 return s;

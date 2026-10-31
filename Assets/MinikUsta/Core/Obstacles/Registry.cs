@@ -64,7 +64,7 @@ namespace MinikUsta.Core.Obstacles
     public static class Registry
     {
         private static readonly Dictionary<string, int> TimerOrder = BuildTimerOrder();
-        private static readonly Regex InfoKeyFormat = new Regex("^obs\\.[a-z0-9]+\\.desc$", RegexOptions.CultureInvariant);
+        private static readonly JsRegex InfoKeyFormat = new JsRegex("^obs\\.[a-z0-9]+\\.desc$");
 
         /// <summary>
         /// Every rule plugin (TECH §7.1). Faz 2R: W1, Y3, S1 (S2 Plan Boşluğu left the MVP, R2-01: its plugin is gone, the `.`
