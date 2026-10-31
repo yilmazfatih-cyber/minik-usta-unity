@@ -38,8 +38,14 @@ namespace MinikUsta.Unity
             var view = new UnityLevelView(cam, () => player?.PausePressed(), layout, feel);
             var strings = Strings.FromText(ReadText("i18n/tr"));
             var catalog = new LevelCatalog(n => ReadText(LevelCatalog.ResourceName(n)));
-            // Q2 item 12: Handheld.Vibrate buzzes one fixed pulse and only Android is asked (the brief); everywhere else the sink is silent
+            // Q2 item 12: Handheld.Vibrate buzzes one fixed pulse and only Android is asked (the brief); everywhere else the sink is silent.
+            // P3-01: Unity compiles the `Handheld` class only for mobile targets (Android, iOS). The runtime platform check above cannot
+            // stand in for a compile-time guard: in the WebGL player the type name does not exist and the build fails with CS0103.
+#if UNITY_ANDROID || UNITY_IOS
             var haptics = new FixedPulseHaptics(Application.platform == RuntimePlatform.Android, Handheld.Vibrate);
+#else
+            var haptics = new FixedPulseHaptics(false, () => { });
+#endif
             var economy = EconomyInfo.FromText(ReadText("config/economy"));
             player = new LevelPlayer(view, catalog, strings, feel, layout, haptics, economy);
             input = new PointerInput();

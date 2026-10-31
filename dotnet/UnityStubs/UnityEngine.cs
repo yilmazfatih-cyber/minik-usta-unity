@@ -273,11 +273,19 @@ namespace UnityEngine
         public static bool isEditor => false;
     }
 
-    /// <summary>Handheld.Vibrate() — Unity: `public static extern void Vibrate()`, UnityCsReference 6000.0 Runtime/Export/Handheld/Handheld.bindings.cs.</summary>
+#if UNITY_ANDROID || UNITY_IOS
+    /// <summary>
+    /// Handheld.Vibrate() — Unity: `public static extern void Vibrate()`, UnityCsReference 6000.0 Runtime/Export/Handheld/Handheld.bindings.cs.
+    /// The source carries no `#if`, but the native player build compiles the class only for mobile targets (Android, iOS): in a WebGL or
+    /// desktop player `Handheld` does not exist (P3-01, Unity Issue Tracker 1332218 "Standalone: Handheld does not exist"). So the stub
+    /// exists only when UNITY_ANDROID or UNITY_IOS is defined; the default dotnet build (no symbol, the same as WebGL) fails on any
+    /// unguarded use, and dotnet/MinikUsta.Unity.Android compiles the guarded branch.
+    /// </summary>
     public class Handheld
     {
         public static void Vibrate() { }
     }
+#endif
 
     public class Debug
     {

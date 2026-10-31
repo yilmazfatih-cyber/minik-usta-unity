@@ -4,6 +4,8 @@
 Kod değiştirilmedi; yalnız bu belge eklendi. Önem: **Engel** = ilk CI koşusunu ya da Pages açılışını kırar, iş geri döner ·
 **Önemli** = aynı sprintte kapanmalı · **Öneri** = birikim listesi.
 
+**Kapanış (Q5):** P3-01 … P3-05 kapandı; kanıt ve kalanlar belgenin sonundaki «Kapanış — Q5» bölümünde. P3-06 … P3-18 (Öneri) dokunulmadı.
+
 ## Yöntem
 
 Bulutta Unity Editor yok (D-093). Stub derlemesi (`dotnet/UnityStubs`) yalnız imzaları denetler; platforma göre var olan ya da
@@ -294,3 +296,27 @@ git clone --depth 1 https://github.com/needle-mirror/com.unity.ugui.git $S/ugui 
 #    → beklenen: GameRunner.cs(42,98): error CS0103 'Handheld'; P3-01 korumasıyla 0 hata
 # 3) Assets/MinikUsta/{Core.Tests,Presentation.Core.Tests}/**/*.cs + NUnit 3.5.0 lib/net45 → 0 hata
 ```
+
+## Kapanış — Q5
+
+Paket Q5 (code-lead, aynı depo `main`). Kapı: `cd dotnet && dotnet build -warnaserror` → 8 proje, **0 uyarı, 0 hata**; `dotnet test` →
+Presentation **283/283**, Core **1455 geçti + 5 atlandı** (bilinen R-03/04/09/10/11), 0 kırmızı; `tools/stub-gate-selftest.sh` → 4/4.
+Bu bulutta Unity yok: aşağıdaki "doğrulandı" ifadeleri stub derlemesi, `dotnet` ve dosya karşılaştırması için geçerlidir; Unity'nin
+kendisinde hiçbiri denenmedi.
+
+| Kimlik | Durum | Ne değişti | Nasıl doğrulandı | Kalan |
+| --- | --- | --- | --- | --- |
+| P3-01 | **Kapandı** | `GameRunner.cs`: `Handheld.Vibrate` çağrısı `#if UNITY_ANDROID \|\| UNITY_IOS` içinde; `#else` dalı `new FixedPulseHaptics(false, () => { })`. Aynı commit'te P3-02 | Eski (korumasız) dosya geri konup derlendi: `GameRunner.cs(42,98): error CS0103: The name 'Handheld' does not exist` — incelemenin gerçek referans derlemesindeki hatayla aynı satır ve sütun. Düzeltilmiş dosya her iki projede 0 hata. Android dalındaki yazım hatası (`Handheld.Vibrat`) yalnız Android projesinde `CS0117` verdi, varsayılan proje geçti: iki dal da gerçekten derleniyor | WebGL oyuncusunda `Handheld` yokluğu Unity'de görülmedi (kanıt incelemenin 2021.3 DLL'i ve Issue Tracker özeti); düzeltme iki durumda da zararsız |
+| P3-02 | **Kapandı** (madde 1-2); madde 3 onay bekliyor | (1) `UnityStubs/UnityEngine.cs`: `Handheld` `#if UNITY_ANDROID \|\| UNITY_IOS` içinde. (2) Yeni `UnityStubs.Android` (aynı stub kaynakları, `UNITY_ANDROID`) ve `MinikUsta.Unity.Android` (aynı Unity katmanı kaynakları, `UNITY_ANDROID`) projeleri çözüme eklendi; ortak ayar ve kaynak yolu `dotnet/UnityLayer.props`. (3) Ek: `tools/stub-gate-selftest.sh` kapının kendisini sınar (korumasız `Handheld` varsayılan stub'ta `CS0234` ile derlenmez, Android stub'ında derlenir; korumalı biçim ikisinde derlenir) | `dotnet build -warnaserror` iki projeyi de derler; öz-sınama 4/4; stub'taki `#if` silinirse durum 1 kırmızı olur | Madde 3 (`tools/unity-refcheck.sh`, `UnityEngine.Modules` NuGet paketini `artifacts/`'a indirir) yeni bir NuGet indirmesi olduğundan **orkestratör onayı gerekir**; yapılmadı. `Input` / `Application` farkı: UnityCsReference 6000.0'da `Modules/InputLegacy/Input.bindings.cs:376` `public class Input` ve `Runtime/Export/Application/Application.bindings.cs:34,402` `public partial class Application` (static / sealed değil); stub zaten böyle, değişiklik gerekmedi. Stub'ta `#if`'siz duran ama başka bir platformda olmayan başka bir tür olup olmadığını yalnız GameCI ya da gerçek referans derlemesi gösterir |
+| P3-03 | **Kapandı** | `docs/CI.md` §1: Unity Hub tek yol (Windows / macOS / Linux `Unity_lic.ulf` yolları; `UNITY_LICENSE` + `UNITY_EMAIL` + `UNITY_PASSWORD`); "Kurulumsuz" maddesi kaldırıldı. `.github/workflows/unity-activation.yml` silindi (`git rm`) | Bu oturumda web araması: Unity forumunda "Unity no longer supports manual activation of Personal licenses" başlığı ve GameCI belgelerindeki aynı uyarı (arama özeti; `game.ci` ve mirror alan adları bu oturumdan açılamadı, Unity destek makalesi de açılmadı) | Linux yolu (`~/.local/share/unity3d/Unity/Unity_lic.ulf`) ve "Hub'da lisans var ama dosya yok" çaresi (Editor'ü bir kez açmak) doğrulanmadı; CI.md bunu açıkça yazıyor. Plus/Pro yolu kapsam dışı bırakıldı |
+| P3-04 | **Kapandı** | `Packages/manifest.json`: `com.unity.cinemachine` ve `com.unity.render-pipelines.universal` silindi (JSON geçerli; `Assets`'te kullanım yoktu: grep 0). İsteğe bağlı `particlesystem` ve `physics2d` modülleri **bırakıldı** | Manifest ayrıştırıldı; Assets taraması. Bırakma gerekçesi: WebGL'de motor kodu kırpması açık, kullanılmayan yerleşik modül zaten derlemeye girmez; kazanç yok, doğrulanamayan değişiklik riski var | Unity paket çözümlemesi (kalan paketler: `ugui 2.0.0`, `test-framework 1.4.5`) Unity'de denenmedi |
+| P3-05 | **Kapandı** (kısmen ilk koşuya bağlı) | (a) `ProjectSettings/InputManager.asset` depoya eklendi: Unity 6000.0.69f1 (`Unity-Technologies/InputSystem`) dosyasından birebir kopya, 18 eksen (Horizontal, Vertical, Submit ×2, Cancel dahil), LF, BOM yok. (b) `.github/workflows/unity-webgl.yml`: Build'den sonra `unity-generated-files` artifact'ı (`ProjectSettings/`, `Packages/packages-lock.json`, `Assets/**/*.meta`; derleme kırmızı olsa da; 14 gün). (c) `docs/CI.md` §4: ilk yeşil koşudan sonra dosyaları depoya işleme adımları, hata tablosuna `is not setup` satırı | Kopya, 6000.0.9f1 projesinin (`game-programming-patterns-demo`) `InputManager.asset` dosyasının ilk 295 satırıyla `diff` ile **birebir aynı** (o projenin ek özel eksenleri sonraki satırlarda). Workflow YAML'ı ayrıştırıldı (adım sırası doğru) | **Dosyaların depoya işlenmesi ilk yeşil koşudan sonraya kaldı** (bugün hiç koşu yok; `.meta` ve Unity'nin tam biçimli ayarları ancak o koşuda doğar). Unity'nin dosya yokken kendisinin aynı varsayılanı yazıp yazmadığı ve elle konan dosyayı sorunsuz okuyup okumadığı görülmedi. Artifact'ın içinde klasör yapısının korunması (en küçük ortak üst klasör kuralı) ilk koşuda kontrol edilir |
+
+### Q5 sonrası açık ve dokunulmayanlar
+
+- **Orkestratör onayı bekleyen:** P3-02 madde 3 (`tools/unity-refcheck.sh`, yeni NuGet indirmesi).
+- **Öneri (P3-06 … P3-18):** dokunulmadı, birikim listesinde. Not: P3-06 (`serializedVersion: 28` → `26`) ilk koşu çıktısı işlenince (CI.md §4)
+  zaten Unity'nin kendi değeriyle yer değiştirir; P3-18 (`versioning: None`) tek satırdır ve ilk koşunun kırılma riskini küçültür, ilk
+  Unity hatası geldiğinde ilk aday olarak alınmalı.
+- **Kapı sözleşmesi:** Platforma bağlı yeni bir Unity API'si eklenirken önce kodda ve stub'ta aynı `#if` ile korunur (CI.md §3);
+  `tools/stub-gate-selftest.sh` stub'a dokunan her değişiklikte çalıştırılır.

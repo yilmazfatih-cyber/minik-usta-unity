@@ -15,6 +15,10 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "UnityStubs", "UnityStubs\Un
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MinikUsta.Unity", "MinikUsta.Unity\MinikUsta.Unity.csproj", "{21425BD4-A67D-4A59-8D6D-39A7D7CCB05F}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "UnityStubs.Android", "UnityStubs.Android\UnityStubs.Android.csproj", "{F16B17DE-4F1C-40A2-A85A-073A666C4136}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MinikUsta.Unity.Android", "MinikUsta.Unity.Android\MinikUsta.Unity.Android.csproj", "{351E38E7-1231-406D-98D9-E01146FDF11A}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -48,5 +52,13 @@ Global
 		{21425BD4-A67D-4A59-8D6D-39A7D7CCB05F}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{21425BD4-A67D-4A59-8D6D-39A7D7CCB05F}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{21425BD4-A67D-4A59-8D6D-39A7D7CCB05F}.Release|Any CPU.Build.0 = Release|Any CPU
+		{F16B17DE-4F1C-40A2-A85A-073A666C4136}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{F16B17DE-4F1C-40A2-A85A-073A666C4136}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{F16B17DE-4F1C-40A2-A85A-073A666C4136}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{F16B17DE-4F1C-40A2-A85A-073A666C4136}.Release|Any CPU.Build.0 = Release|Any CPU
+		{351E38E7-1231-406D-98D9-E01146FDF11A}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{351E38E7-1231-406D-98D9-E01146FDF11A}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{351E38E7-1231-406D-98D9-E01146FDF11A}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{351E38E7-1231-406D-98D9-E01146FDF11A}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 EndGlobal

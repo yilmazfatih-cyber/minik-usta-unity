@@ -1,0 +1,23 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <!-- YALNIZ DERLEME DENETİMİ; UNITY'NİN KENDİSİ DEĞİL (compile-check only; NOT Unity itself).
+       The same stub sources as dotnet/UnityStubs, compiled with UNITY_ANDROID defined: this adds the mobile-only types (Handheld,
+       P3-01/P3-02) that exist in Unity's Android player and not in WebGL. Edit the stub in ../UnityStubs/UnityEngine.cs only. -->
+  <PropertyGroup>
+    <TargetFramework>netstandard2.1</TargetFramework>
+    <LangVersion>9.0</LangVersion>
+    <Nullable>disable</Nullable>
+    <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+    <EnableDefaultCompileItems>false</EnableDefaultCompileItems>
+    <AssemblyName>UnityStubs.Android</AssemblyName>
+    <RootNamespace>UnityEngine</RootNamespace>
+    <ImplicitUsings>disable</ImplicitUsings>
+    <NoWarn>$(NoWarn);CS0067</NoWarn>
+    <DefineConstants>$(DefineConstants);UNITY_ANDROID</DefineConstants>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Compile Include="../UnityStubs/*.cs" />
+  </ItemGroup>
+
+</Project>

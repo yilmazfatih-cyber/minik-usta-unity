@@ -1,0 +1,27 @@
+<Project>
+
+  <!-- Shared by dotnet/MinikUsta.Unity (default symbols = the WebGL player) and dotnet/MinikUsta.Unity.Android (UNITY_ANDROID =
+       the Android player): both compile the same thin Unity layer (Assets/MinikUsta/Unity, asmdef MinikUsta.Unity) against the
+       compile-check stubs. netstandard2.1 + C# 9 = Unity's compiler. Nullable is enabled here although Unity's default is
+       "disable": the layer files carry `#nullable enable` themselves (stricter than the real compile, never looser). -->
+  <PropertyGroup>
+    <TargetFramework>netstandard2.1</TargetFramework>
+    <LangVersion>9.0</LangVersion>
+    <Nullable>enable</Nullable>
+    <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+    <WarningLevel>4</WarningLevel>
+    <EnableDefaultCompileItems>false</EnableDefaultCompileItems>
+    <RootNamespace>MinikUsta.Unity</RootNamespace>
+    <ImplicitUsings>disable</ImplicitUsings>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Compile Include="$(MSBuildThisFileDirectory)../Assets/MinikUsta/Unity/**/*.cs" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="$(MSBuildThisFileDirectory)MinikUsta.Core/MinikUsta.Core.csproj" />
+    <ProjectReference Include="$(MSBuildThisFileDirectory)MinikUsta.Presentation.Core/MinikUsta.Presentation.Core.csproj" />
+  </ItemGroup>
+
+</Project>

@@ -60,9 +60,15 @@ Faz 1 raporu: web reposunda `docs/UNITY_PORT_FAZ1.md`. TS → C# dosya eşlemesi
 │  ├─ MinikUsta.Presentation.Core/ Assets/MinikUsta/Presentation.Core/**/*.cs → netstandard2.1, LangVersion 9 (Core'a başvurur)
 │  ├─ MinikUsta.Presentation.Core.Tests/  Assets/MinikUsta/Presentation.Core.Tests/**/*.cs → net8.0, NUnit 3.14
 │  ├─ UnityStubs/                YALNIZ DERLEME DENETİMİ: Unity katmanının kullandığı UnityEngine / UI / EventSystems / Events /
-│  │                             SceneManagement üyelerinin Unity 6000.0 imzalı boş gövdeli kopyaları (Unity'nin kendisi değil)
-│  └─ MinikUsta.Unity/           Assets/MinikUsta/Unity/**/*.cs → UnityStubs'a karşı derlenir (yazım + imza denetimi; D-093)
+│  │                             SceneManagement üyelerinin Unity 6000.0 imzalı boş gövdeli kopyaları (Unity'nin kendisi değil);
+│  │                             `Handheld` gibi yalnız mobilde var olan türler `#if UNITY_ANDROID || UNITY_IOS` içinde (P3-02)
+│  ├─ UnityStubs.Android/        aynı stub kaynakları, UNITY_ANDROID tanımlı (Handheld var)
+│  ├─ UnityLayer.props           Unity katmanı projelerinin ortak ayarı ve kaynak yolu
+│  ├─ MinikUsta.Unity/           Assets/MinikUsta/Unity/**/*.cs → UnityStubs'a karşı derlenir, UNITY_* tanımsız = WebGL durumu
+│  │                             (yazım + imza + platform koruması denetimi; D-093)
+│  └─ MinikUsta.Unity.Android/   aynı kaynaklar, UNITY_ANDROID tanımlı: `#if` dallarının Android tarafı
 ├─ tools/
+│  ├─ stub-gate-selftest.sh        stub kapısının korumasız `Handheld`'ı WebGL durumunda reddettiğini kanıtlar (4 durum, ~10 sn)
 │  ├─ sync-from-web.sh             levels, golden, K-45 fikstürleri, economy.json ve tokens.json dosyalarını web reposundan kopyalar
 │  ├─ gen-p0-vectors.ts            TS çekirdeğinden bit-eşitlik vektörleri üretir (node 22, ek paket yok)
 │  ├─ gen-p1-vectors.ts            hareket / yerçekimi / yerleşim / teslimat vektörleri (10 bölüm + 9 geometri × 5 rastgele tahta)
@@ -74,8 +80,9 @@ Faz 1 raporu: web reposunda `docs/UNITY_PORT_FAZ1.md`. TS → C# dosya eşlemesi
 ```
 
 `ProjectSettings/ProjectVersion.txt` (6000.0.85f1), `Packages/manifest.json`, `ProjectSettings/ProjectSettings.asset`
-(yalnız gerekli alanlar) ve `ProjectSettings/EditorBuildSettings.asset` (Level sahnesi) bulut derlemesi için eklendi
-(`docs/CI.md`); kalan ayarları Unity ilk açılışta üretir. `.gitignore` Unity'nin ürettiği `Library/`, `Temp/`, `Logs/` vb. klasörleri dışlar.
+(yalnız gerekli alanlar), `ProjectSettings/EditorBuildSettings.asset` (Level sahnesi) ve `ProjectSettings/InputManager.asset`
+(Unity 6000.0 varsayılanı; uGUI `StandaloneInputModule` eksenleri ister) bulut derlemesi için eklendi (`docs/CI.md`); kalan
+ayarları ve `.meta` dosyalarını Unity ilk koşuda üretir, iş akışı bunları artifact olarak yükler (`docs/CI.md` §4). `.gitignore` Unity'nin ürettiği `Library/`, `Temp/`, `Logs/` vb. klasörleri dışlar.
 
 ## Komutlar
 

@@ -86,8 +86,11 @@ Repo: `yilmazfatih-cyber/minik-usta-unity`, dal `main`. Model dağılımı: orke
 - Q1'den kalan: (a) ART_REFERENCE ≥ 4 çıtası hangi pakette geçerli olacak; (b) kazanma penceresi bitmiş yapıyı alçak mı
   gösterecek, yoksa yapı ayrıca (panorama ya da kart üstünde) mı gösterilecek; (c) LegacyRuntime Türkçe glifleri çizmezse
   Baloo 2 TTF `Resources`'a eklenebilir mi (lisans ve boyut onayı); (d) kullanılmayan URP ve Cinemachine paketleri
-  `Packages/manifest.json`'dan çıkarılsın mı (CI süresi; D-096'ya göre kullanılmıyor).
-- Q3'ten: (e) Unity'nin üreteceği `.meta` dosyaları repoya girsin mi; (f) Pages dışında Android APK iş akışı istenecek mi.
+  `Packages/manifest.json`'dan çıkarılsın mı (CI süresi; D-096'ya göre kullanılmıyor) — **kapandı (Q5, P3-04): çıkarıldı**.
+- Q3'ten: (e) Unity'nin üreteceği `.meta` dosyaları repoya girsin mi — **kapandı (Q5, P3-05): girer; iş akışı artifact yükler, ilk
+  yeşil koşudan sonra `docs/CI.md` §4 ile işlenir**; (f) Pages dışında Android APK iş akışı istenecek mi.
+- Q5'ten (`docs/REVIEW_PHASE3.md` kapanışı): (g) `tools/unity-refcheck.sh` (gerçek `UnityEngine.Modules` NuGet paketine karşı derleme,
+  `artifacts/`'a indirir, kapıya bağlanmaz) yeni bir NuGet indirmesi içerdiğinden orkestratör onayı bekliyor.
 
 ## 6. Sonraki adım
 

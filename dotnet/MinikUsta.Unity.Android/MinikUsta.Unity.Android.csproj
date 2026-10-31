@@ -1,0 +1,19 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <!-- The same Unity layer sources as dotnet/MinikUsta.Unity, compiled with UNITY_ANDROID defined (the Android player; P3-02), against
+       the stub built with the same symbol (dotnet/UnityStubs.Android, where `Handheld` exists). Together the two projects make
+       `dotnet build -warnaserror` compile both sides of every `#if UNITY_ANDROID || UNITY_IOS` branch. UNITY_IOS needs no project of
+       its own: the branches test `UNITY_ANDROID || UNITY_IOS` and iOS takes the same side as Android.
+       Compile-check only, like the other project; the real compile is GameCI. Shared settings and sources: dotnet/UnityLayer.props. -->
+  <Import Project="../UnityLayer.props" />
+
+  <PropertyGroup>
+    <AssemblyName>MinikUsta.Unity.Android</AssemblyName>
+    <DefineConstants>$(DefineConstants);UNITY_ANDROID</DefineConstants>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="../UnityStubs.Android/UnityStubs.Android.csproj" />
+  </ItemGroup>
+
+</Project>

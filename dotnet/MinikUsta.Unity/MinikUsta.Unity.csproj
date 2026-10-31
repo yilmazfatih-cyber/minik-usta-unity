@@ -3,26 +3,17 @@
   <!-- Compiles the thin Unity layer (Assets/MinikUsta/Unity, asmdef MinikUsta.Unity) against the compile-check stubs of
        dotnet/UnityStubs (Unity 6000.0 signatures, empty bodies) — typo and signature check in the cloud, where no Unity
        Editor exists (D-093). It proves the layer agrees with the stubs, not with Unity: the real compile happens in
-       GameCI (.github/workflows/unity-webgl.yml). netstandard2.1 + C# 9 = Unity's compiler. -->
+       GameCI (.github/workflows/unity-webgl.yml).
+       No UNITY_* symbol is defined here on purpose: that is the WebGL player's situation, so a platform-limited type used
+       without a guard (Handheld, P3-01) fails here. The Android branch is compiled by dotnet/MinikUsta.Unity.Android.
+       Shared settings and sources: dotnet/UnityLayer.props. -->
+  <Import Project="../UnityLayer.props" />
+
   <PropertyGroup>
-    <TargetFramework>netstandard2.1</TargetFramework>
-    <LangVersion>9.0</LangVersion>
-    <Nullable>enable</Nullable>
-    <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
-    <WarningLevel>4</WarningLevel>
-    <EnableDefaultCompileItems>false</EnableDefaultCompileItems>
     <AssemblyName>MinikUsta.Unity</AssemblyName>
-    <RootNamespace>MinikUsta.Unity</RootNamespace>
-    <ImplicitUsings>disable</ImplicitUsings>
   </PropertyGroup>
 
   <ItemGroup>
-    <Compile Include="../../Assets/MinikUsta/Unity/**/*.cs" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <ProjectReference Include="../MinikUsta.Core/MinikUsta.Core.csproj" />
-    <ProjectReference Include="../MinikUsta.Presentation.Core/MinikUsta.Presentation.Core.csproj" />
     <ProjectReference Include="../UnityStubs/UnityStubs.csproj" />
   </ItemGroup>
 

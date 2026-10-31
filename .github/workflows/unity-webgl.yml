@@ -44,6 +44,23 @@ jobs:
           buildName: MinikUsta
           buildMethod: MinikUsta.Editor.CiBuild.BuildWebGL
           allowDirtyBuild: true
+      # P3-05: Unity writes the settings assets and the .meta files it generates into the workspace. Upload them (also when the build
+      # failed) so the owner can commit them after the first green run: GUIDs become stable and the Library cache stops missing.
+      # How: docs/CI.md section 4. The chown is needed because the container ran as root.
+      - name: Collect files Unity generated
+        if: always() && steps.scene.outputs.has == 'true'
+        run: sudo chown -R "$USER" ProjectSettings Packages Assets
+      - name: Upload files Unity generated (ProjectSettings, .meta)
+        if: always() && steps.scene.outputs.has == 'true'
+        uses: actions/upload-artifact@v4
+        with:
+          name: unity-generated-files
+          path: |
+            ProjectSettings/
+            Packages/packages-lock.json
+            Assets/**/*.meta
+          if-no-files-found: warn
+          retention-days: 14
       - name: Prepare Pages artifact
         if: steps.scene.outputs.has == 'true'
         run: |
