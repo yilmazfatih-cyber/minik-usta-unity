@@ -1,7 +1,7 @@
 # TS → C# eşleme tablosu (PORT_MAP)
 
-Kaynak gerçek: web reposu `src/core/**` (`../minik-usta`, commit `b31c4e8`; çekirdek, testler ve veri `4ce980f` ile aynı —
-arada yalnız belge değişti). Her paket bu tabloyu günceller.
+Kaynak gerçek: web reposu `src/core/**` (`../minik-usta`, commit `fd61abd`; çekirdek, testler ve veri `4ce980f` ile aynı — `4ce980f`'den bu yana yalnız belge commit'leri var:
+`8ae243a`, `b31c4e8`, `fd61abd`. Q3 denetimi: `git diff --stat 4ce980f fd61abd -- src tests levels config` boş). Her paket bu tabloyu günceller.
 Durum: **P0** = iskelet paketinde taşındı · **P1** = hareket paketinde taşındı · **P2** = kural / çıkmaz / güçlendirici
 paketinde taşındı · **P3** = hamle hattı + oturum paketinde taşındı · **P4** = doğrulama derinliği paketinde eklendi
 (kural kapsamı kapısı, TS kehanetli diferansiyel fuzz, senaryo testleri) · **sonraki** = henüz taşınmadı. Her satırdaki C# üye
@@ -169,7 +169,7 @@ bulutta `dotnet/UnityStubs` imza şimine karşı derlenir, gerçek derleme GameC
 | `theme/textures.ts` (prosedürel doku) | `Art/Atlas.cs`, `Art/Symbols.cs`, `Art/Palette.cs`, `Art/Rgba.cs` | **Q1** | Tek 1024² RGBA atlas, açılışta bir kez (≈ 85 ms .NET 8): 16 komşuluk maskeli blok hücresi, parlama, 8 renk sembolü (ART §3.1 sadeleştirilmiş), zemin, plan, tarama, `?`, gölge konturu, 9-dilim panel, rozetler, duraklat ve güçlendirici ikonları; renkler tokens.json'dan (`PaletteTests`) |
 | `src/i18n` + `upper()` | `Text/Strings.cs` | **Q1** | `Resources/i18n/tr.json` düzleştirilir; `{n}` doldurma; `TrText.Upper` kültürsüz i → İ |
 | — | `Game/HudLayout.cs`, `Game/LevelCatalog.cs`, `Game/DebugSolver.cs`, `Game/Views.cs` | **Q1** | HUD v3 ve pencere dikdörtgenleri (layout.popup: alttan çapalı); bölüm 1–10 döngüsü + `Compiler.LoadLevel` (geçersiz bölüm oynanmaz, D-005); dev: kanonik çözümün sıradaki hamlesi, yoldan çıkınca açgözlü doğru yerleşim; motor sınırı arayüzleri |
-| Phaser sahnesi / kamera / girdi | `Assets/MinikUsta/Unity/*` | **Q1** | `GameBootstrap` (`[RuntimeInitializeOnLoadMethod(AfterSceneLoad)]`, yalnız `Level` sahnesinde), `GameRunner` (kare döngüsü, ekran değişimi, dev tuşları N/R/A/S), `UnityLevelView`, `UnityPieceVisual` (hücre başına gövde + parlama + sembol + kaldırma gölgesi), `UnityFlyer`, `UnityBoardView`, `UnityShadowView`, `UnityHud` (uGUI, CanvasScaler 1080 × 1920 Shrink = FIT, LegacyRuntime fontu, EventSystem + StandaloneInputModule), `PointerInput` (eski Input: dokunma + fare), `ProceduralSprites`, `UnityConvert` |
+| Phaser sahnesi / kamera / girdi | `Assets/MinikUsta/Unity/*` | **Q1** | Dosya bazında tablo: bu bölümün altında (Q3). |
 
 Testler (Q1): `LevelPlayerTests` (10 bölümün altın çözümü parmakla oynanır → TS `eventLogHash`, kazanma penceresi, End'de
 0,5 px altı sapma; vinç alanından bırakmalar düşer ve kazanır; R-12 hızlı basış; K-18 gölge, zor bölümde nötr; K-09
@@ -177,6 +177,90 @@ titreme; K-07 iptal; dokunma zıplaması; K-22/K-25 kilit ve 3× hız; K-29 yaln
 geçersiz bölüm; K-34 kanca 5; K-49 her bölüm 4 ekran boyutunda sığar; belirlenimcilik; havuz), `DebugSolverTests`,
 `AtlasTests`, `PaletteTests`, `BoardSceneTests`, `ShadowLookTests` (web `shadowLook.test.ts` portu), `StringsTests`,
 `PreviewTests` (`Fixtures/Preview.cs`: Unity görünümünün yazılımsal kopyası; `MINIK_PREVIEW_DIR` ile PNG).
+
+### Faz 3 Q3 — Unity katmanı dosya tablosu, web `src/scenes/level/**` kapsamı, veri yolları
+
+Q3 denetimi kod değiştirmedi. Doğrulananlar: web `src/core`, `tests`, `levels`, `config` `4ce980f`'den bu yana değişmedi;
+`tools/sync-from-web.sh` 0 sapma verdi; `Resources/` kopyaları web kaynağıyla bayt bayt eşit (`cmp`).
+
+#### Unity katmanı (`Assets/MinikUsta/Unity`)
+
+Asmdef `MinikUsta.Unity` → Core, Presentation.Core, `UnityEngine.UI`. Bulutta yalnız `dotnet/MinikUsta.Unity` (UnityStubs'a
+karşı) derlenir; gerçek Unity derlemesi GameCI'da (`docs/CI.md`).
+
+| Unity dosyası | Görev | Durum |
+| --- | --- | --- |
+| `GameBootstrap.cs` | `[RuntimeInitializeOnLoadMethod(AfterSceneLoad)]`; aktif sahne `Level` ise `GameRunner` ekler. Sahne yalnız Main Camera içerir | Q1 |
+| `GameRunner.cs` | MonoBehaviour: `Update` kare döngüsü, ekran boyutu değişimi, `LevelPlayer` kurulumu; Resources okuma (`levels/level_NNN`, `i18n/tr`, `solutions/level_NNN.solver`); geliştirme derlemesinde N/R/A/S (`Debug.isDebugBuild`) | Q1 |
+| `PointerInput.cs` | Eski Input Manager (`activeInputHandler` 0): dokunma (`touchCount`, `GetTouch`) ve fare (`GetMouseButton*`); ekran px → tasarım px, aynı karede `LevelPlayer`'a | Q1 |
+| `UnityLevelView.cs` | `ILevelView` uygulaması; `UnityFlyer` havuzu (`Stack`). Oyun mantığı yok | Q1 |
+| `UnityBoardView.cs` | Statik tahta öğeleri → havuzlu `SpriteRenderer` (`Tile.Panel` 9 dilim). İç sınıf `UnityShadowView` (K-18 gölgesi) | Q1 |
+| `UnityPieceVisual.cs` | `IPieceVisual`: hücre başına gövde (`Atlas.Body`), parlama, renk sembolü, kaldırma gölgesi. İç sınıf `UnityFlyer` (`IFlyer`, havuzlu uçan parça) | Q1 |
+| `UnityHud.cs` | uGUI: ScreenSpaceOverlay Canvas, CanvasScaler 1080×1920 `Shrink` (= FIT), LegacyRuntime fontu, pencereler (kazanma, hamle bitti, mola). `UiTarget : ITweenTarget` | Q1 |
+| `UnityConvert.cs` | `DesignSpace` (tasarım px, y aşağı ↔ dünya birimi, 100 px = 1 birim) ve `UnityConvert` (`Rgba` ↔ `Color`) | Q1 |
+| `ProceduralSprites.cs` | `Art/Atlas` piksellerini açılışta bir kez tek `Texture2D`'ye kopyalar; her sprite onun dilimi (tek malzeme) | Q1 |
+| `Scenes/Level.unity` (+ `.meta`) | Elle yazılmış Unity 6 YAML. Yalnız ortografik Main Camera: arka plan `#1F1850`, boyut 9,6 (= 1920 / 2 / 100). GUID `a7cea9e5c5164f70b12f92c99359b9a4` | Q1 |
+| `Editor/CiBuild.cs` (asmdef `MinikUsta.Editor`, yalnız Editor) | GameCI `BuildWebGL` / `BuildAndroid`; WebGL sıkıştırması kapalı | Q1 (CI) |
+
+#### Presentation.Core ek satırları (Q3)
+
+| Web / Phaser dosyası | C# dosyası | Durum | Not |
+| --- | --- | --- | --- |
+| — (Phaser konum çiftleri) | `Presentation.Core/Geometry2D.cs` (`Vec2`, `PxRect`) | Q0 | Tween hedefi ve düzen için değer tipleri; tasarım px, y aşağı |
+| `theme/tokens.ts` | `Art/Palette.cs`, `Feel/FeelSettings.cs` | Q0 / Q1 | Renk ve süreler `tokens.json` kopyasından; `FeelSettingsTests` denetler |
+| `theme/draw/*.ts` (art, badge, block, blockV2, board, characters, color, context, fx, kit, kitIcons, kitV3, path, plan, scene, symbols, wall) | `Art/Atlas.cs`, `Art/Symbols.cs` | Q1 kısmen | Yer tutucu prosedürel kutular ve 8 renk sembolü. blockV2, kitV3, karakter ve ikon tarifleri Q2+ |
+| `src/scenes/` (level dışı: BootScene, HomeScene, IntroScene, AssetLoaderScene, flow/*, appServices, atlas, backGuard, shaderWarmup, touchCancel) | — | kapsam dışı (Q1) | Ana menü, giriş ve yükleme ekranları Unity'de yok; Level sahnesi doğrudan açılır |
+
+#### Web `src/scenes/level/**` dosya kapsamı (Q3 denetimi, 40 TS dosyası)
+
+Durum anlamı: **Q0 / Q1** taşındı · **kısmen** bazı satırlar taşındı · **Q2** / **Q2+** henüz yok (Q2 kapsamı / sonraki) ·
+**kapsam dışı** Unity'de karşılığı yok.
+
+| Web dosyası | C# karşılığı | Durum | Not |
+| --- | --- | --- | --- |
+| `LevelScene.ts` | `Game/LevelPlayer.cs` | Q1 | Oturum, girdi akışı, pencere kararları; +5 teklifi ve çıkış penceresi yok |
+| `EventPlayer.ts` | `Game/StepRunner.cs` | Q1 kısmen | `runCue` ve tween adımları; ses, parçacık, titreşim adımları Q2 |
+| `juice/handlers.ts` | `Game/StepRunner.cs` | Q1 kısmen | P0 satırları (tween); parçacık, ses, titreşim satırları Q2 |
+| `juice/stage.ts` | `Game/Views.cs` (`ILevelView`, `IPieceVisual`, `IFlyer`) | Q1 | Arayüz karşılığı |
+| `juice/plan.ts` | `Animation/AnimationPlanner.cs` | Q0 | 43 olay türü, K-35 |
+| `juice/playback.ts` | `Animation/AnimationQueue.cs` | Q0 | |
+| `juice/catalog.ts`, `viewConstants.ts` | `Feel/FeelSettings.cs`, `Layout/LayoutSettings.cs` | Q0 | |
+| `motion.ts` | `Feel/FallMotion.cs` | Q0 | İvmeli düşüş eğrisi |
+| `stuckPulse.ts` | `Feel/StuckPulse.cs` | Q0 | K-34 kanca 5 |
+| `easing.ts` | `Tween/Easing.cs` | Q0 | |
+| `DragController.ts` (Phaser'sız yarı) | `Input/DragMapper.cs` | Q0 | Phaser yarısı → `Unity/PointerInput.cs` |
+| `dragMath.ts` | `Input/DragMath.cs` | Q0 | |
+| `hitTest.ts` | `Layout/HitTest.cs` | Q0 | |
+| `juice/dragFeel.ts` | — | Q2 | Sürükleme hızı, yeni temas, titreşim eşiği (titreşim henüz yok) |
+| `PieceLayer.ts` | `Game/PieceViews.cs` | Q1 | Havuzlu parça görünümleri |
+| `pieceState.ts` | `Game/BoardPose.cs` | Q1 | Dinlenme pozu |
+| `PieceView.ts` | `Game/PieceViews.cs`, `Unity/UnityPieceVisual.cs` | Q1 kısmen | Gövde, parlama, sembol, kaldırma gölgesi, #12 beyaz flaş, #13 kırmızı ton. setCrop süpürmesi Q2 |
+| `Pool.ts` | — (genel havuz sınıfı yok) | Q1 kısmen | Havuzlar `PieceViews` ve `UnityLevelView` içinde (`Stack`) |
+| `shadowLook.ts` | `Game/ShadowLook.cs` | Q1 | Birebir port, `ShadowLookTests` |
+| `ShadowView.ts` | `Game/ShadowLook.cs` (model), `Unity/UnityBoardView.cs` (`UnityShadowView`) | Q1 kısmen | Düşüş gölgesi var; iptal önizlemesi ve ↩ rozeti Q2 |
+| `BoardView.ts` | `Game/BoardScene.cs`, `Unity/UnityBoardView.cs` | Q1 | Yer tutucu tahta |
+| `depth.ts` | `Game/BoardScene.cs` (`Order`) | Q1 kısmen | Sıra sabitleri; ART §4 sırasının tamamı Q2'de denetlenecek |
+| `levels.ts` | `Game/LevelCatalog.cs` | Q1 | `import.meta.glob` yerine Resources; `Compiler.LoadLevel` doğrular |
+| `theme/textures.ts` | `Art/Atlas.cs` | Q1 | Prosedürel doku |
+| `LevelWindows.ts` | `Game/LevelPlayer.cs`, `Unity/UnityHud.cs` | Q1 kısmen | Kazanma, hamle bitti, mola. +5 teklifi, çıkış onayı, Söküm ve kayıp penceresi Q2+ |
+| `Trail.ts` | — | Q2 | İz (JUICE #3, #6, #10) |
+| `ParticleLayer.ts`, `juice/particles.ts` | — | Q2 | Havuzlu sprite parçacıkları; ParticleSystem kullanılmaz |
+| `juice/fx.ts` | — | Q2 | Genel zaman animasyonu çalıştırıcısı. Q1 efektleri StepRunner'da Tween ile |
+| `Truck.ts` | — | Q2 | Kamyon çizimi. Kamyon düşüş adımları (#19) Q1'de var |
+| `TrowelPicker.ts` | — | Q2+ | Güçlendirici hedef seçimi; Q1'de güçlendiriciler devre dışı |
+| `TutorialView.ts`, `tutorial/TutorialController.ts`, `TutorialPresence.ts`, `contextTips.ts`, `glove.ts`, `highlights.ts`, `tutorialEvents.ts` | — | Q2+ | Öğretici (K-53); kapsam kararı bekliyor |
+| `sceneServices.ts` | — | Q2 | Ses ve titreşim servisleri |
+| `frameImage.ts` | — | kapsam dışı | Phaser kare yardımcısı; Unity'de Sprite pivotu |
+
+#### Veri yolları (Q3 denetimi)
+
+| Çalışma zamanı yolu | Dosya | Durum |
+| --- | --- | --- |
+| `Resources.Load<TextAsset>("levels/level_NNN")` | `Resources/levels/level_001…010.json` | 10 / 10 eşleşiyor |
+| `…("i18n/tr")` | `Resources/i18n/tr.json` | Eşleşiyor |
+| `…("solutions/level_NNN.solver")` (geliştirme S tuşu) | `Resources/solutions/level_001…010.solver.json` | 10 / 10 eşleşiyor |
+| `…("config/economy")` | `Resources/config/economy.json` | Kopyalı, ama çalışma zamanında okunmuyor (güçlendirici açılışı Q2+) |
+| `…("i18n/en")` | `Resources/i18n/en.json` | Kopyalı, ama okunmuyor (EN bağlanmadı; "TR/EN eksiksiz" kapısı açık) |
 
 ## Veri
 

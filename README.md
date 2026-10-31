@@ -122,3 +122,48 @@ Unity içinde: Window → General → Test Runner → EditMode; `MinikUsta.Core.
 - **Kural atıfları:** Her K-xx kuralı yorumlarda ve test adlarında (`K49_…`) korunur.
 - **Veri:** Aynı `level_NNN.json` dosyaları değiştirilmeden okunur; geçersiz bölüm oyuna yüklenmez (`Compiler.LoadLevel`:
   şema + K-45 çalışma zamanı alt kümesi `Logic.RuntimeChecks`, D-005).
+
+## Faz 3 — oynanabilir yer tutucu tahta
+
+**Durum (Q3):** Q0 (motor-bağımsız sunum çekirdeği) ve Q1 (oynanabilir tahta, yer tutucu görsel) tamam. Q2 (his, ses,
+parçacık, kamyon ve seri çizimi) sırada. Bu ortamda Unity derlenemedi; ilk gerçek derleme GitHub Actions'ta yapılır
+([`docs/CI.md`](docs/CI.md)). Rapor taslağı: [`docs/PHASE3_REPORT.md`](docs/PHASE3_REPORT.md).
+
+### Nasıl oynanır
+
+- Adres: https://yilmazfatih-cyber.github.io/minik-usta-unity/ (ilk başarılı derlemeden sonra açılır).
+- Açılışta doğrudan Bölüm 1 gelir; menü yok.
+- Bir bloğa bas ve parmağınla sürükle. Blok kalkar ve parmağını izler; doğru yere bırakılan blok yerine oturur.
+- Yanlış yere bırakılan blok kendi yerine geri döner. Kırmızı işaret ve puan kaybı yok.
+- Bloklar duvarın üstünden ya da geçitten geçirilebilir.
+- Hamleler bitince "Hamleler bitti!" penceresi çıkar; tek seçenek **Tekrar dene** (Q1'de +5 hamle teklifi yok).
+- Bölüm tamamlanınca "Kazandın!" penceresi çıkar; **Devam** sonraki bölümü açar. 10. bölümden sonra 1. bölüme dönülür.
+- Duraklatma simgesi (ekranın üst kısmı) "Mola" penceresini açar: **Devam** ya da **Bölümü baştan başlat**.
+- Geliştirme derlemesinde (Editor ya da Development build) klavye kısayolları açılır: N sonraki bölüm, R baştan,
+  A tahtanın ASCII hâlini Console'a yazar, S çözümün sonraki hamlesini oynatır. Yayındaki sürümde bunlar kapalıdır.
+
+### Unity'de açma ve testler
+
+1. Unity Hub'da **6000.0.85f1** sürümünü kur (sürüm `ProjectSettings/ProjectVersion.txt` ile sabit).
+2. Hub → **Projects** → **Add** → bu repo klasörünü seç.
+3. İlk açılış birkaç dakika sürer. Unity eksik `.meta` dosyalarını üretir; `git status` ile değişenleri gözden geçir.
+4. `Assets/MinikUsta/Scenes/Level.unity` dosyasını aç ve **Play**'e bas.
+5. Testler: **Window → General → Test Runner → EditMode → Run All**. Koşan assembly'ler: `MinikUsta.Core.Tests`
+   ve `MinikUsta.Presentation.Core.Tests`. Beklenen sayılar dotnet koşusuna göre: Presentation 238 geçer. Core, `tools/diff/out`
+   (git dışı, `ts-oracle.mjs` çıktısı) varsa 1455 geçer ve 5 atlar; yoksa 1049 geçer ve 7 atlar (DiffFuzz durumları üretilmez).
+   Unity içinde bu koşu henüz yapılmadı.
+
+Dotnet tarafı (Unity gerekmez):
+
+```
+cd dotnet && dotnet build -warnaserror && dotnet test
+```
+
+### Bilinen eksikler (Q2 ve sonrası)
+
+- Ses ve titreşim yok. Parçacık, kamyon çizimi, seri boncukları, ↩ iptal rozeti ve ip/eğilme yok.
+- Öğretici yok. Güçlendiriciler devre dışı; Geri Al düğmesi yok; +5 hamle teklifi yok.
+- Görseller yer tutucu: prosedürel renkli kutular ve 8 renk sembolü. Tuna çizimi yok.
+- Ayarlar yok; "Animasyonları azalt" kapalı.
+- Yalnız Türkçe metin bağlı (`en.json` henüz okunmuyor).
+- LegacyRuntime fontunda Türkçe harfler (ş, ğ, ı, İ) Unity'de henüz görülmedi.
