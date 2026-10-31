@@ -31,10 +31,10 @@ Faz 1 raporu: web reposunda `docs/UNITY_PORT_FAZ1.md`. TS → C# dosya eşlemesi
 │  │  │  ├─ Level/                 LevelData, LevelJson (zod şemasının elle yazılmış karşılığı), Logic (K-45 doğrulayıcı), Load (loadLevel), Compile, Plan, Mechanics
 │  │  │  └─ Obstacles/             engel eklenti arayüzü (Types), kayıt + kanca birleştirme (Registry), W1_StaticGap, Y3_Chain, S1_SlidingSite
 │  │  └─ Core.Tests/               NUnit 3 testleri (Editor platformu; Unity EditMode ile aynı dosyalar)
-│  │     ├─ Fixtures/              Builders (tests/fixtures/builders.ts), Boards (ortak tahta yardımcıları, Drop/Play), Cover (cover.ts), ObstacleFixtures, J (JSON literal), TestPaths
+│  │     ├─ Fixtures/              Builders (tests/fixtures/builders.ts), Boards (ortak tahta yardımcıları, Drop/Play), Cover (cover.ts), ObstacleFixtures, J (JSON literal), TestPaths, RuleCoverage (P4 kapsam kapısı)
 │  │     │  └─ Levels/{valid,invalid}/  K-45 doğrulayıcı fikstürleri (web tests/level/fixtures kopyası)
 │  │     ├─ Obstacles/             RegistryTests, W1StaticGapTests, S1SlidingSiteTests, Y3ChainTests, S2PlanVoidTests
-│  │     └─ Golden/                web reposundan kopya: level_NNN.hand.json, level_NNN.solver.json; TS vektörleri p0…p3_vectors.json
+│  │     └─ Golden/                web reposundan kopya: level_NNN.hand.json, level_NNN.solver.json; TS vektörleri p0…p3_vectors.json; rule_ids.json (kural kimlikleri)
 │  └─ StreamingAssets/MinikUsta/
 │     ├─ levels/                   level_001…010.json (web reposundan birebir kopya)
 │     └─ config/economy.json       güçlendirici açılış seviyeleri (L-17 `booster:` / `pre:` vurguları)
@@ -47,7 +47,9 @@ Faz 1 raporu: web reposunda `docs/UNITY_PORT_FAZ1.md`. TS → C# dosya eşlemesi
 │  ├─ gen-p0-vectors.ts            TS çekirdeğinden bit-eşitlik vektörleri üretir (node 22, ek paket yok)
 │  ├─ gen-p1-vectors.ts            hareket / yerçekimi / yerleşim / teslimat vektörleri (10 bölüm + 9 geometri × 5 rastgele tahta)
 │  ├─ gen-p2-vectors.ts            doğrulayıcı / hedef / güçlendirici / çıkmaz / özet / kayıt vektörleri (fikstürler, kanonik çözüm boyunca 90 durum, 40 cover tahtası)
-│  └─ gen-p3-vectors.ts            GameSession dizileri: her hamle türü, geri al, +5, ret, çıkış, replay (170 dizi, ~4 300 girdi)
+│  ├─ gen-p3-vectors.ts            GameSession dizileri: her hamle türü, geri al, +5, ret, çıkış, replay (170 dizi, ~4 300 girdi)
+│  ├─ gen-rule-ids.ts              web belgelerinden kural kimlikleri + fazları → Core.Tests/Golden/rule_ids.json (kapsam kapısı)
+│  └─ diff/ts-oracle.mjs           diferansiyel fuzz kehaneti: TS GameSession ile ~400 tohumlu / betikli dizi → tools/diff/out/ (git dışı)
 └─ docs/PORT_MAP.md                TS dosyası → C# dosyası eşleme tablosu (her paket günceller)
 ```
 
@@ -64,6 +66,8 @@ kalan ayarları Unity ilk açılışta üretir. `.gitignore` Unity'nin ürettiğ
 | `node tools/gen-p0-vectors.ts [/yol/minik-usta]` | `Core.Tests/Golden/p0_vectors.json` dosyasını TS çekirdeğinden yeniden üretir |
 | `node tools/gen-p1-vectors.ts [/yol/minik-usta] [--verbose]` | `Core.Tests/Golden/p1_vectors.json` dosyasını (P1 modülleri: R, K-07 sınıfları, düşüşler, kararlar, K-08 takip taraması, K-17 dönüş hedefleri, settleYard) yeniden üretir; `--verbose` her satırı `p1_vectors.verbose.json` dosyasına yazar (git dışı, uyuşmazlık teşhisi için) |
 | `node tools/gen-p3-vectors.ts [/yol/minik-usta] [--verbose]` | `Core.Tests/Golden/p3_vectors.json` dosyasını yeniden üretir: TS `GameSession.apply` ile 170 tohumlu deneme (sürükleme, çekiç, vinç, boya fırçası, Altın Mala, eski mala, geri al, +5 jeton/reklam, ret, çıkış) oynanır; girdiler saklanır, C# aynı girdileri oynatıp her paketin sonucunu, `eventLogHash`'ini, durum karmasını, oturum alanlarını ve `TurnSummary`'yi karşılaştırır; `--verbose` her satırı ve her paketin kanonik olay JSON'unu `p3_vectors.verbose.json` dosyasına yazar (git dışı). Uyuşmayan dizinin C# satırları `Golden/p3_csharp.<dizi>.txt` dosyasına yazılır (git dışı) |
+| `node tools/gen-rule-ids.ts [/yol/minik-usta]` | `Core.Tests/Golden/rule_ids.json` dosyasını web reposunun kapsam aracıyla (`tools/rule-coverage.ts` `ruleIds`: GDD başlıkları, TECH §12.4 F sütunu, OBSTACLES imza tablosu ve matrisi) yeniden üretir; `RuleCoverageTests` Faz 2R'ye kadar her kimliğin (76) en az bir C# test adında geçtiğini denetler |
+| `node tools/diff/ts-oracle.mjs [/yol/minik-usta] [--seeds N] [--moves M] [--out DIR]` | Diferansiyel fuzz kehaneti: web `src/core`'u içe aktarıp tohumlu **geçerli** eylem dizileri (DragSession R'sinden iptal etmeyen sürüklemeler, geçerli hedefli güçlendiriciler, Undo, +5, ret, çıkış) ve betikli senaryolar (Söküm, D1 karıştırma, kuyruk, teklif, Undo) oynar; her adımın Zobrist / tampon / olay karmasını, olay JSON'larını, ASCII'sini ve oturum alanlarını `tools/diff/out/*.json`'a yazar (git dışı). `DiffFuzzTests` aynı eylemleri C#'ta oynatıp her adımda karşılaştırır; ilk sapmada adım, eylem, ilk farklı olay ve iki tahta yan yana. Çıktı yoksa bu testler `Ignore` olur — `dotnet test`'ten önce koşturun |
 | `node tools/gen-p2-vectors.ts [/yol/minik-usta] [--verbose]` | `Core.Tests/Golden/p2_vectors.json` dosyasını (K-45 doğrulayıcı sonuç listeleri, D1/D2/D3a/Söküm/reshuffle, K-33/36/37/38 hedef kümeleri, K-34 kanca 5, hedef sayaçları, özet, kayıt) yeniden üretir; durumlar TS `applyMove` ile kanonik çözüm boyunca üretilip `encodeState` ile saklanır, C# aynı tamponu çözer; `--verbose` her satırı `p2_vectors.verbose.json` dosyasına yazar (git dışı) |
 
 Unity içinde: Window → General → Test Runner → EditMode; `MinikUsta.Core.Tests` asmdef'i `UNITY_INCLUDE_TESTS` tanımı ve
@@ -83,7 +87,10 @@ Unity içinde: Window → General → Test Runner → EditMode; `MinikUsta.Core.
   test eder; `p2_vectors.json` doğrulayıcı mesajlarını, D3a açılım sayılarını (4096 yuvalı memo tablosu dahil), D1 reshuffle
   hamlelerini ve Söküm olaylarını 130 durum üzerinde TS ile karşılaştırır; `p3_vectors.json` K-35 hattını ve `GameSession`'ı
   her hamle türü için paket paket (`eventLogHash` dahil) TS ile karşılaştırır; altın testler (`HandGoldenTests`) 10 bölümün
-  kanonik çözümünde `eventLogHash`, son ASCII tahta ve `levelHash` değerlerinin TS ile birebir aynı olduğunu doğrular.
+  kanonik çözümünde `eventLogHash`, son ASCII tahta ve `levelHash` değerlerinin TS ile birebir aynı olduğunu doğrular;
+  `DiffFuzzTests` (P4) kehanetin ~400 dizisinde (~10 000 eylem) **her adımı** TS ile karşılaştırır.
+- **Kural kapsamı:** `RuleCoverageTests` web reposunun `npm run test:rules -- --phase 2R` kapısını C# test adlarına uygular
+  (76 kimlik; ad biçimi `K49_…`, `…_E42_…`, `W1StaticGapTests`).
 - **Engeller eklentidir:** `Core/Obstacles/Types.cs` arayüzü (`ObstacleRule`), `Registry.cs` kuralları `Order` sırasına göre
   `MoveHooks`'a birleştirir; çekirdekte engele özel `if` yoktur (yeni engel = yeni dosya + `Registry.AllRules`'a bir satır).
 - **Kural atıfları:** Her K-xx kuralı yorumlarda ve test adlarında (`K49_…`) korunur.
