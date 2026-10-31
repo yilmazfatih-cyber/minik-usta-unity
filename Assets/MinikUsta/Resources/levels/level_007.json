@@ -1,0 +1,60 @@
+{
+  "schemaVersion": 1,
+  "id": 7,
+  "chapter": 1,
+  "name": { "tr": "Çatı Altı", "en": "Under the Roof" },
+  "difficulty": "normal",
+  "moves": 17,
+  "goals": [{ "type": "build" }],
+  "gravity": { "build": "normal", "yard": false },
+  "wall": { "height": 5, "gaps": [] },
+  "site": { "cols": 2, "rows": 5 },
+  "build": {
+    "mode": "segments",
+    "segments": [
+      { "name": { "tr": "Kiriş", "en": "Beam" }, "rows": ["WW", "GW", "GW", "RR", "RR"] },
+      { "name": { "tr": "Saçak", "en": "Eaves" }, "rows": ["RR", "RW", "RW", "GG", "GG"] }
+    ]
+  },
+  "yard": {
+    "cols": 4,
+    "rows": 5,
+    "batches": [
+      {
+        "forSegment": 0,
+        "pieces": [
+          { "shape": "O4_0", "color": "R", "x": 0, "y": 0 },
+          { "shape": "D2_0", "color": "G", "x": 0, "y": 2 },
+          { "shape": "D2_0", "color": "W", "x": 1, "y": 2 },
+          { "shape": "D2_90", "color": "W", "x": 0, "y": 4 },
+          { "shape": "O4_0", "color": "G", "x": 2, "y": 0 }
+        ]
+      },
+      {
+        "forSegment": 1,
+        "pieces": [
+          { "shape": "D2_0", "color": "W", "x": 2, "y": 5 },
+          { "shape": "D2_90", "color": "R", "x": 0, "y": 5 },
+          { "shape": "D2_0", "color": "R", "x": 2, "y": 5 }
+        ]
+      }
+    ]
+  },
+  "obstacles": [],
+  "tutorial": [
+    {
+      "step": 1,
+      "highlight": ["piece:4", "panorama"],
+      "textKey": "tut.m.carry",
+      "done": { "event": "placementCorrect", "count": 1 }
+    },
+    {
+      "step": 2,
+      "highlight": ["piece:4"],
+      "textKey": "tut.m.carryNow",
+      "startOn": { "event": "segmentDone" },
+      "done": { "event": "placementCorrect", "count": 1 }
+    }
+  ],
+  "targets": { "minShifts": [4, 5], "firstNeedDepth": [2, 3], "deadRate": [0, 0] }
+}

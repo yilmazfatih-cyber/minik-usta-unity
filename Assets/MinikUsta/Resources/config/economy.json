@@ -1,0 +1,288 @@
+{
+  "version": 3,
+  "_doc": "docs/META.md (product-lead, Faz 2R 2026-10-07: booster effects redefined for full cover (GDD K-33, K-36, K-38; META §4.1), win-streak tiers rebalanced (META §5, every tier worth < 5 moves); cross-review closure: paintBrush and trowelStart 450 (D-076, entrepreneur), tier 3 = +1 trowel +2 moves (EN-2R-03), Master Mode buffer max(2, ceil(0.12*min)) (EN-2R-06); previous revision 2026-10-04). Parameters only: formulas live in META and code; fields starting with '_doc' are ignored by the schema; null = placeholder/disabled. Real-money prices and ad caps are owned by entrepreneur (docs/BUSINESS.md); R-16 shared values match BUSINESS.",
+  "currency": "coins",
+  "startingWallet": {
+    "coins": 500,
+    "lives": 5,
+    "boosters": {
+      "hammer": 0,
+      "crane": 0,
+      "undo": 0,
+      "paintBrush": 0,
+      "thermos": 0,
+      "trowelStart": 0,
+      "openShutter": 0
+    }
+  },
+  "stars": { "perWin": 1, "perMasterModeWin": 0 },
+  "lives": {
+    "max": 5,
+    "regenMinutes": 30,
+    "reserveOnLevelStart": true,
+    "refundOnWin": true,
+    "refillFullCost": 900,
+    "rewardedAdLifePerDay": 2,
+    "refundOnZeroMoveExit": true,
+    "_doc": "App kill / phone call is not a loss; the reserved life stays reserved while inLevel exists (GDD K-43, R-13)."
+  },
+  "levelRewards": {
+    "winCoins": { "easy": 20, "normal": 30, "hard": 50, "superhard": 75 },
+    "bonusCoinsPerMoveLeft": 3,
+    "bonusMaxMovesCounted": 10,
+    "coinsPerLeftoverTrowel": 10
+  },
+  "outOfMoves": {
+    "extraMoves": 5,
+    "offerCosts": [900, 1350, 1800],
+    "maxOffersPerAttempt": 3,
+    "adOfferCountsTowardCap": true,
+    "firstEverOfferFree": true,
+    "rewardedAdOffer": { "extraMoves": 5, "perAttempt": 1, "perDay": 3, "offerIndex": 1 },
+    "_doc": "Price index = offer number n (1..3) in the attempt, whichever option was taken before (GDD K-29, R-15). Rewarded ad alternative only in offer n = 1 (offerIndex; BUSINESS §4.3, P-4), so at most 1 per attempt; not shown in the lifetime-first free offer. Faz 2R: pipeline step 12 runs D2/D3 (and teardown) at zero moves BEFORE the window opens, so the offer is never shown on a detected dead end (GDD K-29, K-30, E-58; BUSINESS E13); accepting an offer runs only D1 once and never D3 afterwards (GDD K-29, Faz 2R solver round; E-42)."
+  },
+  "ads": {
+    "dailyCapTotal": 6,
+    "_doc": "Per local calendar day; placements: lives, outOfMoves, dailyReward (META §3.3)."
+  },
+  "priceDisplay": {
+    "referenceSku": "coins_1000",
+    "_doc": "Real-money equivalent of coin prices (BUSINESS E2); MVP shows a test-build label."
+  },
+  "boosters": {
+    "_doc": "Unlock rule (META §4): a booster granted before its unlockLevel (level chest 10 Thermos, daily reward, starter pack) is kept in inventory; its slot stays locked (not usable/selectable) until unlockLevel; freeTrials are added on top of the stored count at unlock.",
+    "hammer": {
+      "kind": "inLevel",
+      "unlockLevel": 8,
+      "freeTrials": 3,
+      "price": 600,
+      "effect": "breakObstacle",
+      "targets": ["cargo", "crate", "cementBag", "chain", "siteDebris", "stuckMortar"],
+      "destroysMaterial": false,
+      "_doc": "GDD K-36 (Faz 2R): never destroys a material block (full cover K-47). cargo (Y5 I5/Q9) and crate are removed, cement bag torn, chain released; site debris / stuck mortar are moved to the yard via K-17 step 2. No target in the current state -> slot state noTarget (GDD K-54: greyed, no +, no purchase window; booster.hammer.noTarget). Price 600 unchanged (D-076)."
+    },
+    "crane": {
+      "kind": "inLevel",
+      "unlockLevel": 10,
+      "freeTrials": 2,
+      "price": 900,
+      "effect": "moveRotateAnyBlock"
+    },
+    "undo": {
+      "kind": "inLevel",
+      "unlockLevel": 13,
+      "freeTrials": 3,
+      "price": 300,
+      "effect": "undoLastMoveInclTeardown"
+    },
+    "paintBrush": {
+      "kind": "inLevel",
+      "unlockLevel": 22,
+      "freeTrials": 2,
+      "price": 450,
+      "effect": "swapColors",
+      "requireEqualCellCount": true,
+      "_doc": "GDD K-38 (Faz 2R): swaps the colors of two yard material blocks with equal cell count and different colors; per-color supply unchanged (K-47); no swap if the result fails the D3a tiling check (K-30). Slot state per GDD K-54 (no target -> greyed, no + / purchase)."
+    },
+    "thermos": { "kind": "preLevel", "unlockLevel": 12, "freeTrials": 3, "price": 450, "extraMoves": 3 },
+    "trowelStart": { "kind": "preLevel", "unlockLevel": 16, "freeTrials": 2, "price": 450, "trowels": 1 },
+    "openShutter": {
+      "kind": "preLevel",
+      "unlockLevel": 20,
+      "freeTrials": 2,
+      "price": 600,
+      "openForMoves": 5,
+      "requiresGapTypes": ["shutter", "locked"]
+    }
+  },
+  "combo": {
+    "correctPlacementsPerTrowel": 4,
+    "trowelEffect": "placeYardBlockAtCorrectPosition",
+    "_doc": "GDD K-33 (Faz 2R): a Golden Trowel picks one yard material block (buried allowed; not locked/chained/wet) and places it at a correct position of the active segment (access ignored; positions failing the D3a tiling check are excluded); no move spent, not counted for streak/YAO. Streak reset by wrong placement, glass break and teardown (K-30); yard moves do not reset it. Threshold is global, never per level (GDD K-52)."
+  },
+  "winStreak": {
+    "unlockLevel": 15,
+    "tiers": [
+      { "tier": 0, "minStreak": 0, "trowels": 0, "extraMoves": 0 },
+      { "tier": 1, "minStreak": 1, "trowels": 1, "extraMoves": 0 },
+      { "tier": 2, "minStreak": 2, "trowels": 1, "extraMoves": 1 },
+      { "tier": 3, "minStreak": 3, "trowels": 1, "extraMoves": 2 }
+    ],
+    "bonusKeptOnZeroMoveExit": true,
+    "hiddenInOfferWindow": true
+  },
+  "dailyReward": {
+    "unlockDay": 2,
+    "resetOnMissedDay": false,
+    "rewardedAdDoublesCoins": { "perDay": 1 },
+    "cycle": [
+      { "day": 1, "coins": 50 },
+      { "day": 2, "boosters": { "hammer": 1 } },
+      { "day": 3, "coins": 75 },
+      { "day": 4, "boosters": { "thermos": 1 } },
+      { "day": 5, "coins": 100 },
+      { "day": 6, "boosters": { "undo": 1 } },
+      { "day": 7, "coins": 200, "boosters": { "crane": 1 }, "unlimitedLivesMinutes": 15 }
+    ]
+  },
+  "levelChest": {
+    "everyLevels": 10,
+    "rewards": [
+      { "afterLevel": 10, "coins": 200, "boosters": { "hammer": 1, "thermos": 1 } },
+      { "afterLevel": 20, "coins": 250, "boosters": { "crane": 1, "trowelStart": 1 } },
+      {
+        "afterLevel": 30,
+        "coins": 300,
+        "boosters": { "paintBrush": 1, "openShutter": 1 },
+        "unlimitedLivesMinutes": 30
+      },
+      { "afterLevel": 40, "coins": 350, "boosters": { "hammer": 2, "crane": 1 } },
+      {
+        "afterLevel": 50,
+        "coins": 500,
+        "boosters": {
+          "hammer": 1,
+          "crane": 1,
+          "undo": 1,
+          "paintBrush": 1,
+          "thermos": 1,
+          "trowelStart": 1,
+          "openShutter": 1
+        },
+        "unlimitedLivesMinutes": 60
+      }
+    ],
+    "contentVisibleBeforeOpen": true
+  },
+  "piggyBank": {
+    "unlockLevel": 20,
+    "coinsPerWin": { "easy": 50, "normal": 50, "hard": 75, "superhard": 100 },
+    "capacity": 2000,
+    "breakableAt": 1000,
+    "breakPrice": { "sku": "piggy_break", "usd": 1.99, "try": 89.99 },
+    "_doc": "Validation: coins per USD at breakableAt >= coins per USD of priceDisplay.referenceSku (R-16)."
+  },
+  "shop": {
+    "unlockLevel": 5,
+    "coinPacks": [
+      { "sku": "coins_1000", "coins": 1000, "usd": 1.99, "try": 89.99 },
+      { "sku": "coins_2750", "coins": 2750, "usd": 4.99, "try": 219.99 },
+      { "sku": "coins_6000", "coins": 6000, "usd": 9.99, "try": 449.99 },
+      { "sku": "coins_13000", "coins": 13000, "usd": 19.99, "try": 899.99 },
+      { "sku": "coins_35000", "coins": 35000, "usd": 49.99, "try": 2249.99 },
+      { "sku": "coins_75000", "coins": 75000, "usd": 99.99, "try": 4499.99 }
+    ],
+    "starterPack": {
+      "sku": "starter",
+      "coins": 2500,
+      "boosters": { "hammer": 2, "crane": 1, "thermos": 2 },
+      "usd": 1.99,
+      "try": 89.99,
+      "oneTime": true,
+      "timeLimited": false
+    },
+    "_doc": "MVP: fake purchases; store build reads prices from the store. No 'most popular'/'best value' badges."
+  },
+  "masterMode": {
+    "status": "mvp_pending_owner_approval",
+    "afterLevel": 50,
+    "levels": [11, 50],
+    "order": "sequential_loop",
+    "movesBuffer": 2,
+    "movesBufferRatio": 0.12,
+    "awardsStars": false,
+    "rewardsUseOriginalDifficulty": true,
+    "masterChest": {
+      "everyWins": 10,
+      "coins": 250,
+      "boosters": { "hammer": 1 },
+      "contentVisibleBeforeOpen": true
+    },
+    "variant": "master",
+    "replay": {
+      "movesBudget": "levelMoves",
+      "awardsStars": false,
+      "coinRewards": ["winBase"],
+      "bonusBuild": false,
+      "leftoverTrowelCoins": false,
+      "masterChest": true
+    },
+    "_doc": "R-17 (owner approval pending), P-8. Order 11..50 then 11 again. Moves = solver min + max(movesBuffer, ceil(movesBufferRatio * min)) (GDD K-52 superhard buffer; EN-2R-06). Coins, piggy, league points and bot d_k use the level's original difficulty.",
+    "_docVariant": "variant: 'master' = Master Mode (D-026, solver min + movesBuffer) | 'replay' = D-026 fallback if the owner says 'Later': same loop, original LEVELS moves, no stars, coins = win base only (no Bonus Build, no leftover trowel coins), piggy/league/bot difficulty from the original label, wins count for streak/Bridge/League, Master Chest kept with the same META §9 adjustment rule (expected G ~780-880 -> chest coins 300-400). META §8.5."
+  },
+  "town": {
+    "starsPerChapter": 10,
+    "cutscenes": {
+      "prologue": "firstLaunch",
+      "chapter1Start": "afterTask1",
+      "chapterStartFrom2": "nextHomeEntryAfterPreviousEnd",
+      "hideNextChapterTasksUntilStartPlayed": true,
+      "chapterEnd": "afterLastTask",
+      "skippedCountsAsSeen": true,
+      "maxCutscenesPerAction": 1
+    },
+    "_doc": "Tasks, names and order = STORY §5 (35 tasks, R-07); star costs are final here and in META §1. Cutscene triggers META §1 (R-09): ch1 start after task 1; chN start (N>=2) on the next home-screen entry (screen transition or cold start) after ch(N-1) end; STORY §3, UX §8.",
+    "chapters": [
+      {
+        "chapter": 1,
+        "tasks": [
+          { "id": "ch1_t1", "nameKey": "town.ch1.t1.name", "sceneKey": "town.ch1.t1.scene", "stars": 1 },
+          { "id": "ch1_t2", "nameKey": "town.ch1.t2.name", "sceneKey": "town.ch1.t2.scene", "stars": 1 },
+          { "id": "ch1_t3", "nameKey": "town.ch1.t3.name", "sceneKey": "town.ch1.t3.scene", "stars": 1 },
+          { "id": "ch1_t4", "nameKey": "town.ch1.t4.name", "sceneKey": "town.ch1.t4.scene", "stars": 2 },
+          { "id": "ch1_t5", "nameKey": "town.ch1.t5.name", "sceneKey": "town.ch1.t5.scene", "stars": 2 },
+          { "id": "ch1_t6", "nameKey": "town.ch1.t6.name", "sceneKey": "town.ch1.t6.scene", "stars": 1 },
+          { "id": "ch1_t7", "nameKey": "town.ch1.t7.name", "sceneKey": "town.ch1.t7.scene", "stars": 2 }
+        ]
+      },
+      {
+        "chapter": 2,
+        "tasks": [
+          { "id": "ch2_t1", "nameKey": "town.ch2.t1.name", "sceneKey": "town.ch2.t1.scene", "stars": 1 },
+          { "id": "ch2_t2", "nameKey": "town.ch2.t2.name", "sceneKey": "town.ch2.t2.scene", "stars": 1 },
+          { "id": "ch2_t3", "nameKey": "town.ch2.t3.name", "sceneKey": "town.ch2.t3.scene", "stars": 1 },
+          { "id": "ch2_t4", "nameKey": "town.ch2.t4.name", "sceneKey": "town.ch2.t4.scene", "stars": 2 },
+          { "id": "ch2_t5", "nameKey": "town.ch2.t5.name", "sceneKey": "town.ch2.t5.scene", "stars": 2 },
+          { "id": "ch2_t6", "nameKey": "town.ch2.t6.name", "sceneKey": "town.ch2.t6.scene", "stars": 1 },
+          { "id": "ch2_t7", "nameKey": "town.ch2.t7.name", "sceneKey": "town.ch2.t7.scene", "stars": 2 }
+        ]
+      },
+      {
+        "chapter": 3,
+        "tasks": [
+          { "id": "ch3_t1", "nameKey": "town.ch3.t1.name", "sceneKey": "town.ch3.t1.scene", "stars": 1 },
+          { "id": "ch3_t2", "nameKey": "town.ch3.t2.name", "sceneKey": "town.ch3.t2.scene", "stars": 1 },
+          { "id": "ch3_t3", "nameKey": "town.ch3.t3.name", "sceneKey": "town.ch3.t3.scene", "stars": 2 },
+          { "id": "ch3_t4", "nameKey": "town.ch3.t4.name", "sceneKey": "town.ch3.t4.scene", "stars": 1 },
+          { "id": "ch3_t5", "nameKey": "town.ch3.t5.name", "sceneKey": "town.ch3.t5.scene", "stars": 2 },
+          { "id": "ch3_t6", "nameKey": "town.ch3.t6.name", "sceneKey": "town.ch3.t6.scene", "stars": 1 },
+          { "id": "ch3_t7", "nameKey": "town.ch3.t7.name", "sceneKey": "town.ch3.t7.scene", "stars": 2 }
+        ]
+      },
+      {
+        "chapter": 4,
+        "tasks": [
+          { "id": "ch4_t1", "nameKey": "town.ch4.t1.name", "sceneKey": "town.ch4.t1.scene", "stars": 1 },
+          { "id": "ch4_t2", "nameKey": "town.ch4.t2.name", "sceneKey": "town.ch4.t2.scene", "stars": 2 },
+          { "id": "ch4_t3", "nameKey": "town.ch4.t3.name", "sceneKey": "town.ch4.t3.scene", "stars": 2 },
+          { "id": "ch4_t4", "nameKey": "town.ch4.t4.name", "sceneKey": "town.ch4.t4.scene", "stars": 1 },
+          { "id": "ch4_t5", "nameKey": "town.ch4.t5.name", "sceneKey": "town.ch4.t5.scene", "stars": 1 },
+          { "id": "ch4_t6", "nameKey": "town.ch4.t6.name", "sceneKey": "town.ch4.t6.scene", "stars": 2 },
+          { "id": "ch4_t7", "nameKey": "town.ch4.t7.name", "sceneKey": "town.ch4.t7.scene", "stars": 1 }
+        ]
+      },
+      {
+        "chapter": 5,
+        "tasks": [
+          { "id": "ch5_t1", "nameKey": "town.ch5.t1.name", "sceneKey": "town.ch5.t1.scene", "stars": 1 },
+          { "id": "ch5_t2", "nameKey": "town.ch5.t2.name", "sceneKey": "town.ch5.t2.scene", "stars": 2 },
+          { "id": "ch5_t3", "nameKey": "town.ch5.t3.name", "sceneKey": "town.ch5.t3.scene", "stars": 1 },
+          { "id": "ch5_t4", "nameKey": "town.ch5.t4.name", "sceneKey": "town.ch5.t4.scene", "stars": 2 },
+          { "id": "ch5_t5", "nameKey": "town.ch5.t5.name", "sceneKey": "town.ch5.t5.scene", "stars": 1 },
+          { "id": "ch5_t6", "nameKey": "town.ch5.t6.name", "sceneKey": "town.ch5.t6.scene", "stars": 1 },
+          { "id": "ch5_t7", "nameKey": "town.ch5.t7.name", "sceneKey": "town.ch5.t7.scene", "stars": 2 }
+        ]
+      }
+    ]
+  }
+}

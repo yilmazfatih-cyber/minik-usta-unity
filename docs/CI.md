@@ -27,12 +27,26 @@ GameCI bu değerleri yalnız derleme sırasında lisansı etkinleştirmek için 
 
 - `main` dalına `Assets/`, `Packages/` ya da `ProjectSettings/` altında bir değişiklik gelince **Unity WebGL → Pages**
   iş akışı kendiliğinden çalışır; elle de başlatılabilir (Actions → Run workflow).
-- Sahne yoksa (Faz 3'ten önce) derleme atlanır ve not düşer; Faz 3 `Assets/MinikUsta/Scenes/` altına sahneyi ekleyince
-  gerçek derleme başlar.
+- Sahne: `Assets/MinikUsta/Scenes/Level.unity` (Faz 3 Q1). İş akışının "Check for a scene" adımı
+  `Assets/MinikUsta/Scenes/*.unity` kalıbına bakar; sahne var olduğu için gerçek derleme artık her `main` itişinde koşar.
+  `CiBuild.BuildWebGL` sahne listesini `ProjectSettings/EditorBuildSettings.asset`'ten okur (yol + `Level.unity.meta`
+  ile aynı GUID `a7cea9e5c5164f70b12f92c99359b9a4`). Sahnede yalnız ortografik Main Camera vardır; oyun
+  `[RuntimeInitializeOnLoadMethod(AfterSceneLoad)]` ile koddan kurulur (`Assets/MinikUsta/Unity/GameBootstrap.cs`), bu
+  yüzden sahne YAML'ı hiçbir betik GUID'ine başvurmaz.
 - Süre: ilk derleme 20–40 dk (imaj + Library önbelleği), sonrakiler 10–20 dk.
 - Çıktı: https://yilmazfatih-cyber.github.io/minik-usta-unity/ (web sürümünden ayrı adres).
 
 ## 3. Bilinmesi gerekenler
+
+- **Bulutta Unity yok (D-093):** Unity katmanı (`Assets/MinikUsta/Unity`) burada yalnız `dotnet/UnityStubs` imza
+  şimlerine karşı derlenir (`dotnet/MinikUsta.Unity`; yazım ve imza denetimi). Gerçek Unity derlemesinin tek kanıtı bu iş
+  akışıdır; ilk koşunun günlüğü (Build adımı) okunmalı. Elle yazılmış dosyalar: `Level.unity` (+ `.meta`),
+  `ProjectSettings/EditorBuildSettings.asset`, `ProjectSettings/ProjectSettings.asset` (yalnız gerekli alanlar; kalanını
+  Unity varsayılanla doldurur ve ilk açılışta yeniden yazar).
+- `ProjectSettings.asset`: `companyName` "Tuna & Co.", `productName` "Minik Usta", portre (`defaultScreenOrientation: 0`),
+  eski Input Manager (`activeInputHandler: 0`), WebGL sıkıştırma **kapalı** (`webGLCompressionFormat: 2`; Unity'de
+  `WebGLCompressionFormat` = Brotli 0, Gzip 1, Disabled 2 — UnityCsReference 6000.0 ile doğrulandı), gamma renk uzayı.
+  `CiBuild.BuildWebGL` sıkıştırmayı zaten derleme anında kapatır.
 
 - WebGL derlemesi sıkıştırmasız üretilir (`CiBuild.BuildWebGL`); GitHub Pages Brotli/Gzip başlıklarını vermediği için
   zorunlu. İndirme boyutu bu yüzden büyüktür (≈ 30–60 MB); telefon tarayıcısında ilk açılış yavaş olabilir.

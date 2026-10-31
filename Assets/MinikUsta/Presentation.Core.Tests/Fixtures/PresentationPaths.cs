@@ -49,6 +49,16 @@ namespace MinikUsta.Presentation.Tests.Fixtures
             }
         }
 
+        /// <summary>`Assets/MinikUsta/Resources`: what the Unity build reads (levels, config, i18n; tools/sync-from-web.sh).</summary>
+        public static string ResourcesDir => Path.Combine(RepoRoot, "Assets", "MinikUsta", "Resources");
+
+        /// <summary>Text of a Resources file by its Resources path without extension ("levels/level_001"), or null.</summary>
+        public static string? ResourceText(string name)
+        {
+            string path = Path.Combine(ResourcesDir, name.Replace('/', Path.DirectorySeparatorChar) + ".json");
+            return File.Exists(path) ? File.ReadAllText(path) : null;
+        }
+
         /// <summary>The core's golden replays (`level_NNN.hand.json`, `level_NNN.solver.json`), copied from the web repo.</summary>
         public static string CoreGoldenDir => Path.Combine(RepoRoot, "Assets", "MinikUsta", "Core.Tests", "Golden");
 

@@ -1,0 +1,56 @@
+{
+  "schemaVersion": 1,
+  "id": 1,
+  "chapter": 1,
+  "name": { "tr": "Ağaç Basamakları", "en": "Tree Steps" },
+  "difficulty": "easy",
+  "moves": 11,
+  "goals": [{ "type": "build" }],
+  "gravity": { "build": "normal", "yard": false },
+  "wall": { "height": 4, "gaps": [] },
+  "site": { "cols": 2, "rows": 5 },
+  "build": {
+    "mode": "segments",
+    "segments": [{ "name": { "tr": "Basamaklar", "en": "Steps" }, "rows": ["WW", "YY", "WW", "YW", "YW"] }]
+  },
+  "yard": {
+    "cols": 4,
+    "rows": 4,
+    "batches": [
+      {
+        "forSegment": 0,
+        "pieces": [
+          { "shape": "D2_0", "color": "Y", "x": 0, "y": 2 },
+          { "shape": "D2_0", "color": "W", "x": 1, "y": 2 },
+          { "shape": "D2_90", "color": "W", "x": 0, "y": 1 },
+          { "shape": "D2_90", "color": "Y", "x": 2, "y": 1 },
+          { "shape": "D2_90", "color": "W", "x": 0, "y": 0 }
+        ]
+      }
+    ]
+  },
+  "obstacles": [],
+  "tutorial": [
+    {
+      "step": 1,
+      "highlight": ["piece:0", "crane"],
+      "hand": {
+        "kind": "drag",
+        "path": [
+          [0, 3],
+          [0, 5],
+          [4, 5]
+        ]
+      },
+      "textKey": "tut.m.lift",
+      "done": { "event": "placementCorrect", "count": 1 }
+    },
+    {
+      "step": 2,
+      "highlight": ["goals"],
+      "textKey": "tut.m.useall",
+      "done": { "event": "placementCorrect", "count": 1 }
+    }
+  ],
+  "targets": { "minShifts": [0, 0], "firstNeedDepth": [0, 0], "deadRate": [0, 0] }
+}

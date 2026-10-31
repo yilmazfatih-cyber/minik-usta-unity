@@ -94,6 +94,25 @@ namespace MinikUsta.Presentation.Layout
         /// <summary>layout.bottom.groupTopFromBottomPx — top of the bottom group = H − 320.</summary>
         public double GroupTopFromBottomPx = 320;
 
+        // level windows (UX §0.1, §0.2; layout.popup): anchored to the bottom, options stacked bottom-up
+        /// <summary>layout.popup.panelBottomPx — panel bottom edge y = H − 296.</summary>
+        public double PopupPanelBottomPx = 296;
+        /// <summary>layout.popup.optionW / optionH / optionGap / optionsBottomInsetPx.</summary>
+        public double PopupOptionW = 920;
+        public double PopupOptionH = 152;
+        public double PopupOptionGap = 24;
+        public double PopupOptionsBottomInsetPx = 64;
+        /// <summary>Faz 3 Q1 placeholder: panel = option width + 2 × 40, title band 200 px, body band 140 px.</summary>
+        public double PopupSideInsetPx = 40;
+        public double PopupTitleH = 200;
+        public double PopupBodyH = 140;
+
+        // HUD v3 moves plate (kit.v3.screen.hud)
+        /// <summary>kit.v3.screen.hud.movesBandH — the dark label band on top of the moves plate.</summary>
+        public double MovesBandH = 52;
+        /// <summary>kit.v3.screen.hud.movesFontPx.</summary>
+        public double MovesFontPx = 96;
+
         // touch (UX §0.1, §0.3)
         /// <summary>touch.minTargetPx — every tap target ≥ 128 px.</summary>
         public double MinTargetPx = 128;

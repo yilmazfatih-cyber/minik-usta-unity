@@ -1,0 +1,29 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <!-- Compiles the thin Unity layer (Assets/MinikUsta/Unity, asmdef MinikUsta.Unity) against the compile-check stubs of
+       dotnet/UnityStubs (Unity 6000.0 signatures, empty bodies) — typo and signature check in the cloud, where no Unity
+       Editor exists (D-093). It proves the layer agrees with the stubs, not with Unity: the real compile happens in
+       GameCI (.github/workflows/unity-webgl.yml). netstandard2.1 + C# 9 = Unity's compiler. -->
+  <PropertyGroup>
+    <TargetFramework>netstandard2.1</TargetFramework>
+    <LangVersion>9.0</LangVersion>
+    <Nullable>enable</Nullable>
+    <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+    <WarningLevel>4</WarningLevel>
+    <EnableDefaultCompileItems>false</EnableDefaultCompileItems>
+    <AssemblyName>MinikUsta.Unity</AssemblyName>
+    <RootNamespace>MinikUsta.Unity</RootNamespace>
+    <ImplicitUsings>disable</ImplicitUsings>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Compile Include="../../Assets/MinikUsta/Unity/**/*.cs" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="../MinikUsta.Core/MinikUsta.Core.csproj" />
+    <ProjectReference Include="../MinikUsta.Presentation.Core/MinikUsta.Presentation.Core.csproj" />
+    <ProjectReference Include="../UnityStubs/UnityStubs.csproj" />
+  </ItemGroup>
+
+</Project>

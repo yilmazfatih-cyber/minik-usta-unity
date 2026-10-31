@@ -11,6 +11,10 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MinikUsta.Presentation.Core
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MinikUsta.Presentation.Core.Tests", "MinikUsta.Presentation.Core.Tests\MinikUsta.Presentation.Core.Tests.csproj", "{70231355-85E6-4403-85E8-2BF0A3B39B40}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "UnityStubs", "UnityStubs\UnityStubs.csproj", "{6AEB323C-761D-477A-B44F-2EB83F07A2DD}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MinikUsta.Unity", "MinikUsta.Unity\MinikUsta.Unity.csproj", "{21425BD4-A67D-4A59-8D6D-39A7D7CCB05F}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -36,5 +40,13 @@ Global
 		{70231355-85E6-4403-85E8-2BF0A3B39B40}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{70231355-85E6-4403-85E8-2BF0A3B39B40}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{70231355-85E6-4403-85E8-2BF0A3B39B40}.Release|Any CPU.Build.0 = Release|Any CPU
+		{6AEB323C-761D-477A-B44F-2EB83F07A2DD}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{6AEB323C-761D-477A-B44F-2EB83F07A2DD}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{6AEB323C-761D-477A-B44F-2EB83F07A2DD}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{6AEB323C-761D-477A-B44F-2EB83F07A2DD}.Release|Any CPU.Build.0 = Release|Any CPU
+		{21425BD4-A67D-4A59-8D6D-39A7D7CCB05F}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{21425BD4-A67D-4A59-8D6D-39A7D7CCB05F}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{21425BD4-A67D-4A59-8D6D-39A7D7CCB05F}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{21425BD4-A67D-4A59-8D6D-39A7D7CCB05F}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 EndGlobal

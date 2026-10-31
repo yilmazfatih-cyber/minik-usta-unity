@@ -1,0 +1,459 @@
+{
+  "ads": {
+    "none": "No ad right now",
+    "tomorrow": "Back tomorrow"
+  },
+  "age": {
+    "check": "Could you check the year?",
+    "title": "Your birth year"
+  },
+  "app": {
+    "title": "Lift & Land",
+    "version": "Version {version}"
+  },
+  "booster": {
+    "brush": {
+      "noTarget": "No matching pair to swap."
+    },
+    "crane": {
+      "noTarget": "No block to move right now."
+    },
+    "hammer": {
+      "noTarget": "Nothing to smash here."
+    },
+    "hint": {
+      "brush": "Tap two blocks to swap.",
+      "crane": "Tap a block to move.",
+      "hammer": "Tap what you want to smash.",
+      "trowel": "Tap the block to place."
+    },
+    "noShutter": "No shutters in this level",
+    "noUndo": "Nothing to undo",
+    "trowel": {
+      "noTarget": "No block fits right now."
+    }
+  },
+  "bridge": {
+    "bot_tap": "{name} · computer-controlled apprentice",
+    "bots_info": "Your rivals are computer-controlled {town} apprentices.",
+    "bots_label": "Your rivals: {town} apprentices",
+    "dailyLimit": "That's all the bridges for today. Next bridge: {time}",
+    "extra": {
+      "got": "Bonus received: {extras}"
+    },
+    "fell": "You fell off, but the ring buoy saved you!",
+    "finished": "You made it across! Your share is final when the bridge closes (now {coin}{share}).",
+    "payout": "The bridge has closed. Your share: {coin}{share}",
+    "play": "Play · Level {n}",
+    "remaining": "Still on the bridge: {n}/{max}",
+    "rule": "Win {n} in a row and share the prize!",
+    "rule_card": {
+      "continue": "You can continue with +{n} moves after a loss.",
+      "daily": "You can join up to {n} bridges a day.",
+      "extra": "Bonus for crossing: {extras}",
+      "join": "Join",
+      "later": "Not now",
+      "lose": "If you lose, you're out of this round.",
+      "pool": "Prize: {coin}{pool}, split evenly by everyone who crosses. Time: {time}.",
+      "title": "Bridge rules",
+      "win": "Win {n} levels in a row."
+    },
+    "timeup": "Time's up. See you on the next bridge.",
+    "title": "Wobbly Bridge"
+  },
+  "build": {
+    "done": "Build complete!"
+  },
+  "chest": {
+    "contains": "Inside:",
+    "open": "Open",
+    "preview": "Opens in {n} levels"
+  },
+  "common": {
+    "cancel": "Cancel",
+    "coins": "{coin}{n}",
+    "comingSoon": "Coming soon",
+    "continue": "Continue",
+    "count": "{n}/{max}",
+    "home": "Home",
+    "minutes": "{n} min",
+    "notEnoughCoins": "Not enough coins",
+    "off": "Off",
+    "ok": "OK",
+    "on": "On",
+    "plus": "+{n}",
+    "retry": "Try again",
+    "skip": "Skip",
+    "times": "×{n}",
+    "unlockAt": "Unlocks at level {n}"
+  },
+  "daily": {
+    "claim": "Collect",
+    "double": "Ad · coins ×2",
+    "noLoss": "Miss a day and you keep your progress.",
+    "title": "Daily gift"
+  },
+  "difficulty": {
+    "easy": "Easy",
+    "hard": "Hard",
+    "normal": "Normal",
+    "superhard": "Super Hard"
+  },
+  "error": {
+    "boot": "Something got stuck. Shall we try again?",
+    "level": "Something got stuck. No life is lost.",
+    "restart": "Restart the level"
+  },
+  "exit": {
+    "bridge": "You'll fall off the bridge.",
+    "cost": "Leaving costs 1 life.",
+    "free": "No moves made yet, so no life is lost.",
+    "leave": "Leave",
+    "refund": "Your pre-game boosters come back to you.",
+    "stay": "Stay",
+    "streak": "Your win streak resets.",
+    "title": "Leave the level?"
+  },
+  "home": {
+    "empty": "New buildings on the way",
+    "moreSoon": "New levels on the way",
+    "play": "Level {n}"
+  },
+  "hud": {
+    "blocks": "blocks",
+    "livesFull": "Full",
+    "moves": "Moves",
+    "streak": "Builder Streak"
+  },
+  "league": {
+    "bonus": {
+      "all": "Points bonus: every win ×{n}",
+      "fair": "Apprentices get the bonus too.",
+      "levels": {
+        "all": "every level",
+        "some": "{list} levels"
+      },
+      "now": "Active now",
+      "starts": "Starts in {time}",
+      "weekend": {
+        "add": "Weekend bonus: +{n} points on {levels}",
+        "factor": "Weekend bonus: ×{n} points on {levels}"
+      }
+    },
+    "bots_info": "The other {n} in your league are computer-controlled apprentices.",
+    "bots_label": "Your rivals: {town} apprentices",
+    "demote": "Relegation line",
+    "header_lines": {
+      "both": "Top {up} promote, bottom {down} drop",
+      "bronze": "Top {up} promote",
+      "diamond": "Bottom {down} drop"
+    },
+    "points_line": "Points: Easy {easy} · Normal {normal} · Hard {hard} · Super Hard {superhard}",
+    "promote": "Promotion line",
+    "result": {
+      "down": "You moved down. New week, new start!",
+      "stay": "You held your league.",
+      "up": "You moved up a league!"
+    },
+    "rule_card": {
+      "lines": {
+        "both": "When the week ends, the top {up} move up and the bottom {down} move down.",
+        "bronze": "When the week ends, the top {up} move up. No one moves down here.",
+        "diamond": "When the week ends, the bottom {down} move down a league."
+      },
+      "points": "Every level you win scores: Easy {easy} · Normal {normal} · Hard {hard} · Super Hard {superhard}."
+    },
+    "title": "Builder League"
+  },
+  "levelStart": {
+    "boosters": "Choose your boosters",
+    "play": "Play"
+  },
+  "lives": {
+    "ad": "Watch an ad · +1 life (today {n}/{max})",
+    "full": "Full lives ({max})",
+    "title": "Refill lives",
+    "wait": "Wait"
+  },
+  "loading": {
+    "text": "Loading"
+  },
+  "lose": {
+    "ad": "Watch an ad · +{n} moves",
+    "adToday": "today {n}/{max}",
+    "blocksLeft": "Blocks left: {n}",
+    "bridgeCap": "This round's coin limit doesn't cover this offer.",
+    "buygold": "Get coins · {coin}{n} short",
+    "decline": "No thanks",
+    "life": "You lost a life.",
+    "offer": {
+      "count": "Offer {n}/{max}",
+      "gift": "+{n} moves · a gift from Grandpa",
+      "last": "Offer {n}/{max} · last offer",
+      "moves": "+{n} moves"
+    },
+    "retry": "Try again",
+    "streak": "Your win streak was reset.",
+    "title": "Out of moves!"
+  },
+  "master": {
+    "button": "Master Mode",
+    "card": {
+      "body": "Levels you know, fewer moves.",
+      "chest": "A Master Chest every {n} wins.",
+      "later": "Not now",
+      "start": "Start",
+      "title": "Master Mode"
+    }
+  },
+  "nav": {
+    "album": "Album",
+    "home": "Home",
+    "league": "League",
+    "shop": "Shop",
+    "team": "Team"
+  },
+  "npc": {
+    "apprentice": {
+      "badge": "apprentice",
+      "format": "Apprentice {name}"
+    }
+  },
+  "obs": {
+    "gh": {
+      "desc": "Heavy gravity! Over the site, blocks slip and drop fast."
+    },
+    "gl": {
+      "desc": "Low gravity: tap the board while it falls to nudge it."
+    },
+    "s1": {
+      "desc": "Finish this floor; the site slides and the truck delivers."
+    },
+    "s2": {
+      "desc": "Keep hatched cells empty. Fill above them via a gap or bridge."
+    },
+    "s3": {
+      "desc": "Glass breaks! Lower the block before you let go."
+    },
+    "s4": {
+      "desc": "This block is in the wrong spot. Lift it and place it later."
+    },
+    "s5": {
+      "desc": "The platform turns every {n} moves. Build on the front face."
+    },
+    "s6": {
+      "desc": "The scaffold moves one row each move. Mind the gap!"
+    },
+    "s7m": {
+      "desc": "This floor mirrors the other. Colors swap sides!"
+    },
+    "s7r": {
+      "desc": "Question marks repeat the pattern. Look at the rows below!"
+    },
+    "s8": {
+      "desc": "Balloon blocks float up and hang from the ceiling."
+    },
+    "s9": {
+      "desc": "The site is wider! Wide blocks fit now."
+    },
+    "w1": {
+      "desc": "Gaps are a shortcut for bottom blocks."
+    },
+    "w2": {
+      "desc": "The wall is tall! Lift the block to the very top."
+    },
+    "w3": {
+      "desc": "Only one-row-tall blocks fit through a narrow gap."
+    },
+    "w4": {
+      "desc": "The shutter opens and closes every {n} moves. Watch the counter!"
+    },
+    "w5": {
+      "desc": "The sliding gate shifts one row after every move."
+    },
+    "w6": {
+      "desc": "A block that enters the paint gate takes its color."
+    },
+    "w7": {
+      "desc": "Move the block covering the key to unlock the gate."
+    },
+    "w8": {
+      "desc": "Wind pushes thin blocks one column. Check the shadow!"
+    },
+    "y1": {
+      "desc": "Move a block next to a crate to break it."
+    },
+    "y2": {
+      "desc": "Move a block beside the bag to tear it open."
+    },
+    "y3": {
+      "desc": "Move a neighbor to free the chained block."
+    },
+    "y4": {
+      "desc": "Wet concrete must dry; use it when the counter hits zero."
+    },
+    "y5": {
+      "desc": "Cargo isn't part of the plan. Slide it aside or smash it."
+    },
+    "y6": {
+      "desc": "Here blocks fall. Take one and the ones above drop."
+    },
+    "y7": {
+      "desc": "Golden screws hide under blocks. Uncover them to collect!"
+    },
+    "y8": {
+      "desc": "A mortar block sticks if it lands wrong. Drop with care!"
+    }
+  },
+  "pause": {
+    "exit": "Leave level",
+    "title": "Paused"
+  },
+  "piggy": {
+    "break": "Break",
+    "full": "Full",
+    "status": "Piggy bank: {coin}{n} / {max}",
+    "threshold": "Can be broken at {coin}{n}"
+  },
+  "react": {
+    "kepce": {
+      "dig": "Hav!"
+    },
+    "tuna": {
+      "bad": "Hımm, olmadı.",
+      "combo": "Usta işi!",
+      "last": "Az kaldı!",
+      "segment": "Bir kat daha!"
+    }
+  },
+  "replay": {
+    "button": "Replay · Level {n}",
+    "card": {
+      "body": "Levels you know. Bridge and League go on.",
+      "title": "Replay round"
+    }
+  },
+  "resume": {
+    "strip": "Level {n} · your moves are saved",
+    "title": "Pick up where you left off",
+    "void": {
+      "body": "Level {n} will start from the beginning. Everything you spent is back.",
+      "bridge": "Your place on the bridge is safe.",
+      "title": "The game was updated"
+    }
+  },
+  "reward": {
+    "tap": "Tap to collect",
+    "ready": "Your reward is ready"
+  },
+  "settings": {
+    "feedback": "Feedback",
+    "feedbackCopied": "Copied. Paste it into a message.",
+    "feedbackManual": "Select the text and copy it.",
+    "haptics": "Vibration",
+    "music": "Music",
+    "sound": "Sound",
+    "timePressure": "Reduce time pressure",
+    "title": "Settings"
+  },
+  "shop": {
+    "covers": "Covers the {coin}{n} you need",
+    "testBuy": "This is a test purchase. You won't be charged.",
+    "value": "+{n}%"
+  },
+  "story": {
+    "prologue": {
+      "p1": {
+        "tuna": "What's this old sign?"
+      },
+      "p2": {
+        "dede": "Our old company! Closed for years."
+      },
+      "p3": {
+        "kepce": "Woof!",
+        "tuna": "{company} is open again!"
+      }
+    },
+    "sign": "{company}"
+  },
+  "town": {
+    "ch1": {
+      "title": "Tree House"
+    },
+    "ch2": {
+      "title": "Neighborhood Bakery"
+    },
+    "ch3": {
+      "title": "School Library"
+    },
+    "ch4": {
+      "title": "Lighthouse and Bridge"
+    },
+    "ch5": {
+      "title": "Festival Castle"
+    },
+    "name": "Hue Hill"
+  },
+  "truck": {
+    "queue": "On the truck: {n}"
+  },
+  "tut": {
+    "ctx": {
+      "blocked": "It can't move yet. Look around.",
+      "bounce": {
+        "color": "Wrong color, so it bounced back.",
+        "offplan": "Nothing gets built outside the plan.",
+        "window": "That's a window. It stays empty."
+      },
+      "goldtrowel": "Trowel: tap a block to place.",
+      "lastmoves": "Few moves left. Think it through.",
+      "queue": "Make room for the truck.",
+      "reshuffle": "Stuck! The truck reshuffles the yard.",
+      "resume": "Just as you left it, kiddo.",
+      "streak": "{n} right placements: Golden Trowel!",
+      "support": "Fill the gap below first, kiddo.",
+      "teardown": "Dead end, so we undid that.",
+      "tootall": "Too tall to pass over.",
+      "truckhelp": {
+        "free": "Truck helped. Blocks are free!"
+      }
+    },
+    "m": {
+      "carry": "This one's for the next floor.",
+      "carryNow": "Now it's this one's turn!",
+      "cranebooster": "The Crane moves buried blocks too.",
+      "dig": "Move the top one aside.",
+      "drop": "Let go and it drops.",
+      "free": "Now carry the one below!",
+      "gap": "Slide the bottom one through!",
+      "hammer": "Hammer smashes cargo, never blocks.",
+      "heavy": "Heavy cargo stays out. Slide it.",
+      "highwall": "High wall: lift it higher!",
+      "lift": "Lift the block over the wall!",
+      "match": "Pick the one matching the plan.",
+      "narrow": "Narrow gaps take one row.",
+      "park": "Park the top one up high.",
+      "pattern": "The plan fills bottom up.",
+      "rail": "Lift the next one over it.",
+      "segments": "Finish a floor, the site moves.",
+      "shadow": "{ok} on the shadow: right spot.",
+      "truck": "The truck brought new blocks!",
+      "useall": "Every block goes into the plan."
+    },
+    "meta": {
+      "bridge": "Win {n} straight, cross the bridge!",
+      "chest": "{n} levels done! Open the chest.",
+      "daily": "Drop by daily for a gift.",
+      "league": "Top builders move up each week.",
+      "piggy": "Your brick bank fills with wins.",
+      "shop": "The shop has coins and bundles.",
+      "task": "Add a floor with a star."
+    }
+  },
+  "win": {
+    "bonus": "Bonus Build · moves left: {n}",
+    "clear": "Every block in place!",
+    "title": "You won!",
+    "trowel": "Golden Trowel ×{n}"
+  }
+}

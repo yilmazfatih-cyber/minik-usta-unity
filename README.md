@@ -33,6 +33,14 @@ Faz 1 raporu: web reposunda `docs/UNITY_PORT_FAZ1.md`. TS → C# dosya eşlemesi
 │  │  ├─ Presentation.Core/        motor-bağımsız sunum (Faz 3 Q0; asmdef noEngineReferences): Tween/ (Easing, Tween, Sequence, TweenClock),
 │  │  │                            Feel/ (FeelSettings, FallMotion, StuckPulse), Layout/ (LayoutSettings, BoardLayout, ScreenFit, HitTest),
 │  │  │                            Input/ (DragMath, DragMapper), Animation/ (AnimationStep, AnimationPlanner, AnimationQueue)
+│  │  │                            Faz 3 Q1: Game/ (LevelPlayer, StepRunner, PieceViews, BoardScene, BoardPose, ShadowLook (K-18),
+│  │  │                            HudLayout, LevelCatalog, DebugSolver, ILevelView/IPieceVisual), Art/ (Atlas: prosedürel doku,
+│  │  │                            Symbols, Palette, Rgba), Text/ (Strings: tr.json/en.json, TrText.Upper)
+│  │  ├─ Unity/                    ince Unity katmanı (asmdef MinikUsta.Unity → Core, Presentation.Core, UnityEngine.UI): GameBootstrap
+│  │  │                            ([RuntimeInitializeOnLoadMethod]), GameRunner (kare döngüsü), UnityLevelView (ILevelView), UnityPieceVisual,
+│  │  │                            UnityBoardView/UnityShadowView, UnityHud (uGUI + LegacyRuntime), PointerInput (eski Input), ProceduralSprites
+│  │  ├─ Resources/                levels/ (oyunun okuduğu bölümler), config/economy.json, i18n/{tr,en}.json, solutions/ (dev: çözümü oynat)
+│  │  ├─ Scenes/Level.unity        yalnız ortografik Main Camera (elle yazılmış Unity 6 YAML; .meta GUID sabit)
 │  │  ├─ Presentation.Core.Tests/  NUnit 3 testleri (Editor; Golden/tokens.json = web tokens kopyası)
 │  │  └─ Core.Tests/               NUnit 3 testleri (Editor platformu; Unity EditMode ile aynı dosyalar)
 │  │     ├─ Fixtures/              Builders (tests/fixtures/builders.ts), Boards (ortak tahta yardımcıları, Drop/Play), Cover (cover.ts), ObstacleFixtures, J (JSON literal), TestPaths, RuleCoverage (P4 kapsam kapısı)
@@ -47,7 +55,10 @@ Faz 1 raporu: web reposunda `docs/UNITY_PORT_FAZ1.md`. TS → C# dosya eşlemesi
 │  ├─ MinikUsta.Core/              Assets/MinikUsta/Core/**/*.cs → netstandard2.1, LangVersion 9, Nullable, TreatWarningsAsErrors
 │  ├─ MinikUsta.Core.Tests/        Assets/MinikUsta/Core.Tests/**/*.cs → net8.0, NUnit 3.14 + NUnit3TestAdapter + Microsoft.NET.Test.Sdk
 │  ├─ MinikUsta.Presentation.Core/ Assets/MinikUsta/Presentation.Core/**/*.cs → netstandard2.1, LangVersion 9 (Core'a başvurur)
-│  └─ MinikUsta.Presentation.Core.Tests/  Assets/MinikUsta/Presentation.Core.Tests/**/*.cs → net8.0, NUnit 3.14
+│  ├─ MinikUsta.Presentation.Core.Tests/  Assets/MinikUsta/Presentation.Core.Tests/**/*.cs → net8.0, NUnit 3.14
+│  ├─ UnityStubs/                YALNIZ DERLEME DENETİMİ: Unity katmanının kullandığı UnityEngine / UI / EventSystems / Events /
+│  │                             SceneManagement üyelerinin Unity 6000.0 imzalı boş gövdeli kopyaları (Unity'nin kendisi değil)
+│  └─ MinikUsta.Unity/           Assets/MinikUsta/Unity/**/*.cs → UnityStubs'a karşı derlenir (yazım + imza denetimi; D-093)
 ├─ tools/
 │  ├─ sync-from-web.sh             levels, golden, K-45 fikstürleri, economy.json ve tokens.json dosyalarını web reposundan kopyalar
 │  ├─ gen-p0-vectors.ts            TS çekirdeğinden bit-eşitlik vektörleri üretir (node 22, ek paket yok)
@@ -59,16 +70,18 @@ Faz 1 raporu: web reposunda `docs/UNITY_PORT_FAZ1.md`. TS → C# dosya eşlemesi
 └─ docs/PORT_MAP.md                TS dosyası → C# dosyası eşleme tablosu (her paket günceller)
 ```
 
-`ProjectSettings/ProjectVersion.txt` (6000.0.85f1) ve `Packages/manifest.json` bulut derlemesi için eklendi (`docs/CI.md`);
-kalan ayarları Unity ilk açılışta üretir. `.gitignore` Unity'nin ürettiği `Library/`, `Temp/`, `Logs/` vb. klasörleri dışlar.
+`ProjectSettings/ProjectVersion.txt` (6000.0.85f1), `Packages/manifest.json`, `ProjectSettings/ProjectSettings.asset`
+(yalnız gerekli alanlar) ve `ProjectSettings/EditorBuildSettings.asset` (Level sahnesi) bulut derlemesi için eklendi
+(`docs/CI.md`); kalan ayarları Unity ilk açılışta üretir. `.gitignore` Unity'nin ürettiği `Library/`, `Temp/`, `Logs/` vb. klasörleri dışlar.
 
 ## Komutlar
 
 | Komut | Ne yapar |
 | ----- | -------- |
 | `cd dotnet && dotnet build -warnaserror` | Çekirdek + testleri derler; uyarı = hata |
+| `cd dotnet && MINIK_PREVIEW_DIR=../artifacts/preview dotnet test --filter PreviewTests` | Unity yer tutucu ekranının yazılımsal önizlemesi (aynı atlas, renk, sıra, 9-dilim; metin yok) → 390×844 ve 360×800 PNG (`artifacts/`, git dışı). Unity ekran görüntüsü DEĞİL |
 | `cd dotnet && dotnet test` | Tüm NUnit testlerini koşturur (testler repo kökünü `Assets/MinikUsta/Core/MinikUsta.Core.asmdef` ile bulur ve bölüm / altın / fikstür JSON'larını oradan okur) |
-| `tools/sync-from-web.sh [/yol/minik-usta]` | Bölüm, altın, fikstür, economy.json ve tokens.json dosyalarını web reposundan yeniler (varsayılan `../minik-usta`) |
+| `tools/sync-from-web.sh [/yol/minik-usta]` | Bölüm, altın, fikstür, economy.json ve tokens.json dosyalarını web reposundan yeniler (varsayılan `../minik-usta`); Faz 3 Q1'den beri bölümleri, economy.json'u, `src/i18n/{tr,en}.json`'u ve kanonik çözüm günlüklerini `Assets/MinikUsta/Resources/` altına da kopyalar (oyun `Resources.Load<TextAsset>` ile okur; StreamingAssets kopyası çekirdek testleri içindir) |
 | `node tools/gen-p0-vectors.ts [/yol/minik-usta]` | `Core.Tests/Golden/p0_vectors.json` dosyasını TS çekirdeğinden yeniden üretir |
 | `node tools/gen-p1-vectors.ts [/yol/minik-usta] [--verbose]` | `Core.Tests/Golden/p1_vectors.json` dosyasını (P1 modülleri: R, K-07 sınıfları, düşüşler, kararlar, K-08 takip taraması, K-17 dönüş hedefleri, settleYard) yeniden üretir; `--verbose` her satırı `p1_vectors.verbose.json` dosyasına yazar (git dışı, uyuşmazlık teşhisi için) |
 | `node tools/gen-p3-vectors.ts [/yol/minik-usta] [--verbose]` | `Core.Tests/Golden/p3_vectors.json` dosyasını yeniden üretir: TS `GameSession.apply` ile 170 tohumlu deneme (sürükleme, çekiç, vinç, boya fırçası, Altın Mala, eski mala, geri al, +5 jeton/reklam, ret, çıkış) oynanır; girdiler saklanır, C# aynı girdileri oynatıp her paketin sonucunu, `eventLogHash`'ini, durum karmasını, oturum alanlarını ve `TurnSummary`'yi karşılaştırır; `--verbose` her satırı ve her paketin kanonik olay JSON'unu `p3_vectors.verbose.json` dosyasına yazar (git dışı). Uyuşmayan dizinin C# satırları `Golden/p3_csharp.<dizi>.txt` dosyasına yazılır (git dışı) |

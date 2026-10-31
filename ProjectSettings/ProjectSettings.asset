@@ -1,0 +1,39 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!129 &1
+PlayerSettings:
+  m_ObjectHideFlags: 0
+  serializedVersion: 28
+  productGUID: 6a3e79ec318c4363bb03eef2ea449db9
+  AndroidProfiler: 0
+  AndroidFilterTouchesWhenObscured: 0
+  AndroidEnableSustainedPerformanceMode: 0
+  defaultScreenOrientation: 0
+  targetDevice: 2
+  useOnDemandResources: 0
+  accelerometerFrequency: 60
+  companyName: Tuna & Co.
+  productName: Minik Usta
+  defaultCursor: {fileID: 0}
+  cursorHotspot: {x: 0, y: 0}
+  m_SplashScreenBackgroundColor: {r: 0.12156863, g: 0.09411765, b: 0.3137255, a: 1}
+  m_ShowUnitySplashScreen: 1
+  defaultScreenWidth: 1080
+  defaultScreenHeight: 1920
+  defaultScreenWidthWeb: 540
+  defaultScreenHeightWeb: 960
+  m_StereoRenderingPath: 0
+  m_ActiveColorSpace: 0
+  allowedAutorotateToPortrait: 1
+  allowedAutorotateToPortraitUpsideDown: 0
+  allowedAutorotateToLandscapeRight: 0
+  allowedAutorotateToLandscapeLeft: 0
+  useOSAutorotation: 1
+  defaultIsNativeResolution: 1
+  runInBackground: 1
+  bundleVersion: 0.3.0
+  webGLDataCaching: 1
+  webGLTemplate: APPLICATION:Default
+  webGLCompressionFormat: 2
+  webGLDecompressionFallback: 0
+  activeInputHandler: 0

@@ -1,0 +1,19 @@
+{
+  "level": 6,
+  "levelHash": "a1f90aa8a5023411",
+  "rulesVersion": 2,
+  "solverVersion": 2,
+  "min": 7,
+  "yao": { "overWall": 5, "rail": 0 },
+  "log": [
+    { "kind": "start", "preBoosters": [], "streakTier": 0 },
+    { "kind": "drag", "pieceId": 2, "to": { "ix": 2, "iy": 3, "mode": 0 } },
+    { "kind": "drag", "pieceId": 1, "to": { "ix": 2, "iy": 2, "mode": 0 } },
+    { "kind": "drag", "pieceId": 0, "to": { "ix": 4, "iy": 0, "mode": 0 } },
+    { "kind": "drag", "pieceId": 1, "to": { "ix": 4, "iy": 2, "mode": 0 } },
+    { "kind": "drag", "pieceId": 2, "to": { "ix": 4, "iy": 3, "mode": 0 } },
+    { "kind": "drag", "pieceId": 3, "to": { "ix": 4, "iy": 5, "mode": 0 } },
+    { "kind": "drag", "pieceId": 4, "to": { "ix": 4, "iy": 6, "mode": 0 } }
+  ],
+  "eventLogHash": "556b7802de81c74d"
+}

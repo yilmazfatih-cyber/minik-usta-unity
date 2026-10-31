@@ -154,6 +154,30 @@ Testler (`Assets/MinikUsta/Presentation.Core.Tests`, `dotnet/MinikUsta.Presentat
 `AnimationPlannerTests` (web `juice.test.ts` zamanlama testleri + 43 olay türü + JUICE kural 14 + saflık),
 `AnimationQueueTests` (web oynatma testleri + gerçek plan uçtan uca). Veri: `Golden/tokens.json` (`tools/sync-from-web.sh`).
 
+### Faz 3 Q1 — oynanabilir yer tutucu tahta (`Presentation.Core/Game`, `Art`, `Text` + `Assets/MinikUsta/Unity`)
+
+Motor-bağımsız oyun ekranı (Presentation.Core, NUnit ile test edilir) + ince Unity katmanı (yalnız GameObject, sprite, uGUI;
+bulutta `dotnet/UnityStubs` imza şimine karşı derlenir, gerçek derleme GameCI'da).
+
+| Web dosyası | C# dosyası | Durum | Not |
+| --- | --- | --- | --- |
+| `LevelScene.ts` (oturum, girdi akışı, pencere kararları) + `DragController` host | `Game/LevelPlayer.cs` | **Q1** | `Load/Start/Restart/Next`, `SetScreen`, `PointerDown/Move/Up` (tasarım px), `Tick(dtMs)`, `Commit`, `PausePressed`, `OnPanelAction`; R-12 basışta `Clock.Complete(BoardTag)` → `Queue.FastForward` → `Clock.Complete(BoardTag)`, kilitte `SpeedUp`; K-18 gölgesi her düğüm değişiminde `Gravity.ComputeFall`; `End` → `SyncAll` + K-28 kazanma / K-29 hamle bitti penceresi (+5 teklifi yok, yalnız "Tekrar dene"); K-34 kanca 5 takılma nabzı; `EndSnaps` (End'de görünümün durumdan ne kadar saptığı; testler 0,5 px altını ister) |
+| `EventPlayer.ts` `runCue` + `juice/handlers.ts` (P0 satırları) | `Game/StepRunner.cs` | **Q1** | `StepKind` → yerleşik tween: #8 yay ile eve, #9 sahaya iniş + y 0,94, #23 ray, #10 ivmeli düşüş (`FallMotion` eğrisi), #11 ezilme (Back.easeOut), #12 beyaz flaş, D-091 kalan blok çipine uçuş + çip pop, #13 kırmızı ton + 2 px × 3 titreme + 1,5 hücre yay (+ K-17 üstten düşüş), #88 kuyruğa küçülerek, #18 dilim (son dilimde yalnız 2 flaş; sonraki varsa panoramaya uçuş + yeni plan), #19 kamyon düşüşleri (60 ms arayla), #20 çipten çıkış, #44 avlu çağlayanı, #50/#51/#53 sayaç, #55 saha parlaması, #56 Bonus İnşaat geri sayımı, #107 Söküm, #61/#62/#63 güçlendirici görünümleri; engel olayları tahtayı yeniden kurar; karşılığı olmayanlar görsel üretmez, `End` durumu yeniden okur |
+| `PieceLayer.ts` + `pieceState.ts` (`statePose`) | `Game/PieceViews.cs`, `Game/BoardPose.cs` | **Q1** | Havuzlu `IPieceVisual`; dinlenme pozu (avlu; görünür dilimde saha, asansör ofseti dahil); hücre komşuluk maskesi |
+| `shadowLook.ts` | `Game/ShadowLook.cs` | **Q1** | Birebir port (`Of`, `CancelPreview`, `ShowsShadow`, `BadgeCell`) + `ShadowModel` (görünüm verisi, rozet merkezi) |
+| `BoardView.ts` (yer tutucu) | `Game/BoardScene.cs` | **Q1** | Statik tahta öğe listesi: zemin gradyanı, vinç bandı, avlu çerçevesi + zemin, ozalit paneli, plan hücreleri (renk / `?` / `.` tarama), asansör platformu, duvar şeridi (`Ascii.WallChar`: duvar / açık geçit / kapalı geçit) |
+| `theme/textures.ts` (prosedürel doku) | `Art/Atlas.cs`, `Art/Symbols.cs`, `Art/Palette.cs`, `Art/Rgba.cs` | **Q1** | Tek 1024² RGBA atlas, açılışta bir kez (≈ 85 ms .NET 8): 16 komşuluk maskeli blok hücresi, parlama, 8 renk sembolü (ART §3.1 sadeleştirilmiş), zemin, plan, tarama, `?`, gölge konturu, 9-dilim panel, rozetler, duraklat ve güçlendirici ikonları; renkler tokens.json'dan (`PaletteTests`) |
+| `src/i18n` + `upper()` | `Text/Strings.cs` | **Q1** | `Resources/i18n/tr.json` düzleştirilir; `{n}` doldurma; `TrText.Upper` kültürsüz i → İ |
+| — | `Game/HudLayout.cs`, `Game/LevelCatalog.cs`, `Game/DebugSolver.cs`, `Game/Views.cs` | **Q1** | HUD v3 ve pencere dikdörtgenleri (layout.popup: alttan çapalı); bölüm 1–10 döngüsü + `Compiler.LoadLevel` (geçersiz bölüm oynanmaz, D-005); dev: kanonik çözümün sıradaki hamlesi, yoldan çıkınca açgözlü doğru yerleşim; motor sınırı arayüzleri |
+| Phaser sahnesi / kamera / girdi | `Assets/MinikUsta/Unity/*` | **Q1** | `GameBootstrap` (`[RuntimeInitializeOnLoadMethod(AfterSceneLoad)]`, yalnız `Level` sahnesinde), `GameRunner` (kare döngüsü, ekran değişimi, dev tuşları N/R/A/S), `UnityLevelView`, `UnityPieceVisual` (hücre başına gövde + parlama + sembol + kaldırma gölgesi), `UnityFlyer`, `UnityBoardView`, `UnityShadowView`, `UnityHud` (uGUI, CanvasScaler 1080 × 1920 Shrink = FIT, LegacyRuntime fontu, EventSystem + StandaloneInputModule), `PointerInput` (eski Input: dokunma + fare), `ProceduralSprites`, `UnityConvert` |
+
+Testler (Q1): `LevelPlayerTests` (10 bölümün altın çözümü parmakla oynanır → TS `eventLogHash`, kazanma penceresi, End'de
+0,5 px altı sapma; vinç alanından bırakmalar düşer ve kazanır; R-12 hızlı basış; K-18 gölge, zor bölümde nötr; K-09
+titreme; K-07 iptal; dokunma zıplaması; K-22/K-25 kilit ve 3× hız; K-29 yalnız "Tekrar dene"; 10 → 1 döngüsü; mola;
+geçersiz bölüm; K-34 kanca 5; K-49 her bölüm 4 ekran boyutunda sığar; belirlenimcilik; havuz), `DebugSolverTests`,
+`AtlasTests`, `PaletteTests`, `BoardSceneTests`, `ShadowLookTests` (web `shadowLook.test.ts` portu), `StringsTests`,
+`PreviewTests` (`Fixtures/Preview.cs`: Unity görünümünün yazılımsal kopyası; `MINIK_PREVIEW_DIR` ile PNG).
+
 ## Veri
 
 | Web | Unity | Araç |
@@ -168,6 +192,7 @@ Testler (`Assets/MinikUsta/Presentation.Core.Tests`, `dotnet/MinikUsta.Presentat
 | web `docs/GDD.md`, `docs/TECH_DESIGN.md` §12.4, `docs/OBSTACLES.md` (`tools/rule-coverage.ts` `ruleIds`) | `Assets/MinikUsta/Core.Tests/Golden/rule_ids.json` (181 kimlik, Faz 2R'ye kadar 76) | `node tools/gen-rule-ids.ts` |
 | TS çekirdeği (fuzz kehaneti) | `tools/diff/out/*.json` + `manifest.json` (~12 MB, git dışı) | `node tools/diff/ts-oracle.mjs [/yol/minik-usta] [--seeds N] [--moves M]` |
 | TS çekirdeği (inceleme vektörleri) | `Assets/MinikUsta/Core.Tests/Golden/review_json_vectors.json`, `review_follow_vectors.json`, `review_d3a_vectors.json` | `node tools/review/gen-json-vectors.ts`, `gen-follow-vectors.ts`, `gen-d3a-vectors.ts` (stdout → dosya; `docs/REVIEW_PHASE2.md`) |
+| `levels/*.json`, `config/economy.json`, `src/i18n/{tr,en}.json`, `tests/golden/level_*.solver.json` | `Assets/MinikUsta/Resources/{levels,config,i18n,solutions}/` (oyun `Resources.Load<TextAsset>` ile okur, D-096) | `tools/sync-from-web.sh` (Faz 3 Q1) |
 | `src/theme/tokens.json` (design-lead) | `Assets/MinikUsta/Presentation.Core.Tests/Golden/tokens.json` | `tools/sync-from-web.sh` (Faz 3 Q0; `FeelSettingsTests`) |
 | TS çekirdeği (P3 vektörleri) | `Assets/MinikUsta/Core.Tests/Golden/p3_vectors.json` (~360 KB, dizi başına bir satır) | `node tools/gen-p3-vectors.ts` (`--verbose`: `p3_vectors.verbose.json`, her satır + her paketin kanonik olay JSON'u, git dışı; uyuşmayan dizinin C# satırları `Golden/p3_csharp.<dizi>.txt`, git dışı) |
 

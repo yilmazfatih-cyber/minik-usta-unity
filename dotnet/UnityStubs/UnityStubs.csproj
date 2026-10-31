@@ -1,0 +1,25 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <!-- YALNIZ DERLEME DENETİMİ; UNITY'NİN KENDİSİ DEĞİL (compile-check only; NOT Unity itself).
+       Signature-only stand-ins for the UnityEngine / UnityEngine.UI / UnityEngine.EventSystems / UnityEngine.Events /
+       UnityEngine.SceneManagement members the thin Unity layer (Assets/MinikUsta/Unity) uses, written with Unity's real
+       signatures (Unity 6000.0 scripting API) so dotnet/MinikUsta.Unity catches typos and wrong signatures in the cloud,
+       where no Unity Editor exists (D-093). Bodies are empty / default; nothing here runs. Nullable disabled: Unity's
+       API is nullable-oblivious. Add a member here only with its exact Unity signature. -->
+  <PropertyGroup>
+    <TargetFramework>netstandard2.1</TargetFramework>
+    <LangVersion>9.0</LangVersion>
+    <Nullable>disable</Nullable>
+    <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+    <EnableDefaultCompileItems>false</EnableDefaultCompileItems>
+    <AssemblyName>UnityStubs</AssemblyName>
+    <RootNamespace>UnityEngine</RootNamespace>
+    <ImplicitUsings>disable</ImplicitUsings>
+    <NoWarn>$(NoWarn);CS0067</NoWarn>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Compile Include="*.cs" />
+  </ItemGroup>
+
+</Project>
