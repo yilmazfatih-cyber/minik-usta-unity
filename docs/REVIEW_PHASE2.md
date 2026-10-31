@@ -2,35 +2,39 @@
 
 Kaynak gerçek: web reposu `../minik-usta` (`b31c4e8`, yalnız okundu). İncelenen: `Assets/MinikUsta/Core/**` (`7404317`).
 Yöntem: `docs/PORT_MAP.md` eşlemesiyle TS ve C# dosyaları yan yana okundu. Her şüphe için önce node 22 ile TS çalışma
-zamanında beklenen değer üretildi, sonra C# testi yazıldı. Çekirdek koduna dokunulmadı; yalnız testler, üreticiler ve bu
-liste eklendi.
+zamanında beklenen değer üretildi, sonra C# testi yazıldı. Çekirdek koduna dokunulmadı (inceleme anında); yalnız testler, üreticiler ve bu
+liste eklendi. P6 bulguları kapattı (aşağıdaki "Kapanış (P6)" notları).
 
 Testler `Assets/MinikUsta/Core.Tests/ReviewPhase2Tests.cs` dosyasında. C#'ta kırmızı olan testler
-`[Ignore("REVIEW_PHASE2 R-xx …")]` ile işaretli: takım yeşil kalıyor ama bulgu çalıştırılabilir durumda duruyor. Düzelten
-kişi `Ignore` satırını kaldırır ve test değişmeden geçmelidir. Doğrulama komutu (Ignore satırları geçici olarak silinip):
+`[Ignore("REVIEW_PHASE2 R-xx …")]` ile işaretliydi: takım yeşil kalıyor ama bulgu çalıştırılabilir durumda duruyordu. Düzelten
+kişi `Ignore` satırını kaldırır ve test değişmeden geçer. İnceleme koşusunda (Ignore'lar geçici silinip) 16 kırmızı, 10 yeşil.
+
+**P6 durumu (bu paket):** R-01, R-02, R-07, R-12 düzeltildi ve ilgili `Ignore` satırları kaldırıldı (10 + 1 test yeşil);
+R-06 test düzeneğinde kapandı; T-01 web hatası olarak doğrulandı ve C# davranışı sabitlendi. Geriye `Ignore`'lu 5 test kaldı
+(R-03, R-04, R-09, R-10, R-11 — hepsi Öneri, P6 kapsamı dışı). Kalanları görmek için:
 `sed -i '/^        \[Ignore("REVIEW_PHASE2/d' Assets/MinikUsta/Core.Tests/ReviewPhase2Tests.cs && cd dotnet && dotnet test --filter ReviewPhase2Tests`
-→ 16 kırmızı, 10 yeşil (inceleme koşusu). Ardından `git checkout` ile Ignore satırlarını geri getirin.
+(5 kırmızı beklenir), ardından `git checkout` ile Ignore satırlarını geri getirin.
 
 Önem: **Engel** = davranış farkı, oyunda yanlış sonuç · **Önemli** = aynı sprintte kapanmalı · **Öneri** = birikim listesi.
 
 ## Özet
 
-| Kimlik | Önem | Yer | Konu | Test |
-| --- | --- | --- | --- | --- |
-| R-01 | Önemli | `Level/LevelData.cs` (`PlanRow`, `ShapeId`, `PieceRef`, `TutTextKey`, `Highlight`), `Level/Logic.cs`, `Obstacles/Registry.cs` | .NET `$` sondaki `\n`'den önce de eşleşiyor (JS'te yalnız girdinin sonunda) | `K45_a_trailing_newline_fails_the_schema_like_zod` (4 durum) |
-| R-02 | Önemli | aynı düzenli ifadeler + `Logic.cs` `int.Parse` (satır 1239–1247, 1415–1416, 1531) | .NET `\d` her Unicode rakamıyla eşleşiyor (JS'te `[0-9]`); doğrulayıcı `FormatException` fırlatıyor | `K45_non_ASCII_digits_fail_the_schema_without_throwing` (5 durum) |
-| R-03 | Öneri | `Level/LevelJson.cs` `IntAny` / `Int` | ±(2^53 − 1) dışındaki tamsayılarda zod 4 `too_big`/`too_small` verip sınır denetimine devam ediyor; C# `invalid_type` veriyor | `K45_unsafe_integers_report_too_big_like_zod_4` |
-| R-04 | Öneri | `Json/JsonWriter.cs` (`Canonical`, `Write`) | JS nesneleri dizi indeksi olan anahtarları ("0" … "4294967294") önce ve artan sırada dolaşıyor; C# tüm anahtarları UTF-16 sırasıyla diziyor | `K43_canonical_json_orders_array_index_keys_like_a_JS_object` |
-| R-05 | Öneri (koruma yeşil) | `Json/JsonWriter.cs` `JsNumber`, `Json/JsonReader.cs` | `"R"` biçimi ve `double.TryParse` en kısa / doğru yuvarlamayı yalnız .NET Core 3.0+'ta garanti ediyor; Unity Mono/IL2CPP doğrulanmadı | `K35_K43_JsNumber_format_…`, `K35_K43_JsonReader_…`, `K35_K43_string_quoting_…` |
-| R-06 | Önemli (test altyapısı; çekirdek yeşil) | `Core.Tests/*VectorTests.cs`, `DiffFuzzTests.cs`, `FullCoverTests.cs` | Test düzeneği kültüre bağlı: fi-FI / sv-SE / ar-SA yerel ayarında 1 420 testin 599'u kırmızı | çekirdek koruması: `K35_K43_K45_core_outputs_do_not_depend_on_CurrentCulture` |
-| R-07 | Önemli | `Deadlock.cs` (`MemoLo/MemoHi/MemoGen`, `memoGeneration`, `memoUsed`, `D3aStats.Expansions`) | D3a bellek tablosu süreç genelinde ve `static`: paralel `TileRemaining` çağrıları birbirinin girdilerini okuyor ve yanlış `dead`/`ok` dönüyor | `K30_D3a_tile_remaining_is_thread_safe` |
-| R-08 | — (koruma yeşil) | `Movement.cs` `DragSession.Follow/Nearest` | K-08 sürekli işaretçi takibi fuzz'da hiç denenmemişti (fuzz yalnız `moveTo`) | `K08_K05_K44_follow_under_a_continuous_pointer_equals_TS` |
-| R-09 | Öneri | `Coords.cs` `CellY`, `DragNodeFromCode` | Negatif girdide TS `Math.floor`, C# sıfıra doğru kırpan tamsayı bölmesi kullanıyor | `K01_cell_and_node_decoding_floor_negative_inputs_like_TS` |
-| R-10 | Öneri | `Shapes.cs` `AlwaysHeavy`, `ForbiddenShapes`; `Level/Logic.cs` `HardLevels`, `SuperhardLevels` | Kural tabloları dışarıya açık ve değiştirilebilir `HashSet` (TS'de dondurulmuş) | `K44_K02_rule_tables_are_read_only` |
-| R-11 | Öneri | `Json/JsonReader.cs` `MaxDepth = 256` | 300 seviye iç içe dizi node'da okunuyor, C#'ta "nesting too deep" hatası veriyor | `K43_deep_nesting_parses_like_JSON_parse` |
-| R-12 | Öneri | `Level/LevelJson.cs` `Pattern` | zod en mesajı `/^…$/` biçiminde, C# mesajı eğik çizgisiz `^…$` | `K45_regex_schema_message_equals_zod_en_locale` |
-| R-13 | — (koruma yeşil) | `Deadlock.cs` `TileRemaining` | D3a açılım sayacı yalnız küçük sahalarda (en çok 16) karşılaştırılmıştı; büyük aramalarda ve bütçe sınırında da eşleşiyor | `K30_D3a_result_and_expansions_equal_TS_on_large_searches` |
-| T-01 | Önemli (web, TS hatası) | web `src/core/deadlock.ts` `reshuffleYard` | Her denemenin başındaki `s.buf.set(start)` RNG başlığını da sıfırlıyor; 1.–7. denemeler aynı karıştırmayı üretiyor (P4'ten devralındı, burada doğrulandı) | mevcut P4 D1-RNG senaryoları |
+| Kimlik | Önem | Yer | Konu | Test | Durum |
+| --- | --- | --- | --- | --- | --- |
+| R-01 | Önemli | `Level/LevelData.cs` (`PlanRow`, `ShapeId`, `PieceRef`, `TutTextKey`, `Highlight`), `Level/Logic.cs`, `Obstacles/Registry.cs` | .NET `$` sondaki `\n`'den önce de eşleşiyor (JS'te yalnız girdinin sonunda) | `K45_a_trailing_newline_fails_the_schema_like_zod` (4 durum) | **Kapandı (P6)** |
+| R-02 | Önemli | aynı düzenli ifadeler + `Logic.cs` `int.Parse` (satır 1239–1247, 1415–1416, 1531) | .NET `\d` her Unicode rakamıyla eşleşiyor (JS'te `[0-9]`); doğrulayıcı `FormatException` fırlatıyor | `K45_non_ASCII_digits_fail_the_schema_without_throwing` (5 durum) | **Kapandı (P6)** |
+| R-03 | Öneri | `Level/LevelJson.cs` `IntAny` / `Int` | ±(2^53 − 1) dışındaki tamsayılarda zod 4 `too_big`/`too_small` verip sınır denetimine devam ediyor; C# `invalid_type` veriyor | `K45_unsafe_integers_report_too_big_like_zod_4` | açık (Öneri) |
+| R-04 | Öneri | `Json/JsonWriter.cs` (`Canonical`, `Write`) | JS nesneleri dizi indeksi olan anahtarları ("0" … "4294967294") önce ve artan sırada dolaşıyor; C# tüm anahtarları UTF-16 sırasıyla diziyor | `K43_canonical_json_orders_array_index_keys_like_a_JS_object` | açık (Öneri) |
+| R-05 | Öneri (koruma yeşil) | `Json/JsonWriter.cs` `JsNumber`, `Json/JsonReader.cs` | `"R"` biçimi ve `double.TryParse` en kısa / doğru yuvarlamayı yalnız .NET Core 3.0+'ta garanti ediyor; Unity Mono/IL2CPP doğrulanmadı | `K35_K43_JsNumber_format_…`, `K35_K43_JsonReader_…`, `K35_K43_string_quoting_…` | açık (Unity koşusu bekliyor) |
+| R-06 | Önemli (test altyapısı; çekirdek yeşil) | `Core.Tests/*VectorTests.cs`, `DiffFuzzTests.cs`, `FullCoverTests.cs` | Test düzeneği kültüre bağlı: fi-FI / sv-SE / ar-SA yerel ayarında 1 420 testin 599'u kırmızı | çekirdek koruması: `K35_K43_K45_core_outputs_do_not_depend_on_CurrentCulture` | **Kapandı (P6)** |
+| R-07 | Önemli | `Deadlock.cs` (`MemoLo/MemoHi/MemoGen`, `memoGeneration`, `memoUsed`, `D3aStats.Expansions`) | D3a bellek tablosu süreç genelinde ve `static`: paralel `TileRemaining` çağrıları birbirinin girdilerini okuyor ve yanlış `dead`/`ok` dönüyor | `K30_D3a_tile_remaining_is_thread_safe` | **Kapandı (P6)** |
+| R-08 | — (koruma yeşil) | `Movement.cs` `DragSession.Follow/Nearest` | K-08 sürekli işaretçi takibi fuzz'da hiç denenmemişti (fuzz yalnız `moveTo`) | `K08_K05_K44_follow_under_a_continuous_pointer_equals_TS` | — (koruma yeşil) |
+| R-09 | Öneri | `Coords.cs` `CellY`, `DragNodeFromCode` | Negatif girdide TS `Math.floor`, C# sıfıra doğru kırpan tamsayı bölmesi kullanıyor | `K01_cell_and_node_decoding_floor_negative_inputs_like_TS` | açık (Öneri) |
+| R-10 | Öneri | `Shapes.cs` `AlwaysHeavy`, `ForbiddenShapes`; `Level/Logic.cs` `HardLevels`, `SuperhardLevels` | Kural tabloları dışarıya açık ve değiştirilebilir `HashSet` (TS'de dondurulmuş) | `K44_K02_rule_tables_are_read_only` | açık (Öneri) |
+| R-11 | Öneri | `Json/JsonReader.cs` `MaxDepth = 256` | 300 seviye iç içe dizi node'da okunuyor, C#'ta "nesting too deep" hatası veriyor | `K43_deep_nesting_parses_like_JSON_parse` | açık (Öneri) |
+| R-12 | Öneri | `Level/LevelJson.cs` `Pattern` | zod en mesajı `/^…$/` biçiminde, C# mesajı eğik çizgisiz `^…$` | `K45_regex_schema_message_equals_zod_en_locale` | **Kapandı (P6)** |
+| R-13 | — (koruma yeşil) | `Deadlock.cs` `TileRemaining` | D3a açılım sayacı yalnız küçük sahalarda (en çok 16) karşılaştırılmıştı; büyük aramalarda ve bütçe sınırında da eşleşiyor | `K30_D3a_result_and_expansions_equal_TS_on_large_searches` | — (koruma yeşil) |
+| T-01 | Önemli (web, TS hatası) | web `src/core/deadlock.ts` `reshuffleYard` | Her denemenin başındaki `s.buf.set(start)` RNG başlığını da sıfırlıyor; 1.–7. denemeler aynı karıştırmayı üretiyor (P4'ten devralındı, burada doğrulandı) | mevcut P4 D1-RNG senaryoları | **Web hatası; C# birebir** (P6: doğrulandı, sabitlendi) |
 
 Engel bulunmadı. Oyun hattında (hamle, olay, karma, kayıt/devam) 10 374 fuzz eylemi, 3 648 sürekli takip adımı ve 120 büyük
 D3a araması TS ile bit bit aynı çıktı. Sapmaların hepsi geçersiz veri, eşzamanlılık, yerel ayar ya da bugün kullanılmayan
@@ -53,6 +57,20 @@ kenar durumlarda.
   bir sabitte tutun. Kapsam: `LevelData.cs` (Highlight, PieceRef, TutTextKey, PlanRow, CargoShape, ShapeId), `Logic.cs`
   (PlanRowChars, TruckRef, StartRef, BatchArg, Digits), `Registry.cs` (InfoKeyFormat), `Ascii.cs` (HeaderRe, SizeRe, RowRe).
   `Ascii.cs` için ayrıca .NET `\s` ≠ JS `\s` (`\x85` .NET'te var JS'te yok, `﻿` JS'te var .NET'te yok).
+- **Kapanış (P6):** TS davranışı node ile yeniden doğrulandı (`loadLevel`: 4 durumun dördü de şema aşamasında kırmızı).
+  Yeni `Core/JsRegex.cs`: `Regex`'ten türeyen, **TS kaynak metnini aynen** alan (`new JsRegex("^[WYGROCBP.?]{1,4}$")`) ve .NET'e
+  JS anlamıyla çeviren sınıf. Çeviri: `$` → `\z`, `\d` → `[0-9]`, `\s` → JS'in 25 boşluk/satır sonu kod birimi
+  (`\x85` yok, `\uFEFF` var), `\w` → `[A-Za-z0-9_]`, çıplak `.` → `[^\n\r\u2028\u2029]`; güvenli çevirisi olmayan kaçışlar
+  (`\b \B \p \k \u \x \c`, sınıf içi `\D \S \W`) `NotSupportedException` fırlatır — sessiz yanlış eşleşme yok. Hepsi bu sınıfa
+  taşındı: `LevelData.cs` (Highlight, PieceRef, TutTextKey, PlanRow, CargoShape, ShapeId), `Logic.cs` (PlanRowChars, TruckRef,
+  StartRef, BatchArg, Digits), `Registry.cs` (InfoKeyFormat), `Ascii.cs` (HeaderRe, SizeRe, ColsRe, RowRe, TrailingWs, Ws, CrateRe).
+  `Ascii.cs`'te `.Trim()` de `JsRegex.Trim` oldu (.NET `\x85`'i kırpar, JS kırpmaz; JS `\uFEFF`'i kırpar, .NET kırpmaz).
+  `Logic.cs` `BlockingField` (`/^(spot|dim)/i`) ASCII sınıflarıyla yazıldı (`[sS][pP][oO][tT]|[dD][iI][mM]`): .NET `IgnoreCase`
+  kural tablosu (U+017F, U+212A) bu eşleşmeye giremez.
+  Testler: `K45_a_trailing_newline_fails_the_schema_like_zod` (4 durum) yeşil, `Ignore` kaldırıldı, test değişmedi.
+  Yeni `JsRegexTests.cs` (9 test): `$`, `\d` (65 536 kod birimi içinde tam 10 eşleşme), `\s` (tam 25 kod birimi, node'dan), `.`
+  (4 satır sonu), `\w` (63), desteklenmeyen kaçışlar, `Literal` metni, JS `trim`, `DigitsToInt`, ve `ParseAscii`'nin JS boşluk
+  davranışı (node'dan: U+FEFF / U+00A0 / CRLF kabul, U+0085 ve Arapça-Hint rakam red).
 
 ### R-02 (Önemli): `\d` Unicode rakamlarını kabul ediyor, doğrulayıcı çöküyor
 
@@ -63,6 +81,12 @@ kenar durumlarda.
   `tut.l١.lift` → TS reddediyor, C# kabul ediyor (`level`). Çalışma zamanı `LoadLevel` bu durumları kabul ediyor.
 - **Düzeltme:** R-01 ile aynı (`[0-9]`). Ek olarak `int.Parse` çağrılarına `CultureInfo.InvariantCulture` verin ve bunları
   yalnız `[0-9]` ile doğrulanmış girdiye uygulayın.
+- **Kapanış (P6):** TS: `validateLevelJson` 5 durumda `none L-01/schema_invalid…` / `L-17/tut_key_missing` verir (node ile
+  doğrulandı). `[0-9]` çevirisi (R-01) şemayı TS'ye eşitledi: bu dizeler artık şema aşamasında kırmızı, `int.Parse`'a ulaşmıyor.
+  Savunma için ek: `Logic.cs`'in altı `int.Parse` çağrısı `JsRegex.DigitsToInt` oldu — yalnız `[0-9]` kabul eder, `CultureInfo`'ya
+  bağlı değildir ve çok uzun rakam dizisinde `OverflowException` yerine `int.MaxValue`'ya doyar (JS `Number` büyük bir double verir;
+  tüm çağıranlar sonucu küçük bir sayıyla karşılaştırır). `K45_non_ASCII_digits_fail_the_schema_without_throwing` (5 durum) yeşil,
+  `Ignore` kaldırıldı.
 
 ### R-03 (Öneri): güvenli tamsayı aralığı dışı
 
@@ -112,6 +136,15 @@ kenar durumlarda.
 - **Düzeltme (doğrulandı):** Test derlemesine tek satır ekleyin: `[assembly: NUnit.Framework.SetCulture("")]`. Bu
   satırla fi_FI altında 1 446 testin 0'ı kırmızı. Ya da yardımcılarda `ToString(CultureInfo.InvariantCulture)` kullanın.
   Unity Test Framework'te (NUnit 3.5) derleme düzeyi `SetCulture` doğrulanmadı.
+- **Kapanış (P6):** `fi_FI` altında 599 kırmızı yeniden üretildi (`LC_ALL=fi_FI.UTF-8 dotnet test`: 599/1 455). Kök neden
+  dört yerde yoğunlaşıyor: `DiffFuzzTests.Diverged` (405), `P3VectorTests` (170 + 1), `P1VectorTests.CheckBoard` (11),
+  `P2VectorTests.CheckState` (11), `FullCoverTests.K44…` (1) — hepsi `"" + int` / `string.Join(",", int[])`. Dağınık biçimlendirme
+  yerine **derleme düzeyi** `Core.Tests/AssemblyInfo.cs`: `[assembly: NUnit.Framework.SetCulture("")]` (değişmez kültür).
+  Sonuç: `fi_FI`, `ar_SA`, `sv_SE`, `tr_TR` altında 0 kırmızı (1 455 geçti). NUnit 3.5 kaynağında (Unity'nin paketlediği sürüm)
+  `SetCultureAttribute`'in `AttributeTargets.Assembly` taşıdığı doğrulandı; bir koşucu derleme düzeyi özniteliği yine de yok
+  sayarsa **kanarya** `CultureGuardTests.K43_test_harness_runs_under_the_invariant_culture` önce kırmızı olur ve nedeni adıyla söyler
+  (öznitelik geçici olarak kaldırılıp `fi_FI` altında denendi: kanarya kırmızı, mesaj "[SetCulture("")] was not applied …").
+  Unity Editor'da koşulmadı (aşağıda "Doğrulanmayanlar").
 
 ### R-07 (Önemli): D3a bellek tablosu iş parçacığı güvenli değil
 
@@ -126,6 +159,15 @@ kenar durumlarda.
   plan ipucu hesabı paralel koşarsa K-30 tespiti ve Söküm yanlış olur. Belirlenimcilik ilkesi bozulur.
 - **Düzeltme:** Bellek tablosunu ve sayaçları `[ThreadStatic]` yapın (diziyi ilk kullanımda ayırın) ya da çağrı başına bir
   `D3aMemo` bağlamı geçirin. `D3aStats.Expansions` için de aynısı. Ardından `Ignore`'u kaldırın.
+- **Kapanış (P6):** `Deadlock.cs`: bellek tablosu, üretim sayacı ve `D3aStats.Expansions` iş parçacığına özel. Tablo
+  `D3aMemo` sınıfında (`Lo/Hi/Gen` + `Generation`), `[ThreadStatic]` alanda ilk kullanımda bir kez ayrılır (48 KB/iş parçacığı,
+  çağrı başına değil: ana iş parçacığında sıfır ayırma). `TileRemaining` dizileri ve `memoGeneration` / `memoUsed`'ü yerel
+  değişkenlere alır (yerel fonksiyonlar bunları sıcak döngüde TLS aramadan kullanır). `D3aStats.Expansions` artık `get` +
+  `internal set` özelliği (iş parçacığı başına). Davranış değişmedi: `K30_D3a_result_and_expansions_equal_TS_on_large_searches`
+  (120 durum × 5 bütçe, açılım sayısı dahil) ve P2 vektörleri aynı. `K30_D3a_tile_remaining_is_thread_safe` yeşil (6 ardışık
+  koşuda kararlı; eski `Deadlock.cs` ile kırmızı doğrulandı), yeni `K30_D3aStats_expansions_are_per_thread` yeşil. Çekirdekte
+  başka değiştirilebilir `static` alan kalmadı (taramayla doğrulandı; `Movement` zaten `[ThreadStatic]`, `ConditionalWeakTable`
+  önbellekleri iş parçacığı güvenli).
 
 ### R-09 (Öneri): negatif hücre/düğüm kodu
 
@@ -156,6 +198,8 @@ kenar durumlarda.
   `src/` çalışma zamanında zod yereli yüklenmediği için TS mesajı yalnız "Invalid input". C# `tools/validate-levels.ts`'in en
   yerelini izliyor. Kod ve yol aynı.
 - **Düzeltme:** `Pattern` mesajında `"/" + kaynak + "/"` yazın (R-01 düzeltmesinden sonra kaynak metin TS ile aynı kalmalı).
+- **Kapanış (P6):** R-01 düzeltmesinin yan ürünü: `LevelJson.Pattern` mesajı `JsRegex.Literal` (`/` + TS kaynağı + `/`) kullanır.
+  `K45_regex_schema_message_equals_zod_en_locale` yeşil, `Ignore` kaldırıldı.
 
 ### T-01 (Önemli, web reposu): D1 karıştırma denemeleri aynı
 
@@ -163,6 +207,20 @@ kenar durumlarda.
   yüklüyor. Bu yüzden 1.–7. denemeler aynı karıştırmayı üretiyor; `RESHUFFLE_ATTEMPTS = 8` fiilen 2 farklı deneme demek.
   C# birebir taşıyor. TS düzeltilirse `RULES_VERSION` artmalı, P2/P3 vektörleri ve kehanet yeniden üretilmeli.
 - Önerilen kayıt: `[code-lead → product-lead] D1 reshuffle denemeleri` (REVIEW_LOG, web).
+- **Doğrulama (P6):** `src/core/moves.ts:659` `rng: bufferRng(s.buf, H.rng)`; `reshuffleYard` her denemede `s.buf.set(start)` ile
+  tamponu, dolayısıyla `H.rng` başlığını da geri yükler. node'da kayıt yapan bir RNG ile 50 bölüm × 3 `neededFirst` koşuldu
+  (30 yüklenebilir durum, 4'ü çok denemeli): **4'ünde de** 1.–7. denemeler birebir aynı `(durum, n, değer)` listesini çekti
+  (Bölüm 4: başlangıç durumu 4004, çekimler `4004,4,3; 1831569817,3,1; -631831666,2,0` × 7). Yani `RESHUFFLE_ATTEMPTS = 8` fiilen
+  2 farklı deneme (öncelik sıralı 0. + tek rastgele karıştırma) demek; TECH §9.7 "tohumlu farklı sıralar" ile çelişir.
+- **Karar (P6):** C# TS'yi birebir izler (D-091; web reposu yalnız okunur). Davranış `K30_D1_reshuffle_buffer_RNG_attempts_repeat_the_same_draws_like_TS_T01`
+  (Bölüm 4, 6, 8; çekimler node'dan) ile sabitlendi — web düzeltilince bu test **bilerek** kırılır. Önerilen düzeltme web'de:
+  `reshuffleYard` her denemede `rng` başlığını geri yüklemesin (denemeden önce `H.rng` değerini sakla, `s.buf.set(start)` sonrası
+  geri koy), `RULES_VERSION` artsın, `p2_vectors` / `p3_vectors` / kehanet (`tools/diff/ts-oracle.mjs`) yeniden üretilsin, C# testi
+  ve vektörler birlikte güncellensin. Web `docs/REVIEW_LOG.md` için hazır kayıt (yazmak web sahibinin işi):
+  `[code-lead → product-lead] D1 reshuffle denemeleri: reshuffleYard'ın s.buf.set(start) çağrısı RNG başlığını sıfırladığı için
+  8 denemenin 1.–7.'si aynı karıştırmayı üretiyor (Bölüm 4/6/8'de kanıtlı); etki: 8 yerine 2 farklı deneme (D1 yardımı yine çalışır;
+  başarısız olma olasılığının TECH §9.7'nin varsaydığından yüksek olup olmadığı ölçülmedi). Önce karar ver: düzeltme RULES_VERSION
+  artışı ve Unity vektörlerinin yenilenmesi demek.`
 
 ## Sapma çıkmayan şüpheler (kanıtla kapatıldı)
 
@@ -200,7 +258,12 @@ Satır içi beklenen değerler (R-01–R-04, R-09, R-11, R-12) test yorumlarınd
 - Unity Editor EditMode ve IL2CPP cihaz koşusu yapılmadı (R-05 ve R-08 asıl orada anlam kazanıyor). IL2CPP'nin C++
   derleyicisi ARM64'te `dx * dx + dy * dy` ifadesini FMA'ya daraltabilir. K-08 `D2Epsilon = 1e-9` bunu büyük ölçüde
   soğuruyor ama tam eşitlik noktalarında fark yalnız cihazda görülür.
-- `[assembly: SetCulture("")]` yalnız NUnit 3.14 / .NET 8'de denendi.
+- `[assembly: SetCulture("")]` (P6, `AssemblyInfo.cs`) NUnit 3.14 / .NET 8'de dört yerel ayarda denendi; NUnit 3.5 kaynağında
+  özniteliğin derleme düzeyinde tanımlı olduğu okundu, Unity Test Runner'da koşulmadı. Kanarya `CultureGuardTests` sorunu adıyla gösterir.
+- `JsRegex` (P6) .NET 8 `Regex`'inde denendi; Unity Mono / IL2CPP'de `Regex` alt sınıfı ve `\z`/`[0-9]` çevirisi koşulmadı (yalnız standart
+  `System.Text.RegularExpressions` özellikleri kullanıldı: `RegexOptions.CultureInvariant`, sınıflar, `\z`).
+- `ParseAscii` (hata ayıklama aracı) TS `Number(token)` yerine `int.Parse` kullanır: sayı olmayan belirteçte TS `NaN` üretir, C# `FormatException`
+  fırlatır. Oyun yolunda kullanılmaz; P6'da değiştirilmedi.
 - Faz 3 engelleri (W4–W8, Y1/Y2/Y4/Y6, S2–S9) için kural kancası yok (`Registry` yalnız W1, Y3, S1). Bu yollar iki tarafta da
   yalnız birim testleriyle sınanıyor; fuzz ve bu inceleme onlara ulaşmıyor.
 - `services/save.ts` (`SessionActionSchema` doğrulaması) taşınmadı. C# `SessionActionJson.FromJson` bozuk kayıtta TS'den farklı

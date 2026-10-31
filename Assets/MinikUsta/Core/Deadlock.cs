@@ -71,10 +71,21 @@ namespace MinikUsta.Core
         }
     }
 
-    /// <summary>Counters of the last `TileRemaining` call (bench, `levels:solve` `d3aMaxExpansions`). TS `D3A_STATS`.</summary>
+    /// <summary>
+    /// Counters of the last `TileRemaining` call (bench, `levels:solve` `d3aMaxExpansions`). TS `D3A_STATS`. Per thread
+    /// (REVIEW_PHASE2 R-07): the TS module-level object is safe only because JS has one thread; here two threads calling
+    /// `TileRemaining` at once (solver, bot, background hint) each read their own counter.
+    /// </summary>
     public static class D3aStats
     {
-        public static int Expansions;
+        [ThreadStatic] private static int expansions;
+
+        /// <summary>Expansions of the last `TileRemaining` call on the calling thread (0 before the first call).</summary>
+        public static int Expansions
+        {
+            get => expansions;
+            internal set => expansions = value;
+        }
     }
 
     /// <summary>
@@ -371,11 +382,24 @@ namespace MinikUsta.Core
         private const int MemoMask = MemoSlots - 1;
         /// <summary>Inserts stop at 3/4 load: the memo only prunes, so a full table costs time, never correctness.</summary>
         private const int MemoLimit = (MemoSlots * 3) >> 2;
-        private static readonly int[] MemoLo = new int[MemoSlots];
-        private static readonly int[] MemoHi = new int[MemoSlots];
-        private static readonly int[] MemoGen = new int[MemoSlots];
-        private static int memoGeneration;
-        private static int memoUsed;
+
+        /// <summary>
+        /// The D3a "failed state" table: open addressing, `Gen[i] == Generation` marks a live slot (a new search bumps the
+        /// generation instead of clearing). TS keeps it in module variables (`memoLo/memoHi/memoGen/memoGeneration`); one per
+        /// thread here (REVIEW_PHASE2 R-07) so parallel `TileRemaining` calls never read each other's marks. Allocated once per
+        /// thread on first use (48 KB), not per call.
+        /// </summary>
+        private sealed class D3aMemo
+        {
+            public readonly int[] Lo = new int[MemoSlots];
+            public readonly int[] Hi = new int[MemoSlots];
+            public readonly int[] Gen = new int[MemoSlots];
+            public int Generation;
+        }
+
+        [ThreadStatic] private static D3aMemo? threadMemo;
+
+        private static D3aMemo MemoOfThisThread() => threadMemo ??= new D3aMemo();
         private const long Two32 = 4294967296L;
         private const double ExactLimit = 4503599627370496.0; // 2^52
 
@@ -425,6 +449,7 @@ namespace MinikUsta.Core
             int hs = lvl.Geo.Hs;
             int segCells = lvl.Geo.SegCells;
             D3aStats.Expansions = 0;
+            var memo = MemoOfThisThread();
 
             // segments to fill
             List<int> segs = new List<int>();
@@ -522,13 +547,17 @@ namespace MinikUsta.Core
             foreach (int r in countRadix) total *= r;
             bool exact = total < ExactLimit;
 
-            memoGeneration = unchecked(memoGeneration + 1);
+            int memoGeneration = unchecked(memo.Generation + 1);
             if (memoGeneration == 0)
             {
-                Array.Clear(MemoGen, 0, MemoGen.Length);
+                Array.Clear(memo.Gen, 0, memo.Gen.Length);
                 memoGeneration = 1;
             }
-            memoUsed = 0;
+            memo.Generation = memoGeneration;
+            int memoUsed = 0;
+            int[] memoLo = memo.Lo;
+            int[] memoHi = memo.Hi;
+            int[] memoGen = memo.Gen;
 
             int[] prof = new int[ws];
             int segPos = 0;
@@ -566,8 +595,8 @@ namespace MinikUsta.Core
             {
                 for (int i = SlotOf(lo, hi), n = 0; n < MemoSlots; i = (i + 1) & MemoMask, n++)
                 {
-                    if (MemoGen[i] != memoGeneration) return false;
-                    if (MemoLo[i] == lo && MemoHi[i] == hi) return true;
+                    if (memoGen[i] != memoGeneration) return false;
+                    if (memoLo[i] == lo && memoHi[i] == hi) return true;
                 }
                 return false;
             }
@@ -576,11 +605,11 @@ namespace MinikUsta.Core
                 if (memoUsed >= MemoLimit) return;
                 for (int i = SlotOf(lo, hi), n = 0; n < MemoSlots; i = (i + 1) & MemoMask, n++)
                 {
-                    if (MemoGen[i] != memoGeneration)
+                    if (memoGen[i] != memoGeneration)
                     {
-                        MemoGen[i] = memoGeneration;
-                        MemoLo[i] = lo;
-                        MemoHi[i] = hi;
+                        memoGen[i] = memoGeneration;
+                        memoLo[i] = lo;
+                        memoHi[i] = hi;
                         memoUsed++;
                         return;
                     }

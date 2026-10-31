@@ -347,7 +347,6 @@ namespace MinikUsta.Core.Tests
             Assert.Greater(first.Count(r => r == TileResults.Ok), 20);
         }
 
-        [Ignore("REVIEW_PHASE2 R-07: Deadlock's memo (MemoLo/MemoHi/MemoGen, memoGeneration, memoUsed) and D3aStats are static; parallel TileRemaining calls read each other's entries (58 of 14 960 wrong in the review run)")]
         [Test(Description = "K-30 D3a TileRemaining gives the sequential result when called from several threads at once")]
         public void K30_D3a_tile_remaining_is_thread_safe()
         {
@@ -364,6 +363,38 @@ namespace MinikUsta.Core.Tests
                 });
             }
             Assert.AreEqual(0, bad, "parallel TileRemaining results that differ from the sequential ones");
+        }
+
+        [Test(Description = "K-30 D3aStats.Expansions is per thread: a search on another thread never changes the counter of this one (R-07)")]
+        public void K30_D3aStats_expansions_are_per_thread()
+        {
+            var boards = D3aBoards().Select(kv => kv.Value).ToList();
+            // the board with the largest counter, and a counter this thread leaves behind
+            GameState big = boards[0];
+            int bigCount = -1;
+            foreach (var b in boards)
+            {
+                Deadlock.TileRemaining(b);
+                if (D3aStats.Expansions > bigCount)
+                {
+                    bigCount = D3aStats.Expansions;
+                    big = b;
+                }
+            }
+            Assert.Greater(bigCount, 1);
+            Deadlock.TileRemaining(big);
+            Assert.AreEqual(bigCount, D3aStats.Expansions);
+            int otherThread = -1;
+            var t = new Thread(() =>
+            {
+                Assert.AreEqual(0, D3aStats.Expansions, "a new thread starts at 0");
+                Deadlock.TileRemaining(big, 1);
+                otherThread = D3aStats.Expansions;
+            });
+            t.Start();
+            t.Join();
+            Assert.AreEqual(1, otherThread, "budget 1 -> one expansion on the other thread");
+            Assert.AreEqual(bigCount, D3aStats.Expansions, "this thread's counter is untouched by the other thread");
         }
 
         // --- R-13: D3a expansion counter on large searches -----------------------------------------------------------------
@@ -408,6 +439,60 @@ namespace MinikUsta.Core.Tests
                 n++;
             }
             Assert.AreEqual(120, n);
+        }
+
+        // --- T-01: D1 reshuffle attempts repeat the same shuffle (a TS bug the C# port keeps, D-091) ------------------------
+
+        /// <summary>Wraps the buffer RNG and records (state before the draw, n, value) of every `NextInt`.</summary>
+        private sealed class RecordingRng : IRng
+        {
+            private readonly IRng inner;
+            private readonly Func<int> state;
+            public readonly List<string> Draws = new List<string>();
+
+            public RecordingRng(IRng inner, Func<int> state)
+            {
+                this.inner = inner;
+                this.state = state;
+            }
+
+            public uint NextU32() => inner.NextU32();
+
+            public double Next() => inner.Next();
+
+            public int NextInt(int n)
+            {
+                int before = state();
+                int v = inner.NextInt(n);
+                Draws.Add(before.ToString(CultureInfo.InvariantCulture) + "," + n.ToString(CultureInfo.InvariantCulture) + "," + v.ToString(CultureInfo.InvariantCulture));
+                return v;
+            }
+        }
+
+        // TS probe (web b31c4e8, node 22): createInitialState(level n); reshuffleYard(s, recording bufferRng(s.buf, H.rng), [1]) →
+        // attempts 1..7 each draw the same (state, n, value) list because `s.buf.set(start)` also restores the rng header (T-01).
+        [TestCase(4, 7, "4004,4,3;1831569817,3,1;-631831666,2,0")]
+        [TestCase(6, 7, "6006,4,1;1831571819,3,2;-631829664,2,0")]
+        [TestCase(8, 7, "8008,5,3;1831573821,4,1;-631827662,3,2;1199738151,2,0")]
+        [Test(Description = "K-30 D1 reshuffle with the buffer RNG: attempts 1-7 repeat one shuffle (TS bug T-01, kept bit for bit; fix in the web repo first, then RULES_VERSION and the vectors)")]
+        public void K30_D1_reshuffle_buffer_RNG_attempts_repeat_the_same_draws_like_TS_T01(int levelId, int attempts, string firstAttempt)
+        {
+            var lvl = Compiler.LoadLevel(TestPaths.LoadLevelJson(levelId)).LevelOrThrow();
+            var s = State.CreateInitialState(lvl);
+            var rec = new RecordingRng(new BufferRng(s.Buf, H.Rng), () => s.Buf[H.Rng]);
+            Deadlock.ReshuffleYard(s, rec, new[] { 1 });
+            Assert.Greater(rec.Draws.Count, 0);
+            // an attempt starts whenever the rng state is the first one again (the restore of `start`)
+            string startState = rec.Draws[0].Substring(0, rec.Draws[0].IndexOf(','));
+            var runs = new List<List<string>>();
+            foreach (var d in rec.Draws)
+            {
+                if (d.StartsWith(startState + ",", StringComparison.Ordinal) && (runs.Count == 0 || runs[runs.Count - 1].Count > 0)) runs.Add(new List<string>());
+                runs[runs.Count - 1].Add(d);
+            }
+            Assert.AreEqual(attempts, runs.Count, "attempts that drew random numbers");
+            Assert.AreEqual(firstAttempt, string.Join(";", runs[0]));
+            foreach (var r in runs) CollectionAssert.AreEqual(runs[0], r, "every attempt repeats the first one");
         }
 
         // --- R-08: K-08 sticky follow under a continuous pointer -----------------------------------------------------------

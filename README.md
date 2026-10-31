@@ -89,6 +89,13 @@ Unity içinde: Window → General → Test Runner → EditMode; `MinikUsta.Core.
   her hamle türü için paket paket (`eventLogHash` dahil) TS ile karşılaştırır; altın testler (`HandGoldenTests`) 10 bölümün
   kanonik çözümünde `eventLogHash`, son ASCII tahta ve `levelHash` değerlerinin TS ile birebir aynı olduğunu doğrular;
   `DiffFuzzTests` (P4) kehanetin ~400 dizisinde (~10 000 eylem) **her adımı** TS ile karşılaştırır.
+- **JS anlamı (P6):** Çekirdekteki her düzenli ifade `Core/JsRegex.cs` ile TS kaynak metninden kurulur (`$` yalnız girdi sonunda
+  eşleşir, `\d` = `[0-9]`, `\s` = JS'in 25 boşluk kod birimi); düz `new Regex` kullanılmaz. Sayı → metin dönüşümleri değişmez
+  kültürle yapılır; çekirdek çıktıları `CurrentCulture`'a bağlı değildir (`K35_K43_K45_core_outputs_do_not_depend_on_CurrentCulture`),
+  testler derleme düzeyi `SetCulture("")` altında koşar (`Core.Tests/AssemblyInfo.cs`, kanarya: `CultureGuardTests`).
+- **İş parçacığı güvenliği (P6):** Çekirdekte paylaşılan değiştirilebilir `static` durum yoktur (kural tabloları dışarıya açık `HashSet`: REVIEW_PHASE2 R-10, açık); D3a bellek tablosu, `D3aStats` ve
+  `Movement` karalama dizileri `[ThreadStatic]` (solver / bot paralel koşabilir). Oyun durumu (`GameState`) iş parçacığı güvenli değildir;
+  her iş parçacığı kendi durumunu çalıştırır.
 - **Kural kapsamı:** `RuleCoverageTests` web reposunun `npm run test:rules -- --phase 2R` kapısını C# test adlarına uygular
   (76 kimlik; ad biçimi `K49_…`, `…_E42_…`, `W1StaticGapTests`).
 - **Engeller eklentidir:** `Core/Obstacles/Types.cs` arayüzü (`ObstacleRule`), `Registry.cs` kuralları `Order` sırasına göre
