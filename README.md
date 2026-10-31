@@ -26,6 +26,7 @@ Faz 1 raporu: web reposunda `docs/UNITY_PORT_FAZ1.md`. TS → C# dosya eşlemesi
 │  │  │  ├─ Types.cs Geometry.cs Coords.cs Shapes.cs Rng.cs Hash.cs Fnv1a.cs State.cs Grid.cs Ascii.cs
 │  │  │  ├─ Movement.cs Gravity.cs Placement.cs Delivery.cs Site.cs Panorama.cs        (P1: hareket hattı)
 │  │  │  ├─ Hooks.cs Goals.cs Combo.cs Boosters.cs Deadlock.cs Summary.cs              (P2: kurallar, çıkmaz, güçlendiriciler)
+│  │  │  ├─ Events.cs Moves.cs Session.cs SessionActionJson.cs                         (P3: K-35 hamle hattı, GameSession, olay günlüğü)
 │  │  │  ├─ Json/                  bağımlılıksız JSON okuyucu/yazıcı (JsonValue, JsonReader, JsonWriter + canonicalJson)
 │  │  │  ├─ Level/                 LevelData, LevelJson (zod şemasının elle yazılmış karşılığı), Logic (K-45 doğrulayıcı), Load (loadLevel), Compile, Plan, Mechanics
 │  │  │  └─ Obstacles/             engel eklenti arayüzü (Types), kayıt + kanca birleştirme (Registry), W1_StaticGap, Y3_Chain, S1_SlidingSite
@@ -33,7 +34,7 @@ Faz 1 raporu: web reposunda `docs/UNITY_PORT_FAZ1.md`. TS → C# dosya eşlemesi
 │  │     ├─ Fixtures/              Builders (tests/fixtures/builders.ts), Boards (ortak tahta yardımcıları, Drop/Play), Cover (cover.ts), ObstacleFixtures, J (JSON literal), TestPaths
 │  │     │  └─ Levels/{valid,invalid}/  K-45 doğrulayıcı fikstürleri (web tests/level/fixtures kopyası)
 │  │     ├─ Obstacles/             RegistryTests, W1StaticGapTests, S1SlidingSiteTests, Y3ChainTests, S2PlanVoidTests
-│  │     └─ Golden/                web reposundan kopya: level_NNN.hand.json, level_NNN.solver.json; TS vektörleri p0_vectors.json, p1_vectors.json, p2_vectors.json
+│  │     └─ Golden/                web reposundan kopya: level_NNN.hand.json, level_NNN.solver.json; TS vektörleri p0…p3_vectors.json
 │  └─ StreamingAssets/MinikUsta/
 │     ├─ levels/                   level_001…010.json (web reposundan birebir kopya)
 │     └─ config/economy.json       güçlendirici açılış seviyeleri (L-17 `booster:` / `pre:` vurguları)
@@ -45,12 +46,13 @@ Faz 1 raporu: web reposunda `docs/UNITY_PORT_FAZ1.md`. TS → C# dosya eşlemesi
 │  ├─ sync-from-web.sh             levels, golden, K-45 fikstürleri ve economy.json dosyalarını web reposundan kopyalar
 │  ├─ gen-p0-vectors.ts            TS çekirdeğinden bit-eşitlik vektörleri üretir (node 22, ek paket yok)
 │  ├─ gen-p1-vectors.ts            hareket / yerçekimi / yerleşim / teslimat vektörleri (10 bölüm + 9 geometri × 5 rastgele tahta)
-│  └─ gen-p2-vectors.ts            doğrulayıcı / hedef / güçlendirici / çıkmaz / özet / kayıt vektörleri (fikstürler, kanonik çözüm boyunca 90 durum, 40 cover tahtası)
+│  ├─ gen-p2-vectors.ts            doğrulayıcı / hedef / güçlendirici / çıkmaz / özet / kayıt vektörleri (fikstürler, kanonik çözüm boyunca 90 durum, 40 cover tahtası)
+│  └─ gen-p3-vectors.ts            GameSession dizileri: her hamle türü, geri al, +5, ret, çıkış, replay (170 dizi, ~4 300 girdi)
 └─ docs/PORT_MAP.md                TS dosyası → C# dosyası eşleme tablosu (her paket günceller)
 ```
 
-`ProjectSettings/` ve `Packages/manifest.json` henüz yok: Unity projesini proje sahibi Unity 6 ile bu klasörde açar
-(Unity eksik klasörleri üretir); `.gitignore` Unity'nin ürettiği `Library/`, `Temp/`, `Logs/` vb. klasörleri dışlar.
+`ProjectSettings/ProjectVersion.txt` (6000.0.85f1) ve `Packages/manifest.json` bulut derlemesi için eklendi (`docs/CI.md`);
+kalan ayarları Unity ilk açılışta üretir. `.gitignore` Unity'nin ürettiği `Library/`, `Temp/`, `Logs/` vb. klasörleri dışlar.
 
 ## Komutlar
 
@@ -61,6 +63,7 @@ Faz 1 raporu: web reposunda `docs/UNITY_PORT_FAZ1.md`. TS → C# dosya eşlemesi
 | `tools/sync-from-web.sh [/yol/minik-usta]` | Bölüm, altın, fikstür ve economy.json dosyalarını web reposundan yeniler (varsayılan `../minik-usta`) |
 | `node tools/gen-p0-vectors.ts [/yol/minik-usta]` | `Core.Tests/Golden/p0_vectors.json` dosyasını TS çekirdeğinden yeniden üretir |
 | `node tools/gen-p1-vectors.ts [/yol/minik-usta] [--verbose]` | `Core.Tests/Golden/p1_vectors.json` dosyasını (P1 modülleri: R, K-07 sınıfları, düşüşler, kararlar, K-08 takip taraması, K-17 dönüş hedefleri, settleYard) yeniden üretir; `--verbose` her satırı `p1_vectors.verbose.json` dosyasına yazar (git dışı, uyuşmazlık teşhisi için) |
+| `node tools/gen-p3-vectors.ts [/yol/minik-usta] [--verbose]` | `Core.Tests/Golden/p3_vectors.json` dosyasını yeniden üretir: TS `GameSession.apply` ile 170 tohumlu deneme (sürükleme, çekiç, vinç, boya fırçası, Altın Mala, eski mala, geri al, +5 jeton/reklam, ret, çıkış) oynanır; girdiler saklanır, C# aynı girdileri oynatıp her paketin sonucunu, `eventLogHash`'ini, durum karmasını, oturum alanlarını ve `TurnSummary`'yi karşılaştırır; `--verbose` her satırı ve her paketin kanonik olay JSON'unu `p3_vectors.verbose.json` dosyasına yazar (git dışı). Uyuşmayan dizinin C# satırları `Golden/p3_csharp.<dizi>.txt` dosyasına yazılır (git dışı) |
 | `node tools/gen-p2-vectors.ts [/yol/minik-usta] [--verbose]` | `Core.Tests/Golden/p2_vectors.json` dosyasını (K-45 doğrulayıcı sonuç listeleri, D1/D2/D3a/Söküm/reshuffle, K-33/36/37/38 hedef kümeleri, K-34 kanca 5, hedef sayaçları, özet, kayıt) yeniden üretir; durumlar TS `applyMove` ile kanonik çözüm boyunca üretilip `encodeState` ile saklanır, C# aynı tamponu çözer; `--verbose` her satırı `p2_vectors.verbose.json` dosyasına yazar (git dışı) |
 
 Unity içinde: Window → General → Test Runner → EditMode; `MinikUsta.Core.Tests` asmdef'i `UNITY_INCLUDE_TESTS` tanımı ve
@@ -78,7 +81,9 @@ Unity içinde: Window → General → Test Runner → EditMode; `MinikUsta.Core.
   (`ulong`) birebir; karma dizeleri TS ile aynı hex biçiminde. `p0_vectors.json` bunu test eder; `p1_vectors.json` hareket,
   yerçekimi (kayan nokta hysteresis dahil), yerleşim ve teslimat sonuçlarının 484 parça üzerinde TS ile karma karma eşitliğini
   test eder; `p2_vectors.json` doğrulayıcı mesajlarını, D3a açılım sayılarını (4096 yuvalı memo tablosu dahil), D1 reshuffle
-  hamlelerini ve Söküm olaylarını 130 durum üzerinde TS ile karşılaştırır.
+  hamlelerini ve Söküm olaylarını 130 durum üzerinde TS ile karşılaştırır; `p3_vectors.json` K-35 hattını ve `GameSession`'ı
+  her hamle türü için paket paket (`eventLogHash` dahil) TS ile karşılaştırır; altın testler (`HandGoldenTests`) 10 bölümün
+  kanonik çözümünde `eventLogHash`, son ASCII tahta ve `levelHash` değerlerinin TS ile birebir aynı olduğunu doğrular.
 - **Engeller eklentidir:** `Core/Obstacles/Types.cs` arayüzü (`ObstacleRule`), `Registry.cs` kuralları `Order` sırasına göre
   `MoveHooks`'a birleştirir; çekirdekte engele özel `if` yoktur (yeni engel = yeni dosya + `Registry.AllRules`'a bir satır).
 - **Kural atıfları:** Her K-xx kuralı yorumlarda ve test adlarında (`K49_…`) korunur.
