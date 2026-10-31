@@ -127,7 +127,7 @@ namespace MinikUsta.Core.Tests
         // --- K-05 crane area and the open height ----------------------------------------------------------------------------
 
         [Test(Description = "K-05 open height: a block crosses the wall in FREE mode iff its height h ≤ 10 − wall.height; heavy blocks never (Y5, N6)")]
-        public void K05_open_height_a_block_crosses_the_wall_in_FREE_mode_iff_its_height_h_at_most_10_minus_wall_height()
+        public void K05_Y5_N6_open_height_a_block_crosses_the_wall_in_FREE_mode_iff_its_height_h_at_most_10_minus_wall_height_heavy_never()
         {
             foreach (var shape in CanonicalShapes)
             {

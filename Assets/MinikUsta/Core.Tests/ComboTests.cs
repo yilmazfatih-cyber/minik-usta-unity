@@ -82,7 +82,7 @@ namespace MinikUsta.Core.Tests
         };
 
         [Test(Description = "K-33 GDD example: the buried O4 R flies to its only spot (6,0) and locks; no move, m or streak (E-50: a D2_90 W with an empty P is refused, the trowel kept)")]
-        public void K33_GDD_example_the_buried_O4_R_flies_to_its_only_spot_and_locks()
+        public void K33_E50_GDD_example_the_buried_O4_R_flies_to_its_only_spot_and_locks_an_empty_P_is_refused()
         {
             var s = Init(BURIED());
             Combo.GrantTrowels(s, 1);

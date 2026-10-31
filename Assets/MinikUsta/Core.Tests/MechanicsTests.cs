@@ -35,7 +35,7 @@ namespace MinikUsta.Core.Tests
         }
 
         [Test(Description = "K-45/10 W3 derived from gap size (any gap type, N2)")]
-        public void K45_10_W3_derived_from_gap_size()
+        public void K45_10_W3_derived_from_gap_size_any_gap_type_N2()
         {
             CollectionAssert.AreEqual(new[] { "W3", "W4" }, Derive(new LevelSpec { Id = 13, Wall = Wall(4, J.O("type", "shutter", "y", 0, "size", 1, "period", 2)), Pieces = B1 }));
             CollectionAssert.AreEqual(new[] { "W1" }, Derive(new LevelSpec { Id = 4, Wall = Wall(6, Gap(2, 2)), Pieces = B1 }));

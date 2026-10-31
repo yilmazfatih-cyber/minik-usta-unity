@@ -164,7 +164,7 @@ namespace MinikUsta.Core.Tests
         // --- K-29 +5 offers -------------------------------------------------------------------------------------------------------
 
         [Test(Description = "K-29 an accepted offer sets 5 moves; m, timers and the streak stay; step 12 runs once (E-42; Faz 2R: also at 0 moves, before the window)")]
-        public void K29_an_accepted_offer_sets_5_moves_and_runs_step_12_once()
+        public void K29_E42_an_accepted_offer_sets_5_moves_and_runs_step_12_once()
         {
             var calls = new List<int>();
             var hooks = new MoveHooks(deadlock: ctx =>

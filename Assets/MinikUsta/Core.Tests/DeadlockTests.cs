@@ -396,7 +396,7 @@ namespace MinikUsta.Core.Tests
         }
 
         [Test(Description = "K-30 D1 not run at zero moves; K-29 after +5 only D1 runs once (E-42)")]
-        public void K30_D1_is_not_run_at_zero_moves()
+        public void K30_K29_E42_D1_is_not_run_at_zero_moves_after_plus_5_only_D1_runs_once()
         {
             var spec = JAM();
             spec.Moves = 2;
