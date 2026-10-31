@@ -1,8 +1,8 @@
 #nullable enable
-// Port of tests/review/movement.review.test.ts (independent rule review, rounds 1–3) — every test that runs on the
+// Port of tests/review/movement.review.test.ts (independent rule review, rounds 1–3) — the tests that run on the
 // movement / coords / grid / gravity APIs alone. The tests that go through `applyMove` (K-07 costs, K-10 / K-11 / K-12 /
 // K-13 pipeline examples, E-30, round-2 crane transit, later-segment debris after a slide, N14 pull-out, Bölüm 1/4/9 hand
-// paths after canonical moves, S2 `.` through a placement) come with the K-35 package.
+// paths after canonical moves, S2 `.` through a placement) are in MovementReviewTests.P3.cs (same partial class).
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -15,7 +15,7 @@ using static MinikUsta.Core.Tests.Fixtures.Boards;
 namespace MinikUsta.Core.Tests
 {
     [TestFixture]
-    public class MovementReviewTests
+    public partial class MovementReviewTests
     {
         private static readonly BoardGeo Geo = Geometry.DefaultGeo;
 

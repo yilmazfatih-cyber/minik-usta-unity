@@ -1,6 +1,6 @@
 #nullable enable
 // Port of tests/core/summary.test.ts (web repo): TECH 2R.15 presentation hooks (TurnSummary). The TS tests drive the state
-// through `GameSession.apply`; here most drags go through `Boards.Drop` (the K-35 pipeline) and the summary is read directly;
+// through `GameSession.apply`; here most drags go through `Boards.Drop` (= `Moves.ApplyMove`) and the summary is read directly;
 // the package/summary coupling (`pack.Summary`, `pack.Teardown`, `game.Summary().BoosterTargets.Undo`) runs on `GameSession`.
 using System.Linq;
 using MinikUsta.Core.Obstacles;

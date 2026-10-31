@@ -1,8 +1,8 @@
 #nullable enable
 // Port of tests/review/placement.review.test.ts (independent rule review of gravity.ts and placement.ts, rounds 1–4) —
-// every test that runs on the gravity / placement / movement APIs alone. The tests that go through `applyMove` or
+// the tests that run on the gravity / placement / movement APIs alone. The tests that go through `applyMove` or
 // `GameSession` (K-17 / K-34 / K-22 pipeline examples, K-18 shadow-equals-result properties, S4 debris through the
-// pipeline, K-14 vs K-39 Undo) come with the K-35 / session packages.
+// pipeline, K-14 vs K-39 Undo) are in PlacementReviewTests.P3.cs (same partial class).
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -14,7 +14,7 @@ using static MinikUsta.Core.Tests.Fixtures.Boards;
 namespace MinikUsta.Core.Tests
 {
     [TestFixture]
-    public class PlacementReviewTests
+    public partial class PlacementReviewTests
     {
         /// <summary>Y8-like placement hook (the real rule is Phase 3): mortar blocks ask to stick on a wrong placement.</summary>
         private static readonly PlacementRules Mortar = new PlacementRules((s, id, cells, v) =>
@@ -926,7 +926,8 @@ namespace MinikUsta.Core.Tests
             public readonly List<(int sx, int sy)> Trowels = new List<(int sx, int sy)>();
         }
 
-        private static RandomBoard MakeRandomBoard(Mulberry32 rng)
+        /// <summary>TS `randomBoard(rng, keepFree, maxBuilt)`: `keepFree(x, y)` cells get nothing; `maxBuilt(sx, h)` caps the built prefix.</summary>
+        private static RandomBoard MakeRandomBoard(Mulberry32 rng, Func<int, int, bool>? keepFree = null, Func<int, int, int>? maxBuilt = null)
         {
             var colors = new[] { "W", "Y" };
             var b = new RandomBoard();
@@ -940,10 +941,11 @@ namespace MinikUsta.Core.Tests
             for (int sy = h - 1; sy >= 0; sy--) rows.Add(plan[0][sy] + plan[1][sy]);
             for (int sx = 0; sx < 2; sx++)
             {
-                int built = Math.Min(rng.NextInt(h + 1), h);
+                int built = Math.Min(rng.NextInt(h + 1), maxBuilt != null ? maxBuilt(sx, h) : h);
                 for (int sy = 0; sy < 8; sy++)
                 {
                     string? ch = sy < h ? plan[sx][sy] : null;
+                    if (keepFree != null && keepFree(6 + sx, sy)) continue;
                     if (sy < built)
                     {
                         if (ch == ".") continue;
@@ -962,11 +964,11 @@ namespace MinikUsta.Core.Tests
         }
 
         /// <summary>Builds the board: piece 0 = `mover`, then one B1 per site block (yard slots x 0–3, rows 0–3, vacated by `ToSite`).</summary>
-        private static GameState BuildBoard(RandomBoard b, P mover)
+        private static GameState BuildBoard(RandomBoard b, P mover, WallSpec? wall = null)
         {
             var pieces = new List<P> { mover };
             for (int i = 0; i < b.Blocks.Count; i++) pieces.Add(Pc("B1_0", b.Blocks[i].color, i % 4, i / 4));
-            var s = Init(new LevelSpec { Moves = 20, Plan = b.Rows, Pieces = pieces.ToArray(), Debris = b.Debris.ToArray() });
+            var s = Init(new LevelSpec { Moves = 20, Wall = wall, Plan = b.Rows, Pieces = pieces.ToArray(), Debris = b.Debris.ToArray() });
             for (int i = 0; i < b.Blocks.Count; i++) ToSite(s, 1 + i, b.Blocks[i].x, b.Blocks[i].y, locked: b.Blocks[i].kind == Locked, stuck: b.Blocks[i].kind == Stuck);
             foreach (var t in b.Trowels) SetSiteOcc(s, 0, t.sx, t.sy, SiteTrowel);
             Grid.RefreshSiteMasks(s, 0);

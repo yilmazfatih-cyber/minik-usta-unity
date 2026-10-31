@@ -1,8 +1,8 @@
 #nullable enable
 // Port of tests/obstacles/registry.test.ts (web repo): the registry table (TECH 7.1, 7.3), its validation and the hook
 // composition. Hooks the TS tests exercise through `applyMove` (cancelled pick, move cost event, neighbour scan order, step-10
-// timer run, S6 Phase 3 throw inside a move) are called here directly on the composed `MoveHooks`; the pipeline halves come
-// with the K-35 package.
+// timer run, S6 Phase 3 throw inside a move) run through `Moves.ApplyMove` (`Run`, P3); the direct calls on the composed
+// `MoveHooks` are kept as C# additions.
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -175,7 +175,8 @@ namespace MinikUsta.Core.Tests.Obstacles
             Assert.IsTrue(Movement.TryBeginDrag(s, 2, drag).Ok);
             // Faz 2R: the registry's own Y3 rule forbids the chained block too (K-09 (c))
             AssertPickFails(Movement.TryBeginDrag(s, 0, Registry.LevelHooks(lvl).Drag), PickFailures.Rule);
-            Assert.Throws<InvalidOperationException>(() => Drop(s, 0, 3, 0, null, Registry.LevelHooks(lvl, new RuleOptions(rules: rules))));
+            var r = Run(s, DragTo(0, 3, 0), Registry.LevelHooks(lvl, new RuleOptions(rules: rules)), strict: false);
+            AssertResult(r.Res, MoveStatuses.Cancelled, CancelReasons.Invalid, false, false);
         }
 
         [Test(Description = "W1 static gaps stay passable when another gap rule gates its own type (ruleByGapType)")]
@@ -204,7 +205,7 @@ namespace MinikUsta.Core.Tests.Obstacles
             Assert.IsTrue(RailNodes(1, 1, MoveHooks.None.Drag)); // the open shutter without its rule
         }
 
-        [Test(Description = "K-07 move cost: the largest rule base wins and the glass penalty of onLanded is added (Y8 + S3 = 3; the movesChanged event comes with K-35)")]
+        [Test(Description = "K-07 move cost: the largest rule base wins and the glass penalty of onLanded is added (Y8 + S3 = 3)")]
         public void K07_move_cost_the_largest_rule_base_wins_and_the_glass_penalty_is_added()
         {
             var lvl = Builders.Compiled(new LevelSpec { Plan = new[] { "WW" }, Pieces = Ps(Pc("B1_0", "W", 3, 0, new[] { "glass" })) });
@@ -230,6 +231,14 @@ namespace MinikUsta.Core.Tests.Obstacles
             CollectionAssert.AreEqual(new[] { "W8", "S3" }, order);
             Assert.AreEqual(LandingEffect.Break(1), fall.Effect);
             Assert.AreEqual(2, hooks.MoveCost!(CtxOf(s).Ctx, 0));
+            // through the pipeline (TS `run`): the same hooks, once each, and the cost event
+            order.Clear();
+            var r = Run(s, DragTo(0, 6, 8), hooks);
+            CollectionAssert.AreEqual(new[] { "W8", "S3" }, order);
+            Assert.AreEqual(1, Find<GlassBrokeEvent>(r.Ev).Penalty);
+            var cost = Find<MovesChangedEvent>(r.Ev);
+            Assert.AreEqual(-3, cost.Delta);
+            Assert.AreEqual(new MoveCost(2, 1), cost.Cost);
         }
 
         [Test(Description = "K-35 step 2 modifyFall hooks chain in rule order: W8 before S8 (TECH 7.3)")]
@@ -260,9 +269,10 @@ namespace MinikUsta.Core.Tests.Obstacles
                 FakeRule("S7", onPlacement: (st, id, cells, v) => PlacementOverrides.Default),
                 FakeRule("Y8", onPlacement: (st, id, cells, v) => HasFlag(st, id, FlagBit.Mortar) ? PlacementOverrides.Stick : PlacementOverrides.Default),
             };
-            var r = Drop(s, 0, 6, 8, null, Registry.LevelHooks(lvl, new RuleOptions(rules: rules)));
-            Assert.AreEqual(PlacementOutcome.KindStuck, r.Outcome!.Kind);
-            Assert.AreEqual(VerdictReasons.Color, r.Outcome.Reason);
+            var r = Run(s, DragTo(0, 6, 8), Registry.LevelHooks(lvl, new RuleOptions(rules: rules)));
+            var stuck = Find<MortarStuckEvent>(r.Ev);
+            Assert.AreEqual(0, stuck.PieceId);
+            Assert.AreEqual(VerdictReasons.Color, stuck.Reason);
         }
 
         [Test(Description = "K-35 step 5 onNeighborMoved goes to the owner of the obstacle type or block flag only (Y1 crate, Y3 chain)")]
@@ -302,9 +312,13 @@ namespace MinikUsta.Core.Tests.Obstacles
             Assert.AreEqual(NeighborEffects.None, hook(ctx, EntityRef.Piece(1), 0));
             Assert.AreEqual(NeighborEffects.Affected, hook(ctx, EntityRef.Piece(2), 0));
             CollectionAssert.AreEqual(new[] { "Y1:obstacle", "Y3:2" }, calls); // P and glass untouched
+            // through the pipeline (TS `run(s, dragTo(0, 4, 0))`): step 5 scans the start cells' neighbours itself
+            calls.Clear();
+            Run(s, DragTo(0, 4, 0), Registry.LevelHooks(lvl, new RuleOptions(rules: rules)));
+            CollectionAssert.AreEqual(new[] { "Y1:obstacle", "Y3:2" }, calls); // (y, x) order of the neighbour cells; P and glass untouched
         }
 
-        [Test(Description = "K-42 onCellUncovered goes to the owner of the hidden item type (Y7 screw)")]
+        [Test(Description = "K-42 onCellUncovered goes to the owner of the hidden item type (Y7 screw) at hidden item check #1")]
         public void K42_onCellUncovered_goes_to_the_owner_of_the_hidden_item_type()
         {
             var lvl = Builders.Compiled(new LevelSpec { Plan = new[] { "WW" }, Pieces = Ps(Pc("B1_0", "W", 0, 0)), Obstacles = new[] { Screw(0, 0) } });
@@ -320,10 +334,9 @@ namespace MinikUsta.Core.Tests.Obstacles
                 FakeRule("W7", owns: new RuleOwnership(obstacle: "key"), onCellUncovered: (ctx, obstacle) => Assert.Fail("no key here")),
             };
             var s = CreateInitialState(lvl);
-            Drop(s, 0, 3, 0);
-            var captured = CtxOf(s);
-            Registry.LevelHooks(lvl, new RuleOptions(rules: rules)).OnCellUncovered!(captured.Ctx, 0);
-            CollectionAssert.AreEqual(new[] { "screwCollected" }, captured.Types());
+            var r = Run(s, DragTo(0, 3, 0), Registry.LevelHooks(lvl, new RuleOptions(rules: rules)));
+            Assert.AreEqual(5, Find<ScrewCollectedEvent>(r.Ev).Step);
+            Assert.AreEqual(1, r.Ev.OfType<ScrewCollectedEvent>().Count());
             Assert.IsTrue(HiddenCollected(s, 0));
         }
 
@@ -365,6 +378,8 @@ namespace MinikUsta.Core.Tests.Obstacles
             var captured = CtxOf(CreateInitialState(lvl));
             foreach (var t in lvl.Step10) hooks.Timers[t.Id](captured.Ctx); // the pipeline's `runTimers`
             CollectionAssert.AreEqual(new[] { "gapChanged", "wetTick" }, captured.Types());
+            var r = Run(CreateInitialState(lvl), DragTo(1, 4, 0), hooks);
+            CollectionAssert.AreEqual(new[] { "gapChanged", "wetTick" }, r.Ev.Where(e => e.Step == 10).Select(e => e.TypeName).ToArray());
         }
 
         [Test(Description = "K-24 the S6 elevator tick of step 10 comes from the registry by default (site strategy stub until Phase 3)")]
@@ -377,8 +392,12 @@ namespace MinikUsta.Core.Tests.Obstacles
             // default hooks = registry: the site tick runs and its Phase 3 stub throws
             var ex = Assert.Throws<NotImplementedException>(() => tick(CtxOf(CreateInitialState(lvl)).Ctx));
             AssertMatch("elevator scaffold tick", ex!.Message);
+            var inMove = Assert.Throws<NotImplementedException>(() => Run(Init(spec), DragTo(1, 4, 0)));
+            AssertMatch("elevator scaffold tick", inMove!.Message);
             // bare core: no timer hook at all
             Assert.IsNull(MoveHooks.None.Timers);
+            var bare = Assert.Throws<NotImplementedException>(() => Run(Init(spec), DragTo(1, 4, 0), MoveHooks.None));
+            AssertMatch("step-10 timer S6 has no rule hook", bare!.Message);
         }
 
         [Test(Description = "K-23 the S5 carousel tick is skipped in a move whose step 8 turned the platform (registry timer)")]

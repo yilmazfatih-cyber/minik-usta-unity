@@ -1,7 +1,6 @@
 #nullable enable
-// Port of tests/core/panorama.test.ts — the parts that need no move pipeline. The TS file completes segments through
-// `applyMove`; here the same board states are reached with SettlePlacement + the site strategy (the K-35 package replays
-// the originals). The level-5 HAND replay test comes with that package.
+// Port of tests/core/panorama.test.ts: segments are completed through `Moves.ApplyMove` (`Run`, P3), as in the TS file; the
+// level-5 test replays the canonical moves 1–5.
 using System.Linq;
 using MinikUsta.Core.Tests.Fixtures;
 using NUnit.Framework;
@@ -15,12 +14,10 @@ namespace MinikUsta.Core.Tests
     {
         private static string[] Statuses(GameState s) => Panorama.PanoramaView(s).Select(p => p.Status).ToArray();
 
-        private static void Place(GameState s, int id, int ix, int iy)
-        {
-            var fall = Gravity.ComputeFall(s, id, N(ix, iy));
-            Assert.AreEqual(PlacementOutcome.KindCorrect, Placement.SettlePlacement(s, id, fall.Landing, fall.Verdict).Kind, "piece " + id);
-            Site.SiteStrategy(s.Lvl).CompleteIfDone(s);
-        }
+        /// <summary>TS `run(s, dragTo(id, ix, iy))`: the full K-35 pipeline.</summary>
+        private static void Place(GameState s, int id, int ix, int iy) => Run(s, DragTo(id, ix, iy));
+
+        private static string RowsText(PanoramaSegment p) => string.Join("/", p.Rows.Select(r => string.Join("", r)));
 
         [Test(Description = "K-06 GDD example: 3 segments, after segment 1 the panorama reads [done][active][future]")]
         public void K06_GDD_example_3_segments_after_segment_1_the_panorama_reads_done_active_future()
@@ -63,21 +60,19 @@ namespace MinikUsta.Core.Tests
             CollectionAssert.AreEqual(new[] { "W", "Y" }, after[1]);
         }
 
-        [Test(Description = "K-06 reading the panorama never changes the game state (bit-identical buffer)")]
+        [Test(Description = "K-06 reading the panorama never changes the game state (bit-identical buffer, same m)")]
         public void K06_reading_the_panorama_never_changes_the_game_state()
         {
-            var s = Init(new LevelSpec
-            {
-                Wall = Wall(2),
-                Plans = new[] { new[] { "WW" }, new[] { "YY" } },
-                Pieces = Ps(Pc("D2_90", "W", 0, 0), Pc("D2_90", "Y", 2, 0)),
-            });
-            Place(s, 0, 6, 8);
+            var s = LevelState(5);
+            foreach (var m in HandMoves(5).Take(5)) Run(s, new DragMove(m.PieceId, m.To)); // Sol Oda complete (LEVELS §2 Bölüm 5 move 5)
             var before = Snapshot(s);
             var views = new[] { Panorama.PanoramaView(s), Panorama.PanoramaView(s), Panorama.PanoramaView(s) };
             CollectionAssert.AreEqual(before, s.Buf);
-            CollectionAssert.AreEqual(views[0].Select(v => v.Status).ToArray(), views[1].Select(v => v.Status).ToArray());
-            CollectionAssert.AreEqual(new[] { "done", "active" }, Statuses(s));
+            Assert.AreEqual(5, Hdr(s, H.Turn));
+            CollectionAssert.AreEqual(views[0].Select(v => v.Index + ":" + v.Status + ":" + RowsText(v)).ToArray(), views[1].Select(v => v.Index + ":" + v.Status + ":" + RowsText(v)).ToArray());
+            CollectionAssert.AreEqual(
+                new[] { "0:done:WW/WY/WY/RR/RR", "1:active:RR/RR/WW/YY/YY" },
+                views[0].Select(v => v.Index + ":" + v.Status + ":" + RowsText(v)).ToArray());
         }
 
         [Test(Description = "K-06 an S2 window cell stays `.` in the panorama (builder board: S2 is outside the Faz 2R MVP, CL-2R-12)")]

@@ -1,6 +1,6 @@
 #nullable enable
 // Port of tests/core/goals.test.ts (web repo). The level-5 test replays the canonical solution through `Boards.Play`
-// (ComputeFall + SettlePlacement + segment completion + delivery) instead of `applyMove`.
+// (= `Moves.ApplyMove`, the full K-35 pipeline, since P3).
 using System;
 using MinikUsta.Core.Tests.Fixtures;
 using NUnit.Framework;
