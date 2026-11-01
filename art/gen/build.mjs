@@ -2,7 +2,7 @@
 // Usage: node art/gen/build.mjs            (no dependencies; Node ≥ 22)
 // Hand-tuned parts (characters, logo, backgrounds, icons) are template code in the sibling modules; the SVG files are
 // the reviewable sources the rasteriser (tools/art/rasterize.mjs) reads.
-import { mkdirSync, rmSync, writeFileSync, existsSync } from 'node:fs';
+import { mkdirSync, rmSync, writeFileSync, existsSync, readdirSync, readFileSync, statSync } from 'node:fs';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { resetIds } from './lib.mjs';
@@ -50,6 +50,15 @@ export async function collect() {
         resetIds();
         add('shadow', `shadow_${kind}_${pad2(m)}_cc_${k}`, blocks.shadowConcaveTile(kind, k, m));
       }
+    }
+  }
+  // hand-maintained SVGs (art/src/<category>/<frame>.svg: web v3 copies upgraded for v4 + hand-edited poses)
+  const SRC = join(ROOT, 'art', 'src');
+  if (existsSync(SRC)) {
+    for (const cat of readdirSync(SRC).sort()) {
+      const d = join(SRC, cat);
+      if (!statSync(d).isDirectory()) continue;
+      for (const f of readdirSync(d).sort()) if (f.endsWith('.svg')) add(cat, f.slice(0, -4), readFileSync(join(d, f), 'utf8'));
     }
   }
   const extra = ['board', 'ui', 'icons', 'fx', 'bg', 'chr', 'logo'];

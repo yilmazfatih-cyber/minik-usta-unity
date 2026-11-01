@@ -415,3 +415,19 @@ export function pieceMarkup(code, cells, cell = C, ox = 0, oy = 0) {
   }
   return o + '</g>';
 }
+
+/** ART §14.9 neutral "blocks left" icon: a 3-cell L in the cream kit colours, ink outline, no symbol. */
+export function neutralLIcon() {
+  const cells = [[0, 0], [0, 1], [1, 1]];
+  const set = new Set(cells.map(([x, y]) => key(x, y)));
+  const has = (x, y) => set.has(key(x, y));
+  const t = { base: '#FFF4D6', light: '#FFFFFF', bottom: '#F4E3B6', groove: '#F0DCA8', dark: '#D9B878', outline: '#3B2A1A', bevel: '#FFFFFF', studHi: '#FFFFFF', studSh: '#E6CF98' };
+  const { S, B: Bp, F } = bodyPaths(cells);
+  const { ids, defs } = toneDefs(t);
+  let o = `<path d="${S}" fill="${t.outline}" transform="translate(0 10)" fill-opacity="0.25"/><path d="${S}" fill="${t.outline}"/><path d="${Bp}" fill="${t.dark}"/><path d="${F}" fill="${t.groove}"/>`;
+  for (const [x, y] of cells) {
+    const P = pillowRect(has, x, y);
+    o += pillowMarkup(t, P, ids) + studMarkup(t, studOf(P));
+  }
+  return doc(128, 128, defs, `<g transform="translate(4 2) scale(0.5)">${o}</g>`, { scale: 1.5 });
+}

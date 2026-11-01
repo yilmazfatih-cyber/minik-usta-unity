@@ -1,0 +1,4 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="200" height="136" viewBox="0 0 200 136" data-scale="1.5" data-border="36 36 36 36">
+<defs></defs>
+<path d="M28 0H172A28 28 0 0 1 200 28V108A28 28 0 0 1 172 136H28A28 28 0 0 1 0 108V28A28 28 0 0 1 28 0Z" fill="#120F33" fill-opacity="0.85"/><path d="M28 2H172A26 26 0 0 1 198 28V108A26 26 0 0 1 172 134H28A26 26 0 0 1 2 108V28A26 26 0 0 1 28 2Z" fill="none" stroke="#000000" stroke-opacity="0.45" stroke-width="4"/><path d="M12 10H188A6 6 0 0 1 194 16V16A6 6 0 0 1 188 22H12A6 6 0 0 1 6 16V16A6 6 0 0 1 12 10Z" fill="#000000" fill-opacity="0.25"/><path d="M28 134H172" stroke="#7A6CF0" stroke-opacity="0.35" stroke-width="3" stroke-linecap="round"/>
+</svg>

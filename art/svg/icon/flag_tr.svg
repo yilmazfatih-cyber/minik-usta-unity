@@ -1,0 +1,4 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="128" height="128" viewBox="0 0 128 128" data-scale="1.5">
+<defs></defs>
+<circle cx="64" cy="70" r="54" fill="#000000" fill-opacity="0.3"/><circle cx="64" cy="64" r="54" fill="#2A1D8B"/><circle cx="64" cy="64" r="48" fill="#FFFFFF"/><clipPath id="fc0"><circle cx="64" cy="64" r="44"/></clipPath><g clip-path="url(#fc0)"><rect x="0" y="0" width="128" height="128" fill="#E30A17"/><circle cx="54" cy="64" r="24" fill="#FFFFFF"/><circle cx="60" cy="64" r="19.2" fill="#E30A17"/><path d="M72 64L80.1 61.2L80.3 52.6L85.5 59.4L93.7 56.9L88.8 64L93.7 71.1L85.5 68.6L80.3 75.4L80.1 66.8Z" fill="#FFFFFF"/><ellipse cx="50" cy="38" rx="30" ry="14" transform="rotate(-25 50 38)" fill="#FFFFFF" fill-opacity="0.3"/><path d="M20 96Q64 120 108 96V112H20Z" fill="#000000" fill-opacity="0.15"/></g>
+</svg>
