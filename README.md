@@ -13,6 +13,8 @@ Minik Usta'nın (dikey ekranlı blok yerleştirme bulmacası) Unity 6 sürümü.
 | D-092 | Kahraman **Tuna** kalır (D-044, D-087); "genç kral" uygulanmaz. |
 | D-093 | Çekirdek **saf C#** (UnityEngine bağımlılığı yok); bulutta .NET SDK + NUnit ile derlenir ve test edilir, aynı test dosyaları Unity Test Framework (EditMode) altında çalışır. Görünüm katmanı proje sahibinin Unity kurulumunda derlenir. |
 | D-094 | Unity projesi bu ayrı repoda yaşar; web (Phaser) sürümü `main` = de6f16c olarak yayında kalır, görsel v3 web'de dondurulur. |
+| D-097 | Faz 3 kabul (2026-11-01): Q0–Q5 tamam; şüpheci inceleme 1 Engel + 4 Önemli kapattı (`docs/REVIEW_PHASE3.md`). |
+| D-098 | Program otonom: faz sonunda onay beklenmez; durma yalnız proje sahibine bağlı girdilerde. Kalite çıtası ART_REFERENCE §10 (her boyut ≥ 4/5). Üretim Opus / Sonnet / Haiku, orkestratör Fable (D-095). |
 
 Faz 1 raporu: web reposunda `docs/UNITY_PORT_FAZ1.md`. TS → C# dosya eşlemesi: [`docs/PORT_MAP.md`](docs/PORT_MAP.md).
 
@@ -143,10 +145,7 @@ Unity içinde: Window → General → Test Runner → EditMode; `MinikUsta.Core.
 
 ## Faz 3 — oynanabilir yer tutucu tahta
 
-**Durum (Q2):** Q0 (motor-bağımsız sunum çekirdeği), Q1 (oynanabilir tahta, yer tutucu görsel) ve Q2 (his katmanı: sprite
-parçacıkları, iniş dalgası, mala ve seri boncukları, kamyon ve şantiye kayması, Bonus İnşaat sikkeleri, kazanma yıldızı, düğme
-basışı, kamera sarsıntısı, Android titreşimi) tamam. Ses ve gerçek sanat sırada. Bu ortamda Unity derlenemedi; ilk gerçek derleme GitHub Actions'ta yapılır
-([`docs/CI.md`](docs/CI.md)). Rapor taslağı: [`docs/PHASE3_REPORT.md`](docs/PHASE3_REPORT.md).
+**Durum (Faz 3 KABUL, D-097):** Q0 (motor-bağımsız sunum çekirdeği), Q1 (oynanabilir tahta, yer tutucu görsel), Q2 (his katmanı: sprite parçacıkları, iniş dalgası, mala ve seri boncukları, kamyon ve şantiye kayması, Bonus İnşaat sikkeleri, kazanma yıldızı, düğme basışı, kamera sarsıntısı, Android titreşimi), Q4 (şüpheci inceleme) ve Q5 (kapanış) tamam. Gerçek sanat ve görsel katman Faz 4'te (bkz. Program); ses V2'de. Unity Editor bu ortamda yok; derleme GitHub Actions'ta GameCI ile yapılır ([`docs/CI.md`](docs/CI.md)). Rapor: [`docs/PHASE3_REPORT.md`](docs/PHASE3_REPORT.md).
 
 ### Nasıl oynanır (paket V1)
 
@@ -169,7 +168,7 @@ basışı, kamera sarsıntısı, Android titreşimi) tamam. Ses ve gerçek sanat
 3. İlk açılış birkaç dakika sürer. Unity eksik `.meta` dosyalarını üretir; `git status` ile değişenleri gözden geçir.
 4. `Assets/MinikUsta/Scenes/Level.unity` dosyasını aç ve **Play**'e bas.
 5. Testler: **Window → General → Test Runner → EditMode → Run All**. Koşan assembly'ler: `MinikUsta.Core.Tests`
-   ve `MinikUsta.Presentation.Core.Tests`. Beklenen sayılar dotnet koşusuna göre (paket V1): Presentation 348 geçer. Core, `tools/diff/out`
+   ve `MinikUsta.Presentation.Core.Tests`. Beklenen sayılar dotnet koşusuna göre (paket V1): Presentation 349 geçer. Core, `tools/diff/out`
    (git dışı, `ts-oracle.mjs` çıktısı) varsa 1455 geçer ve 5 atlar; yoksa 1049 geçer ve 7 atlar (DiffFuzz durumları üretilmez).
    Unity içinde bu koşu henüz yapılmadı.
 
@@ -195,3 +194,29 @@ cd dotnet && dotnet build -warnaserror && dotnet test
 - Ayarlar yok; "Animasyonları azalt" kapalı.
 - Yalnız Türkçe metin bağlı (`en.json` henüz okunmuyor).
 - LegacyRuntime fontunda Türkçe harfler (ş, ğ, ı, İ) Unity'de henüz görülmedi.
+
+## Program (D-098)
+
+Proje sahibinin çıtası: Royal Match / Block Blast seviyesinde, mağazaya çıkabilecek ürün. Kararlar web reposunda: `docs/DECISIONS.md`
+D-097 (Faz 3 kabul) ve D-098 (program). Faz sonunda onay beklenmez; faz raporu yazılır ve sonraki faz başlar. Durma yalnız proje
+sahibine bağlı girdilerde (lisans, mağaza hesapları, imza anahtarları, ücretli hizmetler) ve geri alınamaz dış eylemlerde.
+
+| Faz | Kapsam | Durum |
+| --- | --- | --- |
+| 3 | Oynanabilir yer tutucu tahta, his katmanı, şüpheci inceleme ([`docs/PHASE3_REPORT.md`](docs/PHASE3_REPORT.md)) | KABUL (D-097) |
+| 4 | Görsel ve his yükseltmesi: SVG sanat paketi (V0), görsel katman, HUD v3, pencereler, ana sayfa, ayarlar, kayıt, i18n (V1) | V0 ve V1 tamam; sırada V2 (ses, öğretici, güçlendirici oynanışı) |
+| 5 | İçerik ve meta: 50 bölüm, 5 hikâye bölümü, kasaba, ekonomi, 2 etkinlik, sahte mağaza | Başlamadı |
+| 6 | Yayın hazırlığı: performans, Android ve WebGL derlemeleri, mağaza metinleri, gizlilik | Başlamadı |
+
+**Kalite çıtası (ART_REFERENCE §10):** her ekranın her boyutu ≥ 4/5, iki bağımsız puanlayıcıyla. Görseller ücretsiz ve üretken yapay
+zekâsız; kendi SVG sanatımız. Referans ekran görüntüleri yalnız stil rehberidir: yerleşim, bileşen anatomisi ve renk havası kopyalanabilir;
+varlık, karakter, logo ve ad kopyalanmaz.
+
+**Model dağılımı (D-095, D-098):** orkestratör (Fable) yalnız yönetir; zor port, mimari ve şüpheci inceleme Opus; uygulama ve düzeltme
+Sonnet; belge, kopya ve mekanik iş Haiku.
+
+**Yayın kanalı ve gizli değerler**
+
+- Oyun: https://yilmazfatih-cyber.github.io/minik-usta-unity/ (her `main` itişinde `Unity WebGL → Pages` koşusu).
+- Lisans: repo secret'ları `UNITY_EMAIL` ve `UNITY_PASSWORD` (Personal koltuk, GameCI). `UNITY_LICENSE` kullanılmaz; ayrıntı [`docs/CI.md`](docs/CI.md) §1.
+- Son yeşil koşular: `41353265515` (`acc3f82`), `41353361615` (`81a314a`).

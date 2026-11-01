@@ -280,7 +280,19 @@ Durum anlamı: **Q0 / Q1** taşındı · **kısmen** bazı satırlar taşındı 
 | `sceneServices.ts` | `Game/Haptics.cs` (`HapticRouter`, `FixedPulseHaptics`), `Unity/GameRunner.cs` | **Q2** kısmen | Titreşim: `Handheld.Vibrate()` yalnız Android'de; ses Q2+ |
 | `frameImage.ts` | — | kapsam dışı | Phaser kare yardımcısı; Unity'de Sprite pivotu |
 
-##### Paket V1 — v4 sanat, HUD v3, pencereler, ana ekran, ayarlar, akış, kayıt, i18n
+## Faz 4 — görsel ve akış (paket V0, V1)
+
+### Paket V0 — v4 sanat paketi (`art/**`, `Resources/art`, atlas kontratı)
+
+| Kaynak | Üretilen / Unity karşılığı | Not |
+| --- | --- | --- |
+| `art/src/**/*.svg` (karakter 8, ikon 22, logo 1, kasaba 1) | `art/gen/*.mjs` girdisi | Elle çizilen kaynak SVG; stil kitabı `docs/ART_REFERENCE.md` (design-lead) |
+| `art/gen/{lib,blocks,board,bg,fx,icons,logo,ui,build}.mjs` | `art/svg/**`: blok 274, gölge 80, ui 43, ikon 33, hayalet 18, tahta 16, fx 11, karakter 8, logo 2, zemin 2, kasaba 1 | Üretici; `node art/gen/build.mjs` |
+| `tools/art/rasterize.mjs`, `tools/art/png.mjs` | `Resources/art/atlas_0…3.bytes` (V0'da `atlas-N.png.bytes`; V1'de düz adla yeniden adlandırıldı, P3-13) | Kayıpsız PNG sayfaları; 2 px kenar payı (mipsiz) |
+| `tools/art/preview.mjs` | `artifacts/preview/v4-*.png` (git'te `add -f`) | Yazılımsal önizleme; `/artifacts/` git dışı kalır |
+| `docs/ART_UNITY.md` | `Resources/art/atlas.json` (kontrat) → `Presentation.Core/Art/AtlasData.cs` (V1) | Kare adları, pivot, PPU = 100 × ölçek, kenar (L, B, R, T) |
+
+### Paket V1 — v4 sanat, HUD v3, pencereler, ana ekran, ayarlar, akış, kayıt, i18n
 
 | Web kaynağı / belge | C# (`Presentation.Core`, motor-bağımsız, NUnit) | Unity katmanı (`Assets/MinikUsta/Unity`) |
 | --- | --- | --- |
@@ -307,6 +319,32 @@ resizeTextMaxSize / supportRichText`, `UnityEngine.UI.Shadow` (`effectColor`, `e
 + `Selectable.transition`. Önceden stub'ta olup V1'de yeni kullanılanlar: `Texture.width / height`, `SpriteRenderer.flipY`, `Renderer.enabled`,
 `CanvasScaler.referencePixelsPerUnit`, `Image.preserveAspect`, `Object.Destroy`, `Transform` numaralandırması.
 
+### Paket V1 — ek dosyalar (V3 denetimi)
+
+V1'in üç commit'inin dosya listesi (`96112ae`, `564d838`, `81a314a`) yukarıdaki tablolarla karşılaştırıldı; aşağıdakiler eksikti.
+
+| Dosya | Durum | Karşılık / görev |
+| --- | --- | --- |
+| `Presentation.Core/Game/Economy.cs` | değişti | Level ekranının ekonomi değerleri (`docs/META.md` §3, `config/economy.json` `levelRewards`; Faz 3 Q2) |
+| `Presentation.Core/Game/PieceViews.cs` | değişti | Tahta blok görünümleri (web `PieceLayer.ts`): havuzlu `IPieceVisual`, görünür tahtadaki her parça için bir tane |
+| `Presentation.Core/Game/Views.cs` | değişti | Motor-bağımsız oyuncu ile motor arasındaki dikiş (`ILevelView`; Faz 3 Q1, D-093, D-096) |
+| `Presentation.Core/Ui/UiNode.cs` | değişti | Motor-bağımsız UI ağacı: HUD, pencereler, ana sayfa, ayarlar |
+| `Presentation.Core/Ui/UiSurface.cs` | değişti | UI ağacı ile motor arasındaki dikiş (Unity'de `UiRenderer` uygular) |
+| `Presentation.Core/Ui/FontMetrics.cs` | yeni (`564d838`) | `tools/font/gen-metrics.py` üretir (Baloo 2 `hmtx` ilerlemeleri); `FontMetricsTests` TTF ile karşılaştırır |
+| `Presentation.Core/Ui/TextFit.cs` | yeni (`564d838`) | uGUI "best fit" yerine tek satır sığdırma (Baloo 2 1,6 em satır kutusu sorunu) |
+| `Unity/PointerInput.cs` | değişti | Eski Input Manager ile dokunuş ve fare girdisi (D-096; `activeInputHandler` 0) |
+| `Unity/UnityLevelView.cs` | değişti | `ILevelView` Unity nesneleri: ortografik kamera (1080 × 1920 tasarım tuvalinin FIT'i) |
+| `Unity/UnityTruckView.cs` | değişti | Kamyon: `truck` karesi (ART_UNITY §4.3); kasa ayrı parça değil (bilinen sorun, `README.md`) |
+| `Unity/UnitySpark.cs` | değişti | Havuzlu sprite parçacığı, atlas karesi (D-096: ParticleSystem yok) |
+| `Unity/UnityUiSpark.cs` | değişti | uGUI üzerinde sprite parçacığı: kazanma penceresinin yıldız patlaması |
+| `Unity/UnityHud.cs` | **silindi** (Q1'de tanımlıydı) | Yerine `Unity/UiRenderer.cs` (uGUI) ve `Ui/LevelHud.cs` ağacı |
+| `Resources/fonts/Baloo2-ExtraBold.ttf`, `OFL.txt` | yeni | Baloo 2 ExtraBold, Latin alt küme (82 KB), OFL 1.1; `tools/font/build-font.sh` üretir |
+| `tools/art/compose.mjs` | yeni | Önizleme: ScreenDump JSON + atlas sayfaları + Baloo 2 TTF → önizleme PNG'leri (yazılımsal, Unity ekran görüntüsü değil) |
+| `tools/font/gen-metrics.py` | yeni (`564d838`) | Baloo 2 TTF'den `FontMetrics.cs` üretir |
+| `tools/unity-refcheck.sh` | yeni | Referans derleme denetimi; kapıya bağlanmadı (`docs/CI.md` §6) |
+| `dotnet/UnityStubs/UnityEngine.cs` (ve Android ikizi) | değişti | Yeni üyeler; her biri UnityCsReference 6000.0.85f1 ve com.unity.ugui kaynağıyla doğrulandı (Unity API paragrafı yukarıda) |
+| `artifacts/preview/v4-unity-*.png` (14 dosya) | yeni | Yazılımsal önizleme (`tools/art/compose.mjs`); git'te `add -f`, `/artifacts/` git dışı kalır |
+
 ## Veri yolları (Q3 denetimi)
 
 | Çalışma zamanı yolu | Dosya | Durum |
@@ -314,8 +352,8 @@ resizeTextMaxSize / supportRichText`, `UnityEngine.UI.Shadow` (`effectColor`, `e
 | `Resources.Load<TextAsset>("levels/level_NNN")` | `Resources/levels/level_001…010.json` | 10 / 10 eşleşiyor |
 | `…("i18n/tr")` | `Resources/i18n/tr.json` | Eşleşiyor |
 | `…("solutions/level_NNN.solver")` (geliştirme S tuşu) | `Resources/solutions/level_001…010.solver.json` | 10 / 10 eşleşiyor |
-| `…("config/economy")` | `Resources/config/economy.json` | Kopyalı, ama çalışma zamanında okunmuyor (güçlendirici açılışı Q2+) |
-| `…("i18n/en")` | `Resources/i18n/en.json` | Kopyalı, ama okunmuyor (EN bağlanmadı; "TR/EN eksiksiz" kapısı açık) |
+| `…("config/economy")` | `Resources/config/economy.json` | Okunuyor (Q2: Bonus İnşaat alanları) |
+| `…("i18n/en")` | `Resources/i18n/en.json` | Okunuyor (V1: `I18n/Localizer`; `I18nTests` kaynak taraması) |
 
 ## Veri
 
