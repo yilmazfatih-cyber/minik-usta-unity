@@ -1,61 +1,81 @@
 #nullable enable
-// HUD rectangles of the placeholder level screen (ART_REFERENCE §9.4 HUD v3 frame; UX_FLOWS §5.1, §5.9), derived from
-// `ScreenLayout`: row 1 = "Bölüm N" capsule + goals panel (level name, blocks-left chip), row 2 = panorama well (segment
-// counter), moves plate, pause tool. Shared by the step runner (flight targets) and the Unity HUD (placement).
+// HUD rectangles of the level screen (ART_REFERENCE §9.4 HUD v3 frame; UX_FLOWS §5.1, §5.9; ART_UNITY §4.4), derived from
+// `ScreenLayout`: row 1 = "Bölüm N" capsule + blocks-left chip + streak capsule (beads, Golden Trowel), row 2 = panorama well
+// (level name, plan picture, segment counter), moves plate, pause tool; the truck chip on the status strip. Shared by the step
+// runner (flight targets), the HUD tree (`LevelHud`) and the window star (`WindowViews`).
 using MinikUsta.Presentation.Layout;
 
 namespace MinikUsta.Presentation.Game
 {
     public static class HudLayout
     {
-        /// <summary>Width of the blocks-left chip at the right end of the goals panel (UX §5.9 item 1).</summary>
-        public const double BlocksChipW = 260;
+        /// <summary>Width of the blocks-left chip (V1: row 1 left of the streak capsule, the v4 mock).</summary>
+        public const double BlocksChipW = 250;
+        /// <summary>Gap between the "Bölüm N" capsule and the blocks chip (the chip icon overflows left into it).</summary>
+        public const double BlocksChipInset = 32;
 
         public static PxRect Capsule(ScreenLayout L) => L.LevelCapsule;
 
-        public static PxRect BlocksChip(ScreenLayout L) => new PxRect(L.Goals.Right - BlocksChipW, L.Goals.Y, BlocksChipW, L.Goals.H);
+        /// <summary>V1: the blocks-left chip at the left of the goals row (icon_blocks overflows its left end).</summary>
+        public static PxRect BlocksChip(ScreenLayout L) => new PxRect(L.Goals.X + BlocksChipInset, L.Goals.Y, BlocksChipW, L.Goals.H);
 
-        public static PxRect LevelName(ScreenLayout L) => new PxRect(L.Goals.X, L.Goals.Y, L.Goals.W - BlocksChipW - 16, L.Goals.H);
+        /// <summary>V1: the level name sits in the panorama well (left part; the plan picture is on the right).</summary>
+        public static PxRect LevelName(ScreenLayout L) => new PxRect(L.Panorama.X + 12, L.Panorama.Y + 12, 150, 56);
 
-        /// <summary>The panorama well shows the segment counter in Faz 3 Q1 (the panorama art comes later).</summary>
+        /// <summary>The panorama well: the level name, the plan picture of the visible segment and the segment counter.</summary>
         public static PxRect Segments(ScreenLayout L) => L.Panorama;
+
+        /// <summary>V1: the plan picture area inside the panorama well.</summary>
+        public static PxRect PanoramaPlan(ScreenLayout L) => new PxRect(L.Panorama.X + 170, L.Panorama.Y + 12, L.Panorama.W - 182, L.Panorama.H - 24);
 
         public static PxRect Moves(ScreenLayout L) => L.Moves;
 
         public static PxRect Pause(ScreenLayout L) => L.Pause;
 
-        // --- Q2: streak capsule (UX §5.1 status strip, "Usta Serisi ●●●○ [mala]"), gold chip, window star ----------------------------
+        // --- streak capsule (UX §5.1 "Usta Serisi ●●●○ [mala]"; V1: row 1 right of the blocks chip, the v4 mock) -------------
 
         /// <summary>Diameter of a streak bead (JUICE #15).</summary>
-        public const double BeadPx = 32;
+        public const double BeadPx = 40;
 
-        /// <summary>The streak capsule at the left end of the status strip (UX §5.8 item 10: strip h 80).</summary>
-        public static PxRect Streak(ScreenLayout L) => new PxRect(L.Board.Status.X, L.Board.Status.Y + 8, 510, 64);
+        /// <summary>The streak capsule: the rest of the goals row after the blocks chip.</summary>
+        public static PxRect Streak(ScreenLayout L)
+        {
+            var b = BlocksChip(L);
+            double x = b.Right + 50;
+            return new PxRect(x, L.Goals.Y, L.Goals.Right - x, L.Goals.H);
+        }
 
         public static PxRect StreakLabel(ScreenLayout L)
         {
             var s = Streak(L);
-            return new PxRect(s.X + 16, s.Y, 176, s.H);
+            return new PxRect(s.X + 8, s.Y, 178, s.H);
         }
 
         /// <summary>Bead `i` (0 … 3), left to right.</summary>
         public static PxRect Bead(ScreenLayout L, int i)
         {
             var s = Streak(L);
-            return new PxRect(s.X + 204 + i * 46, s.CenterY - BeadPx / 2, BeadPx, BeadPx);
+            return new PxRect(s.X + 188 + i * 44, s.CenterY - BeadPx / 2, BeadPx, BeadPx);
         }
 
         public static PxRect TrowelIcon(ScreenLayout L)
         {
             var s = Streak(L);
-            return new PxRect(s.X + 392, s.Y + 8, 48, 48);
+            return new PxRect(s.X + 366, s.Y + 5, 50, 50);
         }
 
         /// <summary>The "×n" of the trowels held.</summary>
         public static PxRect TrowelCount(ScreenLayout L)
         {
             var s = Streak(L);
-            return new PxRect(s.X + 444, s.Y, 58, s.H);
+            return new PxRect(s.X + 416, s.Y, s.W - 418, s.H);
+        }
+
+        /// <summary>V1: the truck chip riding the tray's bottom edge at the right of the status strip (ART_UNITY §4.4 `Status`).</summary>
+        public static PxRect TruckChip(ScreenLayout L)
+        {
+            var st = L.Board.Status;
+            return new PxRect(st.Right - 250, st.Y - 8, 240, 64);
         }
 
         /// <summary>The gold chip between the moves plate and the pause tool (JUICE #56: the coins fly there).</summary>
@@ -69,8 +89,8 @@ namespace MinikUsta.Presentation.Game
             return new PxRect(w.CenterX - size / 2, w.Y - 20 - size / 2, size, size);
         }
 
-        /// <summary>Where #88 / #20 blocks enter and leave the truck queue: the status strip under the board.</summary>
-        public static Vec2 QueueChip(ScreenLayout L) => new Vec2((float)L.Board.Status.CenterX, (float)L.Board.Status.CenterY);
+        /// <summary>Where #88 / #20 blocks enter and leave the truck queue: the truck chip on the status strip.</summary>
+        public static Vec2 QueueChip(ScreenLayout L) => Center(TruckChip(L));
 
         public static Vec2 Center(PxRect r) => new Vec2((float)r.CenterX, (float)r.CenterY);
 

@@ -8,6 +8,7 @@ using MinikUsta.Presentation.Art;
 using MinikUsta.Presentation.Game;
 using MinikUsta.Presentation.Layout;
 using MinikUsta.Presentation.Tweening;
+using MinikUsta.Presentation.Ui;
 
 namespace MinikUsta.Presentation.Tests.Fixtures
 {
@@ -24,6 +25,7 @@ namespace MinikUsta.Presentation.Tests.Fixtures
         public ShapeDef Shape;
         public int Color;
         public bool Dim;
+        public bool Placed { get; set; }
         public bool InPool;
         public Vec2 Position { get; set; }
         public Vec2 Scale { get; set; } = Vec2.One;
@@ -190,6 +192,21 @@ namespace MinikUsta.Presentation.Tests.Fixtures
 
         public ITweenTarget StreakBead(int index) => Beads[index];
 
+        // V1: the real HUD tree (optional): every HUD call is also forwarded to it (GameApp / HUD tests with a FakeSurface)
+        public LevelHud? Hud;
+        public bool WorldVisible { get; set; } = true;
+        public HudState? HudState;
+        public int HudStates;
+
+        public void SetHudState(HudState state)
+        {
+            HudState = state;
+            HudStates++;
+            Hud?.SetHudState(state);
+        }
+
+        public Vec2? StarCenter => Hud?.StarCenter;
+
         public ISpark AcquireSpark(SparkKind kind, Rgba color, double sizePx)
         {
             var s = new FakeSpark { Kind = kind, Color = color, SizePx = sizePx };
@@ -212,18 +229,21 @@ namespace MinikUsta.Presentation.Tests.Fixtures
             StreakTrowels = trowels;
             StreakLabel = label;
             TrowelText = trowelText;
+            Hud?.SetStreak(beads, trowels, label, trowelText);
         }
 
         public void SetGold(int gold)
         {
             Gold = gold;
             GoldShown.Add(gold);
+            Hud?.SetGold(gold);
         }
 
         public void SetViewport(DesignViewport viewport, ScreenLayout layout)
         {
             Viewport = viewport;
             Layout = layout;
+            Hud?.Layout(layout);
         }
 
         public void BuildBoard(BoardScene board)
@@ -286,6 +306,7 @@ namespace MinikUsta.Presentation.Tests.Fixtures
         {
             LevelLabel = label;
             LevelName = name;
+            Hud?.SetLevel(label, name);
         }
 
         public void SetMoves(int movesLeft, string label, bool danger)
@@ -294,6 +315,7 @@ namespace MinikUsta.Presentation.Tests.Fixtures
             MovesLabel = label;
             Danger = danger;
             MovesShown.Add(movesLeft);
+            Hud?.SetMoves(movesLeft, label, danger);
         }
 
         public void SetBlocks(int blocksLeft, string label, string segments)
@@ -301,12 +323,14 @@ namespace MinikUsta.Presentation.Tests.Fixtures
             Blocks = blocksLeft;
             BlocksLabel = label;
             Segments = segments;
+            Hud?.SetBlocks(blocksLeft, label, segments);
         }
 
         public void ShowPanel(PanelModel? panel, Action<PanelAction> onAction)
         {
             Panel = panel;
             OnAction = onAction;
+            Hud?.ShowPanel(panel, onAction);
         }
 
         /// <summary>Presses the option with `action` of the open window (fails when there is none).</summary>

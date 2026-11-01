@@ -96,6 +96,7 @@ namespace MinikUsta.Presentation.Game
                 v.Lifted = false;
                 v.Raised = false;
                 bool dim = holdable != null && PieceZone(s, id) == Zone.Yard && !holdable.Contains(id);
+                v.Placed = PieceZone(s, id) == Zone.Site;
                 v.SetLook(PieceColor(s, id), dim);
             }
         }

@@ -13,6 +13,7 @@ using MinikUsta.Presentation.Game;
 using MinikUsta.Presentation.Input;
 using MinikUsta.Presentation.Tests.Fixtures;
 using MinikUsta.Presentation.Tweening;
+using MinikUsta.Presentation.Ui;
 using NUnit.Framework;
 
 namespace MinikUsta.Presentation.Tests
@@ -918,11 +919,12 @@ namespace MinikUsta.Presentation.Tests
                 var rig = new Rig(w, h);
                 rig.Load(level);
                 var L = rig.Player.Layout!;
+                // V1 (v4 mock, ART_UNITY §4.4): the streak capsule is in HUD row 1, right of the blocks-left chip
                 var s = HudLayout.Streak(L);
-                Assert.GreaterOrEqual(s.X, L.Board.Status.X, "B" + level + ": inside the status strip");
-                Assert.LessOrEqual(s.Right, L.Board.Status.Right + 0.5, "B" + level + ": the capsule fits the board width");
-                Assert.GreaterOrEqual(s.Y, L.Board.Status.Y);
-                Assert.LessOrEqual(s.Bottom, L.Board.Status.Bottom);
+                Assert.GreaterOrEqual(s.X, HudLayout.BlocksChip(L).Right, "B" + level + ": right of the blocks chip");
+                Assert.LessOrEqual(s.Right, L.Goals.Right + 0.5, "B" + level + ": inside the goals row");
+                Assert.GreaterOrEqual(s.Y, L.Goals.Y);
+                Assert.LessOrEqual(s.Bottom, L.TopGroupBottomY);
                 var parts = new List<PxRect> { HudLayout.StreakLabel(L), HudLayout.TrowelIcon(L), HudLayout.TrowelCount(L) };
                 for (int i = 0; i < 4; i++) parts.Add(HudLayout.Bead(L, i));
                 for (int i = 0; i < parts.Count; i++)
@@ -934,14 +936,16 @@ namespace MinikUsta.Presentation.Tests
                 var chip = HudLayout.GoldChip(L);
                 Assert.IsFalse(chip.Overlaps(L.Moves) || chip.Overlaps(L.Pause), "the gold chip sits between the moves plate and the pause tool");
                 Assert.GreaterOrEqual(chip.W, 150);
-                foreach (int options in new[] { 1, 2 })
-                {
-                    var star = HudLayout.WindowStar(L, rig.Player.LayoutSettings, options);
-                    Assert.GreaterOrEqual(star.X, 0);
-                    Assert.LessOrEqual(star.Right, L.W);
-                    Assert.GreaterOrEqual(star.Y, 0);
-                    Assert.LessOrEqual(star.Bottom, HudLayout.Window(L, rig.Player.LayoutSettings, options).Panel.Y + 60, "the star sits on the top edge of the window");
-                }
+                var truck = HudLayout.TruckChip(L);
+                Assert.GreaterOrEqual(truck.X, 0);
+                Assert.LessOrEqual(truck.Right, L.W);
+                Assert.IsFalse(truck.Overlaps(L.BoosterBar), "the truck chip is above the booster bar");
+                // the win window's star sits in the top part of the window (V1 WindowViews.WinLayout; JUICE #96)
+                var win = WindowViews.WinLayout(L.W, L.H, rig.Player.LayoutSettings);
+                Assert.GreaterOrEqual(win.Star.Y, win.Panel.Y, "the star is inside the window");
+                Assert.Less(win.Star.Bottom, win.Card.Y, "the star is above the structure card");
+                Assert.GreaterOrEqual(win.Panel.Y, 0);
+                Assert.LessOrEqual(win.Panel.Bottom, L.H);
             }
         }
 

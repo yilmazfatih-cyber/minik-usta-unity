@@ -201,7 +201,8 @@ namespace MinikUsta.Presentation.Game
             {
                 double hw = 96 * 0.9 * k, hh = 160 * 0.9 * k;
                 double cx = g.YardX + 0.5 * c;
-                items.Add(BoardItem.Art(BoardItemKind.CraneHook, Frames.CraneHook, new PxRect(cx - hw / 2, crane.Y - 30 * k, hw, hh), Order.Crane + 2));
+                double hy = Math.Max(L.TopGroupBottomY, crane.Y - 30 * k); // the hook hangs from the tray's top edge, never into the HUD
+                items.Add(BoardItem.Art(BoardItemKind.CraneHook, Frames.CraneHook, new PxRect(cx - hw / 2, hy, hw, hh), Order.Crane + 2));
             }
 
             // yard: wooden frame (placeholder) + floor cells (checker); air rows over the yard

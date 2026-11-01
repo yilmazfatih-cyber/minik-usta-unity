@@ -75,6 +75,15 @@ namespace MinikUsta.Presentation.Ui
 
         public bool IsButton => Action != null;
 
+        /// <summary>Inserts `child` at `index` (draw order: later children draw on top).</summary>
+        public UiNode Insert(int index, UiNode child)
+        {
+            if (child.Parent != null) throw new InvalidOperationException("UiNode " + child.Id + " already has a parent");
+            child.Parent = this;
+            Children.Insert(Math.Max(0, Math.Min(index, Children.Count)), child);
+            return child;
+        }
+
         public UiNode Add(UiNode child)
         {
             if (child.Parent != null) throw new InvalidOperationException("UiNode " + child.Id + " already has a parent");
@@ -113,7 +122,7 @@ namespace MinikUsta.Presentation.Ui
     }
 
     /// <summary>Small builders so the screens read like their wireframes.</summary>
-    public static class Ui
+    public static class UiKit
     {
         public static UiNode Group(string id, PxRect r) => new UiNode(id, r);
 
