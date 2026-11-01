@@ -196,6 +196,40 @@ namespace MinikUsta.Presentation.Tests
             Assert.AreEqual(900, rig.App.Save.InLevel!.OfferSpendCoins);
         }
 
+        /// <summary>Level 3 with a move budget of `moves` (the same file otherwise; its level hash is that of this text).</summary>
+        private static string? ShortLevel(int n, int moves)
+        {
+            string? text = Rig.ReadLevel(n);
+            if (n != 3 || text == null) return text;
+            var j = MinikUsta.Core.Json.JsonReader.Parse(text);
+            j.Set("moves", MinikUsta.Core.Json.JsonValue.Of(moves));
+            return MinikUsta.Core.Json.JsonWriter.Write(j, false);
+        }
+
+        [Test]
+        public void K43_K29_killed_with_the_offer_window_open_resumes_into_the_same_offer()
+        {
+            var store = StoreWithWon(2);
+            System.Func<int, string?> read = n => ShortLevel(n, 1);
+            var rig = new AppRig(store, 1080, 1920, read);
+            rig.App.Boot();
+            rig.Tap(HomeView.PlayId);
+            rig.TapOption(PanelAction.Play);
+            Assert.AreEqual(1, rig.Session.MovesLeft, "the test level has one move");
+            rig.PlayGolden(3, 1);
+            Assert.AreEqual(AppScreen.LoseOffer, rig.Screen, "K-29: really out of moves");
+            Assert.AreEqual("outOfMoves", rig.App.Save.InLevel!.OutcomeWindow);
+            var again = new AppRig(store, 1080, 1920, read);
+            again.App.Boot();
+            Assert.AreEqual(AppScreen.LoseOffer, again.Screen, "K-43/3: the window that was open comes back");
+            Assert.AreEqual(0, again.Session.MovesLeft);
+            Assert.AreEqual("Teklif 1/3", again.Ui.Root(UiLayer.Window)!.Get("win.counter").Text);
+            again.TapOption(PanelAction.BuyMoves);
+            Assert.AreEqual(AppScreen.Level, again.Screen);
+            again.Settle();
+            Assert.AreEqual(5, again.Session.MovesLeft);
+        }
+
         [Test]
         public void K43_pause_exit_before_a_move_is_free_after_a_move_a_loss_and_restart_starts_a_new_attempt()
         {

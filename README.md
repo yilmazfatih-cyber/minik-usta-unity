@@ -169,7 +169,7 @@ basışı, kamera sarsıntısı, Android titreşimi) tamam. Ses ve gerçek sanat
 3. İlk açılış birkaç dakika sürer. Unity eksik `.meta` dosyalarını üretir; `git status` ile değişenleri gözden geçir.
 4. `Assets/MinikUsta/Scenes/Level.unity` dosyasını aç ve **Play**'e bas.
 5. Testler: **Window → General → Test Runner → EditMode → Run All**. Koşan assembly'ler: `MinikUsta.Core.Tests`
-   ve `MinikUsta.Presentation.Core.Tests`. Beklenen sayılar dotnet koşusuna göre: Presentation 283 geçer. Core, `tools/diff/out`
+   ve `MinikUsta.Presentation.Core.Tests`. Beklenen sayılar dotnet koşusuna göre (paket V1): Presentation 348 geçer. Core, `tools/diff/out`
    (git dışı, `ts-oracle.mjs` çıktısı) varsa 1455 geçer ve 5 atlar; yoksa 1049 geçer ve 7 atlar (DiffFuzz durumları üretilmez).
    Unity içinde bu koşu henüz yapılmadı.
 
