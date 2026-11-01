@@ -35,7 +35,7 @@ namespace MinikUsta.Unity
                 var r = Atlas.RectOf(t);
                 var rect = new Rect(r.X, r.Y, r.W, r.H);
                 var pivot = new Vector2(0.5f, 0.5f);
-                float b = t == Tile.Panel ? Atlas.PanelBorder : 0f;
+                float b = t == Tile.Panel || t == Tile.Highlight ? Atlas.PanelBorder : 0f;
                 var sprite = Sprite.Create(tex, rect, pivot, Atlas.PixelsPerUnit, 0, SpriteMeshType.FullRect, new Vector4(b, b, b, b));
                 sprite.name = "MinikUsta." + t;
                 o[(int)t] = sprite;

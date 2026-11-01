@@ -49,14 +49,12 @@ namespace MinikUsta.Presentation.Tutorial
         private const float RingStartPx = 30f;
         private const float RingMax = 1.8f;
         private const float HoldMs = 600f;
-        private const double BubbleTextPx = 40;
+        private const double BubbleTextPx = 44; // tokens font.size.body
         private const double BubblePadX = 30;
         private const double BubblePadY = 22;
         private const double TailPx = 26;
         private const double IconPx = 46;
 
-        private static readonly Rgba Stroke = Rgba.Hex("#FFD119");
-        private static readonly Rgba Glow = Rgba.Hex("#FFE9A8");
         private static readonly Rgba PortraitBack = Rgba.Hex("#FFF6E3");
         private static readonly Rgba Ink = Rgba.Hex("#1A467B");
 
@@ -157,28 +155,22 @@ namespace MinikUsta.Presentation.Tutorial
             ui.Show(UiLayer.Tutorial, r, null);
         }
 
-        /// <summary>Soft glow: a gold stroke with a wider pale halo, drawn as bars around the padded target (the v4 atlas has no highlight frame).</summary>
+        /// <summary>
+        /// The highlight tile (`Tile.Highlight`) has its box edge 20 tile px inside the tile and Unity draws a sliced sprite at
+        /// `referencePixelsPerUnit / spritePixelsPerUnit` = 100 / 120, so the frame sits 16,7 design px outside the box it surrounds.
+        /// </summary>
+        public const double HighlightInsetPx = 20 * 100.0 / 120.0;
+
+        /// <summary>Soft glow: one sliced rounded gold outline with a halo around the padded target (`FallbackTiles.TutorialHighlight`).</summary>
         private UiNode BuildGlow(int index, PxRect target)
         {
-            double stroke = s.HighlightStrokePx;
-            double halo = s.HighlightGlowPx;
-            var inner = target.Grow(s.HighlightPadPx);
-            var outer = inner.Grow(stroke);
-            var all = outer.Grow(halo);
+            var all = GlowRect(target);
             var g = new UiNode(GlowPrefix + index, all) { Visible = false };
-            Bars(g, "halo", outer, all, halo, Glow, 0.34f);
-            Bars(g, "stroke", inner, outer, stroke, Stroke, 0.96f);
+            g.Add(UiKit.Image("tut.hl.frame", FallbackTiles.TutorialHighlight, all, true));
             return g;
         }
 
-        /// <summary>Four bars of thickness `t` filling the frame between `inner` and `outer`.</summary>
-        private static void Bars(UiNode parent, string id, PxRect inner, PxRect outer, double t, Rgba color, float alpha)
-        {
-            parent.Add(UiKit.Image(id + ".t", Frames.White, new PxRect(outer.X, outer.Y, outer.W, t), false, color, alpha));
-            parent.Add(UiKit.Image(id + ".b", Frames.White, new PxRect(outer.X, outer.Bottom - t, outer.W, t), false, color, alpha));
-            parent.Add(UiKit.Image(id + ".l", Frames.White, new PxRect(outer.X, inner.Y, t, inner.H), false, color, alpha));
-            parent.Add(UiKit.Image(id + ".r", Frames.White, new PxRect(outer.Right - t, inner.Y, t, inner.H), false, color, alpha));
-        }
+        private PxRect GlowRect(PxRect target) => target.Grow(s.HighlightPadPx + HighlightInsetPx);
 
         private PxRect GloveRect(Vec2 tip)
         {
@@ -414,28 +406,14 @@ namespace MinikUsta.Presentation.Tutorial
 
         private static bool RectEquals(PxRect a, PxRect b) => Math.Abs(a.X - b.X) < 0.5 && Math.Abs(a.Y - b.Y) < 0.5 && Math.Abs(a.W - b.W) < 0.5 && Math.Abs(a.H - b.H) < 0.5;
 
-        /// <summary>The glow follows a target that moved (a dragged block): the group and its bars get new rectangles.</summary>
+        /// <summary>The glow follows a target that moved (a dragged block): the group and its frame get new rectangles.</summary>
         private void MoveGlow(UiNode g, PxRect target)
         {
-            double stroke = s.HighlightStrokePx;
-            double halo = s.HighlightGlowPx;
-            var inner = target.Grow(s.HighlightPadPx);
-            var outer = inner.Grow(stroke);
-            var all = outer.Grow(halo);
+            var all = GlowRect(target);
             g.Rect = all;
-            // halo bars (first four children), then stroke bars (next four)
-            SetBars(g, 0, outer, all, halo);
-            SetBars(g, 4, inner, outer, stroke);
+            g.Children[0].Rect = all;
             ui.Refresh(g);
-            foreach (var ch in g.Children) ui.Refresh(ch);
-        }
-
-        private static void SetBars(UiNode g, int first, PxRect inner, PxRect outer, double t)
-        {
-            g.Children[first].Rect = new PxRect(outer.X, outer.Y, outer.W, t);
-            g.Children[first + 1].Rect = new PxRect(outer.X, outer.Bottom - t, outer.W, t);
-            g.Children[first + 2].Rect = new PxRect(outer.X, inner.Y, t, inner.H);
-            g.Children[first + 3].Rect = new PxRect(outer.Right - t, inner.Y, t, inner.H);
+            ui.Refresh(g.Children[0]);
         }
 
         /// <summary>The loop of the web glove: `HandLoopMs`, the last `HandPauseMs` a pause (the glove fades); a tap presses and a ring grows.</summary>

@@ -303,5 +303,33 @@ namespace MinikUsta.Presentation.Tests
             Assert.AreEqual((0.0, 1920.0), (Math.Round(x0, 9), Math.Round(y0, 9)));
             Assert.Throws<ArgumentOutOfRangeException>(() => ScreenLayout.Create(S, 1800));
         }
+
+        [TestCase(390, 844)]
+        [TestCase(360, 800)]
+        [TestCase(412, 915)]
+        [TestCase(1080, 1920)]
+        [TestCase(1536, 2048)]
+        [TestCase(1170, 2532)]
+        public void C1_the_uGUI_canvas_scale_is_the_viewport_scale_so_the_whole_design_canvas_is_on_screen(double sw, double sh)
+        {
+            // UiRenderer.SetCanvas sets CanvasScaler.scaleFactor to exactly this number; the old Shrink match mode used max(sw / 1080, sh / 1920)
+            // and cropped the sides of every phone narrower than 9:16 (CI screenshots of run 41361422803)
+            var vp = ScreenFit.Viewport(sw, sh, new LayoutSettings());
+            Assert.LessOrEqual(vp.W * vp.Scale, sw + 1e-6, "the design width fits");
+            Assert.LessOrEqual(vp.H * vp.Scale, sh + 1e-6, "the design height fits");
+            Assert.AreEqual(Math.Min(sw / vp.W, sh / vp.H), vp.Scale, 1e-12);
+            double shrink = Math.Max(sw / 1080.0, sh / 1920.0);
+            if (sw / sh < 1080.0 / 1920.0 - 1e-9) Assert.Greater(1080.0 * shrink, sw, "the old Shrink factor would have cropped this screen");
+        }
+
+        [TestCase("https://h/p/?scale=expand", ScaleMode.Expand)]
+        [TestCase("https://h/p/?shots=1&scale=fit#x", ScaleMode.Fit)]
+        [TestCase("https://h/p/?scale=wide", null)]
+        [TestCase("https://h/p/", null)]
+        [TestCase("", null)]
+        public void C1_the_scale_mode_can_be_chosen_in_the_page_url(string url, object? expected)
+        {
+            Assert.AreEqual(expected == null ? (ScaleMode?)null : (ScaleMode)expected, ScreenFit.ModeFromUrl(url));
+        }
     }
 }

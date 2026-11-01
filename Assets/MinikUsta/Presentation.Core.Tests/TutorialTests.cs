@@ -458,19 +458,44 @@ namespace MinikUsta.Presentation.Tests
         [Test]
         public void K53_bubble_wraps_greedily_inside_its_width_and_the_check_icon_sits_in_the_line()
         {
-            var lines = TutorialView.Wrap("Gölgede {ok} varsa yer doğru.", 40, 600);
+            var lines = TutorialView.Wrap("Gölgede {ok} varsa yer doğru.", 44, 600);
             Assert.GreaterOrEqual(lines.Count, 1);
             var all = lines.SelectMany(l => l).ToList();
             Assert.AreEqual(5, all.Count, "five words, the icon is one of them");
             Assert.AreEqual(1, all.Count(w => w.Icon));
             foreach (var l in lines)
             {
-                double w = l.Sum(x => x.Width) + FontMetrics.Width(" ", 40) * (l.Count - 1);
+                double w = l.Sum(x => x.Width) + FontMetrics.Width(" ", 44) * (l.Count - 1);
                 Assert.LessOrEqual(w, 600 + 0.01, "a line fits its width");
             }
-            var narrow = TutorialView.Wrap("Bu blok sonraki kat için.", 40, 300);
+            var narrow = TutorialView.Wrap("Bu blok sonraki kat için.", 44, 300);
             Assert.Greater(narrow.Count, 1, "a narrow bubble wraps");
             Assert.AreEqual(5, narrow.SelectMany(l => l).Count());
+        }
+
+        // --- the highlight frame ---------------------------------------------------------------------------------------------------
+
+        [Test]
+        public void K53_the_highlight_tile_is_a_hollow_rounded_outline_with_a_soft_glow_and_the_frame_is_procedural_on_purpose()
+        {
+            var a = Atlas.Build();
+            int mid = Atlas.Content / 2;
+            Assert.AreEqual(0, a.At(Tile.Highlight, mid, mid).A, "hollow: the target shows through");
+            Assert.Greater(a.At(Tile.Highlight, mid, 20).A, 250, "the stroke sits on the box edge, 20 px inside the tile");
+            Assert.Greater(a.At(Tile.Highlight, 20, mid).A, 250);
+            int glow = a.At(Tile.Highlight, mid, 12).A;
+            Assert.That(glow, Is.InRange(30, 140), "a glow outside the stroke");
+            Assert.Less(a.At(Tile.Highlight, mid, 1).A, 12, "…that has faded at the tile edge");
+            Assert.AreEqual(0, a.At(Tile.Highlight, mid, mid + 1).A);
+            // the whole corner arc fits the 40 px 9-slice border: the stretched middle row has the same alpha everywhere along an edge
+            for (int u = Atlas.PanelBorder; u < Atlas.Content - Atlas.PanelBorder; u++)
+                Assert.AreEqual(a.At(Tile.Highlight, mid, 20).A, a.At(Tile.Highlight, u, 20).A, "edge row at " + u);
+            var fb = FallbackTiles.Of(FallbackTiles.TutorialHighlight)!.Value;
+            Assert.AreEqual(Tile.Highlight, fb.Tile);
+            Assert.IsTrue(fb.Sliced);
+            Assert.IsTrue(FallbackTiles.IsProceduralOnly("tut_highlight"));
+            Assert.IsFalse(FallbackTiles.IsProceduralOnly("bubble_speech"));
+            Assert.AreEqual(16.67, TutorialView.HighlightInsetPx, 0.01);
         }
 
         // --- the whole game --------------------------------------------------------------------------------------------------------
@@ -496,6 +521,9 @@ namespace MinikUsta.Presentation.Tests
             Assert.IsTrue(root.Get(TutorialView.GloveId).Visible, "level 1 step 1 has a reachable drag path");
             Assert.IsTrue(root.Get(TutorialView.GlowPrefix + "0").Visible);
             Assert.AreEqual(2, tp.View.GlowCount, "piece:0 and crane");
+            var frame = root.Get(TutorialView.GlowPrefix + "0").Get("tut.hl.frame");
+            Assert.AreEqual("tut_highlight", frame.Frame);
+            Assert.IsTrue(frame.Sliced);
             var words = root.All().Where(n => n.Id == "tut.word").Select(n => n.Text).ToArray();
             Assert.AreEqual(rig.I18n.Text.Get("tut.m.lift").Split(' '), words, "the bubble says the step's i18n text word by word");
             foreach (var n in root.All())
@@ -505,6 +533,40 @@ namespace MinikUsta.Presentation.Tests
             }
             Assert.IsFalse(rig.Ui.Tap(TutorialView.GloveId), "a tap on the glove is not a button press");
         }
+
+        [Test]
+        public void K53_the_glove_walks_its_path_in_1200_ms_and_fades_in_the_last_400_ms_of_every_1600_ms_loop()
+        {
+            var rig = Booted();
+            rig.Tap(HomeView.PlayId);
+            var tp = rig.Player.Tutorial!;
+            rig.Tick(700);
+            Assert.AreEqual(PresencePhase.Shown, tp.Presence!.Phase);
+            var glove = tp.View.Glove!;
+            Assert.IsTrue(glove.Visible);
+            var s = tp.Settings;
+            // the fingertip of the glove node: (0.36 W, 8) inside its rectangle
+            Vec2 Tip() => new Vec2((float)(glove.Rect.X + s.GloveW * 0.36), (float)(glove.Rect.Y + 8));
+            var L = rig.Player.Layout!;
+            var path = TutorialGlove.RoundedPath(TutorialGlove.FingerPoints(L.Grid, rig.Player.Feel.FingerOffsetCells, rig.Session.Lvl.Data.Tutorial![0].Hand!.Path!), s.CornerRadiusPx);
+            float total = TutorialGlove.Length(path);
+            float edge = tp.Now; // the glove edge is the tick that showed it; sample the next loop from there
+            var samples = new List<(float t, Vec2 tip, float alpha)>();
+            for (int i = 0; i < 28; i++)
+            {
+                rig.Tick(60);
+                samples.Add((tp.Now - edge, Tip(), glove.Alpha));
+            }
+            var first = samples[3]; // after the 160 ms fade-in
+            Assert.Less(Dist(first.tip, path[0]) , total * 0.45f, "the glove starts at the beginning of its path");
+            float closestToEnd = samples.Min(x => Dist(x.tip, path[path.Length - 1]));
+            Assert.Less(closestToEnd, total * 0.06f, "within a loop the fingertip reaches the end of the path");
+            Assert.That(samples.Min(x => x.alpha), Is.LessThan(0.5f), "the glove fades during the pause at the end of the loop");
+            Assert.That(samples.Any(x => x.alpha >= 0.99f), "and is fully visible while it walks");
+            Assert.IsTrue(glove.Visible);
+        }
+
+        private static float Dist(Vec2 a, Vec2 b) => (float)System.Math.Sqrt((a.X - b.X) * (double)(a.X - b.X) + (a.Y - b.Y) * (double)(a.Y - b.Y));
 
         [Test]
         public void K53_tutorial_never_blocks_input_a_drag_works_while_the_step_is_shown_and_ends_the_step()

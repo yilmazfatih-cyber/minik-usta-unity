@@ -24,6 +24,12 @@ namespace MinikUsta.Presentation.Art
 
     public static class FallbackTiles
     {
+        /// <summary>C1: the tutorial highlight frame (K-53). Not in atlas.json by design (procedural); an art pack that adds a frame of this name replaces it.</summary>
+        public const string TutorialHighlight = "tut_highlight";
+
+        /// <summary>Frames that are procedural on purpose: a missing atlas entry is no warning for them.</summary>
+        public static bool IsProceduralOnly(string frame) => frame == TutorialHighlight;
+
         private static int ColorOf(string letter)
         {
             int i = MinikUsta.Core.ColorCodes.IndexOf(letter.ToUpperInvariant());
@@ -70,6 +76,7 @@ namespace MinikUsta.Presentation.Art
                 case Frames.FxConfetti: return new Fallback(Tile.Plain, Rgba.White);
                 case Frames.FxConfettiRound: return new Fallback(Tile.Circle, Rgba.White);
                 case Frames.FxRing: return new Fallback(Tile.Ring, Rgba.White);
+                case TutorialHighlight: return new Fallback(Tile.Highlight, Rgba.Hex(Palette.Gold), true);
                 case Frames.DropBlob: return new Fallback(Tile.Soft, Rgba.Black.WithAlpha(Palette.LiftedShadowAlpha));
                 case "icon_coin": return new Fallback(Tile.Coin, Rgba.Hex(Palette.Gold));
                 case "icon_star": return new Fallback(Tile.Star, Rgba.Hex(Palette.Gold));

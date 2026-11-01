@@ -135,7 +135,7 @@ namespace MinikUsta.Unity
             var s = Get(name);
             if (s != null) return new FrameSprite(s, data!.Find(name), Rgba.White, data.Find(name)!.Sliced);
             var fb = FallbackTiles.Of(name);
-            if (Loaded && warned.Add(name)) Debug.LogWarning("Minik Usta: atlas frame " + name + " missing; placeholder tile");
+            if (Loaded && !FallbackTiles.IsProceduralOnly(name) && warned.Add(name)) Debug.LogWarning("Minik Usta: atlas frame " + name + " missing; placeholder tile");
             if (fb == null) return new FrameSprite(null, null, Rgba.White, false);
             return new FrameSprite(ProceduralSprites.Get(fb.Value.Tile), null, fb.Value.Tint, fb.Value.Sliced);
         }

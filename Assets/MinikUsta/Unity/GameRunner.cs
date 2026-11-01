@@ -42,6 +42,8 @@ namespace MinikUsta.Unity
                 cam = go.AddComponent<Camera>();
             }
             var layout = new LayoutSettings();
+            var urlMode = ScreenFit.ModeFromUrl(Application.absoluteURL);
+            if (urlMode.HasValue) layout.Mode = urlMode.Value; // C1: ?scale=fit | ?scale=expand
             var feel = new FeelSettings();
             var i18n = new Localizer(ReadText);
             i18n.Text.Missing = key => Debug.LogWarning("Minik Usta: missing i18n key " + key);

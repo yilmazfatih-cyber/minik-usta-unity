@@ -9,6 +9,7 @@
 //
 //   node shoot.mjs --dir build/WebGL/MinikUsta --out artifacts/shots --sha <git sha> [--dpr 2] [--port 0]
 //                  [--ready-timeout 240] [--shot-timeout 150] [--url-path /] [--settle 600]
+//                  [--query scale=expand] [--only level_start,tutorial,win]   (extra URL parameters; save only these shots)
 // Environment: PLAYWRIGHT_CHROMIUM_EXECUTABLE (use a preinstalled Chromium), GITHUB_* (written into the manifest).
 import fs from 'node:fs';
 import http from 'node:http';
@@ -34,6 +35,9 @@ const readyTimeoutMs = Number(arg('ready-timeout', '240')) * 1000;
 const shotTimeoutMs = Number(arg('shot-timeout', '150')) * 1000;
 const settleMs = Number(arg('settle', '600'));
 const urlPath = arg('url-path', '/');
+const extraQuery = arg('query', '');
+const only = arg('only', '');
+const want = only ? new Set(only.split(',').map((x) => x.trim()).filter(Boolean)) : null;
 if (!dir || !fs.existsSync(path.join(dir, 'index.html'))) {
   console.error('shoot.mjs: --dir must hold the WebGL player (index.html not found in ' + dir + ')');
   process.exit(2);
@@ -220,7 +224,7 @@ async function captureViewport(browser, vp, baseUrl) {
     result.gl = gl;
     if (!gl) warn(vp.name + ': this Chromium has no WebGL2 (software GL flags did not take effect)');
 
-    await page.goto(baseUrl + '?shots=1', { waitUntil: 'domcontentloaded', timeout: 60000 });
+    await page.goto(baseUrl + '?shots=1' + (extraQuery ? '&' + extraQuery : ''), { waitUntil: 'domcontentloaded', timeout: 60000 });
     const ready = await next((e) => e.startsWith('ready') || e.startsWith('error:'), readyTimeoutMs);
     if (ready === null || ready.startsWith('error:')) {
       result.errors.push(ready === null ? 'the game did not report "ready" within ' + readyTimeoutMs / 1000 + ' s' : ready);
@@ -248,6 +252,7 @@ async function captureViewport(browser, vp, baseUrl) {
         await page.screenshot({ path: path.join(dirVp, '_failure.png') }).catch(() => {});
         break;
       }
+      if (want && !want.has(name)) continue; // signalled, but not wanted in this run
       await sleep(settleMs); // the frame after the signal reaches the compositor (software GL is slow)
       const file = path.join(dirVp, name + '.png');
       await page.screenshot({ path: file, type: 'png' });
@@ -262,7 +267,7 @@ async function captureViewport(browser, vp, baseUrl) {
       if (blank) warn(vp.name + '/' + name + '.png is flat (' + colours + ' colours): the canvas was probably not captured');
       result.screens.push({ name, file: vp.name + '/' + name + '.png', bytes, colours, blank });
     }
-    result.ok = result.errors.length === 0 && result.screens.length === cfg.shots.length && !result.screens.some((s) => s.blank);
+    result.ok = result.errors.length === 0 && result.screens.length === (want ? want.size : cfg.shots.length) && !result.screens.some((s) => s.blank);
     return result;
   } catch (e) {
     result.errors.push(String(e && e.message ? e.message : e));
@@ -298,7 +303,8 @@ const manifest = {
       : null,
   renderer: 'headless Chromium, software GL (SwiftShader), Playwright ' + playwrightVersion(),
   dpr,
-  shots: cfg.shots,
+  query: extraQuery || null,
+  shots: want ? cfg.shots.filter((n) => want.has(n)) : cfg.shots,
   viewports: {},
   ok: false,
   warnings,
@@ -325,7 +331,7 @@ try {
   for (const vp of cfg.viewports) {
     console.log('capturing ' + vp.name + ' ...');
     manifest.viewports[vp.name] = await captureViewport(browser, vp, baseUrl);
-    console.log(vp.name + ': ' + manifest.viewports[vp.name].screens.length + '/' + cfg.shots.length + ' shots, errors: ' + manifest.viewports[vp.name].errors.length);
+    console.log(vp.name + ': ' + manifest.viewports[vp.name].screens.length + '/' + (want ? want.size : cfg.shots.length) + ' shots, errors: ' + manifest.viewports[vp.name].errors.length);
   }
 } catch (e) {
   warn('browser: ' + (e && e.message ? e.message : e));

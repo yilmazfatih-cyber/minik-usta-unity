@@ -135,8 +135,8 @@ namespace MinikUsta.Unity
             DesignW = (float)w;
             DesignH = (float)h;
             design.sizeDelta = new Vector2(DesignW, DesignH);
-            float k = Mathf.Min(Screen.width / DesignW, Screen.height / DesignH);
-            if (k > 0f) scaler.scaleFactor = k;
+            if (Screen.width > 0 && Screen.height > 0)
+                scaler.scaleFactor = (float)new MinikUsta.Presentation.Layout.DesignViewport(Screen.width, Screen.height, DesignW, DesignH).Scale;
         }
 
         /// <summary>The RectTransform of a layer (the Fx layer holds the uGUI particles of `UnityUiSpark`).</summary>

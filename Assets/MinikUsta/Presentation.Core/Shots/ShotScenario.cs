@@ -9,8 +9,9 @@
 // without touching anything, so a slow software-GL browser (a few frames per second) still shows the frame it was asked about.
 //
 //   home → settings → (close) → play → level_start (0,5 s after the start, before the tutorial appears) → tutorial (3 s after the start: glow,
-//   bubble and the glove on its path) → drag_mid (a real pointer drag, cancelled) → landed (first golden move committed and settled)
-//   → … golden solution … → win (the win window and its rewards settled) → done
+//   bubble and the glove on its path) → [golden moves up to the first one that goes to the site] → drag_mid (a real pointer drag of that
+//   block over the wall, cancelled: the lifted block and its K-18 shadow) → landed (that move committed and settled) → … golden solution …
+//   → win (the win window and its rewards settled) → done
 //
 // Pure: no engine, no wall clock — the clock is the sum of `Tick` frame times, so a test drives it with fixed frames.
 using System;
@@ -132,7 +133,8 @@ namespace MinikUsta.Presentation.Shots
             Add("level_start_window", 600f, Once(AcceptLevelStart));
             Add("level_start", 500f, Once(() => RequireScreen(AppScreen.Level) ? Shot("level_start") : false));
             Add("tutorial", hold, Once(() => Shot("tutorial")));
-            Add("drag_down", hold, Once(DragDown));
+            Add("approach", hold, Approach);
+            Add("drag_down", 0f, Once(DragDown));
             Add("drag_move", 0f, DragStep);
             Add("drag_mid", 600f, Once(() => Shot("drag_mid")));
             Add("drag_cancel", hold, Once(() =>
@@ -252,6 +254,30 @@ namespace MinikUsta.Presentation.Shots
             return true;
         }
 
+        /// <summary>Plays the golden moves that stay in the yard (digging) until the next one is a drag to the site: that one is previewed and shown.</summary>
+        private bool Approach(float dtMs)
+        {
+            var p = app.Player;
+            var session = p.Session;
+            if (session == null) return Fail2("no session");
+            if (!Idle() || sinceCommit < 450f || p.Panel != PanelKind.None) return false;
+            solution ??= solutions(p.LevelNumber);
+            var next = DebugSolver.NextSolutionMove(session, solution);
+            if (next == null) return true; // off the solution: preview whatever comes
+            if (next is DragMove dm && GoesToSite(session, dm)) return true;
+            p.Commit(next);
+            sinceCommit = 0f;
+            return false;
+        }
+
+        private static bool GoesToSite(GameSession session, DragMove move)
+        {
+            var drag = Movement.BeginDrag(session.State, move.PieceId, session.Hooks.Drag);
+            if (drag == null) return false;
+            string kind = drag.Classify(move.To).Kind;
+            return kind == DropKinds.SiteFree || kind == DropKinds.SiteRail;
+        }
+
         private bool DragDown()
         {
             var p = app.Player;
@@ -276,9 +302,9 @@ namespace MinikUsta.Presentation.Shots
             startY = rect.CenterY;
             var from = BoardPose.Center(g, ax, ay, shape);
             var to = BoardPose.Center(g, preview.To.Ix, preview.To.Iy, shape);
-            // 55 % of the way: far enough to lift and show the shadow, short of the release
-            endX = startX + (to.X - from.X) * 0.55;
-            endY = startY + (to.Y - from.Y) * 0.55;
+            // 80 % of the way: lifted over the wall with its shadow on the site, short of the release
+            endX = startX + (to.X - from.X) * 0.8;
+            endY = startY + (to.Y - from.Y) * 0.8;
             dragT = 0f;
             app.PointerDown(0, startX, startY);
             return true;

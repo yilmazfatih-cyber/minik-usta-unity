@@ -90,5 +90,24 @@ namespace MinikUsta.Presentation.Layout
             new DesignViewport(screenW, screenH, s.DesignWidth, DesignHeight(mode, screenW, screenH, s));
 
         public static DesignViewport Viewport(double screenW, double screenH, LayoutSettings s) => Viewport(s.Mode, screenW, screenH, s);
+
+        /// <summary>
+        /// C1: `?scale=fit` or `?scale=expand` in the page URL (WebGL) picks the scale mode for that visit, so the two can be compared on a phone
+        /// and in CI screenshots without a build; anything else (or no parameter) is null = the default of `LayoutSettings.Mode`.
+        /// </summary>
+        public static ScaleMode? ModeFromUrl(string? url)
+        {
+            if (string.IsNullOrEmpty(url)) return null;
+            int q = url!.IndexOf('?');
+            if (q < 0) return null;
+            int hash = url.IndexOf('#', q);
+            string query = hash < 0 ? url.Substring(q + 1) : url.Substring(q + 1, hash - q - 1);
+            foreach (var pair in query.Split('&'))
+            {
+                if (pair == "scale=expand") return ScaleMode.Expand;
+                if (pair == "scale=fit") return ScaleMode.Fit;
+            }
+            return null;
+        }
     }
 }

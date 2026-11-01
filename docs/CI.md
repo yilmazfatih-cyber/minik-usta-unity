@@ -366,12 +366,17 @@ saniyede birkaç karelik hızında bile istenen kare ekrandadır.
 | 2 | `settings` | ayarlar paneli açık |
 | 3 | `level_start` | Bölüm 1, başlangıçtan 0,5 sn sonra (öğretici henüz yok) |
 | 4 | `tutorial` | başlangıçtan 3 sn sonra: parlama, balon, eldiven yolda |
-| 5 | `drag_mid` | gerçek işaretçi sürüklemesi: altın çözümün ilk hamlesindeki blok yolun %55'inde (bırakılmaz, iptal edilir) |
-| 6 | `landed` | altın çözümün ilk hamlesi işlendi ve sahne durulmuş |
+| 5 | `drag_mid` | gerçek işaretçi sürüklemesi: altın çözümün şantiyeye giden ilk hamlesindeki blok (öncesindeki saha hamleleri oynanır) yolun %80'inde, duvarın üstünde, K-18 gölgesiyle; bırakılmaz, iptal edilir |
+| 6 | `landed` | o hamle işlendi, blok yerine oturmuş ve sahne durulmuş |
 | 7 | `win` | kazanma penceresi, ödüller yerleşmiş |
 
 Sonra `done` yazılır. Hata olursa `error:<neden>` yazılır (zaman aşımı 240 sn oyun süresi) ve Playwright ilgili görünümde durur. Sıra ve adlar
 `tools/ci-shots/shots.json` ile `ShotScenario.ShotNames` arasında ortaktır; `C1_ci_shots_json_lists_the_same_shots_and_tag_as_the_scenario` testi ikisini eşitler.
+
+**FIT / EXPAND kanıtı (`expand/`).** Sayfa adresine `?scale=expand` (ya da `?scale=fit`) eklenince o ziyaret için ölçek kipi seçilir (`ScreenFit.ModeFromUrl`; varsayılan
+`LayoutSettings.Mode` = FIT, Faz 3 brifi). `screenshots` işi aynı oyuncuyu bir kez de `?scale=expand` ile açar ve `level_start`, `tutorial`, `win` karelerini
+`latest/expand/` (ve `<kısa-sha>/expand/`) altına yazar (kendi `manifest.json`'u var, `query: "scale=expand"`). Neden: FIT, 9:16'dan uzun her telefonda (390×844'te %18, 360×800'de %20)
+üst ve altta ölü koyu bant bırakır; web D-015 EXPAND'i kabul etmişti. Karar orkestratörün; geçiş tek satır (`LayoutSettings.Mode`).
 
 **Görünümler ve hâl.** 390×844 ve 360×800 CSS px, `deviceScaleFactor` 2 (PNG 780×1688 ve 720×1600), Android kullanıcı aracısı + `isMobile` (varsayılan Unity
 şablonu bu durumda tüm pencereyi dolduran `unity-mobile` düzenine geçer), `tr-TR`, `--use-angle=swiftshader --enable-unsafe-swiftshader`. Her PNG, Playwright'ın
@@ -390,7 +395,8 @@ README.md                         dalın açıklaması
 
 `manifest.json` alanları: `schema` (1), `commit`, `shortSha`, `generatedAt` (ISO), `run` (Actions koşusu adresi), `renderer`, `dpr`, `shots` (adlar),
 `viewports.<ad>` = `{width, height, dpr, canvas{cssWidth, cssHeight, pixelWidth, pixelHeight}, gl, ready, screens[{name, file, bytes, colours, blank}], errors[], ok}`,
-`ok` (hepsi tamam), `warnings[]`. Okumak: `git fetch origin ci-shots && git show origin/ci-shots:latest/390x844/win.png > win.png`.
+`ok` (hepsi tamam), `warnings[]`. Okumak: `bash tools/ci-shots/fetch.sh [hedef] [kısa-sha|latest]` (dalı çeker, klasörü `artifacts/ci-shots` altına açar, özet yazar) ya da tek dosya için
+`git fetch origin ci-shots && git show origin/ci-shots:latest/390x844/win.png > win.png`.
 Aynı dosyalar `ci-screenshots` artifact'i (14 gün) olarak da yüklenir.
 
 **Yerel deneme.** `cd tools/ci-shots && npm ci && PLAYWRIGHT_CHROMIUM_EXECUTABLE=/yol/chrome node shoot.mjs --dir <WebGL klasörü> --out <çıktı> --sha <sha>`;

@@ -116,7 +116,7 @@ namespace MinikUsta.Presentation.Tests
         }
 
         [Test]
-        public void C1_shots_scenario_drag_preview_lifts_a_block_and_leaves_no_move_behind()
+        public void C1_shots_scenario_drag_preview_lifts_a_block_over_the_wall_with_its_shadow_and_commits_nothing()
         {
             var (rig, sc, _) = Start();
             float t = 0;
@@ -129,7 +129,14 @@ namespace MinikUsta.Presentation.Tests
             }
             Assert.IsTrue(sc.Signalled.Contains("drag_mid"));
             Assert.IsTrue(rig.Player.Mapper.Active, "the finger is down: a drag is in progress at the drag_mid shot");
-            Assert.AreEqual(1, rig.Session.Log.Count, "only the start action is logged: the preview drag commits nothing");
+            var golden = DebugSolver.SolutionLog(PresentationPaths.ResourceText("solutions/level_001.solver"))!;
+            // every move committed so far is the golden one (the approach digs in the yard); the previewed move is the next golden one
+            for (int i = 1; i < rig.Session.Log.Count; i++) Assert.IsTrue(SessionActionJson.SameAs(rig.Session.Log[i], golden[i]), "log " + i + " follows the golden solution");
+            var next = (DragMove)golden[rig.Session.Log.Count];
+            Assert.AreEqual(next.PieceId, rig.Player.Mapper.PieceId, "the lifted block is the one the golden solution moves next");
+            var drop = rig.Player.Mapper.Session!.Classify();
+            Assert.IsTrue(drop.Kind == DropKinds.SiteFree || drop.Kind == DropKinds.SiteRail, "the preview is over the wall: " + drop.Kind);
+            Assert.IsNotNull(rig.View.Shadow, "the K-18 shadow of the lifted block is on the site");
         }
 
         [Test]

@@ -76,6 +76,11 @@ namespace MinikUsta.Presentation.Art
         Trowel = 47,
         /// <summary>Q2: ring outline (star burst ring, lock flash; white).</summary>
         Ring = 48,
+        /// <summary>
+        /// C1: the tutorial highlight (K-53), a 9-slice frame (border `PanelBorder`): a rounded outline 10 px thick centred on a box that sits 20 px inside
+        /// the tile, with a soft glow falling off outside it. White mask, tinted gold at use (`FallbackTiles` "tut_highlight").
+        /// </summary>
+        Highlight = 49,
     }
 
     public readonly struct TileRect
@@ -116,7 +121,7 @@ namespace MinikUsta.Presentation.Art
         }
 
         /// <summary>The last tile (the atlas holds `Last + 1` tiles).</summary>
-        public const Tile Last = Tile.Ring;
+        public const Tile Last = Tile.Highlight;
 
         public static Tile Body(int mask) => (Tile)((int)Tile.Body0 + (mask & 15));
 
@@ -390,6 +395,17 @@ namespace MinikUsta.Presentation.Art
                         float d = ArtMath.Length(u - Content / 2f, v - Content / 2f) - (Content / 2f - 8);
                         cr = cg = cb = 1f;
                         ca = Sdf.Cover(Math.Abs(d + 4f) - 4f);
+                    });
+                    return;
+                case Tile.Highlight:
+                    Fill(c, r, (float u, float v, out float cr, out float cg, out float cb, out float ca) =>
+                    {
+                        // box edge 20 px inside the tile, corner radius 20: the whole arc fits the 40 px 9-slice border
+                        float d = Sdf.RoundBox(u, v, 20, 20, Content - 20, Content - 20, 20, 20, 20, 20);
+                        float stroke = Sdf.Cover(Math.Abs(d) - 5f);
+                        float glow = d > 5f ? 0.42f * (float)Math.Exp(-(d - 5f) / 5.5f) * ArtMath.Clamp01((20f - d) / 6f) : 0f;
+                        cr = cg = cb = 1f;
+                        ca = Math.Max(stroke, glow);
                     });
                     return;
                 case Tile.Hammer:

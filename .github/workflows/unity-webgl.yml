@@ -235,6 +235,14 @@ jobs:
         if: steps.pw.outcome == 'success'
         continue-on-error: true
         run: node tools/ci-shots/shoot.mjs --dir player --out artifacts/shots --sha "$GITHUB_SHA"
+      # The same player with ?scale=expand (design height follows the screen aspect, web D-015) for three of the shots: the evidence for the
+      # FIT / EXPAND decision (FIT leaves dark bands on every phone taller than 9:16). Saved under artifacts/shots/expand and published with
+      # the rest; its failure never matters.
+      - name: Capture screenshots (scale=expand)
+        id: shoot_expand
+        if: steps.shoot.outcome == 'success'
+        continue-on-error: true
+        run: node tools/ci-shots/shoot.mjs --dir player --out artifacts/shots/expand --sha "$GITHUB_SHA" --query scale=expand --only level_start,tutorial,win
       - name: Upload screenshots (artifact)
         if: always() && hashFiles('artifacts/shots/manifest.json') != ''
         uses: actions/upload-artifact@v4
@@ -254,4 +262,16 @@ jobs:
         run: |
           if [ "${{ steps.pw.outcome }}" != "success" ]; then echo "::warning title=CI screenshots::Playwright could not be installed; no screenshots for this commit"; fi
           if [ "${{ steps.shoot.outcome }}" != "success" ] && [ "${{ steps.pw.outcome }}" = "success" ]; then echo "::warning title=CI screenshots::the capture step failed; see its log"; fi
-          if [ -f artifacts/shots/manifest.json ]; then python3 -c "import json;d=json.load(open('artifacts/shots/manifest.json'));print('screenshots ok =',d['ok'],'| warnings:',len(d.get('warnings',[])))"; fi
+          if [ -f artifacts/shots/manifest.json ]; then
+            python3 - <<'PY' | tee -a "$GITHUB_STEP_SUMMARY"
+          import json
+          d = json.load(open('artifacts/shots/manifest.json'))
+          print('### CI screenshots of ' + d['shortSha'] + ' (ok = ' + str(d['ok']) + ')')
+          print('')
+          print('Branch `ci-shots`: `latest/` and `' + d['shortSha'] + '/` (`bash tools/ci-shots/fetch.sh`). Shots: ' + ', '.join(d['shots']) + '.')
+          for name, v in d['viewports'].items():
+              print('- ' + name + ': ' + str(len(v['screens'])) + '/' + str(len(d['shots'])) + ' screens' + (', errors: ' + '; '.join(v['errors']) if v['errors'] else ''))
+          for w in d.get('warnings', []):
+              print('- warning: ' + w)
+          PY
+          fi
