@@ -30,6 +30,23 @@ jobs:
         id: scene
         run: |
           if ls Assets/MinikUsta/Scenes/*.unity >/dev/null 2>&1; then echo "has=true" >> "$GITHUB_OUTPUT"; else echo "has=false" >> "$GITHUB_OUTPUT"; echo "::notice::No scene yet (Phase 3 adds Assets/MinikUsta/Scenes); build skipped."; fi
+      # Guard for docs/CI.md section 2b (validateBuild). unity-builder v6 runs the game-ci CLI, which fails the Build step even when
+      # Unity exits 0 unless the container output contains the literal "Build succeeded!". A custom buildMethod must print it
+      # itself: CiBuild.ReportSuccess does, once per entry point. This step turns a deleted call into a failure within seconds
+      # instead of a full Unity run (about 9 minutes in run 41350760117) that ends red. Source of the contract: game-ci/cli v0.1.72, unity-build-validation.ts.
+      - name: Check CiBuild reports success to the GameCI CLI
+        if: steps.scene.outputs.has == 'true'
+        run: |
+          f=Assets/MinikUsta/Editor/CiBuild.cs
+          if ! grep -qF 'Console.WriteLine("Build succeeded!");' "$f"; then
+            echo "::error file=$f::CiBuild.cs no longer prints the literal 'Build succeeded!' that the game-ci CLI (validateBuild) requires; see docs/CI.md section 2b"
+            exit 1
+          fi
+          calls=$(grep -cF 'ReportSuccess(report.summary);' "$f" || true)
+          if [ "$calls" -lt 2 ]; then
+            echo "::error file=$f::ReportSuccess(report.summary) must be called in BuildWebGL and BuildAndroid (found $calls call(s)); see docs/CI.md section 2b"
+            exit 1
+          fi
       # Fail early with a readable message instead of a licensing error 5 minutes into the container. Values are never printed.
       - name: Check Unity account secrets
         if: steps.scene.outputs.has == 'true'
@@ -62,6 +79,9 @@ jobs:
       # editor version has a single source of truth. Image: unityci/editor:ubuntu-6000.0.85f1-webgl-3.
       #
       # Output path is unchanged from v4: build/WebGL/MinikUsta (buildsPath default "build" + targetPlatform + buildName).
+      #
+      # The buildMethod contract did change from v4: the CLI also scans the container output for "Build succeeded!" (see the
+      # guard step above). CiBuild.BuildWebGL prints it after a successful BuildPlayer; Unity's exit code alone is not enough.
       - name: Build
         id: build
         if: steps.scene.outputs.has == 'true'
