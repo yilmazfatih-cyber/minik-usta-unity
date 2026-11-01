@@ -23,6 +23,7 @@ using MinikUsta.Presentation.Feel;
 using MinikUsta.Presentation.Input;
 using MinikUsta.Presentation.Layout;
 using MinikUsta.Presentation.Text;
+using MinikUsta.Presentation.Tutorial;
 using MinikUsta.Presentation.Tweening;
 using static MinikUsta.Core.State;
 
@@ -68,6 +69,8 @@ namespace MinikUsta.Presentation.Game
         private double screenH = 1920;
         private int lastShadowPiece = -1;
         private string? lastShadowKey;
+        /// <summary>C1: the events of every committed move whose plan has not ended yet (the tutorial reads a move when it finished playing).</summary>
+        private readonly Queue<GameEvent[]> moveEnds = new Queue<GameEvent[]>();
 
         public LevelPlayer(ILevelView view, LevelCatalog catalog, Strings strings, FeelSettings? feel = null, LayoutSettings? layout = null,
             IHapticSink? haptics = null, EconomyInfo? economy = null)
@@ -146,6 +149,9 @@ namespace MinikUsta.Presentation.Game
         /// <summary>Camera shakes played since the start (tests).</summary>
         public int Shakes { get; private set; }
 
+        /// <summary>C1 (K-53): the light tutorial of the level on screen (glow, glove, bubble); null = none (tests, a build without it). It takes no input.</summary>
+        public TutorialPlayer? Tutorial { get; set; }
+
         /// <summary>V1: the screen flow owning the windows; null = the player's own Q1 windows.</summary>
         public ILevelHost? Host { get; set; }
 
@@ -174,6 +180,7 @@ namespace MinikUsta.Presentation.Game
             Pieces.CellPx = Layout.Grid.CellPx;
             Particles.Reset(LevelNumber);
             SyncAll();
+            Tutorial?.LayoutChanged();
         }
 
         /// <summary>Starts a new attempt of level `n` (an invalid / missing file is not played: false + `LoadError`).</summary>
@@ -216,6 +223,7 @@ namespace MinikUsta.Presentation.Game
             Summary = Session.Summary();
             SyncAll();
             Stuck.Level(lvl.Difficulty, Clock.Now);
+            Tutorial?.LevelStarted(session, LevelWon?.Invoke(number) ?? wonLevels.Contains(number));
         }
 
         public void Restart()
@@ -246,6 +254,7 @@ namespace MinikUsta.Presentation.Game
             Haptics.Reset();
             pendingPanel = null;
             pendingEnd = null;
+            moveEnds.Clear();
             ShownBeads = 0;
             ShownTrowels = 0;
             GoldShown = -1;
@@ -286,6 +295,7 @@ namespace MinikUsta.Presentation.Game
                 pendingEnd = null;
                 Host?.Ended(this, end);
             }
+            Tutorial?.Tick(dtMs);
         }
 
         // --- pointer (design px, y down) ---------------------------------------------------------------------------------
@@ -299,6 +309,7 @@ namespace MinikUsta.Presentation.Game
             Stuck.Touched(now);
             if (Panel != PanelKind.None) return;
             if (Mapper.Active) return; // second finger (TECH §4.6)
+            Tutorial?.TouchDown();
             bool onBoard = L.OnBoard(x, y);
             if (onBoard)
             {
@@ -329,6 +340,7 @@ namespace MinikUsta.Presentation.Game
             if (session == null || L == null) return;
             int id = Mapper.PieceId;
             var r = Mapper.Up(pointer, canceled);
+            Tutorial?.TouchUp();
             if (r.Kind == ReleaseKind.None) return;
             View.ShowShadow(null);
             lastShadowKey = null;
@@ -338,6 +350,7 @@ namespace MinikUsta.Presentation.Game
             {
                 case ReleaseKind.Tap:
                     if (v != null) Clock.Play(Hop(v, Feel.TapHopCells * (float)L.Grid.CellPx, Feel.TapHopMs));
+                    Tutorial?.Tapped(r.PieceId >= 0 ? r.PieceId : id);
                     return;
                 case ReleaseKind.Aborted:
                     if (v != null) ReturnHome(v, r.PieceId);
@@ -362,6 +375,7 @@ namespace MinikUsta.Presentation.Game
             var res = session.Apply(action);
             Packages++;
             LastResult = res;
+            moveEnds.Enqueue(res.Events);
             Summary = res.Summary;
             var plan = AnimationPlanner.Plan(res, ctx, Feel);
             Queue.Schedule(plan, Clock.Now);
@@ -425,6 +439,7 @@ namespace MinikUsta.Presentation.Game
         {
             Panel = model.Kind;
             View.ShowPanel(model, OnPanelAction);
+            Tutorial?.PanelChanged(true);
             PanelSound(model.Kind);
             var t = View.PanelTarget;
             // JUICE #70 window open: 0,85 → 1,03 → 1 (Back.easeOut)
@@ -473,6 +488,7 @@ namespace MinikUsta.Presentation.Game
             if (Panel != PanelKind.None) Sound(Sounds.Close); // JUICE #71
             Panel = PanelKind.None;
             View.ShowPanel(null, OnPanelAction);
+            Tutorial?.PanelChanged(false);
         }
 
         // --- called by the step runner ---------------------------------------------------------------------------------
@@ -490,6 +506,12 @@ namespace MinikUsta.Presentation.Game
                 MaxEndSnapPiece = Pieces.LastSnapPiece;
             }
             string outcome = session.Outcome;
+            if (Tutorial != null)
+            {
+                // K-53: a move counts for the tutorial when it finished playing; a decided attempt shows no more steps (GDD §14.1/5)
+                if (moveEnds.Count > 0) Tutorial.MoveEnded(moveEnds.Dequeue());
+                if (outcome != BoosterOutcomes.Playing) Tutorial.Stop();
+            }
             if (Host != null)
             {
                 if (outcome == BoosterOutcomes.Won || outcome == BoosterOutcomes.OutOfMoves || outcome == BoosterOutcomes.Lost)
@@ -726,12 +748,21 @@ namespace MinikUsta.Presentation.Game
                 v.Raised = true;
                 v.Lifted = true;
                 Sound(Sounds.Pick);
+                Tutorial?.DragLifted(drag.PieceId);
                 Clock.Play(Tweens.Scale(v, Reduced ? Feel.ReducedScaleMax : Feel.LiftScale, Feel.LiftMs, Feel.LiftEase));
                 if (!Reduced) Clock.Play(Hop(v, Feel.LiftHopPx, Feel.LiftMs));
             }
             v.Position = BoardPose.Center(L.Grid, f.Ax, f.Ay, shape);
-            if (f.CrossedWall) Sound(Sounds.Whoosh); // JUICE #6 over the wall
-            if (f.EnteredRail && f.Node.Mode > 0) Sound(Sounds.GapRail); // JUICE #22 a rail of a gap
+            if (f.CrossedWall)
+            {
+                Sound(Sounds.Whoosh); // JUICE #6 over the wall
+                Tutorial?.DragSignal(TutorialEvents.OverWall);
+            }
+            if (f.EnteredRail && f.Node.Mode > 0)
+            {
+                Sound(Sounds.GapRail); // JUICE #22 a rail of a gap
+                Tutorial?.DragSignal(TutorialEvents.GapPass);
+            }
             if (f.NodeChanged && f.Drop != null) NodeChanged(session, drag, v, f);
         }
 

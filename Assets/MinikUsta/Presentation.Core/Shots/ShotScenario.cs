@@ -8,8 +8,9 @@
 // and the Playwright script of tools/ci-shots waits for it. After a signal the scenario HOLDS for `HoldMs` game milliseconds
 // without touching anything, so a slow software-GL browser (a few frames per second) still shows the frame it was asked about.
 //
-//   home → settings → (close) → play → level1_start → drag_mid (a real pointer drag, cancelled) → landed (first golden move
-//   committed and settled) → … golden solution … → win (the win window and its rewards settled) → done
+//   home → settings → (close) → play → level_start (0,5 s after the start, before the tutorial appears) → tutorial (3 s after the start: glow,
+//   bubble and the glove on its path) → drag_mid (a real pointer drag, cancelled) → landed (first golden move committed and settled)
+//   → … golden solution … → win (the win window and its rewards settled) → done
 //
 // Pure: no engine, no wall clock — the clock is the sum of `Tick` frame times, so a test drives it with fixed frames.
 using System;
@@ -62,7 +63,7 @@ namespace MinikUsta.Presentation.Shots
         public const string Tag = "[minikShot]";
 
         /// <summary>The shots in the order they are signalled (`shot:&lt;name&gt;`); the CI manifest lists the same names.</summary>
-        public static readonly string[] ShotNames = { "home", "settings", "level_start", "drag_mid", "landed", "win" };
+        public static readonly string[] ShotNames = { "home", "settings", "level_start", "tutorial", "drag_mid", "landed", "win" };
 
         /// <summary>Game milliseconds from the start after which the scenario gives up (`error:timeout`).</summary>
         public const float TimeoutMs = 240000f;
@@ -129,7 +130,8 @@ namespace MinikUsta.Presentation.Shots
             Add("close_settings", hold, Once(CloseSettings));
             Add("play", 900f, Once(() => TapHome(HomeView.PlayAction)));
             Add("level_start_window", 600f, Once(AcceptLevelStart));
-            Add("level_start", 2400f, Once(() => RequireScreen(AppScreen.Level) ? Shot("level_start") : false));
+            Add("level_start", 500f, Once(() => RequireScreen(AppScreen.Level) ? Shot("level_start") : false));
+            Add("tutorial", hold, Once(() => Shot("tutorial")));
             Add("drag_down", hold, Once(DragDown));
             Add("drag_move", 0f, DragStep);
             Add("drag_mid", 600f, Once(() => Shot("drag_mid")));

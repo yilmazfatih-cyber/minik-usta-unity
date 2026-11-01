@@ -57,8 +57,10 @@ koltuğu doğrudan Unity hesabından alır ve konteyner kapanırken iade eder.
 **İlk koşu:** GitHub'ın koşucuları her koşuda farklı IP'den bağlanır; Unity "yeni cihaz" doğrulama e-postası gönderebilir. E-postadaki
 bağlantı onaylanır, sonra Actions → koşu → **Re-run jobs** ile yeniden başlatılır.
 
-**Koltuk (seat):** Personal hesapta eşzamanlı koltuk çok azdır; bu yüzden iş akışı `unity-license` eşzamanlılık grubundadır (aynı anda
-tek Unity işi, çalışan iş iptal edilmez, sırada en yeni koşu bekler). Unity çalıştıran her yeni iş akışı aynı grubu kullanır.
+**Koltuk (seat):** Personal hesapta eşzamanlı koltuk çok azdır; bu yüzden **Unity çalıştıran iş** (`build`) `unity-license` eşzamanlılık grubundadır
+(aynı anda tek Unity işi, çalışan iş iptal edilmez, sırada en yeni koşu bekler). Paket C1'den beri grup **iş düzeyindedir**, iş akışı düzeyinde
+değil: ekran görüntüsü işi ve Pages dağıtımı koltuk kullanmaz, bir sonraki derlemeyi bekletmemelidir. Unity çalıştıran her yeni iş
+(`unity-android.yml` `build` işi) aynı grup adını kullanır.
 Koşu bitince koltuk otomatik iade edilir. Takılırsa (**çalışan bir Unity koşusunu elle iptal etme** ya da 120 dk zaman aşımı koltuğu
 açık bırakabilir) sonraki koşular günlükte `no available Personal seats` ile düşer:
 - https://id.unity.com adresinde oturum açıp takılı kalmış etkinleştirmeyi serbest bırak (CLI kaynağı menü yolunu vermiyor;
@@ -340,3 +342,84 @@ altına, git dışı). **Sonuç: çalışmıyor, kapıya eklenmedi.** Neden:
 `tools/unity-refcheck.sh` her çalıştığında nuget.org'u yeniden sorar: 6000.0.x yoksa `SKIPPED` yazıp 0 ile çıkar; bir gün çıkarsa 2 ile çıkar ve
 derleme adımının buraya bağlanmasını ister. Yeni API imzaları yerel UnityCsReference 6000.0.85f1 kaynağıyla (etiket `6000.0.85f1`) ve uGUI
 kaynağıyla doğrulandı; liste `docs/PORT_MAP.md` "Paket V1" bölümündedir.
+
+## 7. Ekran görüntüleri (`screenshots` işi, paket C1)
+
+Her `main` itişinde `unity-webgl.yml`, Pages'e giden **aynı oyuncuyu** başsız Chromium'da oynatır ve ekranlarını `ci-shots` dalına yazar. İnceleme
+yapanlar Unity kurmadan oyunun gerçek görüntüsünü buradan okur.
+
+**Akış.** `build` işi Verify'dan sonra oyuncuyu `webgl-player` artifact'i (3 gün) olarak yükler. `screenshots` işi (`needs: build`, `continue-on-error: true`,
+Unity koltuğu kullanmaz, Pages dağıtımını beklemez) onu indirir, `tools/ci-shots` içindeki **Playwright 1.64.1**'i (`package-lock.json` ile sabit; npm'de
+2026-11-01'de doğrulandı) ve Chromium'u kurar, `tools/ci-shots/shoot.mjs` ile çeker, `tools/ci-shots/publish.sh` ile dala yazar. Kurulum ya da çekim
+başarısızsa iş yine yeşil biter ve `::warning title=CI screenshots::…` ek açıklaması verir; yayını hiçbir koşulda engellemez.
+
+**Otomatik sürücü (`?shots=1`).** Sayfa adresine `?shots=1` eklenince (isteğe bağlı `&shotsHold=2500`, oyun ms'si) `GameRunner`,
+`Presentation.Core/Shots/ShotScenario` çalıştırır (`Application.absoluteURL`; WebGL dışında adres boştur, sürücü hiç açılmaz). Sürücü **bellekte kayıt**
+kullanır (`MemorySaveStore`), yani bu parametreli bir ziyaret gerçek kaydı hiç değiştiremez. Senaryo, parmağın bitirdiği çağrılarla oyunu oynar ve
+her anda `Debug.Log("[minikShot] shot:<ad>")` yazar (tarayıcı konsolu; jslib yok, derleme riski yok). Playwright bu satırı `page.on('console')` ile
+bekler ve satırdan 600 ms sonra `page.screenshot` alır; sürücü her işaretten sonra `HoldMs` (2500 oyun ms'si) hiçbir şeye dokunmaz, böylece yazılımsal GL'nin
+saniyede birkaç karelik hızında bile istenen kare ekrandadır.
+
+| Sıra | Ad | An |
+| --- | --- | --- |
+| 1 | `home` | ana ekran, açılıştan 2,5 sn sonra |
+| 2 | `settings` | ayarlar paneli açık |
+| 3 | `level_start` | Bölüm 1, başlangıçtan 0,5 sn sonra (öğretici henüz yok) |
+| 4 | `tutorial` | başlangıçtan 3 sn sonra: parlama, balon, eldiven yolda |
+| 5 | `drag_mid` | gerçek işaretçi sürüklemesi: altın çözümün ilk hamlesindeki blok yolun %55'inde (bırakılmaz, iptal edilir) |
+| 6 | `landed` | altın çözümün ilk hamlesi işlendi ve sahne durulmuş |
+| 7 | `win` | kazanma penceresi, ödüller yerleşmiş |
+
+Sonra `done` yazılır. Hata olursa `error:<neden>` yazılır (zaman aşımı 240 sn oyun süresi) ve Playwright ilgili görünümde durur. Sıra ve adlar
+`tools/ci-shots/shots.json` ile `ShotScenario.ShotNames` arasında ortaktır; `C1_ci_shots_json_lists_the_same_shots_and_tag_as_the_scenario` testi ikisini eşitler.
+
+**Görünümler ve hâl.** 390×844 ve 360×800 CSS px, `deviceScaleFactor` 2 (PNG 780×1688 ve 720×1600), Android kullanıcı aracısı + `isMobile` (varsayılan Unity
+şablonu bu durumda tüm pencereyi dolduran `unity-mobile` düzenine geçer), `tr-TR`, `--use-angle=swiftshader --enable-unsafe-swiftshader`. Her PNG, Playwright'ın
+yazdığı 8 bit PNG'yi çözen küçük bir denetimden geçer: tek renkli (canvas yakalanmamış) görüntü `blank: true` ve uyarı olur.
+
+**`ci-shots` dalının biçimi.** Dal **tek bir yetim commit**'tir ve her koşuda `--force` ile itilir (depo büyümez; son 8 koşunun klasörü korunur):
+
+```
+latest/manifest.json              kaynak commit, zaman, görünüm başına ekran listesi ve hatalar
+latest/<görünüm>/<ad>.png         390x844/home.png … 360x800/win.png
+latest/console-<görünüm>.log      tarayıcı konsolunun son 600 satırı
+<kısa-sha>/…                      aynı dosyalar, koşu başına bir klasör (kısa sha = commit'in ilk 7 hanesi)
+index.json                        [{shortSha, commit, generatedAt, ok, run}, …] yeniden eskiye
+README.md                         dalın açıklaması
+```
+
+`manifest.json` alanları: `schema` (1), `commit`, `shortSha`, `generatedAt` (ISO), `run` (Actions koşusu adresi), `renderer`, `dpr`, `shots` (adlar),
+`viewports.<ad>` = `{width, height, dpr, canvas{cssWidth, cssHeight, pixelWidth, pixelHeight}, gl, ready, screens[{name, file, bytes, colours, blank}], errors[], ok}`,
+`ok` (hepsi tamam), `warnings[]`. Okumak: `git fetch origin ci-shots && git show origin/ci-shots:latest/390x844/win.png > win.png`.
+Aynı dosyalar `ci-screenshots` artifact'i (14 gün) olarak da yüklenir.
+
+**Yerel deneme.** `cd tools/ci-shots && npm ci && PLAYWRIGHT_CHROMIUM_EXECUTABLE=/yol/chrome node shoot.mjs --dir <WebGL klasörü> --out <çıktı> --sha <sha>`;
+`publish.sh` yerel bir `file://` uzağa karşı denendi (`REPO_URL=file:///…/bare.git SHOTS_DIR=… SHA=… bash publish.sh`).
+
+**İlk koşu (58e1700, run 41361422803).** Oyuncu derlendi, ekran görüntüleri ilk denemede alındı: 2 görünüm × 6 ekran, hepsi renkli (160–430 renk), `ok: true`. Bu görüntüler
+**gerçek bir hatayı** ortaya çıkardı: `CanvasScaler` `Shrink` kipi 9:16'dan dar her ekranda (390×844 dahil, bugünün neredeyse tüm telefonları) uGUI tuvalini iki yandan
+kırpıyordu (HUD'un sol ve sağ kenarları, ana sayfanın ayar düğmesi, 4. güçlendirici). Düzeltme: `ConstantPixelSize` + kameranın kendi ölçeği (`UiRenderer.SetCanvas`).
+
+## 8. Android (`unity-android.yml`, paket C1)
+
+İş akışı **Unity Android → APK**: `workflow_dispatch` (Actions → Run workflow; `export_type` = `androidPackage` APK ya da `androidAppBundle` AAB) ve `v*` etiketleri.
+Her itişte **çalışmaz**: IL2CPP Android derlemesi WebGL'den çok uzundur ve Unity koltuğunu tutar. Aynı hesap (`UNITY_EMAIL` / `UNITY_PASSWORD`), aynı sabit CLI
+(`game-ci/unity-builder@v6.0.0`, `cliVersion: v0.1.72`), aynı `unity-license` koltuk grubu (`build` işinde).
+
+- **Derleme:** `targetPlatform: Android`, `buildMethod: MinikUsta.Editor.CiBuild.BuildAndroid`, imaj `unityci/editor:ubuntu-6000.0.85f1-android-3` (sürüm
+  `ProjectVersion.txt`'ten). `CiBuild.BuildAndroid`: dikey yön, IL2CPP + ARM64 + ARMv7 (Mono ARM64 üretemez), uygulama kimliği `com.tunaco.minikusta` (şirket adı "Tuna & Co."
+  geçerli bir paket adı vermez), sürüm kodu `-androidVersionCode` (= `github.run_number`), sürüm adı `-buildVersion` (etiketten `v` çıkmış hâli, değilse `0.0.<koşu>`),
+  çıktı yolu `-customBuildPath` (`build/Android/MinikUsta.apk`; GameCI uzantıyı `androidExportType`'tan koyar). Özel `buildMethod` kullanıldığı için GameCI'nin kendi Android
+  ayarları uygulanmaz; imza ve sürüm bağımsız değişkenlerini `CiBuild` okur. Başarıda `ReportSuccess` "Build succeeded!" yazar (§2b); iki iş akışındaki koruma adımı
+  `BuildAndroid`'in de çağırdığını denetler.
+- **İmza:** dört gizli değer varsa sürüm imzası, yoksa Unity'nin hata ayıklama anahtar deposu (yan yükleme için yeterli; mağaza reddeder).
+  `ANDROID_KEYSTORE_BASE64` (`base64 -w0 release.keystore`), `ANDROID_KEYSTORE_PASS`, `ANDROID_KEYALIAS_NAME`, `ANDROID_KEYALIAS_PASS` (Settings → Secrets → Actions).
+  Anahtar deposunun adı `minikusta.keystore`dır; CLI base64'ü proje köküne yazar (`setup-android.ts`), `CiBuild` onu `PlayerSettings.Android.keystoreName` yapar. Değerler günlüğe yazılmaz.
+- **Doğrulama (WebGL'deki Verify deseni):** `Build` adımı `continue-on-error`; başarıyı diskteki paket belirler: boş olmayan `.apk`/`.aab`, geçerli zip, `AndroidManifest.xml`,
+  `classes.dex`, `lib/arm64-v8a/libunity.so`. Paket yoksa ya da eksikse iş kırmızı biter; GameCI'nin yanlış kırmızısı sağlam paketi gizlemez.
+- **Çıktı:** `minikusta-android-<koşu>` artifact'i (30 gün). Sürüm imzası yoksa APK hata ayıklama imzalıdır.
+- **Disk:** Android imajı yaklaşık 9 GB'dır; iş, koşucudaki kullanılmayan büyük dizinleri (`/usr/share/dotnet`, `/usr/local/lib/android`, `/opt/ghc`, …) siler. Library önbelleği bilerek yoktur
+  (IL2CPP Android Library'si birkaç GB'dır ve WebGL önbelleğini 10 GB sınırından dışarı iterdi).
+- **Doğrulanmadı:** bu ortamda Unity ve Android imajı yok; ilk gerçek koşu elle başlatılmadı. Kullanılan `PlayerSettings` üyeleri UnityCsReference 6000.0 ile doğrulandı
+  (`SetApplicationIdentifier(NamedBuildTarget, string)`, `SetScriptingBackend(NamedBuildTarget, ScriptingImplementation)`, `Android.targetArchitectures`, `Android.bundleVersionCode`,
+  `Android.useCustomKeystore`, `keystoreName`, `keystorePass`, `keyaliasName`, `keyaliasPass`, `defaultInterfaceOrientation`).

@@ -101,8 +101,8 @@ This branch is ONE orphan commit that is force-pushed on every run; do not build
 
 - `latest/` - the newest run. `latest/manifest.json` has the source commit, the time, the screen list and any errors.
 - `<short-sha>/` - the same files for one run (the newest 8 runs are kept). `index.json` lists them, newest first.
-- Files: `<viewport>/<shot>.png` for viewports `390x844` and `360x800` and shots `home`, `settings`, `level_start`, `drag_mid`,
-  `landed`, `win`; `console-<viewport>.log` (browser console tail); `<viewport>/_failure.png` when a viewport broke.
+- Files: `<viewport>/<shot>.png` for viewports `390x844` and `360x800` and shots `home`, `settings`, `level_start`, `tutorial`,
+  `drag_mid`, `landed`, `win`; `console-<viewport>.log` (browser console tail); `<viewport>/_failure.png` when a viewport broke.
 
 Read one: `git fetch origin ci-shots && git show origin/ci-shots:latest/390x844/win.png > win.png`
 EOF

@@ -23,11 +23,13 @@ namespace MinikUsta.Presentation.Ui
     {
         Home = 0,
         Hud = 1,
-        Window = 2,
+        /// <summary>C1 (K-53): the light tutorial — glow, glove, bubble — above the HUD and below the windows; it takes no tap.</summary>
+        Tutorial = 2,
+        Window = 3,
         /// <summary>Particles above the open window (the win star burst).</summary>
-        Fx = 3,
+        Fx = 4,
         /// <summary>The settings panel (over the home screen or the pause window).</summary>
-        Overlay = 4,
+        Overlay = 5,
     }
 
     public sealed class UiNode

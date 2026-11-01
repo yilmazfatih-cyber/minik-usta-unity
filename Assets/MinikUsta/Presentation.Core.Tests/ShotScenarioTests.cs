@@ -53,6 +53,25 @@ namespace MinikUsta.Presentation.Tests
         }
 
         [Test]
+        public void C1_shots_scenario_signals_the_tutorial_shot_while_the_step_is_on_screen()
+        {
+            var (rig, sc, _) = Start();
+            float t = 0;
+            while (!sc.Signalled.Contains("tutorial") && !sc.Done && t < ShotScenario.TimeoutMs)
+            {
+                rig.App.Tick(Fixtures.Rig.FrameMs);
+                sc.Tick(Fixtures.Rig.FrameMs);
+                t += Fixtures.Rig.FrameMs;
+            }
+            Assert.IsTrue(sc.Signalled.Contains("tutorial"));
+            var tp = rig.Player.Tutorial!;
+            Assert.AreEqual(Tutorial.PresencePhase.Shown, tp.Presence!.Phase, "the tutorial shot is taken with the step shown");
+            Assert.IsTrue(tp.View.Bubble!.Visible);
+            Assert.IsTrue(tp.View.Glove!.Visible, "…and the glove on its path");
+            Assert.IsFalse(sc.Signalled.Contains("level_start") && tp.Presence.Shows == 0);
+        }
+
+        [Test]
         public void C1_shots_scenario_is_deterministic()
         {
             var (rigA, a, linesA) = Start();

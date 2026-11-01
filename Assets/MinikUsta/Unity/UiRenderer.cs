@@ -1,6 +1,8 @@
 #nullable enable
 // The UI trees of Presentation.Core in uGUI (paket V1; D-096: uGUI Text with the Baloo 2 font, no TMP). One ScreenSpaceOverlay
-// canvas (CanvasScaler ScaleWithScreenSize 1080 × 1920, `Shrink` = the camera's FIT), a "Design" rectangle of the design canvas
+// canvas (CanvasScaler ConstantPixelSize whose factor is the camera's own screen px per design px, `SetCanvas`; C1 fixed the
+// ScaleWithScreenSize + `Shrink` version, which cropped the canvas on every screen narrower than 9:16 — CI screenshots 390 × 844),
+// a "Design" rectangle of the design canvas
 // centred in it and one child per `UiLayer` (Home, Hud, Window, Fx, Overlay; back to front). Every `UiNode` becomes one
 // GameObject: RectTransform from its absolute design rect (made parent-relative), an Image (atlas frame, Simple or Sliced,
 // tint × alpha), a Text (ART_REFERENCE §4 style → colour + Outline + Shadow; one line at the `TextFit` size), a Button (tap → the
@@ -74,6 +76,7 @@ namespace MinikUsta.Unity
         }
 
         private readonly FeelSettings feel;
+        private readonly CanvasScaler scaler;
         private readonly RectTransform design;
         private readonly RectTransform[] layers = new RectTransform[(int)UiLayer.Overlay + 1];
         private readonly Dictionary<UiNode, Bound> bound = new Dictionary<UiNode, Bound>();
@@ -99,10 +102,12 @@ namespace MinikUsta.Unity
             var canvas = root.AddComponent<Canvas>();
             canvas.renderMode = RenderMode.ScreenSpaceOverlay;
             canvas.sortingOrder = 10;
-            var scaler = root.AddComponent<CanvasScaler>();
-            scaler.uiScaleMode = CanvasScaler.ScaleMode.ScaleWithScreenSize;
-            scaler.referenceResolution = new Vector2(1080f, 1920f);
-            scaler.screenMatchMode = CanvasScaler.ScreenMatchMode.Shrink;
+            scaler = root.AddComponent<CanvasScaler>();
+            // C1: the factor is exactly the camera's screen px per design px (min(screenW / W, screenH / H), `DesignViewport.Scale`), so the
+            // uGUI canvas and the sprite world are the same picture for every aspect (the old Shrink match mode used max(...) and cropped the
+            // sides of every phone narrower than 9:16)
+            scaler.uiScaleMode = CanvasScaler.ScaleMode.ConstantPixelSize;
+            scaler.scaleFactor = 1f;
             scaler.referencePixelsPerUnit = 100f;
             root.AddComponent<GraphicRaycaster>();
 
@@ -130,6 +135,8 @@ namespace MinikUsta.Unity
             DesignW = (float)w;
             DesignH = (float)h;
             design.sizeDelta = new Vector2(DesignW, DesignH);
+            float k = Mathf.Min(Screen.width / DesignW, Screen.height / DesignH);
+            if (k > 0f) scaler.scaleFactor = k;
         }
 
         /// <summary>The RectTransform of a layer (the Fx layer holds the uGUI particles of `UnityUiSpark`).</summary>

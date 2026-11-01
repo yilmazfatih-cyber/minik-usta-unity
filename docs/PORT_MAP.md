@@ -276,7 +276,7 @@ Durum anlamı: **Q0 / Q1** taşındı · **kısmen** bazı satırlar taşındı 
 | `juice/fx.ts` | — | Q2 | Genel zaman animasyonu çalıştırıcısı. Q1 efektleri StepRunner'da Tween ile |
 | `Truck.ts` | `Game/TruckModel.cs`, `Unity/UnityTruckView.cs` | **Q2** | Yer tutucu kamyon (yuvarlatılmış kutular + tekerlekler); sağdan girer, kasası kalkar, bloklar düşer, sola çıkar (700 ms) |
 | `TrowelPicker.ts` | — | Q2+ | Güçlendirici hedef seçimi; Q1'de güçlendiriciler devre dışı |
-| `TutorialView.ts`, `tutorial/TutorialController.ts`, `TutorialPresence.ts`, `contextTips.ts`, `glove.ts`, `highlights.ts`, `tutorialEvents.ts` | — | Q2+ | Öğretici (K-53); kapsam kararı bekliyor |
+| `tutorial/TutorialController.ts`, `TutorialPresence.ts`, `glove.ts`, `highlights.ts`, `tutorialEvents.ts`, `TutorialView.ts` | `Tutorial/*` (paket C1, aşağıda) | **C1** | Öğretici (K-53) taşındı; `contextTips.ts` (bağlamsal `tut.ctx.*` satırları, K-53/4) ve blok hayaleti (DS-15) taşınmadı |
 | `sceneServices.ts` | `Game/Haptics.cs` (`HapticRouter`, `FixedPulseHaptics`), `Unity/GameRunner.cs` | **Q2** kısmen | Titreşim: `Handheld.Vibrate()` yalnız Android'de; ses Q2+ |
 | `frameImage.ts` | — | kapsam dışı | Phaser kare yardımcısı; Unity'de Sprite pivotu |
 
@@ -376,3 +376,40 @@ V1'in üç commit'inin dosya listesi (`96112ae`, `564d838`, `81a314a`) yukarıda
 Web reposu değişince: `bash tools/sync-from-web.sh`, `node tools/gen-p0-vectors.ts`, `node tools/gen-p1-vectors.ts`,
 `node tools/gen-p2-vectors.ts`, `node tools/gen-p3-vectors.ts`, `node tools/gen-rule-ids.ts`, `node tools/diff/ts-oracle.mjs`,
 `node tools/review/gen-*-vectors.ts > Golden/review_*.json`, `cd dotnet && dotnet test`; sonra bu dosyanın başındaki web commit'ini güncelle.
+
+## Faz 4 — paket C1 (ses, öğretici, CI ekran görüntüsü, Android)
+
+### Ses (V2'nin devamı)
+
+| Web kaynağı | C# (`Presentation.Core/Audio`) | Unity katmanı |
+| --- | --- | --- |
+| `src/services/audio.ts` (`renderSound`, ZzFX) | `Audio/ZzFx.cs` (bit-eşit sentezleyici), `Audio/SoundBank.cs` (tokens `audio.sfx` / `audio.seq` → tampon; kare başına örnek bütçesi) | `Resources/audio/sounds.json` (`tools/audio/gen-sounds.mjs`) |
+| `src/services/audio/catalog.ts` (`semitoneRate`, `dbGain`, `comboRate`, `landGain`, `coinRate`) | `Audio/AudioPlayer.cs` (`SoundFeel`, politika: kilit, "Ses" anahtarı, aynı ses 60 ms, en çok 4 ses, perde adımı = yeniden örneklenmiş klip) | `UnityAudioOutput.cs` (tek `AudioSource`, `AudioClip.Create` + `SetData`, `PlayOneShot`) |
+| JUICE ses sütunu | `Game/StepRunner.cs` `Snd(...)` çağrıları, `Audio/Sounds.cs` (ad listesi) | `PressableButton` (düğme sesi + WebGL kilit açma) |
+
+Test: `AudioTests` (web vektörleriyle karşılaştırma `Golden/audio_vectors.json`, `tools/audio/gen-vectors.mjs`). WebGL'de ses ilk kullanıcı girdisine kadar kilitlidir (`AudioPlayer.Unlock`
+← `GameApp.PointerDown` / `UiPressed`).
+
+### Öğretici (K-53, `Presentation.Core/Tutorial`)
+
+| Web | C# | Not |
+| --- | --- | --- |
+| `TutorialController.ts` | `TutorialController.cs` (`TutorialFactory`, `ITutorialHost`, `TutorialReplay`) | Veri güdümlü: yalnız `levels/*.json` `tutorial[]`; bölüme özel kod yok. K-43 devamında adım, kayıt günlüğünden yeniden kurulur (Unity kaydı öğretici konumu tutmaz) |
+| `tutorialEvents.ts` | `TutorialEvents.cs` (`MoveMatches`, kapalı sözlük + süzgeçler) | `overWall`, `gapPass`, `holdOverBuild` sürükleme sinyalleridir (`LevelPlayer.DragFrame`, `TutorialPlayer.HoldWatch`) |
+| `TutorialPresence.ts` | `TutorialPresence.cs` + `TutorialSettings` (tokens `tutorial.*`, testle eşit) | bekle / göster / gizle / bitti; 4 sn görünür, 4 sn boşta yeniden; 3 yeniden gösterimden sonra balon yok |
+| `glove.ts` | `TutorialGlove.cs` (`Plays`, `FingerPoints`, `RoundedPath`, `PathAt`, `TrailDots`) | DL-2R-20 oynatma koşulu çekirdek BFS ile |
+| `highlights.ts` | `TutorialLayout.cs` (`Rects`, `PlaceBubble`) | Vurgu kimliği sözlüğü UX §13.1; balon yuvası üst / alt |
+| `TutorialView.ts` | `TutorialView.cs` (UiNode ağacı: parlama, iz, balon, halka, eldiven) + `TutorialPlayer.cs` (yapıştırıcı) | `UiLayer.Tutorial` (HUD üstü, pencere altı); tek `ui.Show` içerik değişince, kare başına `Refresh` yalnız eldiven / halka |
+
+Kancalar: `LevelPlayer.Tutorial` (`TouchDown/Up`, `DragLifted`, `DragSignal`, `Tapped`, `MoveEnded` = plan bittiğinde, `PanelChanged`, `LayoutChanged`, `Stop`, `Tick`).
+**Usta Kral bağlama noktası (D-101):** balon portresi `TutorialSettings.PortraitFrame` (bugün `chr_dede_bust`); kral portresi atlas'a girince yalnız bu dize değişir. Metinler i18n'dedir
+(`tut.*`; bazı `tut.ctx.*` satırları "evlat" der, Usta Dede sesidir, içerik sahibi günceller).
+
+### CI ekran görüntüsü
+
+`Shots/ShotScenario.cs` (`?shots=1` sürücüsü, `ShotOptions`), `tools/ci-shots/{shoot.mjs,publish.sh,shots.json}`, `.github/workflows/unity-webgl.yml` `screenshots` işi (bkz. `docs/CI.md` §7).
+Unity API: `Application.absoluteURL` (yeni stub, UnityCsReference 6000.0 `Application.bindings.cs`), `CanvasScaler.scaleFactor` (stub'ta vardı; `UiRenderer` artık `ConstantPixelSize` kullanır).
+
+### Android
+
+`.github/workflows/unity-android.yml`, `Editor/CiBuild.cs` `BuildAndroid` / `ConfigureAndroid` (bkz. `docs/CI.md` §8).

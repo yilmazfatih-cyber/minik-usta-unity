@@ -24,6 +24,7 @@ namespace MinikUsta.Unity
         private const float MaxFrameMs = 100f;
 
         private GameApp? app;
+        private UiRenderer? ui;
         private PointerInput? input;
         private ShotScenario? shots;
         private int screenW;
@@ -45,6 +46,7 @@ namespace MinikUsta.Unity
             var i18n = new Localizer(ReadText);
             i18n.Text.Missing = key => Debug.LogWarning("Minik Usta: missing i18n key " + key);
             var ui = new UiRenderer(feel);
+            this.ui = ui;
             var view = new UnityLevelView(cam, ui, i18n.Text, () => app?.Player.PausePressed(), layout, feel);
             var catalog = new LevelCatalog(n => ReadText(LevelCatalog.ResourceName(n)));
             // Q2 item 12: Handheld.Vibrate buzzes one fixed pulse and only Android is asked (the brief); everywhere else the sink is silent.
@@ -72,6 +74,7 @@ namespace MinikUsta.Unity
             screenW = Screen.width;
             screenH = Screen.height;
             app.SetScreen(screenW, screenH);
+            ui.SetCanvas(app.Player.Viewport.W, app.Player.Viewport.H);
             app.Boot();
             if (shotOptions != null)
                 shots = new ShotScenario(app, n => DebugSolver.SolutionLog(ReadText("solutions/level_" + n.ToString("000", System.Globalization.CultureInfo.InvariantCulture) + ".solver")),
@@ -93,6 +96,7 @@ namespace MinikUsta.Unity
                 screenW = Screen.width;
                 screenH = Screen.height;
                 a.SetScreen(screenW, screenH);
+                ui?.SetCanvas(a.Player.Viewport.W, a.Player.Viewport.H);
             }
             input.Poll(a, a.Player.Viewport);
             if (Debug.isDebugBuild) DebugKeys(a);

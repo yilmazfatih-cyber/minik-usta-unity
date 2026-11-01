@@ -3,7 +3,7 @@
 //
 // Serves the built player (build/WebGL/MinikUsta) from a tiny local HTTP server, opens it in headless Chromium with software GL
 // (SwiftShader) on mobile-sized viewports, appends `?shots=1` (the game then plays ShotScenario: home, settings, level_start,
-// drag_mid, landed, win) and saves a PNG whenever the page logs `[minikShot] shot:<name>` to the console. A manifest.json describes
+// tutorial, drag_mid, landed, win) and saves a PNG whenever the page logs `[minikShot] shot:<name>` to the console. A manifest.json describes
 // what was captured. The script NEVER fails the build: every problem becomes a `::warning::` annotation and an entry in the
 // manifest, and the exit code is 0 (the workflow job is also continue-on-error). Exit code 2 only for wrong arguments.
 //

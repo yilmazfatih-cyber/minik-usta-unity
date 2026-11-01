@@ -43,6 +43,8 @@ Faz 1 raporu: web reposunda `docs/UNITY_PORT_FAZ1.md`. TS → C# dosya eşlemesi
 │  │  │                            Paket V1: Art/ (AtlasData, Frames, BlockSkin, FallbackTiles), Ui/ (UiNode ağacı, TextStyles, IUiSurface,
 │  │  │                            LevelHud, WindowViews, HomeView + SettingsView), Flow/ (ScreenFlow, GameApp), Save/ (SaveModel, SaveCodec),
 │  │  │                            Meta/ (EconomyConfig, Offer, Rewards, Price), I18n/ (Localizer), Game/PlanThumb
+│  │  │                            C1: Audio/ (ZzFx, SoundBank, AudioPlayer, Sounds), Tutorial/ (TutorialController, TutorialPresence, TutorialEvents,
+│  │  │                            TutorialGlove, TutorialLayout, TutorialView, TutorialPlayer), Shots/ (ShotScenario: ?shots=1 CI sürücüsü)
 │  │  ├─ Unity/                    ince Unity katmanı (asmdef MinikUsta.Unity → Core, Presentation.Core, UnityEngine.UI): GameBootstrap
 │  │  │                            ([RuntimeInitializeOnLoadMethod]), GameRunner (kare döngüsü), UnityLevelView (ILevelView), UnityPieceVisual,
 │  │  │                            UnityBoardView/UnityShadowView, UnityHud (uGUI + LegacyRuntime), PointerInput (eski Input), ProceduralSprites,
@@ -82,7 +84,9 @@ Faz 1 raporu: web reposunda `docs/UNITY_PORT_FAZ1.md`. TS → C# dosya eşlemesi
 │  ├─ gen-p2-vectors.ts            doğrulayıcı / hedef / güçlendirici / çıkmaz / özet / kayıt vektörleri (fikstürler, kanonik çözüm boyunca 90 durum, 40 cover tahtası)
 │  ├─ gen-p3-vectors.ts            GameSession dizileri: her hamle türü, geri al, +5, ret, çıkış, replay (170 dizi, ~4 300 girdi)
 │  ├─ gen-rule-ids.ts              web belgelerinden kural kimlikleri + fazları → Core.Tests/Golden/rule_ids.json (kapsam kapısı)
-│  └─ diff/ts-oracle.mjs           diferansiyel fuzz kehaneti: TS GameSession ile ~400 tohumlu / betikli dizi → tools/diff/out/ (git dışı)
+│  ├─ diff/ts-oracle.mjs           diferansiyel fuzz kehaneti: TS GameSession ile ~400 tohumlu / betikli dizi → tools/diff/out/ (git dışı)
+│  ├─ audio/                       gen-sounds.mjs (web tokens → Resources/audio/sounds.json), gen-vectors.mjs (web ZzFX ile bit-eşitlik vektörleri)
+│  └─ ci-shots/                    CI ekran görüntüsü: shoot.mjs (Playwright 1.64.1, SwiftShader), publish.sh (ci-shots dalı), shots.json (docs/CI.md §7)
 └─ docs/PORT_MAP.md                TS dosyası → C# dosyası eşleme tablosu (her paket günceller)
 ```
 
@@ -168,7 +172,7 @@ Unity içinde: Window → General → Test Runner → EditMode; `MinikUsta.Core.
 3. İlk açılış birkaç dakika sürer. Unity eksik `.meta` dosyalarını üretir; `git status` ile değişenleri gözden geçir.
 4. `Assets/MinikUsta/Scenes/Level.unity` dosyasını aç ve **Play**'e bas.
 5. Testler: **Window → General → Test Runner → EditMode → Run All**. Koşan assembly'ler: `MinikUsta.Core.Tests`
-   ve `MinikUsta.Presentation.Core.Tests`. Beklenen sayılar dotnet koşusuna göre (paket V1): Presentation 349 geçer. Core, `tools/diff/out`
+   ve `MinikUsta.Presentation.Core.Tests`. Beklenen sayılar dotnet koşusuna göre (paket C1): Presentation 452 geçer. Core, `tools/diff/out`
    (git dışı, `ts-oracle.mjs` çıktısı) varsa 1455 geçer ve 5 atlar; yoksa 1049 geçer ve 7 atlar (DiffFuzz durumları üretilmez).
    Unity içinde bu koşu henüz yapılmadı.
 

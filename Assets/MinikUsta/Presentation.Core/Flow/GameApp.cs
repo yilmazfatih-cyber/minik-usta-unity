@@ -76,6 +76,7 @@ namespace MinikUsta.Presentation.Flow
             };
             Audio = audio;
             Player.Audio = audio;
+            Player.Tutorial = new MinikUsta.Presentation.Tutorial.TutorialPlayer(Player, ui);
             Player.BoosterCount = id => Save.BoosterCount(id);
             Player.LevelWon = n => Save.Won(n);
         }
