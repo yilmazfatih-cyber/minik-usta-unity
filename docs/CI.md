@@ -7,8 +7,12 @@ ya da dosya yoktur (§1: yalnız iki secret; `unity-activation.yml` P3-03 ile ka
 
 Yayın adresi (ilk başarılı derlemeden sonra açılır): https://yilmazfatih-cyber.github.io/minik-usta-unity/
 
-**Durum (Faz 3 Q3):** Bu ortamda Unity hiç derlenmedi. Gerçek derlemenin ilk kanıtı, §1 tamamlandıktan sonraki ilk Actions
-koşusudur; Q1 kodu (`b4efe18` ve sonrası) bu koşuda ilk kez derlenecek.
+**Durum:** Bu ortamda Unity derlenmez; tek kanıt Actions koşusudur. v6 geçişinin ilk koşusu (2026-11-01, koşu 41350030654):
+CLI v0.1.72 indi (SHA256 doğrulandı), `unityci/editor:ubuntu-6000.0.85f1-webgl-3` çekildi, **Personal koltuk yalnız `UNITY_EMAIL` +
+`UNITY_PASSWORD` ile alındı** (`Licensing method: personal`, `Seat ID: …-UnityPersonal`, editörde `Product: Unity Personal`) ve iş
+bitince **iade edildi** (`Successfully returned the entitlement license`). Derleme ise proje tarafında kırıldı:
+`Project has invalid dependencies: com.unity.modules.vibration: Package [com.unity.modules.vibration@1.0.0] cannot be found`
+(`Packages/manifest.json`; §2b). Q1 kodu hâlâ derlenmedi: paket çözümü, betik derlemesinden önce durdu.
 
 ## 1. Tek seferlik: Unity hesabı ve gizli değerler
 
@@ -106,6 +110,8 @@ masaüstü tarayıcıdan yapılır.
 | `error CS…` (`Assets/MinikUsta/Core/…` ya da `Presentation.Core/…`) | Unity derleyicisi dotnet'ten farklı davranıyor (dil sürümü ya da tanımlar) | Önce `cd dotnet && dotnet build -warnaserror && dotnet test` ile yeniden üret; sürerse ilk hata satırıyla code-lead'e |
 | Oyun açılıyor ama hiçbir uGUI düğmesi çalışmıyor (Mola, Devam); konsolda her karede `Input Button Submit is not setup` | `ProjectSettings/InputManager.asset` yok ya da eksenleri eksik (P3-05) | Depodaki `InputManager.asset` Unity 6000.0'ın varsayılanıdır; yoksa §4'teki artifact'ten al. Günlükte `is not setup` ara |
 | `WebGL build failed: <sonuç> (N errors)` | Build pipeline hatası (`CiBuild.cs`) | Günlükteki ilk `error` satırına bak; sahne yolu ve GUID §2 ile karşılaştırılır |
+| `Project has invalid dependencies … cannot be found` (Unity, `Build failed, with exit code 1` öncesinde) | `Packages/manifest.json` Unity 6000.0.85f1'de olmayan bir paketi istiyor (ilk koşuda `com.unity.modules.vibration`) | İlgili satırı `manifest.json`'dan kaldır; `Handheld` `CoreModule`'dadır, ayrı modül gerekmez |
+| Günlüğün sonunda `[ERROR] Unable to find image 'unityci/editor:…' locally` | Yanıltıcı: docker'ın "imaj yerelde yok, çekiliyorum" satırı. Neden değildir | Gerçek neden `Build failed, with exit code 1` satırından önceki Unity satırlarındadır (`error CS`, `Project has invalid dependencies` …) |
 | `Prepare Pages artifact` içinde `build/WebGL/MinikUsta` yok | GameCI çıktı yolu farklı | "Build" adımındaki `WebGL build succeeded: …` satırındaki yolu al; `CiBuild.cs` varsayılanı ile iş akışındaki yol aynı olmalı |
 | Yayın açılıyor ama ekran boş ya da siyah | Sahne açılmadı (aktif sahne adı `Level` değil) ya da bölüm yüklenemedi | Tarayıcı konsolunda `Minik Usta: …` varsa bölüm dosyası; yoksa sahne adı ve §2 |
 | Pages 404 | Pages kaynağı "GitHub Actions" değil ya da deploy işi atlandı | §1 adım 4. Deploy işi yalnız `has_scene == 'true'` ise çalışır |
@@ -162,8 +168,9 @@ Actions → Run workflow.
   modüller. URP ve Cinemachine çıkarıldı (D-096'ya göre kullanılmıyorlar; her koşuda içe aktarılıp derleniyorlardı, paket içi bir hata
   derlememizi düşürebilirdi). Yerleşik `particlesystem` ve `physics2d` modülleri kullanılmıyor ama bırakıldı: motor kodu kırpması
   (WebGL'de açık) kullanılmayan modülü zaten derlemeden çıkarır, kaldırmanın kazancı yok.
-- Unity 6 ile GameCI akışı (unity-builder v6 + CLI v0.1.72 + Personal hesap etkinleştirmesi, 6000.0.85f1) bu ortamdan doğrulanamadı;
-  CLI'nin kendi ölçümü 6000.0.36f1 ve 6000.6.0f1 üzerindedir. İlk çalışmada hata çıkarsa günlükleri okuyup düzeltiriz.
+- Lisans akışı (unity-builder v6 + CLI v0.1.72 + Personal hesap, 6000.0.85f1) ilk koşuda uçtan uca çalıştı (etkinleştirme + iade; bkz. Durum).
+  Çıktı yolu (`-customBuildPath /github/workspace/build/WebGL/MinikUsta`) ve sığ klonda `Semantic` sürümleme (`0.0.40`) de günlükte doğrulandı.
+  Henüz görülmeyen: başarılı bir WebGL derlemesi ve Pages dağıtımı.
 
 ## 4. İlk yeşil koşudan sonra: Unity'nin ürettiği dosyaları depoya işle (P3-05)
 
