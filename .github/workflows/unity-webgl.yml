@@ -10,20 +10,37 @@ permissions:
   pages: write
   id-token: write
 
+# One Unity job at a time for the whole repository (docs/CI.md section 1). A Unity Personal seat is held from activation until
+# the build container returns it, and a Personal account has very few seats. cancel-in-progress must stay false: cancelling a
+# running job can leak the seat and every later run then fails with "no available seats". Queued runs wait their turn (GitHub
+# keeps only the newest pending run). Any other workflow that starts Unity (for example unity-android.yml) must use this same group.
 concurrency:
-  group: unity-webgl
-  cancel-in-progress: true
+  group: unity-license
+  cancel-in-progress: false
 
 jobs:
   build:
     name: Build WebGL (GameCI)
     runs-on: ubuntu-latest
+    # With cancel-in-progress: false a hung Unity job would block the queue (and hold the seat) for the 6 hour default.
+    timeout-minutes: 120
     steps:
       - uses: actions/checkout@v4
       - name: Check for a scene
         id: scene
         run: |
           if ls Assets/MinikUsta/Scenes/*.unity >/dev/null 2>&1; then echo "has=true" >> "$GITHUB_OUTPUT"; else echo "has=false" >> "$GITHUB_OUTPUT"; echo "::notice::No scene yet (Phase 3 adds Assets/MinikUsta/Scenes); build skipped."; fi
+      # Fail early with a readable message instead of a licensing error 5 minutes into the container. Values are never printed.
+      - name: Check Unity account secrets
+        if: steps.scene.outputs.has == 'true'
+        env:
+          UNITY_EMAIL: ${{ secrets.UNITY_EMAIL }}
+          UNITY_PASSWORD: ${{ secrets.UNITY_PASSWORD }}
+        run: |
+          if [ -z "$UNITY_EMAIL" ] || [ -z "$UNITY_PASSWORD" ]; then
+            echo "::error::UNITY_EMAIL / UNITY_PASSWORD repository secrets are not set (Settings > Secrets and variables > Actions > Repository secrets)"
+            exit 1
+          fi
       - name: Cache Library
         if: steps.scene.outputs.has == 'true'
         uses: actions/cache@v4
@@ -31,15 +48,29 @@ jobs:
           path: Library
           key: Library-WebGL-${{ hashFiles('Assets/**', 'Packages/**', 'ProjectSettings/**') }}
           restore-keys: Library-WebGL-
+      # unity-builder v6 is a thin wrapper around the game-ci CLI. The CLI reads UNITY_EMAIL / UNITY_PASSWORD from this step's
+      # environment (never as arguments) and, with only these two set, activates a Personal seat through the Unity licensing
+      # client and returns it in an EXIT trap when the container ends. No .ulf is needed.
+      #
+      # UNITY_LICENSE is deliberately NOT passed: in auto mode a non-empty UNITY_LICENSE selects the .ulf route first, which cannot
+      # work on an ephemeral container (the file is bound to the machine that made it).
+      #
+      # cliVersion is pinned (the default is "latest"). v0.1.66 fixed the Personal seat return; v0.1.72 is the newest CLI release
+      # (2026-10-03) and also carries the later licensing and return-retry fixes. Bump deliberately, not by accident.
+      #
+      # unityVersion is left at its default ("auto"): the CLI reads ProjectSettings/ProjectVersion.txt (6000.0.85f1), so the
+      # editor version has a single source of truth. Image: unityci/editor:ubuntu-6000.0.85f1-webgl-3.
+      #
+      # Output path is unchanged from v4: build/WebGL/MinikUsta (buildsPath default "build" + targetPlatform + buildName).
       - name: Build
+        id: build
         if: steps.scene.outputs.has == 'true'
-        uses: game-ci/unity-builder@v4
+        uses: game-ci/unity-builder@v6.0.0
         env:
-          UNITY_LICENSE: ${{ secrets.UNITY_LICENSE }}
           UNITY_EMAIL: ${{ secrets.UNITY_EMAIL }}
           UNITY_PASSWORD: ${{ secrets.UNITY_PASSWORD }}
         with:
-          unityVersion: 6000.0.85f1
+          cliVersion: v0.1.72
           targetPlatform: WebGL
           buildName: MinikUsta
           buildMethod: MinikUsta.Editor.CiBuild.BuildWebGL
@@ -47,11 +78,12 @@ jobs:
       # P3-05: Unity writes the settings assets and the .meta files it generates into the workspace. Upload them (also when the build
       # failed) so the owner can commit them after the first green run: GUIDs become stable and the Library cache stops missing.
       # How: docs/CI.md section 4. The chown is needed because the container ran as root.
+      # Skipped when the Build step never ran (for example the secret check failed): the workspace would only hold repository files.
       - name: Collect files Unity generated
-        if: always() && steps.scene.outputs.has == 'true'
+        if: always() && steps.scene.outputs.has == 'true' && steps.build.conclusion != 'skipped'
         run: sudo chown -R "$USER" ProjectSettings Packages Assets
       - name: Upload files Unity generated (ProjectSettings, .meta)
-        if: always() && steps.scene.outputs.has == 'true'
+        if: always() && steps.scene.outputs.has == 'true' && steps.build.conclusion != 'skipped'
         uses: actions/upload-artifact@v4
         with:
           name: unity-generated-files
