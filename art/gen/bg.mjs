@@ -115,11 +115,17 @@ function home() {
     const c = ['#FFFFFF', '#FFE96A', '#FF8FB0', '#B8A8FF'][i % 4];
     b += `<g transform="translate(${r1(x)} ${r1(y)})"><path d="M-6 6Q-4 -4 0 -8Q4 -4 6 6" fill="#3F8E45" fill-opacity="0.6"/><circle r="5" fill="${c}"/><circle r="2" fill="#FFC21A"/></g>`;
   }
-  // foreground bushes (corners, 10 % darker)
+  // foreground bushes (corners, 10 % darker): lumpy clusters with leaf highlights
   const bush = uid('bu');
-  defs += rad(bush, [[0, '#5DB04F'], [0.6, '#3F8E45'], [1, '#2B6B36']], 0.4, 0.3, 0.8);
-  b += `<g fill="url(#${bush})"><circle cx="-20" cy="1560" r="130"/><circle cx="90" cy="1640" r="110"/><circle cx="1100" cy="1520" r="140"/><circle cx="990" cy="1640" r="100"/></g>`;
-  b += `<g fill="#FFFFFF" fill-opacity="0.18"><ellipse cx="-10" cy="1470" rx="60" ry="20"/><ellipse cx="1060" cy="1420" rx="60" ry="20"/></g>`;
+  defs += rad(bush, [[0, '#6CC25A'], [0.55, '#3F8E45'], [1, '#2B6B36']], 0.4, 0.3, 0.8);
+  const clump = (cx, cy, s, flip) => {
+    let o = `<g transform="translate(${cx} ${cy}) scale(${flip ? -s : s} ${s})">`;
+    for (const [x, y, r] of [[0, 0, 120], [-110, 40, 90], [100, 50, 95], [-40, -90, 80], [60, -80, 75], [150, -20, 70], [-160, -30, 70]]) o += `<circle cx="${x}" cy="${y}" r="${r}" fill="url(#${bush})"/>`;
+    for (const [x, y] of [[-50, -120], [40, -110], [-130, -60], [120, -60], [-10, -40]]) o += `<ellipse cx="${x}" cy="${y}" rx="26" ry="11" transform="rotate(-25 ${x} ${y})" fill="#B8F09A" fill-opacity="0.45"/>`;
+    for (const [x, y] of [[-70, -20], [30, 10], [110, -10]]) o += `<circle cx="${x}" cy="${y}" r="7" fill="#FFFFFF"/><circle cx="${x}" cy="${y}" r="3" fill="#FFC21A"/>`;
+    return o + '</g>';
+  };
+  b += clump(-30, 1620, 1.0, false) + clump(1110, 1590, 1.05, true);
   b += `<rect width="${W}" height="${H}" fill="url(#${vig})"/>`;
   return doc(W, H, defs, b, { scale: 0.75 });
 }

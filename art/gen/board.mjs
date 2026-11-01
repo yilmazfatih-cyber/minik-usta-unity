@@ -69,7 +69,7 @@ function wallCap() {
   let b = `<path d="${rr(-2, 4, 64, 30, 9)}" fill="${INK}"/>`;
   b += hazardStripes(4, 9, 52, 20, c);
   b += `<path d="${rr(-2, 4, 64, 30, 9)}" fill="none" stroke="${INK}" stroke-width="6"/>`;
-  return doc(60, 36, '', b, { scale: 1.5, pivot: [0.5, 0], viewBox: '-2 0 64 36' });
+  return doc(64, 36, '', b, { scale: 1.5, pivot: [0.5, 0], viewBox: '-2 0 64 36' });
 }
 /** Gap opening of one row (W1 static, ART §5): sky-filled hole with dark jambs (the wall's thickness). */
 function gapSeg() {
@@ -80,12 +80,12 @@ function gapSeg() {
   b += `<rect x="0" width="4" height="120" fill="${INK}" fill-opacity="0.85"/><rect x="56" width="4" height="120" fill="${INK}" fill-opacity="0.85"/>`;
   return doc(60, 120, defs, b, { scale: 1.5 });
 }
-/** Hazard band of a gap edge (14 px band + 6 px outline); flip Y for the bottom edge. Pivot = the wall edge it hugs. */
+/** Hazard band of a gap edge (14 px band + 6 px outline): one at the top and one at the bottom of the opening, centred. */
 function gapEdge() {
   const c = uid('ge');
   let b = `<rect x="0" y="0" width="60" height="22" fill="${INK}"/>`;
   b += hazardStripes(3, 3, 54, 14, c);
-  return doc(60, 22, '', b, { scale: 1.5, pivot: [0.5, 1] });
+  return doc(60, 22, '', b, { scale: 1.5, pivot: [0.5, 0.5] });
 }
 /** W1 rail (ART §5 Faz 2 tur 2): 8 px steel + 2 px light line, 4 × 12 sleeper notch every 40 px; tiles horizontally. */
 function railSeg() {

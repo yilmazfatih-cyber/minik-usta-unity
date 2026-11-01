@@ -12,6 +12,7 @@ import { createRequire } from 'node:module';
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { dirname, join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { optimizePng } from './png.mjs';
 
 const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '..', '..');
 const args = process.argv.slice(2);
@@ -194,6 +195,7 @@ async function main() {
     area: t('town.ch1.title'),
     count: t('common.count', { n: 3, max: 7 }),
     soon: t('common.comingSoon'),
+    tip: t('tut.m.free'),
   };
   for (const which of ONLY) {
     const b64 = await page.evaluate(
@@ -203,7 +205,7 @@ async function main() {
         const H = 1920;
         const cv = document.createElement('canvas');
         cv.width = which === 'sheet' ? 2048 : W;
-        cv.height = which === 'sheet' ? 3000 : H;
+        cv.height = which === 'sheet' ? Math.ceil(Object.keys(window.__atlas.frames).length / Math.floor(2048 / 112)) * 128 : H;
         const g = cv.getContext('2d');
         g.imageSmoothingQuality = 'high';
         // ---------------------------------------------------------------- level (Bölüm 3, mid-move) ----------------
@@ -265,9 +267,15 @@ async function main() {
             piece(g, lp.color, lp.cells, (x, y) => { const r = cellRect(x, y); return [r[0], r[1] - 18, r[2]]; }, { holdable: true, scale: 1.08 });
           }
           spv(g, 'crane_hook', yardX + 70, crane - 30, 0.9);
+          if (state.tip) {
+            nine(g, 'bubble_speech', 150, 282, 860, 138); txt(g, state.tip, 600, 348, 46, 'card', 'center', { fill: '#1D4F8F' });
+            g.save(); g.beginPath(); g.arc(122, 346, 66, 0, 7); g.fillStyle = '#FFF6D2'; g.fill(); g.lineWidth = 8; g.strokeStyle = '#0B3A6E'; g.stroke(); g.clip(); spr(g, 'chr_dede_bust', 44, 262, 156, 195); g.restore();
+            g.save(); g.beginPath(); g.arc(122, 346, 66, 0, 7); g.lineWidth = 6; g.strokeStyle = '#2E9BF0'; g.stroke(); g.restore();
+            spr(g, 'ui_glove', 880, 1066, 120, 137, { rot: -8 });
+          }
           // HUD (ScreenLayout v3): row 1
           nine(g, 'capsule_hud', 24, 24, 220, 60); txt(g, S.level, 134, 55, 38, 'lav');
-          nine(g, 'capsule_hud', 300, 24, 250, 60); spr(g, 'icon_blocks', 276, 6, 92, 92); txt(g, String(state.blocksLeft ?? 4), 410, 53, 44, 'cream'); txt(g, S.blocks, 488, 56, 32, 'lav');
+          nine(g, 'capsule_hud', 300, 24, 250, 60); spr(g, 'icon_blocks', 280, 12, 82, 82); txt(g, String(state.blocksLeft ?? 4), 410, 53, 44, 'cream'); txt(g, S.blocks, 488, 56, 32, 'lav');
           nine(g, 'capsule_hud', 600, 24, 456, 60); txt(g, S.streak, 708, 55, 32, 'lav');
           for (let i = 0; i < 5; i++) spr(g, i < 2 ? 'bead_on' : 'bead_off', 806 + i * 48, 32, 44, 44);
           // row 2: panorama well, moves plate, pause
@@ -275,7 +283,7 @@ async function main() {
           for (let i = 0; i < rows.length; i++) for (let x = 0; x < ws; x++) { const ch = rows[i][x].toLowerCase(); const filledHere = filled.has(x + ',' + (hs - 1 - i)); spr(g, filledHere ? 'blk_' + ch + '_00' : 'ghost_' + ch, 170 + x * 24, 140 + i * 22, 22, 22); }
           txt(g, S.area, 108, 196, 26, 'lav');
           spr(g, 'icon_star', 228, 198, 44, 44); spr(g, 'icon_star_empty', 262, 198, 44, 44); spr(g, 'icon_star_empty', 296, 198, 44, 44);
-          nine(g, 'hud_moves_plate', 390, 128, 300, 136); txt(g, S.moves.toLocaleUpperCase('tr-TR'), 540, 157, 30, 'card', 'center', { fill: '#F9F3C3' }); txt(g, String(state.moves ?? 8), 540, 216, 84, 'big');
+          nine(g, 'hud_moves_plate', 390, 128, 300, 136); txt(g, S.moves.toLocaleUpperCase('tr-TR'), 540, 157, 30, 'card', 'center', { fill: '#F9F3C3' }); txt(g, String(state.moves ?? 8), 540, 222, 80, 'big');
           spr(g, 'btn_tool', 896, 128, 136, 136); spr(g, 'icon_pause', 924, 150, 80, 80);
           // status strip riding the tray's bottom edge
           nine(g, 'capsule_hud', 760, 1512, 240, 64); spr(g, 'truck', 770, 1508, 120, 67); txt(g, '×1', 940, 1546, 40, 'cream');
@@ -302,20 +310,21 @@ async function main() {
             { color: 'Y', cells: [[2, 0], [3, 0]], holdable: false },
           ],
           lifted: { color: 'W', cells: [[5, 3], [5, 4]] },
+          tip: ctx.strings.tip,
         };
         if (which === 'level') drawLevel(midState);
         // ---------------------------------------------------------------- home ----------------------------------------
         if (which === 'home') {
           spr(g, 'bg_home', 0, 0, W, H);
           // area structure (chapter 1) + progress
-          spv(g, 'town_ch1_treehouse', 790, 1140, 0.6);
+          spv(g, 'town_ch1_treehouse', 812, 1236, 0.62);
           nine(g, 'ribbon_title', 230, 236, 620, 120); txt(g, S.area, 540, 288, 54, 'button', 'center', { stroke: '#8A3A06' });
           nine(g, 'progress_track', 300, 356, 480, 84); nine(g, 'progress_fill', 308, 364, 196, 64); txt(g, S.count, 540, 396, 40, 'big');
           spr(g, 'icon_star', 740, 334, 120, 120);
           // characters group (calm middle behind the button)
-          spr(g, 'chr_dede_idle', 360, 820, 300, 480);
-          spr(g, 'chr_kepce_idle', 40, 1160, 300, 206);
-          spr(g, 'chr_tuna_cheer', 120, 870, 330, 440);
+          spr(g, 'chr_dede_idle', 330, 846, 285, 456);
+          spr(g, 'chr_kepce_idle', 30, 1170, 290, 200);
+          spr(g, 'chr_tuna_cheer', 96, 880, 330, 440);
           // top bar
           nine(g, 'capsule_home', 160, 104, 300, 88); spr(g, 'icon_heart', 126, 92, 112, 112); txt(g, '5', 182, 146, 40, 'button', 'center', { stroke: '#B80E12' }); txt(g, S.full, 340, 150, 44, 'cream');
           nine(g, 'capsule_home', 500, 104, 300, 88); spr(g, 'icon_coin', 466, 92, 112, 112); txt(g, '1.250', 660, 150, 44, 'cream'); spv(g, 'btn_plus', 790, 148, 1);
@@ -329,7 +338,7 @@ async function main() {
             const cx = 108 + i * 216;
             if (i === 2) { spr(g, 'nav_tab_on', cx - 150, 1620, 300, 300); spr(g, tabs[i], cx - 67, 1650, 134, 134); txt(g, S.home, cx, 1830, 40, 'label', 'center', { stroke: '#2C1E94' }); }
             else { spr(g, tabs[i], cx - 57, 1752, 115, 115, { alpha: i > 2 ? 0.55 : 1 }); if (i > 2) spr(g, 'icon_lock', cx + 14, 1812, 52, 52); }
-            if (i > 0 && i < 5 && i !== 2 && i !== 3) { g.fillStyle = '#3624AA'; g.fillRect(cx - 109, 1780, 3, 80); }
+            if (i === 1 || i === 4) { g.fillStyle = '#3624AA'; g.fillRect(cx - 109, 1772, 3, 88); }
           }
         }
         // ---------------------------------------------------------------- win -----------------------------------------
@@ -343,10 +352,10 @@ async function main() {
           nine(g, 'ribbon_title', 170, 548, 740, 190); txt(g, S.winTitle, 540, 622, 92, 'button', 'center', { stroke: '#8A3A06' });
           spr(g, 'icon_star', 186, 700, 200, 200, { rot: -12 }); spr(g, 'icon_star', 694, 700, 200, 200, { rot: 12 }); spr(g, 'icon_star', 410, 660, 260, 260);
           for (const [x, y, s, r] of [[150, 690, 48, 0], [930, 700, 56, 20], [300, 640, 36, 0], [800, 640, 40, 0]]) spr(g, 'fx_spark', x, y, s, s, { tint: '#FFF3C4', rot: r });
-          txt(g, S.winClear, 540, 960, 56, 'label', 'center', { stroke: '#2A1D8B' });
+          txt(g, S.winClear, 540, 950, 56, 'label', 'center', { stroke: '#2A1D8B' });
           nine(g, 'panel_card', 100, 1010, 880, 280);
-          spr(g, 'fx_rays', 200 - 260, 1150 - 260, 520, 520, { tint: '#F1E5BD', alpha: 0.6 });
-          spr(g, 'chr_tuna_cheer', 92, 900, 300, 400);
+          g.save(); g.beginPath(); g.rect(112, 1022, 856, 256); g.clip(); spr(g, 'fx_rays', 250 - 300, 1170 - 300, 600, 600, { tint: '#E9D9A0', alpha: 0.8 }); g.restore();
+          spr(g, 'chr_tuna_cheer', 120, 1010, 252, 336);
           nine(g, 'capsule_hud', 470, 1050, 300, 96); spr(g, 'icon_coin', 446, 1036, 124, 124); txt(g, '+61', 680, 1100, 56, 'cream');
           nine(g, 'capsule_hud', 470, 1166, 300, 96); spr(g, 'icon_gold_trowel', 446, 1150, 124, 124); txt(g, '×1', 680, 1216, 56, 'cream');
           txt(g, S.winBonus, 600, 1316, 36, 'label', 'center', { stroke: '#2A1D8B', fill: '#FFE96A' });
@@ -376,7 +385,7 @@ async function main() {
       { which, ctx },
     );
     const file = join(OUT, `v4-${which}.png`);
-    writeFileSync(file, Buffer.from(b64, 'base64'));
+    writeFileSync(file, optimizePng(Buffer.from(b64, 'base64')));
     shots[which] = file;
     console.log('preview:', file);
   }

@@ -2,7 +2,7 @@
 /**
  * v4 art pack rasteriser (design-lead, package V0; docs/ART_UNITY.md). Reads every `art/svg/**\/*.svg`, rasterises it in
  * the preinstalled Chromium (Playwright from the web repo's node_modules — no new dependency), packs the frames into
- * ≤ 2048 × 2048 atlas pages (shelf packer, first fit, `--pad` px gutter filled by edge extrusion) and writes
+ * ≤ 2048 × 2048 atlas pages (skyline packer, bottom-left heuristic, `--pad` px gutter filled by edge extrusion) and writes
  *   Assets/MinikUsta/Resources/art/atlas-<N>.png.bytes   (PNG; Unity loads it as a TextAsset → Texture2D.LoadImage)
  *   Assets/MinikUsta/Resources/art/atlas.json            (frame contract, see docs/ART_UNITY.md §2)
  *
@@ -18,6 +18,7 @@ import { createRequire } from 'node:module';
 import { existsSync, mkdirSync, readFileSync, readdirSync, rmSync, statSync, writeFileSync } from 'node:fs';
 import { basename, dirname, join, relative, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { optimizePng } from './png.mjs';
 
 const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '..', '..');
 const args = process.argv.slice(2);
@@ -91,50 +92,77 @@ export function readFrames(dir = SVG_DIR) {
   return frames;
 }
 
-/** First-fit shelf packer: frames sorted by height (desc), each shelf as tall as its first frame. */
+/**
+ * Skyline packer (bottom-left heuristic): frames sorted by height then width (desc); each frame goes where its top
+ * edge ends lowest on the first page that fits; a new page opens when none does. Deterministic.
+ */
 export function pack(frames, max = MAX, pad = PAD) {
   const order = [...frames].sort((a, b) => b.h - a.h || b.w - a.w || (a.name < b.name ? -1 : 1));
   const pages = [];
+  const newPage = () => {
+    const pg = { sky: [{ x: 0, y: 0, w: max }], usedW: 0, usedH: 0 };
+    pages.push(pg);
+    return pg;
+  };
+  const fitAt = (sky, i, w, h) => {
+    const x = sky[i].x;
+    if (x + w > max) return -1;
+    let y = 0;
+    let left = w;
+    for (let j = i; j < sky.length && left > 0; j++) {
+      y = Math.max(y, sky[j].y);
+      if (y + h > max) return -1;
+      left -= sky[j].w;
+    }
+    return left > 0 ? -1 : y;
+  };
+  const place = (pg, i, y, w, h) => {
+    const x = pg.sky[i].x;
+    const seg = { x, y: y + h, w };
+    const out = [];
+    for (const s of pg.sky) {
+      const e = s.x + s.w;
+      if (e <= x || s.x >= x + w) out.push(s);
+      else {
+        if (s.x < x) out.push({ x: s.x, y: s.y, w: x - s.x });
+        if (e > x + w) out.push({ x: x + w, y: s.y, w: e - x - w });
+      }
+    }
+    out.push(seg);
+    out.sort((a, b) => a.x - b.x);
+    const merged = [];
+    for (const s of out) {
+      const m = merged[merged.length - 1];
+      if (m && m.y === s.y && m.x + m.w === s.x) m.w += s.w;
+      else merged.push({ ...s });
+    }
+    pg.sky = merged;
+    pg.usedW = Math.max(pg.usedW, x + w);
+    pg.usedH = Math.max(pg.usedH, y + h);
+    return x;
+  };
   for (const f of order) {
     const fw = f.w + 2 * pad;
     const fh = f.h + 2 * pad;
     if (fw > max || fh > max) throw new Error(`${f.name}: ${f.w}×${f.h} does not fit a ${max} page`);
-    let placed = false;
-    for (let pi = 0; pi < pages.length && !placed; pi++) {
-      const pg = pages[pi];
-      for (const sh of pg.shelves) {
-        if (fh <= sh.h && sh.x + fw <= max) {
-          f.atlas = pi;
-          f.x = sh.x + pad;
-          f.y = sh.y + pad;
-          sh.x += fw;
-          placed = true;
-          break;
-        }
+    let done = false;
+    for (let pi = 0; pi <= pages.length && !done; pi++) {
+      const pg = pi < pages.length ? pages[pi] : newPage();
+      let best = null;
+      for (let i = 0; i < pg.sky.length; i++) {
+        const y = fitAt(pg.sky, i, fw, fh);
+        if (y < 0) continue;
+        if (!best || y + fh < best.top || (y + fh === best.top && pg.sky[i].x < best.x)) best = { i, y, top: y + fh, x: pg.sky[i].x };
       }
-      if (!placed && pg.used + fh <= max) {
-        const sh = { y: pg.used, h: fh, x: fw };
-        pg.shelves.push(sh);
-        pg.used += fh;
-        f.atlas = pi;
-        f.x = pad;
-        f.y = sh.y + pad;
-        placed = true;
-      }
-    }
-    if (!placed) {
-      pages.push({ shelves: [{ y: 0, h: fh, x: fw }], used: fh });
-      f.atlas = pages.length - 1;
-      f.x = pad;
-      f.y = pad;
+      if (!best) continue;
+      const x = place(pg, best.i, best.y, fw, fh);
+      f.atlas = pi;
+      f.x = x + pad;
+      f.y = best.y + pad;
+      done = true;
     }
   }
-  return pages.map((pg, i) => {
-    const w = Math.min(max, Math.max(...pg.shelves.map((s) => s.x)));
-    const h = pg.used;
-    // multiples of 4 (block-compression friendly)
-    return { index: i, w: Math.ceil(w / 4) * 4, h: Math.ceil(h / 4) * 4 };
-  });
+  return pages.map((pg, i) => ({ index: i, w: Math.ceil(pg.usedW / 4) * 4, h: Math.ceil(pg.usedH / 4) * 4 }));
 }
 
 async function loadChromium() {
@@ -223,7 +251,7 @@ export async function rasterise(frames, pages, { pngDir } = {}) {
   const out = [];
   for (const p of pages) {
     const b64 = await page.evaluate((i) => window.__pages[i].toDataURL('image/png').split(',')[1], p.index);
-    out.push(Buffer.from(b64, 'base64'));
+    out.push(optimizePng(Buffer.from(b64, 'base64')));
   }
   await browser.close();
   return out;
