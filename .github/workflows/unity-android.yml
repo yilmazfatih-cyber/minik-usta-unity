@@ -1,0 +1,174 @@
+name: Unity Android → APK
+# Paket C1 (docs/CI.md "Android"). Builds the Android player with GameCI and uploads the APK as a workflow artifact. Not part of every
+# push (an IL2CPP Android build takes much longer than the WebGL one and holds the Unity seat): run it by hand (Actions → "Unity
+# Android → APK" → Run workflow) or push a tag `v*`. Same account, same pinned CLI and same seat group as unity-webgl.yml.
+on:
+  workflow_dispatch:
+    inputs:
+      export_type:
+        description: 'androidPackage (APK, default) or androidAppBundle (AAB, needs a release keystore for the store)'
+        required: false
+        default: 'androidPackage'
+        type: choice
+        options: [androidPackage, androidAppBundle]
+  push:
+    tags: ['v*']
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    name: Build Android (GameCI)
+    runs-on: ubuntu-latest
+    timeout-minutes: 120
+    # The one Unity seat of the Personal account (docs/CI.md section 1): this group is shared with unity-webgl.yml, a running job is
+    # never cancelled (a cancelled job can leak the seat), queued ones wait their turn.
+    concurrency:
+      group: unity-license
+      cancel-in-progress: false
+    steps:
+      - uses: actions/checkout@v4
+      - name: Check for a scene
+        id: scene
+        run: |
+          if ls Assets/MinikUsta/Scenes/*.unity >/dev/null 2>&1; then echo "has=true" >> "$GITHUB_OUTPUT"; else echo "has=false" >> "$GITHUB_OUTPUT"; echo "::notice::No scene yet; build skipped."; fi
+      # Same guard as unity-webgl.yml (docs/CI.md section 2b): the GameCI CLI fails the step unless the container output holds the
+      # literal "Build succeeded!", which CiBuild.ReportSuccess prints once per entry point. BuildAndroid must keep calling it.
+      - name: Check CiBuild reports success to the GameCI CLI
+        if: steps.scene.outputs.has == 'true'
+        run: |
+          f=Assets/MinikUsta/Editor/CiBuild.cs
+          if ! grep -qF 'Console.WriteLine("Build succeeded!");' "$f"; then
+            echo "::error file=$f::CiBuild.cs no longer prints the literal 'Build succeeded!' that the game-ci CLI (validateBuild) requires; see docs/CI.md section 2b"
+            exit 1
+          fi
+          calls=$(grep -cF 'ReportSuccess(report.summary);' "$f" || true)
+          if [ "$calls" -lt 2 ]; then
+            echo "::error file=$f::ReportSuccess(report.summary) must be called in BuildWebGL and BuildAndroid (found $calls call(s)); see docs/CI.md section 2b"
+            exit 1
+          fi
+      - name: Check Unity account secrets
+        if: steps.scene.outputs.has == 'true'
+        env:
+          UNITY_EMAIL: ${{ secrets.UNITY_EMAIL }}
+          UNITY_PASSWORD: ${{ secrets.UNITY_PASSWORD }}
+        run: |
+          if [ -z "$UNITY_EMAIL" ] || [ -z "$UNITY_PASSWORD" ]; then
+            echo "::error::UNITY_EMAIL / UNITY_PASSWORD repository secrets are not set (Settings > Secrets and variables > Actions > Repository secrets)"
+            exit 1
+          fi
+      # Signing: all four secrets must exist for a release signature; otherwise Unity's debug keystore signs the APK (installable by
+      # sideloading, rejected by stores). Values are never printed. Secrets (Settings > Secrets > Actions):
+      #   ANDROID_KEYSTORE_BASE64  base64 of the .keystore file (base64 -w0 release.keystore)
+      #   ANDROID_KEYSTORE_PASS    keystore password        ANDROID_KEYALIAS_NAME / ANDROID_KEYALIAS_PASS  key alias and its password
+      - name: Check Android signing secrets
+        id: sign
+        if: steps.scene.outputs.has == 'true'
+        env:
+          KS: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
+          KSP: ${{ secrets.ANDROID_KEYSTORE_PASS }}
+          KA: ${{ secrets.ANDROID_KEYALIAS_NAME }}
+          KAP: ${{ secrets.ANDROID_KEYALIAS_PASS }}
+        run: |
+          if [ -n "$KS" ] && [ -n "$KSP" ] && [ -n "$KA" ] && [ -n "$KAP" ]; then
+            echo "signed=true" >> "$GITHUB_OUTPUT"; echo "Release keystore secrets are set: the APK will be release-signed."
+          else
+            echo "signed=false" >> "$GITHUB_OUTPUT"; echo "::notice::No (or incomplete) Android keystore secrets: the APK is signed with Unity's debug keystore."
+          fi
+      # The Android editor image is large (about 9 GB) and the runner has about 14 GB free: drop what this job never uses.
+      - name: Free disk space
+        if: steps.scene.outputs.has == 'true'
+        run: |
+          df -h / | tail -1
+          sudo rm -rf /usr/share/dotnet /usr/local/lib/android /opt/ghc /usr/local/share/boost "$AGENT_TOOLSDIRECTORY" || true
+          df -h / | tail -1
+      # No Library cache here on purpose: an IL2CPP Android Library is several GB and would push the WebGL cache out of the 10 GB
+      # repository limit. The first import costs a few minutes.
+      - name: Build
+        id: build
+        continue-on-error: true
+        if: steps.scene.outputs.has == 'true'
+        uses: game-ci/unity-builder@v6.0.0
+        env:
+          UNITY_EMAIL: ${{ secrets.UNITY_EMAIL }}
+          UNITY_PASSWORD: ${{ secrets.UNITY_PASSWORD }}
+        with:
+          cliVersion: v0.1.72
+          targetPlatform: Android
+          buildName: MinikUsta
+          buildMethod: MinikUsta.Editor.CiBuild.BuildAndroid
+          allowDirtyBuild: true
+          androidExportType: ${{ github.event.inputs.export_type || 'androidPackage' }}
+          # versionCode must grow with every upload to a store; the run number does. versionName: the tag without its "v", else 0.0.<run>.
+          androidVersionCode: ${{ github.run_number }}
+          versioning: Custom
+          version: ${{ github.ref_type == 'tag' && github.ref_name || format('0.0.{0}', github.run_number) }}
+          androidKeystoreName: ${{ steps.sign.outputs.signed == 'true' && 'minikusta.keystore' || '' }}
+          androidKeystoreBase64: ${{ steps.sign.outputs.signed == 'true' && secrets.ANDROID_KEYSTORE_BASE64 || '' }}
+          androidKeystorePass: ${{ steps.sign.outputs.signed == 'true' && secrets.ANDROID_KEYSTORE_PASS || '' }}
+          androidKeyaliasName: ${{ steps.sign.outputs.signed == 'true' && secrets.ANDROID_KEYALIAS_NAME || '' }}
+          androidKeyaliasPass: ${{ steps.sign.outputs.signed == 'true' && secrets.ANDROID_KEYALIAS_PASS || '' }}
+      # Success is the package on disk (the same rule as "Verify WebGL output"): a non-empty .apk (or .aab) whose zip holds the manifest,
+      # the Dalvik code and the Unity player library for arm64. continue-on-error on Build means a CLI false red does not hide a good APK;
+      # a real failure leaves no package here and ends the job red.
+      - name: Verify Android output
+        id: verify
+        if: steps.scene.outputs.has == 'true'
+        env:
+          BUILD_OUTCOME: ${{ steps.build.outcome }}
+        run: |
+          sudo chown -R "$USER" build 2>/dev/null || true
+          echo "Files in build/Android (bytes, path):"
+          find build/Android -type f -printf '%10s  %P\n' 2>/dev/null | sort -k2 || echo "(directory does not exist)"
+          shopt -s nullglob
+          pkgs=(build/Android/*.apk build/Android/*.aab)
+          if [ "${#pkgs[@]}" -eq 0 ] || [ ! -s "${pkgs[0]}" ]; then
+            echo "::error::Unity produced no Android package (see the Build step log)"
+            exit 1
+          fi
+          pkg="${pkgs[0]}"
+          listing="$(unzip -l "$pkg")" || { echo "::error::$pkg is not a valid zip"; exit 1; }
+          missing=()
+          if [[ "$pkg" == *.apk ]]; then
+            grep -q 'AndroidManifest.xml' <<<"$listing" || missing+=("AndroidManifest.xml")
+            grep -q 'classes.dex' <<<"$listing" || missing+=("classes.dex")
+            grep -q 'lib/arm64-v8a/libunity.so' <<<"$listing" || missing+=("lib/arm64-v8a/libunity.so")
+            grep -qE 'META-INF/.*\.(RSA|DSA|EC|SF)' <<<"$listing" || echo "::warning::no v1 signature file in $pkg (a v2/v3-only signature is fine)"
+          else
+            grep -q 'base/manifest/AndroidManifest.xml' <<<"$listing" || missing+=("base/manifest/AndroidManifest.xml")
+          fi
+          if [ "${#missing[@]}" -ne 0 ]; then
+            echo "Missing in $pkg: ${missing[*]}"
+            echo "::error::Android package is incomplete"
+            exit 1
+          fi
+          echo "ok=true" >> "$GITHUB_OUTPUT"
+          echo "pkg=$pkg" >> "$GITHUB_OUTPUT"
+          ls -l "$pkg"
+          if [ "$BUILD_OUTCOME" != "success" ]; then
+            echo "::warning::The Build step reported '$BUILD_OUTCOME' although Unity produced a complete package; continuing (docs/CI.md section 2b)."
+          fi
+      - name: Upload the Android package
+        if: steps.verify.outputs.ok == 'true'
+        uses: actions/upload-artifact@v4
+        with:
+          name: minikusta-android-${{ github.run_number }}
+          path: ${{ steps.verify.outputs.pkg }}
+          retention-days: 30
+          if-no-files-found: error
+      # Unity writes settings and .meta files into the workspace; kept (also after a failure) for the owner, like the WebGL job.
+      - name: Collect files Unity generated
+        if: always() && steps.scene.outputs.has == 'true' && steps.build.conclusion != 'skipped'
+        run: sudo chown -R "$USER" ProjectSettings Packages Assets
+      - name: Upload files Unity generated (ProjectSettings, .meta)
+        if: always() && steps.scene.outputs.has == 'true' && steps.build.conclusion != 'skipped'
+        uses: actions/upload-artifact@v4
+        with:
+          name: unity-generated-files-android
+          path: |
+            ProjectSettings/
+            Packages/packages-lock.json
+            Assets/**/*.meta
+          if-no-files-found: warn
+          retention-days: 14

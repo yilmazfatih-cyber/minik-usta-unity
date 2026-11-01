@@ -1,0 +1,9 @@
+{
+  "doc": "Single list of the CI screenshots, in the order ShotScenario signals them (Assets/MinikUsta/Presentation.Core/Shots/ShotScenario.cs; a unit test keeps both equal). The Playwright script waits for '[minikShot] shot:<name>' lines and saves <viewport>/<name>.png.",
+  "tag": "[minikShot]",
+  "shots": ["home", "settings", "level_start", "drag_mid", "landed", "win"],
+  "viewports": [
+    { "name": "390x844", "width": 390, "height": 844 },
+    { "name": "360x800", "width": 360, "height": 800 }
+  ]
+}

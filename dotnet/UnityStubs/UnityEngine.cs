@@ -271,6 +271,8 @@ namespace UnityEngine
         public static int targetFrameRate { get => 0; set { } }
         public static RuntimePlatform platform => default;
         public static bool isEditor => false;
+        /// <summary>UnityCsReference 6000.0 Runtime/Export/Application/Application.bindings.cs: `extern public static string absoluteURL { get; }` (the page URL on WebGL, empty elsewhere).</summary>
+        public static string absoluteURL => "";
     }
 
 #if UNITY_ANDROID || UNITY_IOS
@@ -460,6 +462,30 @@ namespace UnityEngine
         public static bool HasKey(string key) => false;
         public static void DeleteKey(string key) { }
         public static void Save() { }
+    }
+
+    // UnityCsReference 6000.0.85f1 Modules/Audio/Public/ScriptBindings/Audio.bindings.cs (AudioModule). AudioClip derives from the
+    // internal-ish AudioResource there; the stub keeps Object (nothing in the Unity layer needs the base).
+    public class AudioBehaviour : Behaviour
+    {
+    }
+
+    public sealed class AudioListener : AudioBehaviour
+    {
+    }
+
+    public sealed class AudioClip : Object
+    {
+        public static AudioClip Create(string name, int lengthSamples, int channels, int frequency, bool stream) => null;
+        public bool SetData(float[] data, int offsetSamples) => false;
+    }
+
+    public sealed class AudioSource : AudioBehaviour
+    {
+        public bool playOnAwake { get => false; set { } }
+        public float spatialBlend { get => 0f; set { } }
+        public void PlayOneShot(AudioClip clip) { }
+        public void PlayOneShot(AudioClip clip, float volumeScale) { }
     }
 
     public enum FontStyle

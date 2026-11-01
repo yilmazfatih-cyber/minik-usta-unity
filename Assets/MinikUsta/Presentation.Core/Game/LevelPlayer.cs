@@ -18,6 +18,7 @@ using MinikUsta.Core;
 using MinikUsta.Core.Level;
 using MinikUsta.Presentation.Animation;
 using MinikUsta.Presentation.Art;
+using MinikUsta.Presentation.Audio;
 using MinikUsta.Presentation.Feel;
 using MinikUsta.Presentation.Input;
 using MinikUsta.Presentation.Layout;
@@ -99,6 +100,8 @@ namespace MinikUsta.Presentation.Game
         public ParticleField Particles { get; }
         /// <summary>Q2: the vibration policy ("Titreşim" switch, minimum gap); the sink is the engine's.</summary>
         public HapticRouter Haptics { get; }
+        /// <summary>V2: the sounds (null = silent: tests, a build without audio). Every play is a request the policy may drop.</summary>
+        public AudioPlayer? Audio { get; set; }
         public EconomyInfo Economy { get; }
         public DesignViewport Viewport { get; private set; }
         public ScreenLayout? Layout { get; private set; }
@@ -422,6 +425,7 @@ namespace MinikUsta.Presentation.Game
         {
             Panel = model.Kind;
             View.ShowPanel(model, OnPanelAction);
+            PanelSound(model.Kind);
             var t = View.PanelTarget;
             // JUICE #70 window open: 0,85 → 1,03 → 1 (Back.easeOut)
             var pop = Tweens.Pop(t, Reduced ? 1f : Feel.PopupFrom, Reduced ? 1f : Feel.PopupPeak, 1f, Feel.PopupOpenMs, 0.6f);
@@ -444,8 +448,29 @@ namespace MinikUsta.Presentation.Game
             Buzz(HapticKind.Success);
         }
 
+        /// <summary>JUICE #70 window open sound (#52 the offer, the life-lost drain #58); the win window is silent: `music_win` plays with the win step.</summary>
+        private void PanelSound(PanelKind kind)
+        {
+            switch (kind)
+            {
+                case PanelKind.Lose:
+                    Sound(Sounds.Offer);
+                    break;
+                case PanelKind.LoseFinal:
+                    Sound(Sounds.LifeLost);
+                    break;
+                case PanelKind.Win:
+                case PanelKind.None:
+                    break;
+                default:
+                    Sound(Sounds.Popup);
+                    break;
+            }
+        }
+
         private void HidePanel()
         {
+            if (Panel != PanelKind.None) Sound(Sounds.Close); // JUICE #71
             Panel = PanelKind.None;
             View.ShowPanel(null, OnPanelAction);
         }
@@ -621,6 +646,9 @@ namespace MinikUsta.Presentation.Game
         /// <summary>Asks the haptic router for a buzz (JUICE §0 rule 7): off, closer than `HapticMinGapMs` to the last one, or no sink = dropped.</summary>
         public void Buzz(HapticKind kind) => Haptics.Pulse(kind, Clock.Now, Feel.HapticMinGapMs);
 
+        /// <summary>V2: asks the audio player for a sound now (JUICE sound column); dropped when there is none, it is muted / locked / cooling down.</summary>
+        public void Sound(string name, double rate = 1, double gain = 1) => Audio?.Play(name, rate, gain);
+
         private const double CoinPx = 60;
 
         /// <summary>JUICE #56: one coin leaves `from` (the moves plate), arcs to `to` (the gold chip), adds `gold`, pops the chip, sparkles.</summary>
@@ -697,10 +725,13 @@ namespace MinikUsta.Presentation.Game
                 // JUICE #1: 1,00 → 1,08 (80 ms Back.easeOut), 6 px hop, lifted silhouette, above every block
                 v.Raised = true;
                 v.Lifted = true;
+                Sound(Sounds.Pick);
                 Clock.Play(Tweens.Scale(v, Reduced ? Feel.ReducedScaleMax : Feel.LiftScale, Feel.LiftMs, Feel.LiftEase));
                 if (!Reduced) Clock.Play(Hop(v, Feel.LiftHopPx, Feel.LiftMs));
             }
             v.Position = BoardPose.Center(L.Grid, f.Ax, f.Ay, shape);
+            if (f.CrossedWall) Sound(Sounds.Whoosh); // JUICE #6 over the wall
+            if (f.EnteredRail && f.Node.Mode > 0) Sound(Sounds.GapRail); // JUICE #22 a rail of a gap
             if (f.NodeChanged && f.Drop != null) NodeChanged(session, drag, v, f);
         }
 
@@ -721,6 +752,8 @@ namespace MinikUsta.Presentation.Game
             var g = Layout!.Grid;
             string key = fall.Landing.Ix + "," + fall.Landing.Iy + "|" + look.Key;
             if (key == lastShadowKey && lastShadowPiece == drag.PieceId) return;
+            // JUICE #7: the sound only when the shadow turned to the ✓ look (easy / normal, no `?`)
+            if (look.Badge == ShadowBadge.Ok) Sound(Sounds.GhostOk);
             lastShadowKey = key;
             lastShadowPiece = drag.PieceId;
             View.ShowShadow(new ShadowModel(drag.PieceId, drag.Shape, PieceColor(s, drag.PieceId), fall.Landing.Ix, fall.Landing.Iy, look,
@@ -732,6 +765,7 @@ namespace MinikUsta.Presentation.Game
         {
             var v = Pieces.Get(id);
             if (v == null) return;
+            Sound(Sounds.Blocked);
             if (!Reduced)
             {
                 var shake = Tweens.Shake(v, new Vec2(Feel.BlockedShakePx, 0), Feel.BlockedShakeCycles, Feel.BlockedShakeMs, Feel.BlockedShakeEase);

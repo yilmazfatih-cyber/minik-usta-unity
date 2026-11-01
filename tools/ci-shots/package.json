@@ -1,0 +1,11 @@
+{
+  "name": "minik-usta-ci-shots",
+  "private": true,
+  "version": "1.0.0",
+  "description": "CI screenshot capture of the Unity WebGL build (docs/CI.md, Ekran goruntuleri). Not a dependency of the game.",
+  "type": "module",
+  "engines": { "node": ">=20" },
+  "dependencies": {
+    "playwright": "1.64.1"
+  }
+}

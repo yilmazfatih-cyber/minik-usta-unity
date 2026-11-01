@@ -5,6 +5,7 @@
 using System;
 using System.Collections.Generic;
 using MinikUsta.Core;
+using MinikUsta.Presentation.Audio;
 using MinikUsta.Presentation.Feel;
 using MinikUsta.Presentation.Game;
 using MinikUsta.Presentation.Input;
@@ -20,10 +21,15 @@ namespace MinikUsta.Presentation.Tests.Fixtures
         public readonly LevelPlayer Player;
         public readonly List<GameEvent> Events = new List<GameEvent>();
         public int FastForwardedPresses;
+        /// <summary>V2: the sounds of the rig (null = silent); ticked with the frames.</summary>
+        public readonly AudioPlayer? Audio;
 
-        public Rig(double screenW = 1080, double screenH = 1920, Func<int, string?>? read = null, IHapticSink? haptics = null, FeelSettings? feel = null)
+        public Rig(double screenW = 1080, double screenH = 1920, Func<int, string?>? read = null, IHapticSink? haptics = null, FeelSettings? feel = null,
+            AudioPlayer? audio = null)
         {
             Player = new LevelPlayer(View, new LevelCatalog(read ?? ReadLevel), Tr(), feel, null, haptics, new EconomyInfo());
+            Audio = audio;
+            Player.Audio = audio;
             Player.SetScreen(screenW, screenH);
         }
 
@@ -46,6 +52,7 @@ namespace MinikUsta.Presentation.Tests.Fixtures
             while (ms > 1e-4f)
             {
                 float d = Math.Min(FrameMs, ms);
+                Audio?.Tick(d);
                 Player.Tick(d);
                 ms -= d;
             }
@@ -57,6 +64,7 @@ namespace MinikUsta.Presentation.Tests.Fixtures
             float t = 0;
             while ((Player.Queue.Busy || Player.Clock.Count > 0) && t < maxMs)
             {
+                Audio?.Tick(FrameMs);
                 Player.Tick(FrameMs);
                 t += FrameMs;
             }

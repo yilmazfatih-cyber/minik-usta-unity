@@ -12,16 +12,18 @@ permissions:
 
 # One Unity job at a time for the whole repository (docs/CI.md section 1). A Unity Personal seat is held from activation until
 # the build container returns it, and a Personal account has very few seats. cancel-in-progress must stay false: cancelling a
-# running job can leak the seat and every later run then fails with "no available seats". Queued runs wait their turn (GitHub
-# keeps only the newest pending run). Any other workflow that starts Unity (for example unity-android.yml) must use this same group.
-concurrency:
-  group: unity-license
-  cancel-in-progress: false
+# running job can leak the seat and every later run then fails with "no available seats". Queued builds wait their turn (GitHub
+# keeps only the newest pending one). The group is set on the BUILD JOB, not on the workflow (paket C1): the Playwright screenshot
+# job and the Pages deploy do not use a Unity seat and must not hold the next build back. Any other workflow that starts Unity
+# (unity-android.yml) puts its build job in this same group.
 
 jobs:
   build:
     name: Build WebGL (GameCI)
     runs-on: ubuntu-latest
+    concurrency:
+      group: unity-license
+      cancel-in-progress: false
     # With cancel-in-progress: false a hung Unity job would block the queue (and hold the seat) for the 6 hour default.
     timeout-minutes: 120
     steps:
@@ -166,6 +168,16 @@ jobs:
         uses: actions/upload-pages-artifact@v3
         with:
           path: build/WebGL/MinikUsta
+      # The screenshot job (below) plays the exact player that goes to Pages. A separate, short-lived artifact: the Pages artifact is
+      # a tar meant for deploy-pages, and this one downloads as a plain folder.
+      - name: Upload the player for the screenshot job
+        if: steps.verify.outputs.ok == 'true'
+        uses: actions/upload-artifact@v4
+        with:
+          name: webgl-player
+          path: build/WebGL/MinikUsta
+          retention-days: 3
+          if-no-files-found: error
     outputs:
       has_scene: ${{ steps.scene.outputs.has }}
       player_verified: ${{ steps.verify.outputs.ok }}
@@ -182,3 +194,64 @@ jobs:
     steps:
       - id: deployment
         uses: actions/deploy-pages@v4
+
+  # Paket C1: screenshots of the built player, for the reviewers (docs/CI.md section 7). Headless Chromium with software GL plays
+  # the game with ?shots=1 (Presentation.Core/Shots/ShotScenario.cs) on 390x844 and 360x800 and saves a PNG at every
+  # "[minikShot] shot:<name>" console line (tools/ci-shots/shoot.mjs). The PNGs and a manifest.json go to the orphan branch
+  # `ci-shots` (tools/ci-shots/publish.sh) and to a workflow artifact. Nothing here may block the release: the job is
+  # continue-on-error, every step reports problems as ::warning:: and the Pages deploy does not wait for it.
+  screenshots:
+    name: CI screenshots (Playwright)
+    needs: build
+    if: needs.build.outputs.player_verified == 'true'
+    runs-on: ubuntu-latest
+    continue-on-error: true
+    timeout-minutes: 40
+    permissions:
+      contents: write   # push to the ci-shots branch with GITHUB_TOKEN
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          sparse-checkout: tools/ci-shots
+          persist-credentials: false
+      - name: Download the WebGL player
+        uses: actions/download-artifact@v4
+        with:
+          name: webgl-player
+          path: player
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      # Playwright is pinned in tools/ci-shots/package.json (1.64.1, checked on npm 2026-11-01) with its lock file.
+      - name: Install Playwright and Chromium
+        id: pw
+        continue-on-error: true
+        working-directory: tools/ci-shots
+        run: |
+          npm ci --no-audit --no-fund
+          npx playwright install --with-deps chromium
+      - name: Capture screenshots
+        id: shoot
+        if: steps.pw.outcome == 'success'
+        continue-on-error: true
+        run: node tools/ci-shots/shoot.mjs --dir player --out artifacts/shots --sha "$GITHUB_SHA"
+      - name: Upload screenshots (artifact)
+        if: always() && hashFiles('artifacts/shots/manifest.json') != ''
+        uses: actions/upload-artifact@v4
+        with:
+          name: ci-screenshots
+          path: artifacts/shots
+          retention-days: 14
+      - name: Publish to the ci-shots branch
+        if: always() && hashFiles('artifacts/shots/manifest.json') != ''
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          SHOTS_DIR: artifacts/shots
+          SHA: ${{ github.sha }}
+        run: bash tools/ci-shots/publish.sh
+      - name: Report
+        if: always()
+        run: |
+          if [ "${{ steps.pw.outcome }}" != "success" ]; then echo "::warning title=CI screenshots::Playwright could not be installed; no screenshots for this commit"; fi
+          if [ "${{ steps.shoot.outcome }}" != "success" ] && [ "${{ steps.pw.outcome }}" = "success" ]; then echo "::warning title=CI screenshots::the capture step failed; see its log"; fi
+          if [ -f artifacts/shots/manifest.json ]; then python3 -c "import json;d=json.load(open('artifacts/shots/manifest.json'));print('screenshots ok =',d['ok'],'| warnings:',len(d.get('warnings',[])))"; fi

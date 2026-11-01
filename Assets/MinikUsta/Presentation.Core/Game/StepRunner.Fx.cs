@@ -8,6 +8,7 @@ using System.Collections.Generic;
 using MinikUsta.Core;
 using MinikUsta.Presentation.Animation;
 using MinikUsta.Presentation.Art;
+using MinikUsta.Presentation.Audio;
 using MinikUsta.Presentation.Feel;
 using MinikUsta.Presentation.Layout;
 using MinikUsta.Presentation.Tweening;
@@ -93,6 +94,7 @@ namespace MinikUsta.Presentation.Game
             // JUICE #15: the bead 0,6 → 1,2 → 1,0 with four small gold sparks
             Play(Tweens.Pop(p.View.StreakBead(index), F.PipFrom, F.PipPeak, 1f, step.Ms), time, instant, false);
             p.Particles.Sparks(HudLayout.Center(HudLayout.Bead(L, index)), Rgba.Hex(Palette.Gold), F.ParticlePip, 0.35f);
+            Snd(Sounds.StreakPip, 0, ComboPitch(n)); // JUICE #15 at the streak pitch
         }
 
         private void TrowelEarned(AnimationStep step, ScreenLayout L, float time, bool instant)
@@ -110,6 +112,7 @@ namespace MinikUsta.Presentation.Game
             }
             p.Particles.GoldRain(HudLayout.Center(HudLayout.TrowelIcon(L)), F.ParticleCombo);
             p.Buzz(HapticKind.Medium);
+            Snd(Sounds.Combo, 0); // JUICE #16
         }
 
         private void StreakReset(AnimationStep step, float time, bool instant)
@@ -250,6 +253,7 @@ namespace MinikUsta.Presentation.Game
                     p.ShowGold(counted * perCoin);
                 });
                 Play(seq, time, instant, false);
+                Snd(Sounds.Coin, 0); // JUICE #56 reduced: one coin sound for the whole count
                 return;
             }
             var from = HudLayout.Center(HudLayout.Moves(L));
@@ -263,6 +267,7 @@ namespace MinikUsta.Presentation.Game
                     p.ShowMoves(plate, danger: false);
                     p.FlyCoin(from, chip, perCoin);
                 });
+                Snd(Sounds.Coin, i * gap, SoundFeel.CoinRate(i)); // JUICE #56: +1 semitone every 3 coins
             }
             seq.InsertCallback(step.Ms, () => p.ShowMoves(0, danger: false));
             Play(seq, time, instant, false);

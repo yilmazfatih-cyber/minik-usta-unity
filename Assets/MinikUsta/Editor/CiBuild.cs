@@ -1,8 +1,10 @@
+#nullable enable
 using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using UnityEditor;
+using UnityEditor.Build;
 using UnityEditor.Build.Reporting;
 using UnityEngine;
 
@@ -41,13 +43,25 @@ namespace MinikUsta.Editor
             ReportSuccess(report.summary);
         }
 
+        /// <summary>
+        /// Android player for GitHub Actions (.github/workflows/unity-android.yml; docs/CI.md "Android"). GameCI passes the full output
+        /// file in `-customBuildPath` (`build/Android/MinikUsta.apk`; `.aab` for `androidExportType androidAppBundle`) and, because
+        /// this is a custom buildMethod, none of its own Android settings: the signing and version arguments are read here.
+        /// Signing: with `-androidKeystoreName` naming an existing file (the CLI decodes ANDROID_KEYSTORE_BASE64 into it) the build is
+        /// signed with that keystore, otherwise Unity's debug keystore signs the APK (installable by sideloading, not for a store).
+        /// </summary>
         public static void BuildAndroid()
         {
-            string buildPath = Arg("-customBuildPath") ?? Path.Combine("build", "Android", "MinikUsta.apk");
+            string buildPath = ArgValue("-customBuildPath") ?? Path.Combine("build", "Android", "MinikUsta.apk");
             string[] scenes = EnabledScenes();
             if (scenes.Length == 0)
                 throw new InvalidOperationException("No enabled scenes in EditorBuildSettings; add a scene before building.");
-            EditorUserBuildSettings.buildAppBundle = false;
+            bool bundle = string.Equals(ArgValue("-androidExportType"), "androidAppBundle", StringComparison.OrdinalIgnoreCase);
+            ConfigureAndroid();
+            EditorUserBuildSettings.buildAppBundle = bundle;
+            EditorUserBuildSettings.exportAsGoogleAndroidProject = false;
+            string? dir = Path.GetDirectoryName(Path.GetFullPath(buildPath));
+            if (!string.IsNullOrEmpty(dir)) Directory.CreateDirectory(dir);
             var options = new BuildPlayerOptions
             {
                 scenes = scenes,
@@ -58,8 +72,47 @@ namespace MinikUsta.Editor
             BuildReport report = BuildPipeline.BuildPlayer(options);
             if (report.summary.result != BuildResult.Succeeded)
                 throw new InvalidOperationException($"Android build failed: {report.summary.result} ({report.summary.totalErrors} errors)");
+            Debug.Log($"Android build succeeded: {buildPath} ({report.summary.totalSize / (1024 * 1024)} MB)");
             ReportSuccess(report.summary);
         }
+
+        /// <summary>
+        /// Portrait only, IL2CPP with ARM64 + ARMv7 (Unity's Mono backend cannot build ARM64; ARM64-only phones need it), a valid
+        /// application id (the default one would be built from the company name "Tuna &amp; Co." and is not a legal package name),
+        /// the version code from GameCI and the signing keystore when one was provided. Passwords are never printed.
+        /// </summary>
+        private static void ConfigureAndroid()
+        {
+            PlayerSettings.defaultInterfaceOrientation = UIOrientation.Portrait;
+            PlayerSettings.SetApplicationIdentifier(NamedBuildTarget.Android, AndroidApplicationId);
+            PlayerSettings.SetScriptingBackend(NamedBuildTarget.Android, ScriptingImplementation.IL2CPP);
+            PlayerSettings.Android.targetArchitectures = AndroidArchitecture.ARM64 | AndroidArchitecture.ARMv7;
+            string? code = ArgValue("-androidVersionCode");
+            if (int.TryParse(code, System.Globalization.NumberStyles.None, System.Globalization.CultureInfo.InvariantCulture, out int versionCode) && versionCode > 0)
+                PlayerSettings.Android.bundleVersionCode = versionCode;
+            string? version = ArgValue("-buildVersion");
+            if (!string.IsNullOrEmpty(version)) PlayerSettings.bundleVersion = version;
+
+            string? keystore = ArgValue("-androidKeystoreName");
+            if (!string.IsNullOrEmpty(keystore) && File.Exists(keystore))
+            {
+                PlayerSettings.Android.useCustomKeystore = true;
+                PlayerSettings.Android.keystoreName = keystore;
+                PlayerSettings.Android.keystorePass = ArgValue("-androidKeystorePass") ?? "";
+                PlayerSettings.Android.keyaliasName = ArgValue("-androidKeyaliasName") ?? "";
+                PlayerSettings.Android.keyaliasPass = ArgValue("-androidKeyaliasPass") ?? "";
+                Debug.Log("Android signing: release keystore " + keystore);
+            }
+            else
+            {
+                PlayerSettings.Android.useCustomKeystore = false;
+                Debug.Log("Android signing: Unity debug keystore (no keystore secrets were provided)");
+            }
+            Debug.Log($"Android: id {AndroidApplicationId}, version {PlayerSettings.bundleVersion} ({PlayerSettings.Android.bundleVersionCode}), IL2CPP ARM64+ARMv7, portrait");
+        }
+
+        /// <summary>Package name of the Android build (letters, digits, dots; not derived from the company name).</summary>
+        public const string AndroidApplicationId = "com.tunaco.minikusta";
 
         /// <summary>
         /// Prints what the GameCI CLI looks for after a build. unity-builder v6 runs the game-ci CLI, whose validateBuild()
@@ -95,6 +148,16 @@ namespace MinikUsta.Editor
             for (int i = 0; i < args.Length - 1; i++)
                 if (string.Equals(args[i], name, StringComparison.OrdinalIgnoreCase)) return args[i + 1];
             return null;
+        }
+
+        /// <summary>
+        /// Like <see cref="Arg"/> for GameCI's `-name "$VALUE"` pairs: an empty value may be dropped from the command line, which would make
+        /// the next option name look like this option's value, so a value that starts with '-' (or is empty) counts as not given.
+        /// </summary>
+        private static string? ArgValue(string name)
+        {
+            string? v = Arg(name);
+            return string.IsNullOrEmpty(v) || v![0] == '-' ? null : v;
         }
     }
 }

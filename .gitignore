@@ -48,3 +48,6 @@ TestResults/
 
 # software previews of the placeholder screen (MINIK_PREVIEW_DIR, PreviewTests)
 /artifacts/
+
+# CI screenshot tool dependencies (npm ci in tools/ci-shots)
+/tools/ci-shots/node_modules/
