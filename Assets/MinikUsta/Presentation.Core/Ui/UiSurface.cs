@@ -16,6 +16,9 @@ namespace MinikUsta.Presentation.Ui
 
         /// <summary>A tween target on a shown node: `Scale` and `Rotation` about its centre.</summary>
         ITweenTarget Target(UiNode node);
+
+        /// <summary>Shows / hides a whole layer without rebuilding it (the HUD while the home screen is up).</summary>
+        void SetLayerVisible(UiLayer layer, bool visible);
     }
 
     /// <summary>A tween target that forwards to another one (the open window changes, the reference handed to the player stays).</summary>

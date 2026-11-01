@@ -27,6 +27,25 @@ using static MinikUsta.Core.State;
 
 namespace MinikUsta.Presentation.Game
 {
+    /// <summary>
+    /// V1: the screen flow that owns the level windows (`GameApp`). With a host the player shows no window of its own: the end
+    /// of a level, the pause tool and every window option go to the host, which opens the rich windows (+5 offer, exit
+    /// confirmation, loss, win rewards) through `OpenPanel`. Without a host (tests, Q1 behaviour) the player keeps its own
+    /// windows.
+    /// </summary>
+    public interface ILevelHost
+    {
+        /// <summary>After every `Commit` (the save writes the log of applied actions).</summary>
+        void Committed(LevelPlayer player, SessionAction action, ActionResult result);
+
+        /// <summary>A plan ended with the session `outcome` won, outOfMoves (K-29) or lost (the last bonus coins have landed).</summary>
+        void Ended(LevelPlayer player, string outcome);
+
+        void PauseRequested(LevelPlayer player);
+
+        void PanelAction(LevelPlayer player, PanelAction action);
+    }
+
     public sealed class LevelPlayer
     {
         /// <summary>Tween tag of board motions (a grab completes them, R-12).</summary>
@@ -42,6 +61,7 @@ namespace MinikUsta.Presentation.Game
         private readonly List<ISpark> coinScratch = new List<ISpark>();
         private readonly HashSet<int> wonLevels = new HashSet<int>();
         private PanelModel? pendingPanel;
+        private string? pendingEnd;
         private bool reduced;
         private double screenW = 1080;
         private double screenH = 1920;
@@ -123,6 +143,15 @@ namespace MinikUsta.Presentation.Game
         /// <summary>Camera shakes played since the start (tests).</summary>
         public int Shakes { get; private set; }
 
+        /// <summary>V1: the screen flow owning the windows; null = the player's own Q1 windows.</summary>
+        public ILevelHost? Host { get; set; }
+
+        /// <summary>V1 (K-54): inventory count of a booster slot (`BoosterSlots` id); null = 0.</summary>
+        public Func<string, int>? BoosterCount { get; set; }
+
+        /// <summary>V1: the level was won before (the HUD well's star); null = the session's own record.</summary>
+        public Func<int, bool>? LevelWon { get; set; }
+
         // --- screen and level ------------------------------------------------------------------------------------------
 
         /// <summary>The screen size changed (px): new viewport; the board is rebuilt for the new design height (EXPAND).</summary>
@@ -159,11 +188,15 @@ namespace MinikUsta.Presentation.Game
         }
 
         /// <summary>A new attempt of a compiled level (tests, debug boards).</summary>
-        public void Start(CompiledLevel lvl, int number)
+        public void Start(CompiledLevel lvl, int number) => StartSession(GameSession.Start(lvl), number);
+
+        /// <summary>V1: plays `session` (a new attempt, or a K-43 resume built by `GameSession.Replay`) as level `number`.</summary>
+        public void StartSession(GameSession session, int number)
         {
+            var lvl = session.Lvl;
             LevelNumber = number;
             ResetPlayback();
-            Session = GameSession.Start(lvl);
+            Session = session;
             Packages = 0;
             EndSnaps.Clear();
             MaxEndSnapPx = 0;
@@ -176,7 +209,7 @@ namespace MinikUsta.Presentation.Game
             View.Truck.CellPx = Layout.Grid.CellPx;
             Panel = PanelKind.None;
             View.ShowPanel(null, OnPanelAction);
-            View.SetLevel(Text.Format(Strings.Keys.LevelLabel, number), lvl.Data.Name.Tr);
+            View.SetLevel(Text.Format(Strings.Keys.LevelLabel, number), LevelName(lvl));
             Summary = Session.Summary();
             SyncAll();
             Stuck.Level(lvl.Difficulty, Clock.Now);
@@ -209,6 +242,7 @@ namespace MinikUsta.Presentation.Game
             Particles.Reset(LevelNumber);
             Haptics.Reset();
             pendingPanel = null;
+            pendingEnd = null;
             ShownBeads = 0;
             ShownTrowels = 0;
             GoldShown = -1;
@@ -242,6 +276,12 @@ namespace MinikUsta.Presentation.Game
                 var model = pendingPanel;
                 pendingPanel = null;
                 ShowPanel(model);
+            }
+            if (pendingEnd != null && coins.Count == 0)
+            {
+                string end = pendingEnd;
+                pendingEnd = null;
+                Host?.Ended(this, end);
             }
         }
 
@@ -323,6 +363,7 @@ namespace MinikUsta.Presentation.Game
             var plan = AnimationPlanner.Plan(res, ctx, Feel);
             Queue.Schedule(plan, Clock.Now);
             Queue.Advance(Clock.Now); // steps at 0 ms start in this frame (one-frame response, TECH §4.6)
+            Host?.Committed(this, action, res);
             return res;
         }
 
@@ -335,6 +376,11 @@ namespace MinikUsta.Presentation.Game
             if (Session.Outcome != BoosterOutcomes.Playing) return;
             Mapper.Abort();
             View.ShowShadow(null);
+            if (Host != null)
+            {
+                Host.PauseRequested(this);
+                return;
+            }
             ShowPanel(new PanelModel(PanelKind.Pause, Text.Get(Strings.Keys.PauseTitle), "", new[]
             {
                 new PanelButton(Text.Get(Strings.Keys.Continue), PanelAction.Resume, true),
@@ -344,6 +390,11 @@ namespace MinikUsta.Presentation.Game
 
         public void OnPanelAction(PanelAction action)
         {
+            if (Host != null)
+            {
+                Host.PanelAction(this, action);
+                return;
+            }
             switch (action)
             {
                 case PanelAction.Resume:
@@ -360,6 +411,12 @@ namespace MinikUsta.Presentation.Game
                     return;
             }
         }
+
+        /// <summary>V1: opens a host window (JUICE #70 pop; the star burst when it shows the level star). Board input stops while it is open.</summary>
+        public void OpenPanel(PanelModel model) => ShowPanel(model);
+
+        /// <summary>V1: closes the open window.</summary>
+        public void ClosePanel() => HidePanel();
 
         private void ShowPanel(PanelModel model)
         {
@@ -382,7 +439,8 @@ namespace MinikUsta.Presentation.Game
             var pop = Tweens.Pop(star, Reduced ? 1f : 0f, Reduced ? Feel.ReducedScaleMax : Feel.WinStarPeak, 1f, Feel.StarBurstMs, 0.5f, EaseType.OutExpo);
             pop.Tag = HudTag;
             Clock.Play(pop);
-            Particles.StarBurst(HudLayout.Center(HudLayout.WindowStar(L, LayoutSettings, model.Buttons.Length)), Feel.ParticleStarBurst);
+            var at = View.StarCenter ?? HudLayout.Center(HudLayout.WindowStar(L, LayoutSettings, model.Buttons.Length));
+            Particles.StarBurst(at, Feel.ParticleStarBurst);
             Buzz(HapticKind.Success);
         }
 
@@ -407,6 +465,16 @@ namespace MinikUsta.Presentation.Game
                 MaxEndSnapPiece = Pieces.LastSnapPiece;
             }
             string outcome = session.Outcome;
+            if (Host != null)
+            {
+                if (outcome == BoosterOutcomes.Won || outcome == BoosterOutcomes.OutOfMoves || outcome == BoosterOutcomes.Lost)
+                {
+                    // the last bonus coins land first, then the host opens its window (`Tick`)
+                    if (coins.Count > 0) pendingEnd = outcome;
+                    else Host.Ended(this, outcome);
+                }
+                return;
+            }
             if (outcome == BoosterOutcomes.Won)
             {
                 int moves = session.MovesLeft;
@@ -430,6 +498,18 @@ namespace MinikUsta.Presentation.Game
             }
         }
 
+        /// <summary>V1: the language changed — the level label and every HUD text again.</summary>
+        public void RefreshTexts()
+        {
+            var session = Session;
+            if (session == null) return;
+            View.SetLevel(Text.Format(Strings.Keys.LevelLabel, LevelNumber), LevelName(session.Lvl));
+            SyncAll();
+        }
+
+        /// <summary>The level name in the table's language (level JSON `name.tr` / `name.en`).</summary>
+        public string LevelName(CompiledLevel lvl) => Text.Lang == "en" ? lvl.Data.Name.En : lvl.Data.Name.Tr;
+
         /// <summary>Board, blocks and HUD from the state (End, Resync, screen change).</summary>
         internal void SyncAll()
         {
@@ -444,6 +524,27 @@ namespace MinikUsta.Presentation.Game
             // #56 counts the moves down on a won level: the plate keeps that count (web hudSync)
             if (session.Outcome != BoosterOutcomes.Won) ShowMoves(session.MovesLeft);
             ShowBlocks(Summary.BlocksLeft);
+            View.SetHudState(HudStateOf(session, Summary));
+        }
+
+        /// <summary>V1: K-54 slot states (unlock level from economy.json, inventory from the host), the panorama picture, the truck chip.</summary>
+        public HudState HudStateOf(GameSession session, TurnSummary summary)
+        {
+            var order = HudState.SlotOrder;
+            var slots = new string[order.Length];
+            var counts = new int[order.Length];
+            var unlock = new int[order.Length];
+            for (int i = 0; i < order.Length; i++)
+            {
+                unlock[i] = Economy.UnlockLevel(order[i]);
+                counts[i] = BoosterCount?.Invoke(order[i]) ?? 0;
+                bool playing = session.Outcome == BoosterOutcomes.Playing;
+                slots[i] = Core.Summary.SlotState(LevelNumber >= unlock[i], playing && summary.BoosterTargets[order[i]], counts[i]);
+            }
+            int queue = summary.Queue.Length + summary.PendingBlocks;
+            bool truck = session.Lvl.Batches.Length > 0;
+            bool won = LevelWon?.Invoke(LevelNumber) ?? wonLevels.Contains(LevelNumber);
+            return new HudState(LevelNumber, slots, counts, unlock, PlanThumb.Visible(session.State), queue, truck, won, session.Lvl.Segments.Length);
         }
 
         internal void RebuildBoard()

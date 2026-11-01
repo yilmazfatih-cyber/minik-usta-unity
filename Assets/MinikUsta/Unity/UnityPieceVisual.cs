@@ -1,8 +1,10 @@
 #nullable enable
-// One block on the board (Faz 3 Q1, placeholder art; web PieceView.ts): a root GameObject at the piece-box centre with,
-// per cell, a body (rounded on the open sides, `Atlas.Body(mask)`, tinted with the block colour), a gloss highlight, the
-// colour symbol (ink tint, ART §2.2) and the lifted drop shadow (shadow.lifted, shown while held). Pooled by
-// `UnityLevelView`; `Configure` re-skins it for another piece (no allocation once the pool holds enough cells).
+// One block on the board (Faz 3 Q1; paket V1 v4 art; web PieceView.ts; ART_UNITY §4.1): a root GameObject at the piece-box
+// centre with the parts of `BlockSkin.Block` — per cell the volume tile `blk_<c>_<mm>` (one outline, one side wall, stud and
+// embossed symbol for the whole piece), the corner fills that close the inner notches (no inner edges in O / L / T / S), the
+// gloss of a holdable block (K-09) or the mortar dots of a placed one (K-14) — and the lifted drop blob (`fx_drop_blob`, shown
+// while held, JUICE #1). Pooled by `UnityLevelView`; `Configure` re-skins it for another piece (no allocation once the pool
+// holds enough parts).
 using System.Collections.Generic;
 using MinikUsta.Core;
 using MinikUsta.Presentation;
@@ -14,34 +16,32 @@ namespace MinikUsta.Unity
 {
     public sealed class UnityPieceVisual : IPieceVisual
     {
-        private sealed class CellParts
+        private sealed class Part
         {
-            public SpriteRenderer BodySr = null!;
-            public SpriteRenderer GlossSr = null!;
-            public SpriteRenderer SymbolSr = null!;
-            public SpriteRenderer ShadowSr = null!;
-            /// <summary>Centre of the cell in the piece's local frame (world units, y up).</summary>
-            public Vector3 Local;
-            /// <summary>Q2 per-cell squash (1, 1 = rest), about the bottom centre of the block box.</summary>
-            public float Sx = 1f;
-            public float Sy = 1f;
+            public SpriteRenderer Sr = null!;
+            public FrameSprite Fs;
+            public int Cell;
+            /// <summary>Design px, relative to the piece box centre, y down.</summary>
+            public PxRect Rect;
+            public Rgba Tint;
+            public int Order;
         }
-
-        /// <summary>blockV2.symbolSizeRatio: the symbol box is 0,42 c.</summary>
-        private const float SymbolRatio = 0.42f;
 
         private readonly DesignSpace space;
         private readonly GameObject root;
         private readonly Transform tr;
-        private readonly List<CellParts> parts = new List<CellParts>();
+        private readonly List<Part> parts = new List<Part>();
+        private readonly SpriteRenderer blob;
         private int used;
-        /// <summary>Cell edge (world units) and the local y of the block box's bottom edge (the squash origin).</summary>
-        private float unit = 1f;
-        private float bottomY;
+        private ShapeDef? shape;
+        private double cellPx = 120;
+        private float[] cellSx = new float[0];
+        private float[] cellSy = new float[0];
         private bool cellsDirty;
         private float grow = 1f;
         private int colorIndex;
         private bool dim;
+        private bool placed;
         private Vec2 position;
         private Vec2 scale = Vec2.One;
         private float rotation;
@@ -59,6 +59,10 @@ namespace MinikUsta.Unity
             root = new GameObject("Piece");
             tr = root.transform;
             tr.SetParent(parent, false);
+            var b = new GameObject("Lifted");
+            b.transform.SetParent(tr, false);
+            blob = b.AddComponent<SpriteRenderer>();
+            blob.enabled = false;
         }
 
         public int PieceId { get; private set; } = -1;
@@ -68,30 +72,21 @@ namespace MinikUsta.Unity
         {
             PieceId = pieceId;
             root.name = "Piece " + pieceId;
+            this.shape = shape;
+            this.cellPx = cellPx;
             colorIndex = color;
             dim = false;
-            used = shape.Cells.Length;
-            while (parts.Count < used) parts.Add(NewCell());
-            unit = DesignSpace.Units(cellPx);
-            bottomY = -shape.H * unit / 2f;
-            for (int i = 0; i < parts.Count; i++)
+            placed = false;
+            int n = shape.Cells.Length;
+            if (cellSx.Length < n)
             {
-                var p = parts[i];
-                bool on = i < used;
-                p.BodySr.gameObject.SetActive(on);
-                p.GlossSr.gameObject.SetActive(on);
-                p.SymbolSr.gameObject.SetActive(on);
-                p.ShadowSr.gameObject.SetActive(on);
-                if (!on) continue;
-                var c = shape.Cells[i];
-                var o = BoardPose.CellOffset(shape, c, cellPx);
-                p.Local = new Vector3(DesignSpace.Units(o.X), -DesignSpace.Units(o.Y), 0f);
-                p.Sx = 1f;
-                p.Sy = 1f;
-                p.BodySr.sprite = ProceduralSprites.Get(Atlas.Body(BoardPose.NeighbourMask(shape, c)));
-                p.SymbolSr.sprite = ProceduralSprites.Get(Atlas.Symbol(color));
-                p.ShadowSr.sprite = p.BodySr.sprite;
-                PlaceCell(p);
+                cellSx = new float[n];
+                cellSy = new float[n];
+            }
+            for (int i = 0; i < n; i++)
+            {
+                cellSx[i] = 1f;
+                cellSy[i] = 1f;
             }
             cellsDirty = false;
             grow = 1f;
@@ -106,44 +101,64 @@ namespace MinikUsta.Unity
             lifted = false;
             visible = true;
             root.SetActive(true);
+            Rebuild();
             ApplyTransform();
+        }
+
+        private BlockLook Look => placed ? BlockLook.Placed : dim ? BlockLook.Dim : BlockLook.Holdable;
+
+        /// <summary>The parts of the current shape / colour / look (sprites, rectangles, base tints); then pose, colours, order.</summary>
+        private void Rebuild()
+        {
+            if (shape == null) return;
+            var list = BlockSkin.Block(shape, colorIndex, cellPx, Look, AtlasSprites.Data);
+            while (parts.Count < list.Count)
+            {
+                var go = new GameObject("Part");
+                go.transform.SetParent(tr, false);
+                parts.Add(new Part { Sr = go.AddComponent<SpriteRenderer>() });
+            }
+            used = list.Count;
+            for (int i = 0; i < parts.Count; i++)
+            {
+                var p = parts[i];
+                bool on = i < used;
+                p.Sr.gameObject.SetActive(on);
+                if (!on) continue;
+                var s = list[i];
+                p.Fs = AtlasSprites.Resolve(s.Frame);
+                if (!p.Fs.Ok) p.Sr.gameObject.SetActive(false);
+                p.Cell = s.Cell;
+                p.Rect = s.Rect;
+                p.Tint = s.Tint;
+                p.Order = s.Order;
+            }
+            // lifted blob (JUICE #1; ART_UNITY §4.1): under the block, (w + 0,8) cells wide
+            var bf = AtlasSprites.Resolve(Frames.DropBlob);
+            double bw = (shape.W + 0.8) * cellPx, bh = 0.5 * cellPx;
+            var br = new PxRect(-bw / 2, shape.H * cellPx / 2 - bh / 2 + Palette.LiftedShadowY, bw, bh);
+            if (SpriteDraw.Apply(blob, bf, br.W, br.H, false, new Color(1f, 1f, 1f, 0.65f)))
+            {
+                SpriteDraw.PivotPoint(bf, br, out double px, out double py);
+                blob.transform.localPosition = new Vector3(DesignSpace.Units(px), -DesignSpace.Units(py), 0f);
+            }
+            blob.enabled = lifted && bf.Ok;
+            for (int i = 0; i < used; i++) PlacePart(parts[i]);
             ApplyColors();
             ApplyOrder();
         }
 
-        private static void Place(Transform t, Vector3 local, float sizeX, float sizeY)
+        /// <summary>A part at its cell's squash (about the bottom centre of the block box, Q2 landing wave).</summary>
+        private void PlacePart(Part p)
         {
-            t.localPosition = local;
-            t.localScale = new Vector3(sizeX, sizeY, 1f);
-        }
-
-        /// <summary>Writes the four sprites of a cell: at rest the cell's own place and size, squashed about the bottom centre of the block box (Q2 landing wave).</summary>
-        private void PlaceCell(CellParts p)
-        {
-            float sx = p.Sx, sy = p.Sy;
-            var pos = new Vector3(p.Local.x * sx, bottomY + (p.Local.y - bottomY) * sy, 0f);
-            Place(p.BodySr.transform, pos, unit * sx, unit * sy);
-            Place(p.GlossSr.transform, pos, unit * sx, unit * sy);
-            Place(p.SymbolSr.transform, pos, unit * SymbolRatio * sx, unit * SymbolRatio * sy);
-            Place(p.ShadowSr.transform, pos + new Vector3(0f, -DesignSpace.Units(Palette.LiftedShadowY) * sy, 0f), unit * sx, unit * sy);
-        }
-
-        private CellParts NewCell()
-        {
-            var p = new CellParts();
-            p.ShadowSr = NewRenderer("Shadow");
-            p.BodySr = NewRenderer("Body");
-            p.GlossSr = NewRenderer("Gloss");
-            p.GlossSr.sprite = ProceduralSprites.Get(Tile.Gloss);
-            p.SymbolSr = NewRenderer("Symbol");
-            return p;
-        }
-
-        private SpriteRenderer NewRenderer(string name)
-        {
-            var go = new GameObject(name);
-            go.transform.SetParent(tr, false);
-            return go.AddComponent<SpriteRenderer>();
+            if (shape == null || !p.Fs.Ok) return;
+            float sx = p.Cell < cellSx.Length ? cellSx[p.Cell] : 1f, sy = p.Cell < cellSy.Length ? cellSy[p.Cell] : 1f;
+            double bottom = shape.H * cellPx / 2; // design px, y down
+            var r = p.Rect;
+            var q = new PxRect(r.X * sx, bottom + (r.Y - bottom) * sy, r.W * sx, r.H * sy);
+            SpriteDraw.Apply(p.Sr, p.Fs, q.W, q.H, false, Color.white);
+            SpriteDraw.PivotPoint(p.Fs, q, out double px, out double py);
+            p.Sr.transform.localPosition = new Vector3(DesignSpace.Units(px), -DesignSpace.Units(py), 0f);
         }
 
         /// <summary>Back to the pool: hidden, parked.</summary>
@@ -185,29 +200,30 @@ namespace MinikUsta.Unity
             }
         }
 
-        public int CellCount => used;
+        public int CellCount => shape?.Cells.Length ?? 0;
 
         public void SetCellScale(int cell, float sx, float sy)
         {
-            if (cell < 0 || cell >= used) return;
-            var p = parts[cell];
-            p.Sx = sx;
-            p.Sy = sy;
+            if (cell < 0 || cell >= CellCount) return;
+            cellSx[cell] = sx;
+            cellSy[cell] = sy;
             cellsDirty = true;
-            PlaceCell(p);
+            for (int i = 0; i < used; i++)
+                if (parts[i].Cell == cell) PlacePart(parts[i]);
+            ApplyColors();
         }
 
         public void ResetCells()
         {
             if (!cellsDirty) return;
             cellsDirty = false;
-            for (int i = 0; i < used; i++)
+            for (int i = 0; i < CellCount; i++)
             {
-                var p = parts[i];
-                p.Sx = 1f;
-                p.Sy = 1f;
-                PlaceCell(p);
+                cellSx[i] = 1f;
+                cellSy[i] = 1f;
             }
+            for (int i = 0; i < used; i++) PlacePart(parts[i]);
+            ApplyColors();
         }
 
         public float Rotation
@@ -288,20 +304,27 @@ namespace MinikUsta.Unity
             {
                 if (lifted == value) return;
                 lifted = value;
-                for (int i = 0; i < used; i++) parts[i].ShadowSr.enabled = value;
+                blob.enabled = value && blob.sprite != null;
+            }
+        }
+
+        public bool Placed
+        {
+            get => placed;
+            set
+            {
+                if (placed == value) return;
+                placed = value;
+                Rebuild();
             }
         }
 
         public void SetLook(int color, bool dimmed)
         {
-            if (color != colorIndex)
-            {
-                colorIndex = color;
-                var sym = ProceduralSprites.Get(Atlas.Symbol(color));
-                for (int i = 0; i < used; i++) parts[i].SymbolSr.sprite = sym;
-            }
+            if (color == colorIndex && dimmed == dim) return;
+            colorIndex = color;
             dim = dimmed;
-            ApplyColors();
+            Rebuild();
         }
 
         // --- drawing -----------------------------------------------------------------------------------------------------
@@ -317,75 +340,57 @@ namespace MinikUsta.Unity
 
         private void ApplyColors()
         {
-            var baseColor = Palette.Block(colorIndex);
-            if (dim) baseColor = baseColor.Scale(0.92f); // blockV2.notHoldableTint #EBEBEB
-            var body = UnityConvert.ToColor(baseColor);
-            if (flash > 0) body = UnityConvert.Lerp(body, Color.white, flash);
-            if (tint > 0) body = UnityConvert.Lerp(body, Red, tint);
-            body.a = alpha;
-            var ink = UnityConvert.ToColor(Palette.SymbolInk(colorIndex), alpha);
-            var gloss = new Color(1f, 1f, 1f, alpha);
-            var shadow = new Color(0f, 0f, 0f, Palette.LiftedShadowAlpha * alpha);
             for (int i = 0; i < used; i++)
             {
                 var p = parts[i];
-                p.BodySr.color = body;
-                p.GlossSr.color = gloss;
-                p.SymbolSr.color = ink;
-                p.ShadowSr.color = shadow;
-                p.ShadowSr.enabled = lifted;
+                if (!p.Fs.Ok) continue;
+                var c = SpriteDraw.Mul(UnityConvert.ToColor(p.Tint), p.Fs.Tint);
+                if (flash > 0) c = UnityConvert.Lerp(c, Color.white, flash);
+                if (tint > 0) c = UnityConvert.Lerp(c, Red, tint);
+                c.a *= alpha;
+                p.Sr.color = c;
             }
+            var bc = blob.color;
+            blob.color = new Color(bc.r, bc.g, bc.b, 0.65f * alpha);
         }
 
         private void ApplyOrder()
         {
             int b = raised ? Order.Raised : Order.Pieces;
-            for (int i = 0; i < parts.Count; i++)
-            {
-                var p = parts[i];
-                p.ShadowSr.sortingOrder = b - 1;
-                p.BodySr.sortingOrder = b;
-                p.GlossSr.sortingOrder = b + 1;
-                p.SymbolSr.sortingOrder = b + 2;
-            }
+            blob.sortingOrder = b - 1;
+            for (int i = 0; i < parts.Count; i++) parts[i].Sr.sortingOrder = b + parts[i].Order;
         }
     }
 
-    /// <summary>A small block icon flying to the blocks-left chip (D-091).</summary>
+    /// <summary>A small block icon flying to the blocks-left chip (D-091): the 1×1 volume tile of its colour.</summary>
     public sealed class UnityFlyer : IFlyer
     {
         private readonly DesignSpace space;
         private readonly GameObject go;
         private readonly SpriteRenderer body;
-        private readonly SpriteRenderer symbol;
+        private FrameSprite fs;
         private Vec2 position;
         private Vec2 scale = Vec2.One;
         private float rotation;
         private float alpha = 1f;
         private float size = 72f;
-        private int color;
 
         public UnityFlyer(DesignSpace space, Transform parent)
         {
             this.space = space;
             go = new GameObject("Flyer");
             go.transform.SetParent(parent, false);
-            body = go.AddComponent<SpriteRenderer>();
-            body.sprite = ProceduralSprites.Get(Atlas.Body(0));
+            var b = new GameObject("Body");
+            b.transform.SetParent(go.transform, false);
+            body = b.AddComponent<SpriteRenderer>();
             body.sortingOrder = Order.Flyer;
-            var s = new GameObject("Symbol");
-            s.transform.SetParent(go.transform, false);
-            s.transform.localScale = new Vector3(0.42f, 0.42f, 1f);
-            symbol = s.AddComponent<SpriteRenderer>();
-            symbol.sortingOrder = Order.Flyer + 1;
             go.SetActive(false);
         }
 
         public void Configure(int colorIndex, double sizePx)
         {
-            color = colorIndex;
+            fs = AtlasSprites.Resolve(Frames.Block(colorIndex, 0));
             size = (float)sizePx;
-            symbol.sprite = ProceduralSprites.Get(Atlas.Symbol(colorIndex));
             alpha = 1;
             scale = Vec2.One;
             Apply();
@@ -441,11 +446,14 @@ namespace MinikUsta.Unity
         {
             var t = go.transform;
             t.localPosition = space.World(position);
-            float u = DesignSpace.Units(size);
-            t.localScale = new Vector3(u * scale.X, u * scale.Y, 1f);
+            t.localScale = new Vector3(scale.X, scale.Y, 1f);
             t.localRotation = Quaternion.Euler(0f, 0f, rotation);
-            body.color = UnityConvert.ToColor(Palette.Block(color), alpha);
-            symbol.color = UnityConvert.ToColor(Palette.SymbolInk(color), alpha);
+            var r = new PxRect(-size / 2.0, -size / 2.0, size, size);
+            if (SpriteDraw.Apply(body, fs, r.W, r.H, false, new Color(1f, 1f, 1f, alpha)))
+            {
+                SpriteDraw.PivotPoint(fs, r, out double px, out double py);
+                body.transform.localPosition = new Vector3(DesignSpace.Units(px), -DesignSpace.Units(py), 0f);
+            }
         }
     }
 }

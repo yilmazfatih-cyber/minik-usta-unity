@@ -18,7 +18,7 @@ using System.Collections.Generic;
 
 namespace MinikUsta.Presentation.Flow
 {
-    public enum Screen
+    public enum AppScreen
     {
         Boot,
         Home,
@@ -59,49 +59,49 @@ namespace MinikUsta.Presentation.Flow
 
     public sealed class ScreenFlow
     {
-        private static readonly Dictionary<(Screen, FlowEvent), Screen> Table = new Dictionary<(Screen, FlowEvent), Screen>
+        private static readonly Dictionary<(AppScreen, FlowEvent), AppScreen> Table = new Dictionary<(AppScreen, FlowEvent), AppScreen>
         {
-            { (Screen.Boot, FlowEvent.Booted), Screen.Home },
-            { (Screen.Boot, FlowEvent.Resume), Screen.Level },
-            { (Screen.Boot, FlowEvent.ResumeOffer), Screen.LoseOffer },
-            { (Screen.Home, FlowEvent.PlayDirect), Screen.Level },
-            { (Screen.Home, FlowEvent.PlayWindow), Screen.LevelStart },
-            { (Screen.LevelStart, FlowEvent.StartLevel), Screen.Level },
-            { (Screen.LevelStart, FlowEvent.Close), Screen.Home },
-            { (Screen.Level, FlowEvent.Won), Screen.Win },
-            { (Screen.Level, FlowEvent.OutOfMoves), Screen.LoseOffer },
-            { (Screen.Level, FlowEvent.Lost), Screen.LoseFinal },
-            { (Screen.Level, FlowEvent.Pause), Screen.Paused },
-            { (Screen.Paused, FlowEvent.Continue), Screen.Level },
-            { (Screen.Paused, FlowEvent.Exit), Screen.ExitConfirm },
-            { (Screen.ExitConfirm, FlowEvent.Stay), Screen.Paused },
-            { (Screen.ExitConfirm, FlowEvent.LeaveFree), Screen.Home },
-            { (Screen.ExitConfirm, FlowEvent.LeaveLoss), Screen.LoseFinal },
-            { (Screen.ExitConfirm, FlowEvent.Restart), Screen.Level },
-            { (Screen.Win, FlowEvent.Continue), Screen.Home },
-            { (Screen.LoseOffer, FlowEvent.Accept), Screen.Level },
-            { (Screen.LoseOffer, FlowEvent.Decline), Screen.LoseFinal },
-            { (Screen.LoseFinal, FlowEvent.RetryDirect), Screen.Level },
-            { (Screen.LoseFinal, FlowEvent.RetryWindow), Screen.LevelStart },
-            { (Screen.LoseFinal, FlowEvent.Home), Screen.Home },
+            { (AppScreen.Boot, FlowEvent.Booted), AppScreen.Home },
+            { (AppScreen.Boot, FlowEvent.Resume), AppScreen.Level },
+            { (AppScreen.Boot, FlowEvent.ResumeOffer), AppScreen.LoseOffer },
+            { (AppScreen.Home, FlowEvent.PlayDirect), AppScreen.Level },
+            { (AppScreen.Home, FlowEvent.PlayWindow), AppScreen.LevelStart },
+            { (AppScreen.LevelStart, FlowEvent.StartLevel), AppScreen.Level },
+            { (AppScreen.LevelStart, FlowEvent.Close), AppScreen.Home },
+            { (AppScreen.Level, FlowEvent.Won), AppScreen.Win },
+            { (AppScreen.Level, FlowEvent.OutOfMoves), AppScreen.LoseOffer },
+            { (AppScreen.Level, FlowEvent.Lost), AppScreen.LoseFinal },
+            { (AppScreen.Level, FlowEvent.Pause), AppScreen.Paused },
+            { (AppScreen.Paused, FlowEvent.Continue), AppScreen.Level },
+            { (AppScreen.Paused, FlowEvent.Exit), AppScreen.ExitConfirm },
+            { (AppScreen.ExitConfirm, FlowEvent.Stay), AppScreen.Paused },
+            { (AppScreen.ExitConfirm, FlowEvent.LeaveFree), AppScreen.Home },
+            { (AppScreen.ExitConfirm, FlowEvent.LeaveLoss), AppScreen.LoseFinal },
+            { (AppScreen.ExitConfirm, FlowEvent.Restart), AppScreen.Level },
+            { (AppScreen.Win, FlowEvent.Continue), AppScreen.Home },
+            { (AppScreen.LoseOffer, FlowEvent.Accept), AppScreen.Level },
+            { (AppScreen.LoseOffer, FlowEvent.Decline), AppScreen.LoseFinal },
+            { (AppScreen.LoseFinal, FlowEvent.RetryDirect), AppScreen.Level },
+            { (AppScreen.LoseFinal, FlowEvent.RetryWindow), AppScreen.LevelStart },
+            { (AppScreen.LoseFinal, FlowEvent.Home), AppScreen.Home },
         };
 
-        public Screen Current { get; private set; } = Screen.Boot;
+        public AppScreen Current { get; private set; } = AppScreen.Boot;
 
         /// <summary>The settings overlay is open (over Home or Paused).</summary>
         public bool SettingsOpen { get; private set; }
 
         /// <summary>Screens visited, in order (tests, debug).</summary>
-        public List<Screen> History { get; } = new List<Screen> { Screen.Boot };
+        public List<AppScreen> History { get; } = new List<AppScreen> { AppScreen.Boot };
 
-        public event Action<Screen, Screen>? Changed;
+        public event Action<AppScreen, AppScreen>? Changed;
 
         /// <summary>UX §2 / §4: levels 1–2 start without the level start window.</summary>
         public static bool SkipsLevelStart(int level) => level <= 2;
 
         public bool Can(FlowEvent e) => Table.ContainsKey((Current, e));
 
-        public Screen Fire(FlowEvent e)
+        public AppScreen Fire(FlowEvent e)
         {
             if (!Table.TryGetValue((Current, e), out var next))
                 throw new InvalidOperationException("ScreenFlow: no " + e + " from " + Current);
@@ -114,10 +114,10 @@ namespace MinikUsta.Presentation.Flow
         }
 
         /// <summary>The board is on screen (the level runs or a level window is over it).</summary>
-        public bool BoardShown => Current == Screen.Level || Current == Screen.Paused || Current == Screen.ExitConfirm || Current == Screen.Win
-            || Current == Screen.LoseOffer || Current == Screen.LoseFinal;
+        public bool BoardShown => Current == AppScreen.Level || Current == AppScreen.Paused || Current == AppScreen.ExitConfirm || Current == AppScreen.Win
+            || Current == AppScreen.LoseOffer || Current == AppScreen.LoseFinal;
 
-        public bool CanOpenSettings => Current == Screen.Home || Current == Screen.Paused;
+        public bool CanOpenSettings => Current == AppScreen.Home || Current == AppScreen.Paused;
 
         public void OpenSettings()
         {

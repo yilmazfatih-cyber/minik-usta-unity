@@ -1,8 +1,11 @@
 #nullable enable
-// The static board (Faz 3 Q1): every `BoardItem` of a `BoardScene` as a pooled SpriteRenderer (simple tiles stretched by
-// scale; `Tile.Panel` 9-sliced to its rectangle). Rebuilt by `LevelPlayer` after every package and on board events; the
-// pool only grows to the largest board seen.
+// The static board (Faz 3 Q1; paket V1 v4 art): every `BoardItem` of a `BoardScene` as a pooled SpriteRenderer drawn from the
+// atlas frame into its rectangle (`SpriteDraw`; tray / 9-slice frames sliced). With no atlas at all the Q1 placeholder items
+// are drawn instead (procedural tiles, `Tile` / `Color`). Rebuilt by `LevelPlayer` after every package and on board events;
+// the pool only grows to the largest board seen. The K-18 fall shadow is `UnityShadowView` below.
 using System.Collections.Generic;
+using MinikUsta.Presentation;
+using MinikUsta.Presentation.Art;
 using MinikUsta.Presentation.Game;
 using MinikUsta.Presentation.Tweening;
 using UnityEngine;
@@ -31,53 +34,59 @@ namespace MinikUsta.Unity
 
         private static bool IsSiteLayer(BoardItemKind kind) =>
             kind == BoardItemKind.SitePanel || kind == BoardItemKind.PlanCell || kind == BoardItemKind.HatchCell || kind == BoardItemKind.HiddenCell
-            || kind == BoardItemKind.Platform;
+            || kind == BoardItemKind.Platform || kind == BoardItemKind.SiteFloor || kind == BoardItemKind.BuildFront;
 
         public void Build(BoardScene scene)
         {
+            bool art = AtlasSprites.Loaded;
             var items = scene.Items;
-            while (pool.Count < items.Count)
+            int used = 0;
+            foreach (var item in items)
             {
-                var go = new GameObject("Board");
-                go.transform.SetParent(parent, false);
-                pool.Add(go.AddComponent<SpriteRenderer>());
-            }
-            for (int i = 0; i < pool.Count; i++)
-            {
-                var sr = pool[i];
-                if (i >= items.Count)
+                // art mode draws the framed items; placeholder mode the Q1 items (no frame needed)
+                if (art ? item.Frame == null : item.ArtOnly) continue;
+                if (used == pool.Count)
                 {
-                    sr.gameObject.SetActive(false);
-                    continue;
+                    var go = new GameObject("Board");
+                    go.transform.SetParent(parent, false);
+                    pool.Add(go.AddComponent<SpriteRenderer>());
                 }
-                var item = items[i];
+                var sr = pool[used++];
                 var want = IsSiteLayer(item.Kind) ? siteRoot : parent;
                 if (sr.transform.parent != want) sr.transform.SetParent(want, false);
                 sr.gameObject.SetActive(true);
-                sr.sprite = ProceduralSprites.Get(item.Tile);
-                sr.color = UnityConvert.ToColor(item.Color);
                 sr.sortingOrder = item.Order;
+                sr.flipY = item.FlipY;
                 var t = sr.transform;
-                t.localPosition = space.Center(item.Rect);
                 t.localRotation = Quaternion.identity;
-                float w = DesignSpace.Units(item.Rect.W), h = DesignSpace.Units(item.Rect.H);
-                if (item.Sliced)
+                FrameSprite fs;
+                Color tint;
+                bool sliced;
+                if (art)
                 {
-                    sr.drawMode = SpriteDrawMode.Sliced;
-                    sr.size = new Vector2(w, h);
-                    t.localScale = Vector3.one;
+                    fs = AtlasSprites.Resolve(item.Frame!);
+                    tint = UnityConvert.ToColor(item.Tint);
+                    sliced = item.Sliced || (fs.Frame != null && fs.Frame.Sliced && item.Kind == BoardItemKind.Tray);
                 }
                 else
                 {
-                    sr.drawMode = SpriteDrawMode.Simple;
-                    t.localScale = new Vector3(w, h, 1f);
+                    fs = new FrameSprite(ProceduralSprites.Get(item.Tile), null, Rgba.White, item.Tile == Tile.Panel);
+                    tint = UnityConvert.ToColor(item.Color);
+                    sliced = item.Sliced;
                 }
+                if (!SpriteDraw.Apply(sr, fs, item.Rect.W, item.Rect.H, sliced, tint)) continue;
+                SpriteDraw.PivotPoint(fs, item.Rect, out double px, out double py);
+                t.localPosition = space.World(px, py);
             }
+            for (int i = used; i < pool.Count; i++) pool[i].gameObject.SetActive(false);
         }
     }
 
-    /// <summary>The K-18 fall shadow (UX §5.4, placeholder): per cell the ghost body (block colour at alpha.ghostFill) and
-    /// the outline (color.ghost.*), plus the ✓ / ! badge on the top-right cell.</summary>
+    /// <summary>
+    /// The K-18 fall shadow (UX §5.4; ART_UNITY §4.2): per cell `shadow_fill_<mm>` tinted with the block colour + the outline
+    /// (`shadow_line` correct / `shadow_dash` wrong, neutral) with its concave corners (`BlockSkin.Shadow`), plus the ✓ / ! badge on
+    /// the top-right cell (`icon_check` / `badge_dot`).
+    /// </summary>
     public sealed class UnityShadowView
     {
         /// <summary>a11y.ghostBadgePx-like badge diameter (design px).</summary>
@@ -85,8 +94,7 @@ namespace MinikUsta.Unity
 
         private readonly DesignSpace space;
         private readonly Transform parent;
-        private readonly List<SpriteRenderer> bodies = new List<SpriteRenderer>();
-        private readonly List<SpriteRenderer> outlines = new List<SpriteRenderer>();
+        private readonly List<SpriteRenderer> parts = new List<SpriteRenderer>();
         private readonly SpriteRenderer badge;
 
         public UnityShadowView(DesignSpace space, Transform parent)
@@ -106,56 +114,41 @@ namespace MinikUsta.Unity
 
         public void Show(ShadowModel? m)
         {
-            int n = m == null ? 0 : m.Shape.Cells.Length;
-            while (bodies.Count < n)
-            {
-                bodies.Add(New("GhostBody"));
-                outlines.Add(New("GhostOutline"));
-            }
-            for (int i = 0; i < bodies.Count; i++)
-            {
-                bool on = i < n;
-                bodies[i].gameObject.SetActive(on && m!.Look.Body);
-                outlines[i].gameObject.SetActive(on);
-            }
-            if (m == null)
+            var list = m == null ? null : BlockSkin.Shadow(m.Shape, m.ColorIndex, m.CellPx, m.Look);
+            int n = list?.Count ?? 0;
+            while (parts.Count < n) parts.Add(New("Shadow"));
+            for (int i = 0; i < parts.Count; i++) parts[i].gameObject.SetActive(i < n);
+            if (m == null || list == null)
             {
                 badge.gameObject.SetActive(false);
                 return;
             }
-            float unit = DesignSpace.Units(m.CellPx);
             // on the rail (K-12) the outline sits on the dragged block itself, above it
-            int outlineOrder = m.Look.Body ? Order.Ghost + 1 : Order.Raised + 3;
-            int i2 = 0;
-            foreach (var c in m.Shape.Cells)
+            int baseOrder = m.Look.Body ? Order.Ghost : Order.Raised + 3;
+            for (int i = 0; i < n; i++)
             {
-                var o = BoardPose.CellOffset(m.Shape, c, m.CellPx);
-                var pos = space.World(m.Center.X + o.X, m.Center.Y + o.Y);
-                var body = bodies[i2];
-                body.sprite = ProceduralSprites.Get(MinikUsta.Presentation.Art.Atlas.Body(BoardPose.NeighbourMask(m.Shape, c)));
-                body.color = UnityConvert.ToColor(m.BodyColor);
-                body.sortingOrder = Order.Ghost;
-                body.transform.localPosition = pos;
-                body.transform.localScale = new Vector3(unit, unit, 1f);
-                var line = outlines[i2];
-                line.sprite = ProceduralSprites.Get(MinikUsta.Presentation.Art.Tile.Ghost);
-                line.color = UnityConvert.ToColor(m.OutlineColor);
-                line.sortingOrder = outlineOrder;
-                line.transform.localPosition = pos;
-                line.transform.localScale = new Vector3(unit, unit, 1f);
-                i2++;
+                var p = list[i];
+                var sr = parts[i];
+                var fs = AtlasSprites.Resolve(p.Frame);
+                sr.sortingOrder = baseOrder + p.Order;
+                var r = new PxRect(m.Center.X + p.Rect.X, m.Center.Y + p.Rect.Y, p.Rect.W, p.Rect.H);
+                if (!SpriteDraw.Apply(sr, fs, r.W, r.H, false, UnityConvert.ToColor(p.Tint))) continue;
+                SpriteDraw.PivotPoint(fs, r, out double px, out double py);
+                sr.transform.localPosition = space.World(px, py);
             }
             var tile = m.BadgeTile;
             badge.gameObject.SetActive(tile.HasValue);
             if (tile.HasValue)
             {
-                badge.sprite = ProceduralSprites.Get(tile.Value);
-                badge.color = UnityConvert.ToColor(m.BadgeColor);
+                var c = m.BadgeCenter(BadgePx);
+                var fs = AtlasSprites.Resolve(m.Look.Badge == ShadowBadge.Ok ? "icon_check" : "badge_dot");
                 badge.sortingOrder = Order.GhostBadge;
-                var p = m.BadgeCenter(BadgePx);
-                badge.transform.localPosition = space.World(p);
-                float u = DesignSpace.Units(BadgePx);
-                badge.transform.localScale = new Vector3(u, u, 1f);
+                var r = new PxRect(c.X - BadgePx / 2, c.Y - BadgePx / 2, BadgePx, BadgePx);
+                if (SpriteDraw.Apply(badge, fs, r.W, r.H, false, Color.white))
+                {
+                    SpriteDraw.PivotPoint(fs, r, out double px, out double py);
+                    badge.transform.localPosition = space.World(px, py);
+                }
             }
         }
     }

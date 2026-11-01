@@ -436,9 +436,30 @@ namespace UnityEngine
         public Vector4 border => default;
     }
 
-    public class TextAsset : Object
+    // UnityCsReference 6000.0.85f1 Runtime/Export/Scripting/TextAsset.cs, TextAsset.bindings.cs
+    public partial class TextAsset : Object
     {
         public string text => null;
+        public byte[] bytes => null;
+    }
+
+    // UnityCsReference 6000.0.85f1 Modules/ImageConversion/ScriptBindings/ImageConversion.bindings.cs (ImageConversionModule).
+    // The ReadOnlySpan<byte> overloads exist too; the Unity layer calls the byte[] ones.
+    public static class ImageConversion
+    {
+        public static bool LoadImage(this Texture2D tex, byte[] data, bool markNonReadable) => false;
+        public static bool LoadImage(this Texture2D tex, byte[] data) => false;
+    }
+
+    // UnityCsReference 6000.0.85f1 Runtime/Export/PlayerPrefs/PlayerPrefs.bindings.cs
+    public class PlayerPrefs
+    {
+        public static void SetString(string key, string value) { }
+        public static string GetString(string key, string defaultValue) => null;
+        public static string GetString(string key) => null;
+        public static bool HasKey(string key) => false;
+        public static void DeleteKey(string key) { }
+        public static void Save() { }
     }
 
     public enum FontStyle
@@ -715,10 +736,42 @@ namespace UnityEngine.UI
         public HorizontalWrapMode horizontalOverflow { get => default; set { } }
         public VerticalWrapMode verticalOverflow { get => default; set { } }
         public bool resizeTextForBestFit { get => false; set { } }
+        public int resizeTextMinSize { get => 0; set { } }
+        public int resizeTextMaxSize { get => 0; set { } }
+        public bool supportRichText { get => false; set { } }
+    }
+
+    // com.unity.ugui Runtime/UI/Core/VertexModifiers/BaseMeshEffect.cs, Shadow.cs, Outline.cs (IMeshModifier omitted: not used)
+    public abstract class BaseMeshEffect : UIBehaviour
+    {
+    }
+
+    public class Shadow : BaseMeshEffect
+    {
+        protected Shadow() { }
+
+        public Color effectColor { get => default; set { } }
+        public Vector2 effectDistance { get => default; set { } }
+        public bool useGraphicAlpha { get => false; set { } }
+    }
+
+    public class Outline : Shadow
+    {
+        protected Outline() { }
     }
 
     public class Selectable : UIBehaviour
     {
+        // com.unity.ugui Runtime/UI/Core/Selectable.cs
+        public enum Transition
+        {
+            None = 0,
+            ColorTint = 1,
+            SpriteSwap = 2,
+            Animation = 3,
+        }
+
+        public Transition transition { get => default; set { } }
         public Graphic targetGraphic { get => null; set { } }
         public bool interactable { get => false; set { } }
     }

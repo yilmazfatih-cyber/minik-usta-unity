@@ -65,6 +65,7 @@ namespace MinikUsta.Presentation.Tests.Fixtures
             var L = p.Layout!;
             foreach (var item in v.Board!.Items)
             {
+                if (item.ArtOnly) continue; // V1 atlas-only items (tray, hook, scaffold …): the procedural preview draws the placeholder look
                 var rect = item.Rect;
                 // Q2: the site layer (blueprint, plan, platform) slides with the segment change (UnityBoardView.siteRoot)
                 if (item.Kind == BoardItemKind.SitePanel || item.Kind == BoardItemKind.PlanCell || item.Kind == BoardItemKind.HatchCell

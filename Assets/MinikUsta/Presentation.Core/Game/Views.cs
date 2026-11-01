@@ -45,6 +45,9 @@ namespace MinikUsta.Presentation.Game
 
         /// <summary>Every cell back to rest (1, 1).</summary>
         void ResetCells();
+
+        /// <summary>V1 (K-14, ART_UNITY §4.1): placed on the site — locked look (tint #EFEFEF + mortar dots, no gloss).</summary>
+        bool Placed { get; set; }
     }
 
     public enum SparkKind
@@ -89,7 +92,14 @@ namespace MinikUsta.Presentation.Game
         None,
         Pause,
         Win,
+        /// <summary>K-29 window 1 "Hamleler bitti!" (with the +5 offer when a host runs the level; Q1: "Tekrar dene" only).</summary>
         Lose,
+        /// <summary>V1: UX §4.1 level start window.</summary>
+        LevelStart,
+        /// <summary>V1: K-43/2 exit confirmation.</summary>
+        ExitConfirm,
+        /// <summary>V1: UX §7 window 2 (a life is gone).</summary>
+        LoseFinal,
     }
 
     public enum PanelAction
@@ -98,6 +108,29 @@ namespace MinikUsta.Presentation.Game
         Restart,
         Next,
         Retry,
+        // V1 (flow host)
+        Home,
+        Settings,
+        /// <summary>Pause "Ana sayfa": opens the exit confirmation.</summary>
+        Exit,
+        Stay,
+        Leave,
+        BuyMoves,
+        AdMoves,
+        Decline,
+        Play,
+        Close,
+        Continue,
+    }
+
+    /// <summary>V1: the look of a window option (ART_REFERENCE §3.1 kit).</summary>
+    public enum ButtonKind
+    {
+        Primary,
+        Secondary,
+        Danger,
+        Offer,
+        Disabled,
     }
 
     public sealed class PanelButton
@@ -106,16 +139,69 @@ namespace MinikUsta.Presentation.Game
         public readonly PanelAction Action;
         /// <summary>The primary option (green, UX §0.2); the others are neutral.</summary>
         public readonly bool Primary;
+        /// <summary>V1: kit look; a `Disabled` option shows but does not fire.</summary>
+        public readonly ButtonKind Kind;
+        /// <summary>V1: the PriceLabel / ad second line ("≈ ₺81", "Şu an reklam yok").</summary>
+        public readonly string? Line2;
+        /// <summary>V1: coin price drawn with the coin icon on the right of the option (−1 none).</summary>
+        public readonly int Price;
 
         public PanelButton(string label, PanelAction action, bool primary)
         {
             Label = label;
             Action = action;
             Primary = primary;
+            Kind = primary ? ButtonKind.Primary : ButtonKind.Secondary;
+            Price = -1;
         }
+
+        public PanelButton(string label, PanelAction action, ButtonKind kind, string? line2 = null, int price = -1)
+        {
+            Label = label;
+            Action = action;
+            Kind = kind;
+            Primary = kind == ButtonKind.Primary;
+            Line2 = line2;
+            Price = price;
+        }
+
+        public bool Enabled => Kind != ButtonKind.Disabled;
     }
 
-    /// <summary>A level window (win, out of moves, pause) as text + options.</summary>
+    /// <summary>V1: what a rich window shows beyond title, body and options (set by the flow host).</summary>
+    public sealed class PanelDetail
+    {
+        /// <summary>Extra body lines (exit / loss lines, STORY §7.5).</summary>
+        public string[] Lines = new string[0];
+        /// <summary>Character frame beside the body (chr_tuna_think, chr_tuna_cheer …); null = none.</summary>
+        public string? Character;
+        /// <summary>Win: coins, Bonus İnşaat, trowels, stars (META §3.1).</summary>
+        public int Coins = -1;
+        public int TrowelCoins;
+        public int Trowels;
+        public string? BonusLine;
+        public string? TrowelLine;
+        /// <summary>The structure of the level (win card, level start goal, lose preview).</summary>
+        public PlanThumb? Thumb;
+        /// <summary>Small counter line above the options ("Teklif 1/3").</summary>
+        public string? Counter;
+        /// <summary>Win card: the caption under the structure name ("Yapı tamam!").</summary>
+        public string? CardCaption;
+        /// <summary>Level start: name, difficulty pill text (null = easy / normal), goal chips; win card: the structure name.</summary>
+        public string? LevelName;
+        public string? DifficultyText;
+        public int Blocks = -1;
+        public string? MovesText;
+        /// <summary>Level start: the pre-level booster slots (locked: "Bölüm N").</summary>
+        public string[] LockedSlots = new string[0];
+        public string? SlotsTitle;
+        /// <summary>A close (×) button in the corner firing this action (null = none).</summary>
+        public PanelAction? CloseAction;
+        /// <summary>A settings tool (gear) in the corner (the pause window: its three options keep the thumb zone, UX §0.1).</summary>
+        public bool SettingsTool;
+    }
+
+    /// <summary>A level window (win, out of moves, pause …) as text + options.</summary>
     public sealed class PanelModel
     {
         public readonly PanelKind Kind;
@@ -124,14 +210,54 @@ namespace MinikUsta.Presentation.Game
         public readonly PanelButton[] Buttons;
         /// <summary>Q2 (META §1): a first win shows the level star on the window (JUICE #96 star burst).</summary>
         public readonly bool Star;
+        /// <summary>V1: rich content (null = the Q1 text window).</summary>
+        public readonly PanelDetail? Detail;
 
-        public PanelModel(PanelKind kind, string title, string body, PanelButton[] buttons, bool star = false)
+        public PanelModel(PanelKind kind, string title, string body, PanelButton[] buttons, bool star = false, PanelDetail? detail = null)
         {
             Kind = kind;
             Title = title;
             Body = body;
             Buttons = buttons;
             Star = star;
+            Detail = detail;
+        }
+    }
+
+    /// <summary>
+    /// V1: what the HUD shows beyond the counters (refreshed with every `SyncAll`): the K-54 booster slots, the panorama well
+    /// (plan of the visible segment, filled cells), the truck chip and the level star.
+    /// </summary>
+    public sealed class HudState
+    {
+        /// <summary>UX §5.1 slot order: hammer, crane, brush, undo.</summary>
+        public static readonly string[] SlotOrder = { BoosterSlots.Hammer, BoosterSlots.Crane, BoosterSlots.PaintBrush, BoosterSlots.Undo };
+
+        public readonly int Level;
+        /// <summary>`SlotStates` value per slot (SlotOrder).</summary>
+        public readonly string[] Slots;
+        public readonly int[] Counts;
+        public readonly int[] UnlockLevels;
+        public readonly PlanThumb Thumb;
+        /// <summary>Truck chip: queued + pending blocks; `Truck` false hides the chip (no batches in the level).</summary>
+        public readonly int Queue;
+        public readonly bool Truck;
+        /// <summary>The level was won before (the well shows a full star).</summary>
+        public readonly bool Starred;
+        /// <summary>Segments of the level: the well's "n/max" counter shows only when there is more than one.</summary>
+        public readonly int SegmentCount;
+
+        public HudState(int level, string[] slots, int[] counts, int[] unlockLevels, PlanThumb thumb, int queue, bool truck, bool starred, int segmentCount = 1)
+        {
+            SegmentCount = segmentCount;
+            Level = level;
+            Slots = slots;
+            Counts = counts;
+            UnlockLevels = unlockLevels;
+            Thumb = thumb;
+            Queue = queue;
+            Truck = truck;
+            Starred = starred;
         }
     }
 
@@ -199,5 +325,16 @@ namespace MinikUsta.Presentation.Game
 
         /// <summary>The level star on the open window (JUICE #96 central star: 0 → 1,2 → 1).</summary>
         ITweenTarget StarTarget { get; }
+
+        // --- V1 additions -----------------------------------------------------------------------------------------------
+
+        /// <summary>The board, blocks and HUD are shown (false on the home screen).</summary>
+        bool WorldVisible { get; set; }
+
+        /// <summary>Booster slots, panorama well, truck chip, level star (after every `SyncAll`).</summary>
+        void SetHudState(HudState state);
+
+        /// <summary>Centre (design px) of the open window's star (JUICE #96 burst); null = no star shown.</summary>
+        Vec2? StarCenter { get; }
     }
 }

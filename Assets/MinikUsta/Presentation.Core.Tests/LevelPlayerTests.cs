@@ -385,7 +385,9 @@ namespace MinikUsta.Presentation.Tests
                     Assert.GreaterOrEqual(item.Rect.X, 0, item + " inside the canvas");
                     Assert.LessOrEqual(item.Rect.Right, L.W + 1e-6, item.ToString());
                     Assert.GreaterOrEqual(item.Rect.Y, L.TopGroupBottomY, item + " below the HUD");
-                    Assert.LessOrEqual(item.Rect.Bottom, L.Board.Status.Y + 1e-6, item + " above the status strip");
+                    // V1 (ART_UNITY §4.3–§4.4): the tray's bottom frame reaches into the status strip by design (the truck chip rides it)
+                    if (item.Kind == BoardItemKind.Tray) Assert.LessOrEqual(item.Rect.Bottom, L.Board.Status.Bottom + 1e-6, item + " tray ends in the status strip");
+                    else Assert.LessOrEqual(item.Rect.Bottom, L.Board.Status.Y + 1e-6, item + " above the status strip");
                 }
                 foreach (var r in new[] { HudLayout.Capsule(L), HudLayout.BlocksChip(L), HudLayout.LevelName(L), HudLayout.Moves(L), HudLayout.Pause(L), HudLayout.Segments(L) })
                 {

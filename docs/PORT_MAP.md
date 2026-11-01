@@ -280,7 +280,34 @@ Durum anlamı: **Q0 / Q1** taşındı · **kısmen** bazı satırlar taşındı 
 | `sceneServices.ts` | `Game/Haptics.cs` (`HapticRouter`, `FixedPulseHaptics`), `Unity/GameRunner.cs` | **Q2** kısmen | Titreşim: `Handheld.Vibrate()` yalnız Android'de; ses Q2+ |
 | `frameImage.ts` | — | kapsam dışı | Phaser kare yardımcısı; Unity'de Sprite pivotu |
 
-#### Veri yolları (Q3 denetimi)
+##### Paket V1 — v4 sanat, HUD v3, pencereler, ana ekran, ayarlar, akış, kayıt, i18n
+
+| Web kaynağı / belge | C# (`Presentation.Core`, motor-bağımsız, NUnit) | Unity katmanı (`Assets/MinikUsta/Unity`) |
+| --- | --- | --- |
+| ART_UNITY §3 `atlas.json` kontratı | `Art/AtlasData.cs` (ayrıştırma, Unity rect, ppu × scale, kenar (L, B, R, T)) | `AtlasSprites.cs` (TextAsset → `ImageConversion.LoadImage` → `Sprite.Create`), `SpriteDraw.cs` |
+| ART_UNITY §4.1–4.2 blok, gölge | `Art/Frames.cs`, `Art/BlockSkin.cs` (hücre karosu + köşe dolgusu + parlama / harç; K-18 dolgu + çizgi + içbükey köşe) | `UnityPieceVisual.cs`, `UnityShadowView` (`UnityBoardView.cs`) |
+| ART_UNITY §4.3 tahta | `Game/BoardScene.cs` (tepsi, vinç bandı ve kancası, zeminler, plan hayaletleri + K-34 cephesi, duvar + başlık, geçit kenarı + ray, iskele) | `UnityBoardView.cs` |
+| — (acil geri dönüş) | `Art/FallbackTiles.cs` (kare yoksa prosedürel karo) | `ProceduralSprites.cs` |
+| `src/ui/GoalsPanel.ts`, `MovesCounter.ts`, `Panorama.ts`, `PauseButton.ts`, `StatusStrip.ts`, `boosterSlots.ts` | `Ui/LevelHud.cs` (HUD v3 ağacı, K-54 yuva durumları), `Game/HudLayout.cs`, `Game/PlanThumb.cs` | `UiRenderer.cs` (uGUI: Image / Text + Outline + Shadow / Button) |
+| `src/ui/Popup.ts`, `WinScreen.ts`, `LevelStartWindow.ts`, `windowLines.ts`, `losePreview.ts` | `Ui/WindowViews.cs` (bölüm başı, kazanma (yapı pencere içinde), +5 teklifi, kayıp, çıkış onayı, mola) | `UiRenderer.cs` |
+| `src/ui/offer.ts`, `price.ts`, `rewards.ts` | `Meta/Offer.cs`, `Meta/Price.cs`, `Meta/Rewards.cs`, `Meta/EconomyConfig.cs` | — |
+| `src/scenes/HomeScene.ts` (ana sayfa v2), ayarlar | `Ui/HomeView.cs` (`HomeView`, `SettingsView`) | `UiRenderer.cs` |
+| `src/scenes/flow/**` (UX §12) | `Flow/ScreenFlow.cs` (durum makinesi), `Flow/GameApp.cs` (kayıt + akış + pencereler, `ILevelHost`) | `GameRunner.cs` |
+| `src/services/save.ts` | `Save/SaveModel.cs`, `Save/SaveCodec.cs` (sürüm, yedek, bozuk → varsayılan, K-43 kaydı) | `PlayerPrefsStore.cs` |
+| `src/services/i18n.ts` | `I18n/Localizer.cs` (tr/en + Unity katmanı `unity_tr.json` / `unity_en.json`), `Text/Strings.cs` (canlı tablo, eksik anahtar bildirimi) | `GameRunner.cs` (`Debug.LogWarning`) |
+
+Yeni testler (`Presentation.Core.Tests`): `ArtContractTests` (atlas, kareler, blok / gölge parçaları, tahta), `MetaTests` (K-28, K-29, fiyat satırı),
+`SaveCodecTests` (K-43), `I18nTests` (kaynak taraması: koddaki her anahtar tr ve en'de; Baloo 2 cmap'i her karakteri çizer), `FlowTests`,
+`GameAppTests` (ilk açılış ≤ 3 dokunuş, kazanma ödülü, K-43 devam / iptal, K-29 teklifleri, K-43/2 çıkış, ayarlar, K-54 yuvaları, dokunma
+hedefleri ≥ 128 px), `ScreenDumpTests` (compose sahneleri). Fikstürler: `AppRig`, `FakeSurface`, `SceneDump`, `TrueTypeCmap`.
+
+Unity API'leri (her biri stub'da gerçek imzayla; UnityCsReference 6000.0.85f1 ve com.unity.ugui kaynağıyla doğrulandı): `TextAsset.bytes`,
+`ImageConversion.LoadImage(Texture2D, byte[], bool)`, `PlayerPrefs.GetString / SetString / HasKey / DeleteKey / Save`, `Text.resizeTextMinSize /
+resizeTextMaxSize / supportRichText`, `UnityEngine.UI.Shadow` (`effectColor`, `effectDistance`), `UnityEngine.UI.Outline`, `Selectable.Transition`
++ `Selectable.transition`. Önceden stub'ta olup V1'de yeni kullanılanlar: `Texture.width / height`, `SpriteRenderer.flipY`, `Renderer.enabled`,
+`CanvasScaler.referencePixelsPerUnit`, `Image.preserveAspect`, `Object.Destroy`, `Transform` numaralandırması.
+
+## Veri yolları (Q3 denetimi)
 
 | Çalışma zamanı yolu | Dosya | Durum |
 | --- | --- | --- |

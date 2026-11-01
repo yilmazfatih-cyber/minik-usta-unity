@@ -38,11 +38,16 @@ Faz 1 raporu: web reposunda `docs/UNITY_PORT_FAZ1.md`. TS → C# dosya eşlemesi
 │  │  │                            Symbols, Palette, Rgba), Text/ (Strings: tr.json/en.json, TrText.Upper)
 │  │  │                            Faz 3 Q2 (his): Game/ (Particles (ParticleField), CellWave, Haptics, PressFeel, TruckModel, Economy,
 │  │  │                            StepRunner.Fx), Art/ (kıvılcım, toz, yıldız, sikke, mala, halka karoları)
+│  │  │                            Paket V1: Art/ (AtlasData, Frames, BlockSkin, FallbackTiles), Ui/ (UiNode ağacı, TextStyles, IUiSurface,
+│  │  │                            LevelHud, WindowViews, HomeView + SettingsView), Flow/ (ScreenFlow, GameApp), Save/ (SaveModel, SaveCodec),
+│  │  │                            Meta/ (EconomyConfig, Offer, Rewards, Price), I18n/ (Localizer), Game/PlanThumb
 │  │  ├─ Unity/                    ince Unity katmanı (asmdef MinikUsta.Unity → Core, Presentation.Core, UnityEngine.UI): GameBootstrap
 │  │  │                            ([RuntimeInitializeOnLoadMethod]), GameRunner (kare döngüsü), UnityLevelView (ILevelView), UnityPieceVisual,
 │  │  │                            UnityBoardView/UnityShadowView, UnityHud (uGUI + LegacyRuntime), PointerInput (eski Input), ProceduralSprites,
 │  │  │                            Q2: UnitySpark/UnityUiSpark (parçacık), UnityTruckView, OffsetTarget (kamera, şantiye katmanı), PressableButton
-│  │  ├─ Resources/                levels/ (oyunun okuduğu bölümler), config/economy.json, i18n/{tr,en}.json, solutions/ (dev: çözümü oynat)
+│  │  │                            V1: AtlasSprites (v4 atlas), SpriteDraw, UiRenderer (uGUI; UnityHud'un yerine), PlayerPrefsStore
+│  │  ├─ Resources/                levels/ (oyunun okuduğu bölümler), config/economy.json, i18n/{tr,en}.json (+ V1 unity_{tr,en}.json),
+│  │  │                            solutions/ (dev: çözümü oynat), art/ (V0 atlas: atlas.json + atlas_N.bytes), fonts/ (Baloo 2 ExtraBold + OFL)
 │  │  ├─ Scenes/Level.unity        yalnız ortografik Main Camera (elle yazılmış Unity 6 YAML; .meta GUID sabit)
 │  │  ├─ Presentation.Core.Tests/  NUnit 3 testleri (Editor; Golden/tokens.json = web tokens kopyası)
 │  │  └─ Core.Tests/               NUnit 3 testleri (Editor platformu; Unity EditMode ile aynı dosyalar)
@@ -90,6 +95,9 @@ ayarları ve `.meta` dosyalarını Unity ilk koşuda üretir, iş akışı bunla
 | ----- | -------- |
 | `cd dotnet && dotnet build -warnaserror` | Çekirdek + testleri derler; uyarı = hata |
 | `cd dotnet && MINIK_PREVIEW_DIR=../artifacts/preview dotnet test --filter PreviewTests` | Unity yer tutucu ekranının yazılımsal önizlemesi (aynı atlas, renk, sıra, 9-dilim; metin yok) → 390×844 ve 360×800 PNG (`artifacts/`, git dışı). Unity ekran görüntüsü DEĞİL |
+| `cd dotnet && MINIK_PREVIEW_DIR=../artifacts/preview dotnet test --filter ScreenDumpTests && cd .. && node tools/art/compose.mjs` | V1 ekran kompozitleri: Presentation.Core sahneleri (tahta, bloklar, K-18 gölgesi, HUD, pencereler, ana sayfa, ayarlar) atlas sayfaları ve Baloo 2 ile çizilir → `artifacts/preview/v4-unity-<ekran>.png` (1080×1920), `-360x800`, `-390x844` (FIT). Unity ekran görüntüsü DEĞİL |
+| `tools/unity-refcheck.sh` | nuget.org'da `UnityEngine.Modules` 6000.0.x var mı bakar; yoksa SKIPPED (bkz. `docs/CI.md` §6) |
+| `tools/font/build-font.sh` | `Resources/fonts/Baloo2-ExtraBold.ttf`'yi google/fonts değişken Baloo 2'den (wght 800 örneği + Latin alt kümesi) yeniden üretir; fontTools gerekir |
 | `cd dotnet && dotnet test` | Tüm NUnit testlerini koşturur (testler repo kökünü `Assets/MinikUsta/Core/MinikUsta.Core.asmdef` ile bulur ve bölüm / altın / fikstür JSON'larını oradan okur) |
 | `tools/sync-from-web.sh [/yol/minik-usta]` | Bölüm, altın, fikstür, economy.json ve tokens.json dosyalarını web reposundan yeniler (varsayılan `../minik-usta`); Faz 3 Q1'den beri bölümleri, economy.json'u, `src/i18n/{tr,en}.json`'u ve kanonik çözüm günlüklerini `Assets/MinikUsta/Resources/` altına da kopyalar (oyun `Resources.Load<TextAsset>` ile okur; StreamingAssets kopyası çekirdek testleri içindir) |
 | `node tools/gen-p0-vectors.ts [/yol/minik-usta]` | `Core.Tests/Golden/p0_vectors.json` dosyasını TS çekirdeğinden yeniden üretir |
@@ -140,18 +148,19 @@ parçacıkları, iniş dalgası, mala ve seri boncukları, kamyon ve şantiye ka
 basışı, kamera sarsıntısı, Android titreşimi) tamam. Ses ve gerçek sanat sırada. Bu ortamda Unity derlenemedi; ilk gerçek derleme GitHub Actions'ta yapılır
 ([`docs/CI.md`](docs/CI.md)). Rapor taslağı: [`docs/PHASE3_REPORT.md`](docs/PHASE3_REPORT.md).
 
-### Nasıl oynanır
+### Nasıl oynanır (paket V1)
 
 - Adres: https://yilmazfatih-cyber.github.io/minik-usta-unity/ (ilk başarılı derlemeden sonra açılır).
-- Açılışta doğrudan Bölüm 1 gelir; menü yok.
-- Bir bloğa bas ve parmağınla sürükle. Blok kalkar ve parmağını izler; doğru yere bırakılan blok yerine oturur.
-- Yanlış yere bırakılan blok kendi yerine geri döner. Kırmızı işaret ve puan kaybı yok.
-- Bloklar duvarın üstünden ya da geçitten geçirilebilir.
-- Hamleler bitince "Hamleler bitti!" penceresi çıkar; tek seçenek **Tekrar dene** (Q1'de +5 hamle teklifi yok).
-- Bölüm tamamlanınca "Kazandın!" penceresi çıkar; **Devam** sonraki bölümü açar. 10. bölümden sonra 1. bölüme dönülür.
-- Duraklatma simgesi (ekranın üst kısmı) "Mola" penceresini açar: **Devam** ya da **Bölümü baştan başlat**.
-- Geliştirme derlemesinde (Editor ya da Development build) klavye kısayolları açılır: N sonraki bölüm, R baştan,
-  A tahtanın ASCII hâlini Console'a yazar, S çözümün sonraki hamlesini oynatır. Yayındaki sürümde bunlar kapalıdır.
+- Açılışta **ana sayfa** gelir: can ve altın kapsülleri, Ağaç Ev ilerlemesi, Tuna, Usta Dede, Kepçe ve tek yeşil düğme **"Oyna · Bölüm N"**.
+  Bölüm 1–2 tek dokunuşla başlar; Bölüm 3'ten itibaren önce bölüm başı penceresi (yapı resmi, blok ve hamle sayısı) açılır, **Oyna**'ya basılır.
+- Bir bloğa bas ve sürükle; doğru yere bırakılan blok yerine oturur, yanlış yere bırakılan geri seker. Kırmızı çarpı ve puan kaybı yok.
+- Hamleler bitince **+5 hamle** teklifi gelir: hayattaki ilk teklif Usta Dede'nin hediyesidir, sonra 900 / 1.350 / 1.800 altın (≈ ₺ karşılığı
+  altında). Altın yetmezse düğme gri ve pasiftir; reklam seçeneği gri "Şu an reklam yok". "Hayır, teşekkürler" → bir can gider → **Tekrar dene** ya da **Ana sayfa**.
+- Kazanınca: yıldız, Bonus İnşaat altını, kalan Altın Mala; bitmiş yapı pencerenin içindeki kartta görünür. **Devam** ana sayfaya döner.
+- Duraklat: **Devam**, **Bölümü baştan başlat**, **Ana sayfa** ve köşede ayar dişlisi. Hamle yapmadan çıkmak cezasızdır; hamleden sonra 1 can gider (onay penceresi sorar).
+- Ayarlar (ana sayfa dişlisi ya da mola penceresi): ses, titreşim, **Hareketi azalt**, dil **Türkçe / English**. Ayarlar ve ilerleme cihazda saklanır.
+- Uygulama bir bölümün ortasında kapanırsa açılışta aynı yerden devam eder (K-43).
+- Geliştirme derlemesinde (Editor ya da Development build) klavye kısayolları: N sonraki bölüm, R baştan, A tahtanın ASCII hâli, S çözümün sonraki hamlesi.
 
 ### Unity'de açma ve testler
 
@@ -170,7 +179,13 @@ Dotnet tarafı (Unity gerekmez):
 cd dotnet && dotnet build -warnaserror && dotnet test
 ```
 
-### Bilinen eksikler (Q2 sonrası)
+### Bilinen eksikler (V1 sonrası)
+
+- Ses yok (V2). Güçlendiriciler oynanmaz: yuvalar K-54 durumunu gösterir (kilitli / hedefsiz / "+" / adet) ama dokunuş bir şey yapmaz.
+- Öğretici yok. Can yenilenmesi yok (Faz 5): can 0 iken bölüm yine başlar, can ayrılmaz. Mağaza, köprü, lig, kasaba görevleri yok.
+- Unity'de görülmedi: uGUI metin yerleşimi (Baloo 2'nin dikey metrikleri), 9-dilim kenarlar, PressableButton hissi, kayıt / devam.
+
+### Bilinen eksikler (Q2 sonrası, tarihsel)
 
 - Ses yok. Titreşim yalnız Android'de (`Handheld.Vibrate`, tek sabit darbe). ↩ iptal rozeti, ip/eğilme ve sürükleme izi yok.
   Q2 ile gelenler: sprite parçacıkları, kamyon, seri boncukları ve mala, şantiye kayması, Bonus İnşaat sikkeleri, kazanma yıldızı,

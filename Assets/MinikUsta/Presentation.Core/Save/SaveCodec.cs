@@ -65,7 +65,7 @@ namespace MinikUsta.Presentation.Save
                 .Set("sound", JsonValue.Of(s.Sound)).Set("music", JsonValue.Of(s.Music)).Set("haptics", JsonValue.Of(s.Haptics))
                 .Set("lang", JsonValue.Of(s.Lang)).Set("reduceMotion", JsonValue.Of(s.ReduceMotion)).Set("colorblind", JsonValue.Of(s.Colorblind));
             var data = JsonValue.Object()
-                .Set("progress", JsonValue.Object().Set("highestLevel", JsonValue.Of(m.HighestLevel)).Set("levels", levels))
+                .Set("progress", JsonValue.Object().Set("highestLevel", JsonValue.Of(m.HighestLevel)).Set("lastLevel", JsonValue.Of(m.LastLevel)).Set("levels", levels))
                 .Set("stars", JsonValue.Of(m.Stars))
                 .Set("coins", JsonValue.Of(m.Coins))
                 .Set("lives", JsonValue.Of(m.Lives))
@@ -122,6 +122,7 @@ namespace MinikUsta.Presentation.Save
             var m = new SaveModel();
             var progress = d["progress"];
             m.HighestLevel = NonNeg(progress, "highestLevel", defaults.HighestLevel);
+            m.LastLevel = NonNeg(progress, "lastLevel", defaults.LastLevel);
             var levels = progress != null && progress.IsObject ? progress["levels"] : null;
             if (levels != null && levels.IsObject)
                 foreach (var kv in levels.Members)

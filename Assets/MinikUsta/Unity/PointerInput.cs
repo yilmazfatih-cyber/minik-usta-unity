@@ -1,9 +1,10 @@
 #nullable enable
 // Pointer input with the legacy Input Manager (D-096; ProjectSettings activeInputHandler 0): touches on phones, the left
 // mouse button on desktop / in the editor. Screen px (origin bottom-left) → design px through the current viewport, then
-// straight into `LevelPlayer` in the same frame (TECH §4.6 one-frame response). One finger drives the board (TECH §4.6:
+// straight into the game (V1: `GameApp`, which hands it to the `LevelPlayer` while the level screen is up) in the same frame
+// (TECH §4.6 one-frame response). One finger drives the board (TECH §4.6:
 // a second finger is ignored by DragMapper); `Canceled` (incoming call, edge gesture) aborts the drag.
-using MinikUsta.Presentation.Game;
+using MinikUsta.Presentation.Flow;
 using MinikUsta.Presentation.Layout;
 using UnityEngine;
 
@@ -22,7 +23,7 @@ namespace MinikUsta.Unity
             Input.simulateMouseWithTouches = false;
         }
 
-        public void Poll(LevelPlayer player, DesignViewport vp)
+        public void Poll(GameApp player, DesignViewport vp)
         {
             int n = Input.touchCount;
             if (n > 0)

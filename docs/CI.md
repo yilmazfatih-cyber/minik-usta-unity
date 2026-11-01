@@ -253,3 +253,30 @@ Kirli ağaçta `git pull --rebase` zaten reddedilir; temiz ağaç hem bunu hem y
 
 Bu adım code-lead'in işidir. Yol belirteçleri, yetim `.meta` denetimi ve `git worktree` akışı geçici bir depoda (kirli ağaç ve başkasının staged dosyasıyla)
 denendi; gerçek artifact ile henüz uygulanmadı.
+
+## 5. Paket V1 ile gelen dosyalar (code-lead, 2026-11-01)
+
+- **Atlas sayfaları düz adlıdır:** `Resources/art/atlas_0.bytes … atlas_3.bytes`, `atlas.json` `file` alanı `art/atlas_N` (= `Resources.Load`
+  yolu). Eski `atlas-N.png.bytes` adındaki ikinci nokta P3-13 şüphesi yüzünden kaldırıldı; run 41350760117 bu adlarla derlendi (`atlas_0.bytes`
+  1,3 MB, `atlas_2.bytes` 1,1 MB yapı raporunda). Oyunun açılışta okuduğu: `art/atlas` (TextAsset) + sayfalar → `ImageConversion.LoadImage`.
+- **Yazı tipi:** `Resources/fonts/Baloo2-ExtraBold.ttf` (OFL 1.1, `OFL.txt` yanında; `tools/font/build-font.sh` ile yeniden üretilir).
+  Unity bu TTF'yi dinamik `Font` olarak içe aktarır; `UiRenderer` `Resources.Load<Font>("fonts/Baloo2-ExtraBold")` ile okur, bulamazsa
+  `LegacyRuntime.ttf`'ye düşer ve Console'a uyarı yazar.
+- **Kayıt:** `PlayerPrefs` (`minikusta.save`, `.bak`, `.corrupt`); WebGL'de IndexedDB. Her yazımdan sonra `PlayerPrefs.Save()`.
+
+## 6. Referans derleme denetimi (`tools/unity-refcheck.sh`, paket V1 madde 8)
+
+Amaç: Unity katmanını stub'lara ek olarak Unity'nin **gerçek** referans derlemelerine karşı da derlemek (NuGet `UnityEngine.Modules`, `artifacts/`
+altına, git dışı). **Sonuç: çalışmıyor, kapıya eklenmedi.** Neden:
+
+1. nuget.org'da `UnityEngine.Modules` paketinin tek sürümü **2021.3.33**'tür (`api.nuget.org/v3-flatcontainer/unityengine.modules/index.json`,
+   2026-11-01); 6000.0.x yok. 2021.3 başka bir API yüzeyidir (ör. `ImageConversion.LoadImage(Texture2D, ReadOnlySpan<byte>, bool)` 6000.0'da
+   var, 2021.3'te yok): ona karşı yeşil derleme 6000.0 için kanıt değildir, kırmızı derleme de yanlış alarm olabilir.
+2. Paket uGUI'yi (`UnityEngine.UI`) içermez; needle-mirror/com.unity.ugui kaynağından ayrıca derlemek gerekir ve uGUI kaynağı motorun iç
+   (internal) API'lerine dayanır.
+3. Asıl kanıt artık var: run 41350760117'den beri her `main` itişinde GameCI **Unity 6000.0.85f1** ile gerçek derleme yapıyor (o koşuda
+   derleme ve WebGL yapısı başarılı oldu; yalnız CLI doğrulaması kırmızıydı, §2b). Stub kapısı bulutta hızlı ön denetim olarak kalır.
+
+`tools/unity-refcheck.sh` her çalıştığında nuget.org'u yeniden sorar: 6000.0.x yoksa `SKIPPED` yazıp 0 ile çıkar; bir gün çıkarsa 2 ile çıkar ve
+derleme adımının buraya bağlanmasını ister. Yeni API imzaları yerel UnityCsReference 6000.0.85f1 kaynağıyla (etiket `6000.0.85f1`) ve uGUI
+kaynağıyla doğrulandı; liste `docs/PORT_MAP.md` "Paket V1" bölümündedir.

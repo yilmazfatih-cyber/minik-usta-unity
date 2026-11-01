@@ -1,8 +1,8 @@
 #nullable enable
 // A sprite particle drawn by uGUI (Faz 3 Q2): the star burst of the win window. The level windows are a ScreenSpaceOverlay
 // canvas, which draws above every sprite — a SpriteRenderer burst would sit under the dimming and the window. So the star and
-// ring particles are Images on the window's own root (above the window panel), at design px like everything else; the rest of
-// the particles stay sprites (`UnitySpark`). `Position` is design px (origin top-left, y down); the parent is centre-anchored.
+// ring particles are Images on the UI's Fx layer (above the window, V1 `UiRenderer`), at design px like everything else; the
+// rest of the particles stay sprites (`UnitySpark`). `Position` is design px (origin top-left, y down); the parent is centre-anchored.
 using MinikUsta.Presentation;
 using MinikUsta.Presentation.Art;
 using MinikUsta.Presentation.Game;
@@ -15,7 +15,7 @@ namespace MinikUsta.Unity
     {
         private readonly RectTransform rect;
         private readonly Image image;
-        private readonly UnityHud hud;
+        private readonly UiRenderer hud;
         private Vec2 position;
         private Vec2 scale = Vec2.One;
         private float rotation;
@@ -23,7 +23,7 @@ namespace MinikUsta.Unity
         private float size = 32f;
         private Rgba color = Rgba.White;
 
-        public UnityUiSpark(RectTransform parent, UnityHud hud)
+        public UnityUiSpark(RectTransform parent, UiRenderer hud)
         {
             this.hud = hud;
             var go = new GameObject("UiSpark", typeof(RectTransform));
@@ -39,7 +39,9 @@ namespace MinikUsta.Unity
 
         public void Configure(SparkKind kind, Rgba tint, double sizePx)
         {
-            image.sprite = ProceduralSprites.Get(UnitySpark.TileOf(kind));
+            var fs = AtlasSprites.Resolve(UnitySpark.FrameOf(kind));
+            image.sprite = fs.Sprite;
+            image.preserveAspect = true;
             color = tint;
             size = (float)sizePx;
             position = Vec2.Zero;

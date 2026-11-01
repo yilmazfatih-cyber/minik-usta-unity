@@ -47,6 +47,8 @@ namespace MinikUsta.Presentation.Save
     {
         /// <summary>Highest story level won (0 = none yet).</summary>
         public int HighestLevel;
+        /// <summary>The level last started (the 1–10 loop continues after it once every level is won, UX §6).</summary>
+        public int LastLevel;
         public readonly SortedDictionary<int, LevelRecord> Levels = new SortedDictionary<int, LevelRecord>();
         public int Stars;
         public int Coins;

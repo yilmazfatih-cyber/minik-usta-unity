@@ -33,23 +33,28 @@ namespace MinikUsta.Unity
             go.SetActive(false);
         }
 
-        /// <summary>The tile a particle kind draws.</summary>
-        public static Tile TileOf(SparkKind kind)
+        /// <summary>The v4 frame a particle kind draws (ART_UNITY §4.4 fx; tinted by the particle colour).</summary>
+        public static string FrameOf(SparkKind kind)
         {
             switch (kind)
             {
-                case SparkKind.Dust: return Tile.Soft;
-                case SparkKind.Star: return Tile.Star;
-                case SparkKind.Coin: return Tile.Coin;
-                case SparkKind.Confetti: return Tile.Plain;
-                case SparkKind.Ring: return Tile.Ring;
-                default: return Tile.Spark;
+                case SparkKind.Dust: return Frames.FxDust;
+                case SparkKind.Star: return Frames.FxStar;
+                case SparkKind.Coin: return "icon_coin";
+                case SparkKind.Confetti: return Frames.FxConfetti;
+                case SparkKind.Ring: return Frames.FxRing;
+                default: return Frames.FxSpark;
             }
         }
 
+        private FrameSprite fs;
+
         public void Configure(SparkKind kind, Rgba tint, double sizePx)
         {
-            sr.sprite = ProceduralSprites.Get(TileOf(kind));
+            fs = AtlasSprites.Resolve(FrameOf(kind));
+            sr.sprite = fs.Sprite;
+            // a coin is drawn in its own colours (the gold tint would darken the atlas coin)
+            if (kind == SparkKind.Coin && fs.Frame != null) tint = Rgba.White;
             color = tint;
             size = (float)sizePx;
             aspect = kind == SparkKind.Confetti ? 0.5f : 1f; // confetti: a small rectangle
@@ -112,10 +117,11 @@ namespace MinikUsta.Unity
         {
             var t = go.transform;
             t.localPosition = space.World(position);
-            float u = DesignSpace.Units(size);
-            t.localScale = new Vector3(u * scale.X, u * aspect * scale.Y, 1f);
+            // `size` design px wide (the frame's own aspect for atlas art, `aspect` for the placeholder confetti)
+            double w = size * scale.X, h = fs.Frame != null ? size * scale.Y * fs.DesignH / fs.DesignW : size * aspect * scale.Y;
+            t.localScale = new Vector3((float)(w / fs.DesignW), (float)(h / fs.DesignH), 1f);
             t.localRotation = Quaternion.Euler(0f, 0f, rotation);
-            sr.color = UnityConvert.ToColor(color, alpha);
+            sr.color = SpriteDraw.Mul(UnityConvert.ToColor(color, alpha), fs.Tint);
         }
     }
 }

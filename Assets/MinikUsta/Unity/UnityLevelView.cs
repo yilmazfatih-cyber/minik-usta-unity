@@ -1,15 +1,19 @@
 #nullable enable
-// `ILevelView` on Unity objects (Faz 3 Q1): the orthographic camera (FIT of the 1080 × 1920 design canvas), the static
-// board, the pooled block visuals and flyers, the K-18 shadow and the uGUI HUD. It holds no game logic: `LevelPlayer`
-// (Presentation.Core) decides what is shown, this only draws it.
+// `ILevelView` on Unity objects (Faz 3 Q1; paket V1 v4 art): the orthographic camera (FIT of the 1080 × 1920 design canvas),
+// the static board, the pooled block visuals and flyers, the K-18 shadow, the particles and the truck as SpriteRenderers on
+// the atlas; the HUD and the level windows are the engine-independent `LevelHud` drawn by the shared `UiRenderer`. It holds no
+// game logic: `LevelPlayer` (Presentation.Core) decides what is shown, this only draws it.
 using System;
 using System.Collections.Generic;
 using MinikUsta.Core;
+using MinikUsta.Presentation;
 using MinikUsta.Presentation.Art;
 using MinikUsta.Presentation.Feel;
 using MinikUsta.Presentation.Game;
 using MinikUsta.Presentation.Layout;
+using MinikUsta.Presentation.Text;
 using MinikUsta.Presentation.Tweening;
+using MinikUsta.Presentation.Ui;
 using UnityEngine;
 
 namespace MinikUsta.Unity
@@ -21,18 +25,20 @@ namespace MinikUsta.Unity
         private readonly Transform world;
         private readonly UnityBoardView board;
         private readonly UnityShadowView shadow;
-        private readonly UnityHud hud;
+        private readonly UiRenderer ui;
         private readonly Transform pieceRoot;
         private readonly Stack<UnityPieceVisual> piecePool = new Stack<UnityPieceVisual>();
         private readonly Stack<UnityFlyer> flyerPool = new Stack<UnityFlyer>();
         private readonly Stack<UnitySpark> sparkPool = new Stack<UnitySpark>();
+        private readonly Stack<UnityUiSpark> uiSparks = new Stack<UnityUiSpark>();
         private readonly Transform sparkRoot;
         private readonly UnityTruckView truck;
 
-        public UnityLevelView(Camera camera, Action onPause, LayoutSettings settings, FeelSettings feel)
+        public UnityLevelView(Camera camera, UiRenderer ui, Strings text, Action onPause, LayoutSettings settings, FeelSettings feel)
         {
             this.camera = camera;
-            ProceduralSprites.Build();
+            this.ui = ui;
+            AtlasSprites.Load();
             world = new GameObject("World").transform;
             var boardRoot = new GameObject("Board").transform;
             boardRoot.SetParent(world, false);
@@ -45,7 +51,7 @@ namespace MinikUsta.Unity
             board = new UnityBoardView(space, boardRoot);
             shadow = new UnityShadowView(space, shadowRoot);
             truck = new UnityTruckView(space, world);
-            hud = new UnityHud(onPause, settings, feel);
+            Hud = new LevelHud(ui, text, settings, onPause);
             camera.orthographic = true;
             camera.clearFlags = CameraClearFlags.SolidColor;
             camera.backgroundColor = UnityConvert.ToColor(Rgba.Hex(Palette.GameBottom));
@@ -53,11 +59,15 @@ namespace MinikUsta.Unity
             CameraRig = new OffsetTarget(camera.transform);
         }
 
+        /// <summary>The HUD and level windows (engine-independent, drawn by the UiRenderer).</summary>
+        public LevelHud Hud { get; }
+
         public void SetViewport(DesignViewport viewport, ScreenLayout layout)
         {
             space.Set(viewport);
             camera.orthographicSize = (float)viewport.OrthographicSize(DesignSpace.PixelsPerUnit);
-            hud.Layout(viewport, layout);
+            ui.SetCanvas(viewport.W, viewport.H);
+            Hud.Layout(layout);
         }
 
         public void BuildBoard(BoardScene scene) => board.Build(scene);
@@ -92,26 +102,31 @@ namespace MinikUsta.Unity
 
         public void ShowShadow(ShadowModel? model) => shadow.Show(model);
 
-        public void SetLevel(string label, string name) => hud.SetLevel(label, name);
+        public void SetLevel(string label, string name) => Hud.SetLevel(label, name);
 
-        public void SetMoves(int movesLeft, string label, bool danger) => hud.SetMoves(movesLeft, label, danger);
+        public void SetMoves(int movesLeft, string label, bool danger) => Hud.SetMoves(movesLeft, label, danger);
 
-        public void SetBlocks(int blocksLeft, string label, string segments) => hud.SetBlocks(blocksLeft, label, segments);
+        public void SetBlocks(int blocksLeft, string label, string segments) => Hud.SetBlocks(blocksLeft, label, segments);
 
-        public ITweenTarget MovesChip => hud.MovesChip;
+        public ITweenTarget MovesChip => Hud.MovesChip;
 
-        public ITweenTarget BlocksChip => hud.BlocksChip;
+        public ITweenTarget BlocksChip => Hud.BlocksChip;
 
-        public void ShowPanel(PanelModel? panel, Action<PanelAction> onAction) => hud.ShowPanel(panel, onAction);
+        public void ShowPanel(PanelModel? panel, Action<PanelAction> onAction) => Hud.ShowPanel(panel, onAction);
 
-        public ITweenTarget PanelTarget => hud.PanelTarget;
+        public ITweenTarget PanelTarget => Hud.PanelTarget;
 
-        // --- Q2 --------------------------------------------------------------------------------------------------------------------
+        // --- Q2 --------------------------------------------------------------------------------------------------------------
 
         public ISpark AcquireSpark(SparkKind kind, Rgba color, double sizePx)
         {
-            // the win star burst must show above the window: uGUI particles (the overlay canvas draws over every sprite)
-            if (kind == SparkKind.Star || kind == SparkKind.Ring) return hud.AcquireWindowSpark(kind, color, sizePx);
+            // the win star burst must show above the window: uGUI particles on the Fx layer (the overlay canvas draws over every sprite)
+            if (kind == SparkKind.Star || kind == SparkKind.Ring)
+            {
+                var u = uiSparks.Count > 0 ? uiSparks.Pop() : new UnityUiSpark(ui.Layer(UiLayer.Fx), ui);
+                u.Configure(kind, color, sizePx);
+                return u;
+            }
             var s = sparkPool.Count > 0 ? sparkPool.Pop() : new UnitySpark(space, sparkRoot);
             s.Configure(kind, color, sizePx);
             return s;
@@ -119,9 +134,10 @@ namespace MinikUsta.Unity
 
         public void ReleaseSpark(ISpark spark)
         {
-            if (spark is UnityUiSpark ui)
+            if (spark is UnityUiSpark u)
             {
-                hud.ReleaseWindowSpark(ui);
+                u.Visible = false;
+                uiSparks.Push(u);
                 return;
             }
             var s = (UnitySpark)spark;
@@ -135,16 +151,28 @@ namespace MinikUsta.Unity
 
         public IPropView Truck => truck;
 
-        public void SetStreak(int beads, int trowels, string label, string trowelText) => hud.SetStreak(beads, trowels, label, trowelText);
+        public void SetStreak(int beads, int trowels, string label, string trowelText) => Hud.SetStreak(beads, trowels, label, trowelText);
 
-        public ITweenTarget StreakBead(int index) => hud.StreakBead(index);
+        public ITweenTarget StreakBead(int index) => Hud.StreakBead(index);
 
-        public ITweenTarget TrowelIcon => hud.TrowelIcon;
+        public ITweenTarget TrowelIcon => Hud.TrowelIcon;
 
-        public void SetGold(int gold) => hud.SetGold(gold);
+        public void SetGold(int gold) => Hud.SetGold(gold);
 
-        public ITweenTarget GoldChip => hud.GoldChip;
+        public ITweenTarget GoldChip => Hud.GoldChip;
 
-        public ITweenTarget StarTarget => hud.StarTarget;
+        public ITweenTarget StarTarget => Hud.StarTarget;
+
+        // --- V1 ----------------------------------------------------------------------------------------------------------------
+
+        public bool WorldVisible
+        {
+            get => world.gameObject.activeSelf;
+            set => world.gameObject.SetActive(value);
+        }
+
+        public void SetHudState(HudState state) => Hud.SetHudState(state);
+
+        public Vec2? StarCenter => Hud.StarCenter;
     }
 }

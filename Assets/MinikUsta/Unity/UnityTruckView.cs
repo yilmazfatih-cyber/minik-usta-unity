@@ -1,7 +1,8 @@
 #nullable enable
-// The delivery truck (Faz 3 Q2; JUICE #19) as a handful of sprites — `TruckModel.Parts` (rounded boxes and wheels on the shared
-// atlas). The root sits at `Position` (design px, the truck's centre), turns with `Rotation` (the bed tips) and is sized from
-// `CellPx` (the parts are in cells). Drawn behind the blocks (order 90 … 99) so the delivered blocks drop out of its bed.
+// The delivery truck (Faz 3 Q2; JUICE #19; paket V1: the v4 `truck` frame, ART_UNITY §4.3). The root sits at `Position` (design
+// px, the truck's centre), turns with `Rotation` (the bed tips) and is sized from `CellPx`: the frame is drawn
+// `TruckModel.WidthCells` cells wide (its own aspect). Without the atlas frame the Q2 placeholder parts (`TruckModel.Parts`,
+// rounded boxes and wheels) are drawn. Behind the blocks (order 90 … 99) so the delivered blocks drop out of its bed.
 using MinikUsta.Presentation;
 using MinikUsta.Presentation.Art;
 using MinikUsta.Presentation.Game;
@@ -18,6 +19,8 @@ namespace MinikUsta.Unity
         private readonly GameObject root;
         private readonly SpriteRenderer[] renderers;
         private readonly PropPart[] parts = TruckModel.Parts();
+        private readonly SpriteRenderer art;
+        private readonly FrameSprite artSprite;
         private Vec2 position;
         private Vec2 scale = Vec2.One;
         private float rotation;
@@ -29,8 +32,16 @@ namespace MinikUsta.Unity
             this.space = space;
             root = new GameObject("Truck");
             root.transform.SetParent(parent, false);
-            renderers = new SpriteRenderer[parts.Length];
-            for (int i = 0; i < parts.Length; i++)
+            var a = new GameObject("Art");
+            a.transform.SetParent(root.transform, false);
+            art = a.AddComponent<SpriteRenderer>();
+            art.sortingOrder = BaseOrder;
+            art.flipX = true; // the v4 truck faces right; it drives in from the right edge nose (cab) first (TruckModel: cab on the left)
+            artSprite = AtlasSprites.Resolve(Frames.Truck);
+            bool useArt = artSprite.Frame != null;
+            art.enabled = useArt;
+            renderers = new SpriteRenderer[useArt ? 0 : parts.Length];
+            for (int i = 0; i < renderers.Length; i++)
             {
                 var go = new GameObject("Part" + i);
                 go.transform.SetParent(root.transform, false);
@@ -104,7 +115,15 @@ namespace MinikUsta.Unity
         private void Layout()
         {
             float unit = DesignSpace.Units(cellPx);
-            for (int i = 0; i < parts.Length; i++)
+            if (artSprite.Frame != null)
+            {
+                double w = TruckModel.WidthCells * cellPx, h = w * artSprite.DesignH / artSprite.DesignW;
+                var r = new PxRect(-w / 2, -h / 2, w, h);
+                SpriteDraw.Apply(art, artSprite, w, h, false, Color.white);
+                SpriteDraw.PivotPoint(artSprite, r, out double px, out double py);
+                art.transform.localPosition = new Vector3(DesignSpace.Units(px), -DesignSpace.Units(py), 0f);
+            }
+            for (int i = 0; i < renderers.Length; i++)
             {
                 var part = parts[i];
                 var sr = renderers[i];
@@ -127,7 +146,8 @@ namespace MinikUsta.Unity
 
         private void Colors()
         {
-            for (int i = 0; i < parts.Length; i++) renderers[i].color = UnityConvert.ToColor(parts[i].Color, alpha);
+            art.color = new Color(1f, 1f, 1f, alpha);
+            for (int i = 0; i < renderers.Length; i++) renderers[i].color = UnityConvert.ToColor(parts[i].Color, alpha);
         }
 
         private void Apply()
