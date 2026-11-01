@@ -22,7 +22,9 @@ function word(text, x, y, size, colourOffset, defsOut) {
     return id;
   });
   face = `<text x="${x}" y="${y}" ${FONT} font-size="${size}" text-anchor="middle" letter-spacing="-2">${spans((i) => `url(#${ids[i]})`)}</text>`;
-  hi = `<text x="${x - 2}" y="${y - 4}" ${FONT} font-size="${size}" text-anchor="middle" letter-spacing="-2" fill="none" stroke="#FFFFFF" stroke-opacity="0.35" stroke-width="3">${text}</text>`;
+  const clip = uid('lc');
+  defsOut.push(`<clipPath id="${clip}"><rect x="${x - 600}" y="${y - size}" width="1200" height="${r1(size * 0.42)}"/></clipPath>`);
+  hi = `<text x="${x}" y="${y}" ${FONT} font-size="${size}" text-anchor="middle" letter-spacing="-2" fill="#FFFFFF" fill-opacity="0.22" clip-path="url(#${clip})">${text}</text>`;
   return shadow + `<g stroke="#4F1E9C" stroke-width="16" stroke-linejoin="round">${ext.replace(/<text /g, '<text paint-order="stroke" ')}</g>` + out + face + hi;
 }
 
