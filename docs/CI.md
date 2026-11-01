@@ -99,6 +99,7 @@ Actions → **Unity WebGL → Pages** → **Run workflow**. İş: **Build WebGL 
 | Check Unity account secrets | Sessizce geçer (değerler yazdırılmaz) | `::error::UNITY_EMAIL / UNITY_PASSWORD repository secrets are not set`: §1 adım 2. Sonraki Unity adımları atlanır |
 | Cache Library | İlk koşuda önbellek boş; normal | — |
 | Build | CLI indirilir (`Installing game-ci CLI v0.1.72`), imaj çekilir, günlükte `Requesting activation (personal license via Unity account)`, Unity açılır, `CiBuild.BuildWebGL` çalışır. Başarıda sırayla `Build Finished, Result: Success.`, `WebGL build succeeded: /github/workspace/build/WebGL/MinikUsta (N MB)` (yol konteyner içindedir, mutlak), `# Build results #` bloğu (`Errors: 0`, `Size:`), `Build succeeded!` ve build.sh'ın kendi `Build succeeded` satırı (ünlemsiz; CLI için sayılmaz); sonunda koltuk iade edilir | Lisans: §2b tablosu. Derleme: `error CS…`. Betik: `WebGL build failed: …`. Unity yeşil ama adım kırmızı (`at validateBuild`): §2b |
+| Verify WebGL output | Dosya listesi (bayt ve yol) yazdırılır; `index.html`, `Build/*.wasm*` ve `Build/*.data*` var ve boş değil. Build adımı kırmızı olsa bile bu adım geçerse iş yeşil kalır ve `::warning::` yazar (§2b "Unity derlemesi başarılı ama adım kırmızı") | `::error::Unity build produced no WebGL player (see the Build step log)`: gerçek derleme hatası; nedeni Build adımının günlüğünde ara. Pages adımları ve deploy atlanır |
 | Collect / Upload files Unity generated | Koşu sayfasının **Artifacts** bölümünde `unity-generated-files` (§4); derleme kırmızı olsa da yüklenir | Adım atlanırsa sahne yok (`has=false`) ya da Build adımı hiç başlamadı (secret denetimi kırmızı) |
 | Prepare Pages artifact | `ls` çıktısında `index.html`, `Build/` (loader, framework, data, wasm dosyaları) ve `TemplateData/`. Sıkıştırma kapalı olduğundan `.br` / `.gz` dosyası olmaz | Klasör yoksa çıktı yolu farklı (§2b) |
 | Upload Pages artifact, Deploy to GitHub Pages | Deploy işinin `page_url` çıktısındaki adres açılır | 404: Pages kaynağı "GitHub Actions" değil (§1 adım 3) |
@@ -123,7 +124,7 @@ masaüstü tarayıcıdan yapılır.
 
 | Belirti | Olası neden | Yapılacak |
 | --- | --- | --- |
-| Günlükte `Build Finished, Result: Success.` ve `WebGL build succeeded: …` var, sonra `[ERROR] Error: There was an error building the project. Please read the logs for details. at validateBuild` ve `Build failed with exit code 1`; Pages adımları atlanır | `buildMethod` `Build succeeded!` ya da `# Build results #` bloğu yazmıyor. CLI v0.1.72 bunu Unity çıkış kodundan ayrı denetler (`unity-build-validation.ts`); v4'te bu denetim yoktu. build.sh'ın `Build succeeded` satırı (ünlemsiz) sayılmaz. İlk görüldüğü koşu: 41350760117 | `CiBuild.ReportSuccess` çağrılıyor mu bak (E1); iş akışındaki koruma adımı bunu Unity'den önce denetler. Günlükte `Build succeeded!` (ünlemli) ara |
+| Günlükte `Build Finished, Result: Success.` ve `WebGL build succeeded: …` var, sonra `[ERROR] Error: There was an error building the project. Please read the logs for details. at validateBuild` ve `Build failed with exit code 1`; Pages adımları atlanır | `buildMethod` `Build succeeded!` ya da `# Build results #` bloğu yazmıyor. CLI v0.1.72 bunu Unity çıkış kodundan ayrı denetler (`unity-build-validation.ts`); v4'te bu denetim yoktu. build.sh'ın `Build succeeded` satırı (ünlemsiz) sayılmaz. İlk görüldüğü koşu: 41350760117. Ayrıntı ve koruma: aşağıdaki "Unity derlemesi başarılı ama adım kırmızı" | `CiBuild.ReportSuccess` çağrılıyor mu bak (E1); iş akışındaki koruma adımı bunu Unity'den önce denetler. Günlükte `Build succeeded!` (ünlemli) ara |
 | `UNITY_EMAIL / UNITY_PASSWORD repository secrets are not set` | İki secret'tan biri yok (ya da Environment/Organization secret'ı olarak girilmiş) | §1 adım 2; **Repository secrets** altında |
 | `Unity rejected the account credentials, or wants a second factor` | Yanlış e-posta/şifre, sosyal giriş hesabı, 2FA açık ya da yeni IP için doğrulama e-postası bekliyor | §1 adım 1; e-postayı onayla, **Re-run jobs** |
 | `Unity reports no available Personal seats for this account` | Önceki iş koltuğu iade etmeden bitti (iptal, zaman aşımı) ya da hesap başka işte kullanımda | §1 "Koltuk": id.unity.com'da takılı etkinleştirmeyi serbest bırak, yeniden başlat |
@@ -136,8 +137,59 @@ masaüstü tarayıcıdan yapılır.
 | Günlüğün sonunda `[ERROR] Unable to find image 'unityci/editor:…' locally` | Yanıltıcı: docker'ın "imaj yerelde yok, çekiliyorum" satırı. Neden değildir | Gerçek neden `Build failed, with exit code 1` satırından önceki Unity satırlarındadır (`error CS`, `Project has invalid dependencies` …) |
 | `Prepare Pages artifact` içinde `build/WebGL/MinikUsta` yok | GameCI çıktı yolu farklı | "Build" adımındaki `WebGL build succeeded: /github/workspace/…` satırındaki yolu al (başındaki `/github/workspace/` konteynerdeki çalışma alanıdır, iş akışında `build/WebGL/MinikUsta`ya karşılık gelir); `CiBuild.cs` varsayılanı ile iş akışındaki yol aynı olmalı |
 | Yayın açılıyor ama ekran boş ya da siyah | Sahne açılmadı (aktif sahne adı `Level` değil) ya da bölüm yüklenemedi | Tarayıcı konsolunda `Minik Usta: …` varsa bölüm dosyası; yoksa sahne adı ve §2 |
-| Pages 404 | Pages kaynağı "GitHub Actions" değil ya da deploy işi atlandı | §1 adım 3. Deploy işi yalnız `has_scene == 'true'` ise ve Build işi yeşilse çalışır |
+| Pages 404 | Pages kaynağı "GitHub Actions" değil ya da deploy işi atlandı | §1 adım 3. Deploy işi yalnız `has_scene == 'true'` ise, iş yeşilse ve "Verify WebGL output" geçtiyse (`player_verified == 'true'`) çalışır |
 | İlk açılış çok yavaş | WebGL sıkıştırması kapalı; indirme büyük | Beklenen; §3 |
+
+### Unity derlemesi başarılı ama adım kırmızı (validateBuild)
+
+**Belirti** (koşu 41350760117, `a2679b0`): Unity `Build Finished, Result: Success.`, `ExitCode: 0` ve `Exiting batchmode successfully now!`
+yazar; `CiBuild` `WebGL build succeeded: /github/workspace/build/WebGL/MinikUsta (35 MB)` yazar; konteyner `Build succeeded` (ünlemsiz) der ve
+`build/WebGL/MinikUsta` klasörünü listeler. Hemen ardından koltuk iadesi gelir ve hata gibi görünür:
+
+```
+Returning personal license seat
+An error occured while trying to return the ULF license. Ulf license file not found (/root/.local/share/unity3d/Unity/Unity_lic.ulf) (1404)
+No ULF license file to return - this seat is entitlement-based; returning it through the editor instead.
+[Licensing::Module] Successfully returned the entitlement license
+[Licensing::Module] Error: Serial number unavailable for ULF return; skipping operation
+```
+
+Sonunda adım kırmızı biter, Pages adımları atlanır, hiçbir şey yayınlanmaz:
+
+```
+[ERROR] Error: There was an error building the project. Please read the logs for details. at validateBuild (/$bunfs/root/game-ci:14595:22)
+##[error]Build failed with exit code 1
+```
+
+**Neden** (GameCI CLI v0.1.72 kaynağından doğrulandı):
+
+- Koltuk iadesi satırları zararsız gürültüdür; kırmızıya neden olan onlar değildir. `entrypoint.sh` → `runsteps.sh` konteynerden `build.sh`'ın
+  çıkış koduyla (`BUILD_EXIT_CODE`, burada 0) çıkar; iade bu kodu değiştirmez. `System.run` yalnız sıfır olmayan çıkış kodunda fırlatır.
+- Kırmızı adım CLI'nin kendi denetimidir: `docker.ts` Unity derlemesinden sonra `UnityBuildValidation.validateBuild(dockerRun.output)` çağırır.
+  Çıktıda `Build succeeded!` (ünlemli) yoksa `# Build results #` bloğunu ve içinde `Errors: 0` ile `Size:` satırını arar; ikisi de yoksa
+  yukarıdaki hatayı fırlatır. Özel `buildMethod` bunları yazmıyordu; build.sh'ın `Build succeeded` satırı ünlemsiz olduğundan sayılmaz.
+  Kalıcı düzeltme `CiBuild.ReportSuccess` (§2'deki `buildMethod` sözleşmesi); `f119d06` ile `main`'e girdi.
+- v0.1.72 en yeni CLI etiketidir (2026-11-01'de `main`'de bu denetimi değiştiren bir sürüm yok), yani sürümü yükseltmek çözüm değildir.
+  Kaynaklar: [unity-build-validation.ts](https://github.com/game-ci/cli/blob/v0.1.72/src/model/unity/build-validation/unity-build-validation.ts),
+  [docker.ts](https://github.com/game-ci/cli/blob/v0.1.72/src/model/docker.ts),
+  [runsteps.sh](https://github.com/game-ci/cli/blob/v0.1.72/dist/platforms/ubuntu/steps/runsteps.sh),
+  [build.sh](https://github.com/game-ci/cli/blob/v0.1.72/dist/platforms/ubuntu/steps/build.sh).
+
+**Koruma** (`unity-webgl.yml`): CLI'nin sonradan çıkardığı yanlış kırmızı, çalışan bir oyunun yayınını engellemesin diye başarı, diskteki
+oyuncuya bakılarak belirlenir.
+
+1. "Check CiBuild reports success to the GameCI CLI" adımı `Build succeeded!` çağrısının silinmediğini Unity açılmadan denetler.
+2. Build adımı `continue-on-error: true`; kendi sonucu `steps.build.outcome`'da kalır.
+3. "Verify WebGL output" adımı dosya listesini bayt boyutlarıyla yazdırır ve `index.html`, `Build/*.wasm*`, `Build/*.data*` (sıkıştırma kapalı;
+   `.br` / `.gz` de kabul edilir) var ve boş değilse geçer. Build adımı kırmızıyken geçerse `::warning::` yazar, iş yeşil kalır. Eksikse
+   `::error::Unity build produced no WebGL player (see the Build step log)` ile kırmızı biter.
+4. Pages hazırlığı, Pages yüklemesi ve deploy işi yalnız Verify geçtiyse çalışır (`steps.verify.outputs.ok`, iş çıktısı `player_verified`).
+   Unity'nin ürettiği dosyaların yüklenmesi (`unity-generated-files`) her durumda çalışır.
+
+Gerçek derleme hatasında (`error CS…`, paket çözümleme) oyuncu oluşmaz, Verify kırmızı biter; hatanın nedeni yine **Build** adımının günlüğündedir.
+
+Android: `.github/workflows/unity-android.yml` henüz yok. Eklendiğinde aynı korumayı taşımalıdır (Build `continue-on-error: true`, `.apk` dosyasını
+var ve boş değil diye doğrulayan bir Verify adımı, yükleme adımının Verify'a bağlanması) ve aynı `unity-license` eşzamanlılık grubunu kullanmalıdır.
 
 ### Yeniden deneme
 

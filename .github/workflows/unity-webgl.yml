@@ -82,8 +82,15 @@ jobs:
       #
       # The buildMethod contract did change from v4: the CLI also scans the container output for "Build succeeded!" (see the
       # guard step above). CiBuild.BuildWebGL prints it after a successful BuildPlayer; Unity's exit code alone is not enough.
+      #
+      # continue-on-error: the CLI can still turn a good build red after Unity has finished (run 41350760117: Unity exit code 0,
+      # player written, then "at validateBuild" and "Build failed with exit code 1"; the seat-return lines before it are noise,
+      # docs/CI.md section 2b). The next step, "Verify WebGL output", decides success from the files on disk, and everything
+      # downstream (Pages artifact, deploy) is gated on that step, never on this one. A real build failure still ends the job red
+      # because Verify finds no player. steps.build.outcome keeps the true result of this step and Verify prints it.
       - name: Build
         id: build
+        continue-on-error: true
         if: steps.scene.outputs.has == 'true'
         uses: game-ci/unity-builder@v6.0.0
         env:
@@ -95,6 +102,41 @@ jobs:
           buildName: MinikUsta
           buildMethod: MinikUsta.Editor.CiBuild.BuildWebGL
           allowDirtyBuild: true
+      # Success is defined by the player on disk. Compression is off (ProjectSettings), so Build/ holds plain .wasm and .data files;
+      # the .br and .gz variants are accepted too in case that setting changes. Files must be non-empty. The workspace is fresh on
+      # every run (only Library is cached), so a stale player from an earlier run cannot satisfy this check.
+      - name: Verify WebGL output
+        id: verify
+        if: steps.scene.outputs.has == 'true'
+        env:
+          BUILD_OUTCOME: ${{ steps.build.outcome }}
+        run: |
+          dir=build/WebGL/MinikUsta
+          sudo chown -R "$USER" build 2>/dev/null || true
+          echo "Files in $dir (bytes, path):"
+          if [ -d "$dir" ]; then
+            find "$dir" -type f -printf '%10s  %P\n' | sort -k2
+            du -sh "$dir"
+          else
+            echo "(directory does not exist)"
+          fi
+          shopt -s nullglob
+          # Succeeds when at least one of the given paths is a non-empty regular file.
+          any_nonempty() { local f; for f in "$@"; do [ -s "$f" ] && return 0; done; return 1; }
+          missing=()
+          any_nonempty "$dir/index.html" || missing+=("index.html")
+          any_nonempty "$dir"/Build/*.wasm* || missing+=("Build/*.wasm*")
+          any_nonempty "$dir"/Build/*.data* || missing+=("Build/*.data*")
+          if [ "${#missing[@]}" -ne 0 ]; then
+            echo "Missing or empty: ${missing[*]}"
+            echo "::error::Unity build produced no WebGL player (see the Build step log)"
+            exit 1
+          fi
+          echo "ok=true" >> "$GITHUB_OUTPUT"
+          echo "WebGL player is complete (index.html, Build/*.wasm*, Build/*.data*)."
+          if [ "$BUILD_OUTCOME" != "success" ]; then
+            echo "::warning::The Build step reported '$BUILD_OUTCOME' although Unity produced a complete WebGL player; continuing. Read the Build step log (docs/CI.md section 2b, validateBuild)."
+          fi
       # P3-05: Unity writes the settings assets and the .meta files it generates into the workspace. Upload them (also when the build
       # failed) so the owner can commit them after the first green run: GUIDs become stable and the Library cache stops missing.
       # How: docs/CI.md section 4. The chown is needed because the container ran as root.
@@ -114,23 +156,25 @@ jobs:
           if-no-files-found: warn
           retention-days: 14
       - name: Prepare Pages artifact
-        if: steps.scene.outputs.has == 'true'
+        if: steps.verify.outputs.ok == 'true'
         run: |
           sudo chown -R "$USER" build
           ls -la build/WebGL/MinikUsta
           touch build/WebGL/MinikUsta/.nojekyll
       - name: Upload Pages artifact
-        if: steps.scene.outputs.has == 'true'
+        if: steps.verify.outputs.ok == 'true'
         uses: actions/upload-pages-artifact@v3
         with:
           path: build/WebGL/MinikUsta
     outputs:
       has_scene: ${{ steps.scene.outputs.has }}
+      player_verified: ${{ steps.verify.outputs.ok }}
 
   deploy:
     name: Deploy to GitHub Pages
     needs: build
-    if: needs.build.outputs.has_scene == 'true'
+    # needs.build.result must be success (implicit), and the Pages artifact exists only when Verify passed.
+    if: needs.build.outputs.has_scene == 'true' && needs.build.outputs.player_verified == 'true'
     runs-on: ubuntu-latest
     environment:
       name: github-pages
