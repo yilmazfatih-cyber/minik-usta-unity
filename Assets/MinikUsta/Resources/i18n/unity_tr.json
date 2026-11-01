@@ -1,0 +1,17 @@
+{
+  "_doc": "Unity-only keys (paket V1): merged on top of the web copy i18n/tr.json by MinikUsta.Presentation.I18n.Localizer. Keep the same keys in unity_en.json.",
+  "home": {
+    "playLevel": "Oyna · Bölüm {n}"
+  },
+  "levelStart": {
+    "moves": "{n} hamle"
+  },
+  "settings": {
+    "language": "Dil",
+    "reduceMotion": "Hareketi azalt"
+  },
+  "lang": {
+    "tr": "Türkçe",
+    "en": "English"
+  }
+}

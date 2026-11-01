@@ -1,0 +1,17 @@
+{
+  "_doc": "Unity-only keys (paket V1): merged on top of the web copy i18n/en.json by MinikUsta.Presentation.I18n.Localizer. Keep the same keys in unity_tr.json.",
+  "home": {
+    "playLevel": "Play · Level {n}"
+  },
+  "levelStart": {
+    "moves": "{n} moves"
+  },
+  "settings": {
+    "language": "Language",
+    "reduceMotion": "Reduce motion"
+  },
+  "lang": {
+    "tr": "Türkçe",
+    "en": "English"
+  }
+}
