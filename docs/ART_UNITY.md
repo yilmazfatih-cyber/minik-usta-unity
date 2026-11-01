@@ -6,6 +6,9 @@ kendi SVG sanatımız) · Stil kitabı: web reposu `docs/ART_REFERENCE.md` v1.1 
 (§2.1 blok paleti D-083 değişmedi, §3A blok, §4 şantiye, §5 duvar / geçit / vinç alanı, §14 UI kiti),
 `src/theme/tokens.json` (`blockV2`, `kit.v3.*`), `public/art/**` (web v3 SVG'leri; buraya kopyalanıp yükseltildi).
 
+> **3B sürüm (D-100, 2026-11-01):** kare adları, boyları, pivotları ve 9-dilim kenarları bu belgedeki gibi kalır; pikseller
+> Blender render'ı olur. Malzeme, ışık, kamera, klip ve yeni kareler: `docs/ART_3D.md` + `art/3d/spec/frames.json`.
+>
 > Bu belge Unity tarafının **çizim kontratıdır**: hangi kare var, atlasta nasıl durur, hangi ekranda nereye konur. Kod
 > (code-lead) yalnız `Assets/MinikUsta/Resources/art/atlas.json` + `atlas-N.png.bytes` okur; SVG ve araçlar derlemeye
 > girmez.

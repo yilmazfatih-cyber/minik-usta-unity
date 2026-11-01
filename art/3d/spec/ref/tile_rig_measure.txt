@@ -1,0 +1,9 @@
+W base #764012 top #794729 dE00  4.71  lip #51301D lip/base 0.79
+Y base #FFE23E top #FFDE49 dE00  1.75  lip #AC9D3F lip/base 0.72
+G base #44D088 top #50CB84 dE00  1.53  lip #39916C lip/base 0.75
+R base #CF404E top #D84F59 dE00  4.05  lip #8D3948 lip/base 0.77
+O base #EC8D20 top #FF9946 dE00  5.87  lip #A06532 lip/base 0.76
+C base #C8CFDA top #DCDEE7 dE00  4.34  lip #8891A8 lip/base 0.72
+B base #2984DE top #3F87E1 dE00  2.15  lip #2E5FAA lip/base 0.79
+P base #5D3AAE top #6649AB dE00  4.32  lip #463687 lip/base 0.80
+WORST_DE00 5.87
