@@ -304,9 +304,13 @@ namespace MinikUsta.Presentation.Tests
 
         // --- screen geometry ------------------------------------------------------------------------------------------------
 
-        private static IEnumerable<(string Screen, UiNode Root)> EveryScreen(double w, double h)
+        private static IEnumerable<(string Screen, UiNode Root)> EveryScreen(double w, double h, string lang = "tr")
         {
-            var rig = Booted(StoreWithWon(2, 5000), w, h);
+            var store = StoreWithWon(2, 5000);
+            var m = SaveCodec.Load(store, SaveModel.Default(500, 5)).Data;
+            m.Settings.Lang = lang;
+            SaveCodec.Write(store, m);
+            var rig = Booted(store, w, h);
             yield return ("home", rig.Ui.Root(UiLayer.Home)!);
             rig.Tap("home.settings");
             yield return ("settings", rig.Ui.Root(UiLayer.Overlay)!);
@@ -325,7 +329,11 @@ namespace MinikUsta.Presentation.Tests
             yield return ("lose", rig.Ui.Root(UiLayer.Window)!);
             rig.TapOption(PanelAction.Decline);
             yield return ("loseFinal", rig.Ui.Root(UiLayer.Window)!);
-            var win = Booted(null, w, h);
+            var winStore = new MemorySaveStore();
+            var wm = SaveModel.Default(500, 5);
+            wm.Settings.Lang = lang;
+            SaveCodec.Write(winStore, wm);
+            var win = Booted(winStore, w, h);
             win.Tap(HomeView.PlayId);
             win.PlayGolden(1);
             yield return ("win", win.Ui.Root(UiLayer.Window)!);
@@ -371,6 +379,20 @@ namespace MinikUsta.Presentation.Tests
                 for (int i = 0; i < opts.Count; i++)
                     for (int j = i + 1; j < opts.Count; j++) Assert.IsFalse(opts[i].Rect.Overlaps(opts[j].Rect), name + ": options overlap");
             }
+        }
+
+        [Test]
+        public void UX03_every_text_of_every_screen_fits_its_rectangle_on_one_line_in_tr_and_en([Values("tr", "en")] string lang)
+        {
+            foreach (var (name, root) in EveryScreen(1080, 1920, lang))
+                foreach (var n in root.All())
+                {
+                    if (n.Text == null || !n.Shown || n.Text.Length == 0) continue;
+                    int size = TextFit.SizeOf(n);
+                    var look = TextStyles.Of(n.Style, size, n.TextFill, n.TextStroke);
+                    Assert.LessOrEqual(FontMetrics.Width(n.Text, size), n.Rect.W - 2 * look.OutlinePx + 1e-6, lang + " " + name + ": \"" + n.Text + "\" overflows " + n.Id);
+                    Assert.GreaterOrEqual(size, n.FontPx * 0.7 - 1e-9, lang + " " + name + ": \"" + n.Text + "\" shrinks below 70 % in " + n.Id);
+                }
         }
 
         [Test]

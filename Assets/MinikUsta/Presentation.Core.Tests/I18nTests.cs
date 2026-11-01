@@ -104,6 +104,20 @@ namespace MinikUsta.Presentation.Tests
         }
 
         [Test]
+        public void I18N_font_metrics_table_is_the_ttf_hmtx_and_text_fit_keeps_one_line()
+        {
+            string ttf = Path.Combine(PresentationPaths.ResourcesDir, "fonts", "Baloo2-ExtraBold.ttf");
+            var adv = TrueTypeCmap.Advances(ttf);
+            Assert.Greater(adv.Count, 400);
+            foreach (var kv in adv) Assert.AreEqual(kv.Value, Ui.FontMetrics.Advance(kv.Key), "U+" + kv.Key.ToString("X4") + " (re-run tools/font/gen-metrics.py)");
+            Assert.AreEqual(60, Ui.FontMetrics.FittedSize("Devam", 60, 1000), "fits: the designed size");
+            int s = Ui.FontMetrics.FittedSize("Hayır, teşekkürler", 54, 300);
+            Assert.Less(s, 54);
+            Assert.LessOrEqual(Ui.FontMetrics.Width("Hayır, teşekkürler", s), 300);
+            Assert.AreEqual(27, Ui.FontMetrics.FittedSize(new string('W', 200), 54, 100), "never below half the size");
+        }
+
+        [Test]
         public void I18N_baloo2_extrabold_draws_every_character_of_tr_and_en_including_s_g_dotless_i_dotted_I_o_u_c()
         {
             string ttf = Path.Combine(PresentationPaths.ResourcesDir, "fonts", "Baloo2-ExtraBold.ttf");

@@ -13,19 +13,41 @@ namespace MinikUsta.Presentation.Tests.Fixtures
         private static uint U32(byte[] b, int o) => ((uint)b[o] << 24) | ((uint)b[o + 1] << 16) | ((uint)b[o + 2] << 8) | b[o + 3];
         private static short S16(byte[] b, int o) => (short)U16(b, o);
 
-        public static HashSet<int> CodePoints(string path)
+        private static int Table(byte[] b, string want)
         {
-            var b = File.ReadAllBytes(path);
             int numTables = U16(b, 4);
-            int cmap = -1;
             for (int i = 0; i < numTables; i++)
             {
                 int rec = 12 + 16 * i;
                 string tag = "" + (char)b[rec] + (char)b[rec + 1] + (char)b[rec + 2] + (char)b[rec + 3];
-                if (tag == "cmap") cmap = (int)U32(b, rec + 8);
+                if (tag == want) return (int)U32(b, rec + 8);
             }
-            if (cmap < 0) throw new InvalidDataException("no cmap table");
-            var o = new HashSet<int>();
+            throw new InvalidDataException("no " + want + " table");
+        }
+
+        public static HashSet<int> CodePoints(string path) => new HashSet<int>(Glyphs(path).Keys);
+
+        /// <summary>Advance width (font units) per mapped code point: cmap → glyph → hmtx.</summary>
+        public static Dictionary<int, int> Advances(string path)
+        {
+            var b = File.ReadAllBytes(path);
+            int hhea = Table(b, "hhea"), hmtx = Table(b, "hmtx");
+            int metrics = U16(b, hhea + 34);
+            var o = new Dictionary<int, int>();
+            foreach (var kv in Glyphs(path))
+            {
+                int g = Math.Min(kv.Value, metrics - 1);
+                o[kv.Key] = U16(b, hmtx + 4 * g);
+            }
+            return o;
+        }
+
+        /// <summary>Code point → glyph id of the Unicode subtables.</summary>
+        public static Dictionary<int, int> Glyphs(string path)
+        {
+            var b = File.ReadAllBytes(path);
+            int cmap = Table(b, "cmap");
+            var o = new Dictionary<int, int>();
             int n = U16(b, cmap + 2);
             for (int i = 0; i < n; i++)
             {
@@ -41,7 +63,7 @@ namespace MinikUsta.Presentation.Tests.Fixtures
             return o;
         }
 
-        private static void Format4(byte[] b, int s, HashSet<int> o)
+        private static void Format4(byte[] b, int s, Dictionary<int, int> o)
         {
             int segX2 = U16(b, s + 6);
             int ends = s + 14, starts = ends + segX2 + 2, deltas = starts + segX2, offsets = deltas + segX2;
@@ -58,12 +80,12 @@ namespace MinikUsta.Presentation.Tests.Fixtures
                         glyph = U16(b, at);
                         if (glyph != 0) glyph = (glyph + delta) & 0xFFFF;
                     }
-                    if (glyph != 0) o.Add(c);
+                    if (glyph != 0) o[c] = glyph;
                 }
             }
         }
 
-        private static void Format12(byte[] b, int s, HashSet<int> o)
+        private static void Format12(byte[] b, int s, Dictionary<int, int> o)
         {
             uint groups = U32(b, s + 12);
             for (uint g = 0; g < groups; g++)
@@ -71,7 +93,7 @@ namespace MinikUsta.Presentation.Tests.Fixtures
                 int at = s + 16 + (int)g * 12;
                 uint start = U32(b, at), end = U32(b, at + 4), glyph = U32(b, at + 8);
                 for (uint c = start; c <= end; c++)
-                    if (glyph + (c - start) != 0) o.Add((int)c);
+                    if (glyph + (c - start) != 0) o[(int)c] = (int)(glyph + (c - start));
             }
         }
     }

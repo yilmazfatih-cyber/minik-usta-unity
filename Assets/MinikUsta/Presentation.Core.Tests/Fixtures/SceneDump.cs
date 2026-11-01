@@ -121,8 +121,9 @@ namespace MinikUsta.Presentation.Tests.Fixtures
             if (!n.Visible) j.Set("hidden", JsonValue.True);
             if (n.Text != null)
             {
-                var look = TextStyles.Of(n.Style, n.FontPx, n.TextFill, n.TextStroke);
-                j.Set("text", JsonValue.Of(n.Text)).Set("size", N(n.FontPx)).Set("align", JsonValue.Of(n.Align.ToString().ToLowerInvariant()))
+                int size = TextFit.SizeOf(n); // what the Unity layer draws (UiRenderer)
+                var look = TextStyles.Of(n.Style, size, n.TextFill, n.TextStroke);
+                j.Set("text", JsonValue.Of(n.Text)).Set("size", N(size)).Set("align", JsonValue.Of(n.Align.ToString().ToLowerInvariant()))
                     .Set("fill", Hex(look.Fill)).Set("outline", Hex(look.Outline)).Set("outlinePx", N(look.OutlinePx)).Set("shadow", Hex(look.Shadow)).Set("shadowPx", N(look.ShadowPx));
                 if (n.Alpha < 1f) j.Set("ta", N(n.Alpha));
             }

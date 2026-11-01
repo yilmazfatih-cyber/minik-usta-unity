@@ -3,7 +3,7 @@
 // canvas (CanvasScaler ScaleWithScreenSize 1080 × 1920, `Shrink` = the camera's FIT), a "Design" rectangle of the design canvas
 // centred in it and one child per `UiLayer` (Home, Hud, Window, Fx, Overlay; back to front). Every `UiNode` becomes one
 // GameObject: RectTransform from its absolute design rect (made parent-relative), an Image (atlas frame, Simple or Sliced,
-// tint × alpha), a Text (ART_REFERENCE §4 style → colour + Outline + Shadow; best fit down to half size), a Button (tap → the
+// tint × alpha), a Text (ART_REFERENCE §4 style → colour + Outline + Shadow; one line at the `TextFit` size), a Button (tap → the
 // tree's handler) with the JUICE #69 press feel. It decides nothing: the screens build the trees, this only draws them.
 using System;
 using System.Collections.Generic;
@@ -68,6 +68,9 @@ namespace MinikUsta.Unity
             public Text? Text;
             public Button? Button;
             public UiTarget? Target;
+            public Shadow? Drop;
+            public Outline? Stroke;
+            public Outline? Stroke2;
         }
 
         private readonly FeelSettings feel;
@@ -192,30 +195,20 @@ namespace MinikUsta.Unity
                 }
                 var t = trt.gameObject.AddComponent<Text>();
                 t.font = Font;
-                t.horizontalOverflow = HorizontalWrapMode.Wrap;
+                // one line at the size TextFit chose from the font's advance widths (no best fit: Baloo 2's 1,6 em line box
+                // would make it shrink or truncate unpredictably); overflow never clips the glyphs
+                t.horizontalOverflow = HorizontalWrapMode.Overflow;
                 t.verticalOverflow = VerticalWrapMode.Overflow;
-                t.resizeTextForBestFit = true;
+                t.resizeTextForBestFit = false;
                 t.raycastTarget = false;
                 t.supportRichText = false;
-                var look = TextStyles.Of(n.Style, n.FontPx, n.TextFill, n.TextStroke);
+                var look = TextStyles.Of(n.Style, TextFit.SizeOf(n), n.TextFill, n.TextStroke);
                 // effects first: Shadow (drop), then Outline (stroke); a thick stroke gets a second, half-distance ring (no gaps)
-                if (look.ShadowPx > 0.5)
-                {
-                    var sh = trt.gameObject.AddComponent<Shadow>();
-                    sh.effectColor = UnityConvert.ToColor(look.Shadow);
-                    sh.effectDistance = new Vector2(0f, -(float)look.ShadowPx);
-                }
+                if (look.ShadowPx > 0.5) b.Drop = trt.gameObject.AddComponent<Shadow>();
                 if (look.OutlinePx > 0.5)
                 {
-                    var o = trt.gameObject.AddComponent<Outline>();
-                    o.effectColor = UnityConvert.ToColor(look.Outline);
-                    o.effectDistance = new Vector2((float)look.OutlinePx, -(float)look.OutlinePx);
-                    if (look.OutlinePx > 4)
-                    {
-                        var o2 = trt.gameObject.AddComponent<Outline>();
-                        o2.effectColor = UnityConvert.ToColor(look.Outline);
-                        o2.effectDistance = new Vector2((float)look.OutlinePx * 0.5f, -(float)look.OutlinePx * 0.5f);
-                    }
+                    b.Stroke = trt.gameObject.AddComponent<Outline>();
+                    if (look.OutlinePx > 4) b.Stroke2 = trt.gameObject.AddComponent<Outline>();
                 }
                 b.Text = t;
             }
@@ -272,16 +265,29 @@ namespace MinikUsta.Unity
             if (b.Text != null)
             {
                 var t = b.Text;
-                var look = TextStyles.Of(n.Style, n.FontPx, n.TextFill, n.TextStroke);
+                int size = TextFit.SizeOf(n);
+                var look = TextStyles.Of(n.Style, size, n.TextFill, n.TextStroke);
                 t.text = n.Text ?? "";
-                int size = (int)Math.Round(n.FontPx);
                 t.fontSize = size;
-                t.resizeTextMaxSize = size;
-                t.resizeTextMinSize = Math.Max(8, size / 2);
                 t.alignment = n.Align == TextAlign.Left ? TextAnchor.MiddleLeft : n.Align == TextAlign.Right ? TextAnchor.MiddleRight : TextAnchor.MiddleCenter;
                 var fill = UnityConvert.ToColor(look.Fill);
                 fill.a *= n.Alpha;
                 t.color = fill;
+                if (b.Drop != null)
+                {
+                    b.Drop.effectColor = UnityConvert.ToColor(look.Shadow, n.Alpha);
+                    b.Drop.effectDistance = new Vector2(0f, -(float)look.ShadowPx);
+                }
+                if (b.Stroke != null)
+                {
+                    b.Stroke.effectColor = UnityConvert.ToColor(look.Outline, n.Alpha);
+                    b.Stroke.effectDistance = new Vector2((float)look.OutlinePx, -(float)look.OutlinePx);
+                }
+                if (b.Stroke2 != null)
+                {
+                    b.Stroke2.effectColor = UnityConvert.ToColor(look.Outline, n.Alpha);
+                    b.Stroke2.effectDistance = new Vector2((float)look.OutlinePx * 0.5f, -(float)look.OutlinePx * 0.5f);
+                }
             }
             if (b.Button != null) b.Button.interactable = n.Enabled;
             rt.gameObject.SetActive(n.Visible);
