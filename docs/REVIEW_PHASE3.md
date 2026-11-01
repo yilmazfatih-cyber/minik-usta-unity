@@ -129,7 +129,7 @@ tek derleme hatası budur.
   17.0.3, 6000.0.85f1'in kendi sürümüyle aynı olmayabilir (çözümleme ya da yükseltme uyarısı).
 - **Kanıt:** manifest satırları; Assets'te kullanım yok; grafik ayarı yok (`GraphicsSettings.asset` yok → Built-in RP etkin).
 - **Düzeltme:** İki satırı sil. İsteğe bağlı: `com.unity.modules.particlesystem` (D-096: ParticleSystem yok) ve `physics2d` da çıkabilir;
-  `audio` kalmalı (sahnedeki `AudioListener`), `ui`, `jsonserialize` (test-framework), `vibration` kalmalı.
+  `audio` kalmalı (sahnedeki `AudioListener`), `ui`, `jsonserialize` (test-framework), `vibration` kaldırıldı: Unity 6000.0'da böyle bir yerleşik modül yok.
 
 ### P3-05 — Önemli — Eksik ProjectSettings dosyaları ve izlenmeyen `.meta`'lar
 
