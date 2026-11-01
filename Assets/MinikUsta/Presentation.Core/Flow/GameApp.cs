@@ -21,6 +21,7 @@ using System;
 using System.Collections.Generic;
 using MinikUsta.Core;
 using MinikUsta.Core.Level;
+using MinikUsta.Presentation.Audio;
 using MinikUsta.Presentation.Feel;
 using MinikUsta.Presentation.Game;
 using MinikUsta.Presentation.I18n;
@@ -55,7 +56,8 @@ namespace MinikUsta.Presentation.Flow
         private double canvasH = 1920;
 
         public GameApp(ILevelView view, IUiSurface ui, LevelCatalog catalog, Localizer i18n, EconomyConfig economy, ISaveStore store,
-            FeelSettings? feel = null, LayoutSettings? layout = null, IHapticSink? haptics = null, EconomyInfo? economyInfo = null, Action<string>? log = null)
+            FeelSettings? feel = null, LayoutSettings? layout = null, IHapticSink? haptics = null, EconomyInfo? economyInfo = null, Action<string>? log = null,
+            AudioPlayer? audio = null)
         {
             this.view = view ?? throw new ArgumentNullException(nameof(view));
             this.ui = ui ?? throw new ArgumentNullException(nameof(ui));
@@ -72,11 +74,15 @@ namespace MinikUsta.Presentation.Flow
             {
                 Host = this,
             };
+            Audio = audio;
+            Player.Audio = audio;
             Player.BoosterCount = id => Save.BoosterCount(id);
             Player.LevelWon = n => Save.Won(n);
         }
 
         public LevelPlayer Player { get; }
+        /// <summary>V2: the sounds (null = silent). The "Ses" setting drives `SoundOn`; WebGL unlocks it at the first user input.</summary>
+        public AudioPlayer? Audio { get; }
         public Localizer I18n { get; }
         public EconomyConfig Economy { get; }
         public ScreenFlow Flow { get; } = new ScreenFlow();
@@ -112,6 +118,11 @@ namespace MinikUsta.Presentation.Flow
             I18n.SetLang(s.Lang);
             Player.Reduced = s.ReduceMotion;
             Player.Haptics.Enabled = s.Haptics;
+            if (Audio != null)
+            {
+                Audio.SoundOn = s.Sound;
+                Audio.MusicOn = s.Music;
+            }
         }
 
         /// <summary>K-43 resume; false when the record was voided (penalty-free) and the app goes home.</summary>
@@ -176,11 +187,23 @@ namespace MinikUsta.Presentation.Flow
 
         public void Tick(float dtMs)
         {
+            Audio?.Tick(dtMs);
             Player.Tick(dtMs);
+        }
+
+        /// <summary>
+        /// A UI button was PRESSED (uGUI pointer down; JUICE #69): the press sound at once — the tap itself fires on release. Also the
+        /// first user input of a WebGL page, which unlocks the audio output.
+        /// </summary>
+        public void UiPressed()
+        {
+            Audio?.Unlock();
+            Player.Sound(Sounds.Button);
         }
 
         public void PointerDown(int pointer, double x, double y)
         {
+            Audio?.Unlock();
             if (Flow.Current == AppScreen.Level && !Flow.SettingsOpen) Player.PointerDown(pointer, x, y);
         }
 
@@ -676,6 +699,7 @@ namespace MinikUsta.Presentation.Flow
             {
                 case SettingsView.Sound:
                     s.Sound = !s.Sound;
+                    if (Audio != null) Audio.SoundOn = s.Sound;
                     break;
                 case SettingsView.Haptics:
                     s.Haptics = !s.Haptics;

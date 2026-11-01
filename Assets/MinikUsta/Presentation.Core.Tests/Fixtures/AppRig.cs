@@ -23,14 +23,18 @@ namespace MinikUsta.Presentation.Tests.Fixtures
         public readonly GameApp App;
         public readonly Localizer I18n;
 
-        public AppRig(MemorySaveStore? store = null, double w = 1080, double h = 1920, Func<int, string?>? read = null)
+        public readonly MinikUsta.Presentation.Audio.AudioPlayer? Audio;
+
+        public AppRig(MemorySaveStore? store = null, double w = 1080, double h = 1920, Func<int, string?>? read = null,
+            MinikUsta.Presentation.Audio.AudioPlayer? audio = null)
         {
+            Audio = audio;
             Store = store ?? new MemorySaveStore();
             I18n = new Localizer(PresentationPaths.ResourceText);
             var layout = new LayoutSettings();
             GameApp? app = null;
             View.Hud = new LevelHud(Ui, I18n.Text, layout, () => app!.Player.PausePressed());
-            app = new GameApp(View, Ui, new LevelCatalog(read ?? Rig.ReadLevel), I18n, Economy(), Store, null, layout);
+            app = new GameApp(View, Ui, new LevelCatalog(read ?? Rig.ReadLevel), I18n, Economy(), Store, null, layout, null, null, null, audio);
             App = app;
             App.SetScreen(w, h);
         }

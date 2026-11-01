@@ -2,6 +2,7 @@
 // The press feel of a uGUI button (Faz 3 Q2 item 11; JUICE #69): pressed it sinks to 0,94, released it pops to 1,04 and settles
 // with Back.easeOut. The pointer events come from the EventSystem (`IPointerDownHandler` …); the motion is the engine-independent
 // `PressFeel`. A pointer that slides off the button cancels the press without a click (like the Button itself).
+using System;
 using MinikUsta.Presentation.Feel;
 using MinikUsta.Presentation.Game;
 using UnityEngine;
@@ -12,14 +13,20 @@ namespace MinikUsta.Unity
     public sealed class PressableButton : MonoBehaviour, IPointerDownHandler, IPointerUpHandler, IPointerExitHandler
     {
         private PressFeel? feel;
+        private Action? onPress;
 
-        /// <summary>Binds the button's RectTransform (the scale about its centre) and the feel values.</summary>
-        public void Init(RectTransform rect, FeelSettings settings)
+        /// <summary>Binds the button's RectTransform (the scale about its centre) and the feel values; `pressed` is the V2 press sound (JUICE #69).</summary>
+        public void Init(RectTransform rect, FeelSettings settings, Action? pressed = null)
         {
             feel = new PressFeel(new UiTarget(rect), settings);
+            onPress = pressed;
         }
 
-        public void OnPointerDown(PointerEventData eventData) => feel?.Press();
+        public void OnPointerDown(PointerEventData eventData)
+        {
+            feel?.Press();
+            onPress?.Invoke();
+        }
 
         public void OnPointerUp(PointerEventData eventData) => feel?.Release();
 

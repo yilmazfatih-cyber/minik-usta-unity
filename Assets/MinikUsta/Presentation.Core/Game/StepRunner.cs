@@ -14,6 +14,7 @@ using System.Collections.Generic;
 using MinikUsta.Core;
 using MinikUsta.Presentation.Animation;
 using MinikUsta.Presentation.Art;
+using MinikUsta.Presentation.Audio;
 using MinikUsta.Presentation.Feel;
 using MinikUsta.Presentation.Tweening;
 using static MinikUsta.Core.State;
@@ -23,6 +24,8 @@ namespace MinikUsta.Presentation.Game
     internal sealed partial class StepRunner
     {
         private readonly LevelPlayer p;
+        /// <summary>Scheduled start of the step being run (`Snd` catches the frame up like `Play`).</summary>
+        private float runTime;
 
         public StepRunner(LevelPlayer player)
         {
@@ -36,6 +39,7 @@ namespace MinikUsta.Presentation.Game
             var session = p.Session;
             var L = p.Layout;
             if (session == null || L == null) return;
+            runTime = time;
             if (instant) p.Clock.Complete(LevelPlayer.BoardTag);
             p.StepsRun++;
             var s = session.State;
@@ -49,6 +53,7 @@ namespace MinikUsta.Presentation.Game
                         if (v == null || !BoardPose.RestAnchor(s, step.PieceId, out int ax, out int ay)) return;
                         var home = BoardPose.Center(g, ax, ay, BoardPose.ShapeOf(s, step.PieceId));
                         v.Lifted = false;
+                        if (!step.Flag) Snd(Sounds.Cancel, 0);
                         if (step.Flag) Play(Tweens.Move(v, home, F.YardDropMs, F.YardDropEase), time, instant, true);
                         else Play(Tweens.Move(v, home, step.Ms, step.Ease, p.Reduced ? 0 : F.CancelArcCells * c), time, instant, true);
                         Play(Tweens.Scale(v, 1f, step.Ms, EaseType.OutQuad), time, instant, true);
@@ -67,6 +72,7 @@ namespace MinikUsta.Presentation.Game
                         Play(Tweens.Scale(v, 1f, step.Ms, ReleaseEase(step.Ease)), time, instant, true);
                         if (!p.Reduced) Play(Squash(v, 1f, F.YardDropSquashY, step.Ms, step.Ease).SetDelay(step.Ms), time, instant, true);
                         DustAfter(step.Ms, Bottom(to, shape, c), F.ParticleDustYard, time, instant);
+                        Snd(Sounds.SetYard, 0);
                         return;
                     }
                 case StepKind.RailClamp:
@@ -77,6 +83,7 @@ namespace MinikUsta.Presentation.Game
                         v.Lifted = false;
                         Play(Tweens.Move(v, BoardPose.Center(g, e.To, BoardPose.ShapeOf(s, e.PieceId)), step.Ms, step.Ease), time, instant, true);
                         Play(Tweens.Scale(v, 1f, step.Ms, step.Ease), time, instant, true);
+                        Snd(Sounds.Clamp, 0);
                         return;
                     }
                 case StepKind.SiteFall:
@@ -88,6 +95,7 @@ namespace MinikUsta.Presentation.Game
                         var to = BoardPose.Center(g, e.To, BoardPose.ShapeOf(s, e.PieceId));
                         Play(Tweens.Move(v, to, step.Ms).SetCurve(FallMotion.ReleaseFallCurve(e.Rows, session.Lvl.Gravity.Build, F)), time, instant, true);
                         Play(Tweens.Scale(v, 1f, Math.Min(step.Ms, F.YardDropMs), ReleaseEase(EaseType.OutQuad)), time, instant, true);
+                        if (!instant && e.Rows >= SoundFeel.FallSoundMinRows) Snd(Sounds.Fall, 0); // JUICE #10: from 3 rows
                         return;
                     }
                 case StepKind.Landing:
@@ -99,6 +107,7 @@ namespace MinikUsta.Presentation.Game
                         float sy = p.Reduced ? 2 - sx : F.LandSquashY;
                         Play(LandSquash(v, shape, sx, sy, step.Ms, step.Ease), time, instant, true);
                         p.Particles.Dust(Bottom(v.Position, shape, c), F.ParticleLand);
+                        Snd(Sounds.Land, 0, 1, SoundFeel.LandGain(step.N ?? 0)); // JUICE #11: +0 … +4 dB over the fall
                         return;
                     }
                 case StepKind.YardFall:
@@ -115,6 +124,7 @@ namespace MinikUsta.Presentation.Game
                             Play(LandSquash(v, shape, sx, 2 - sx, F.LandMs, F.LandEase).SetDelay(step.Ms), time, instant, true);
                         }
                         DustAfter(step.Ms, Bottom(to, shape, c), F.ParticleDustCascade, time, instant);
+                        Snd(Sounds.Land, step.Ms, 1, SoundFeel.DbGain(SoundFeel.CascadeLandDb));
                         return;
                     }
                 case StepKind.BalloonGlide:
@@ -144,6 +154,7 @@ namespace MinikUsta.Presentation.Game
                         // Q2 (4): grow 1,0 → 1,2 and shrink into the lock, with a burst of sprite sparks in the block's colour
                         Play(GrowPulse(v, p.Reduced ? F.ReducedScaleMax : F.PlacePulsePeak, F.PlacePulseMs, F.PlacePulseSplit, F.PlacePulseEase), time, instant, true);
                         p.Particles.Sparks(v.Position, Palette.Block(PieceColor(s, step.PieceId)), F.ParticlePlaceOk);
+                        Snd(Sounds.PlaceOk, 0, ComboPitch(step.N ?? 1)); // JUICE #12 at the streak pitch
                         return;
                     }
                 case StepKind.BlocksChipFly:
@@ -181,10 +192,12 @@ namespace MinikUsta.Presentation.Game
                         v.Raised = true;
                         Play(Pulse01(x => v.Tint = x, F.WrongTintAlpha, F.WrongTintMs), time, instant, true);
                         p.Buzz(HapticKind.DoubleLight);
+                        Snd(Sounds.PlaceBad, 0);
                         if (step.Flag || !e.To.HasValue) return; // into the truck queue: #88
                         var to = e.To.Value;
                         var shape = BoardPose.ShapeOf(s, e.PieceId);
                         float shake = p.Reduced ? 0 : F.WrongShakeMs;
+                        Snd(Sounds.Bounce, shake);
                         int rows = e.ViaDrop ? step.N ?? 0 : 0;
                         float fall = e.ViaDrop ? FallMotion.YardFallMs(rows, F) : 0;
                         float flight = Math.Max(0, step.Ms - shake - fall);
@@ -207,6 +220,7 @@ namespace MinikUsta.Presentation.Game
                             .Join(Tweens.Scale(v, F.QueueShrink, step.Ms, step.Ease))
                             .AppendCallback(() => v.Visible = false);
                         Play(seq, time, instant, true);
+                        Snd(Sounds.Queue, step.Ms); // JUICE #88 at the arrival
                         return;
                     }
                 case StepKind.PieceReturn:
@@ -222,6 +236,7 @@ namespace MinikUsta.Presentation.Game
                                 .Join(Tweens.Scale(v, F.QueueShrink, step.Ms, step.Ease))
                                 .AppendCallback(() => v.Visible = false);
                             Play(q, time, instant, true);
+                            Snd(Sounds.Queue, step.Ms);
                             return;
                         }
                         var to = BoardPose.Center(g, e.To.Value, BoardPose.ShapeOf(s, e.PieceId));
@@ -241,6 +256,9 @@ namespace MinikUsta.Presentation.Game
                             .Append(Tweens.Move(v, to, step.Ms, step.Ease, p.Reduced ? 0 : F.TrowelArcCells * c))
                             .Append(FlashPulse(v, F.PlaceFlashPeak, F.PlaceSheenMs));
                         Play(seq, time, instant, true);
+                        // JUICE #17 trowel: the trowel sound, then the fill sound where it lands; K-37 crane: a whoosh, then the fill sound
+                        Snd(step.Kind == StepKind.TrowelFlight ? Sounds.Trowel : Sounds.Whoosh, 0);
+                        Snd(Sounds.PlaceOk, step.Ms);
                         return;
                     }
                 case StepKind.CargoSmash:
@@ -254,6 +272,7 @@ namespace MinikUsta.Presentation.Game
                             .Join(FlashPulse(v, F.PlaceFlashPeak, Math.Min(step.Ms, F.BlockedShakeMs)))
                             .AppendCallback(() => v.Visible = false);
                         Play(seq, time, instant, true);
+                        Snd(Sounds.Hammer, 0); // JUICE #61
                         return;
                     }
                 case StepKind.Brush:
@@ -301,6 +320,7 @@ namespace MinikUsta.Presentation.Game
                             var seq = new Sequence().AppendInterval(step.Ms).AppendCallback(() => p.ShowMoves(n))
                                 .Append(Tweens.Pop(p.View.MovesChip, 1f, F.MovesAddBump, 1f, F.MovesTickMs));
                             Play(seq, time, instant, false);
+                            Snd(Sounds.MovesAdd, 0); // JUICE #53
                             return;
                         }
                         p.ShowMoves(n);
@@ -311,6 +331,7 @@ namespace MinikUsta.Presentation.Game
                     {
                         p.ShowMoves(step.N ?? session.MovesLeft);
                         if (!p.Reduced && step.Ms > 0) Play(Tweens.Pulse(p.View.MovesChip, F.LastMovesStrong, step.Ms / 2), time, instant, false);
+                        if (step.First) Snd(Sounds.LastMoves, 0); // JUICE #51: only when the warning just started
                         return;
                     }
                 case StepKind.SegmentDone:
@@ -349,6 +370,7 @@ namespace MinikUsta.Presentation.Game
                             F.ConfettiSegmentLifeMs, (float)site.H * 0.9f);
                         p.CameraShake(F.SegmentShakePx);
                         p.Buzz(HapticKind.Heavy);
+                        Snd(Sounds.Segment, 0);
                         return;
                     }
                 case StepKind.TruckDelivery:
@@ -374,6 +396,13 @@ namespace MinikUsta.Presentation.Game
                         if (fromChip) seq.Insert(0, Tweens.Pop(p.View.BlocksChip, 1f, F.QueueChipPeak, 1f, F.QueueChipMs));
                         else TruckRide(seq, step, L, s);
                         Play(seq, time, instant, true);
+                        if (fromChip) Snd(Sounds.Queue, 0); // JUICE #20
+                        else
+                        {
+                            // JUICE #19: the horn, then a landing thud (−6 dB) per block
+                            Snd(Sounds.TruckHorn, 0);
+                            foreach (var d in step.Drops) Snd(Sounds.Land, d.Delay + d.Ms, 1, SoundFeel.DbGain(SoundFeel.TruckLandDb));
+                        }
                         return;
                     }
                 case StepKind.Win:
@@ -387,6 +416,7 @@ namespace MinikUsta.Presentation.Game
                         WinFx(seq, L);
                         seq.AppendInterval(Math.Max(0, step.Ms - seq.Duration));
                         Play(seq, time, instant, true);
+                        Snd(Sounds.MusicWin, 0); // JUICE #55
                         return;
                     }
                 case StepKind.BonusBuild:
@@ -413,6 +443,7 @@ namespace MinikUsta.Presentation.Game
                                 seq.InsertCallback(at + F.TeardownMs, () => p.Particles.Dust(landed, F.ParticleDustBlock));
                             }
                             else seq.Insert(at, Tweens.Fade(v, 0f, F.TeardownMs));
+                            Snd(Sounds.Teardown, at); // JUICE #107: one reversed pop per block
                         }
                         seq.AppendInterval(Math.Max(0, step.Ms - seq.Duration));
                         Play(seq, time, instant, true);
@@ -427,6 +458,20 @@ namespace MinikUsta.Presentation.Game
                             if (v == null) continue;
                             Play(Tweens.Move(v, BoardPose.Center(g, m.To, BoardPose.ShapeOf(s, m.PieceId)), step.Ms, step.Ease), time, instant, true);
                         }
+                        return;
+                    }
+                case StepKind.OutOfMoves:
+                    Snd(Sounds.OutOfMoves, 0); // JUICE #57
+                    return;
+                case StepKind.YardClear:
+                    Snd(Sounds.GoalDone, 0); // JUICE #94 "Bütün bloklar yerinde"
+                    return;
+                case StepKind.SupportFlash:
+                    {
+                        // JUICE #84: two quiet ticks (−8 dB), one at each end of the blink period
+                        double tick = SoundFeel.DbGain(SoundFeel.SupportTickDb);
+                        Snd(Sounds.Tick, 0, 1, tick);
+                        Snd(Sounds.Tick, step.Ms / Math.Max(1, F.SupportBlinks), 1, tick);
                         return;
                     }
                 case StepKind.CellsReveal:
@@ -451,13 +496,35 @@ namespace MinikUsta.Presentation.Game
                     p.PlanEnded();
                     return;
                 default:
-                    // Instant, StreakReset, StreakPip, TrowelEarned, BuildFront, SupportFlash, MortarStuck, Steer, GoalTick,
-                    // GoalDone, YardClear, OutOfMoves, BoosterRejected: no placeholder visual yet; `End` re-reads the state
+                    // Instant, BuildFront, MortarStuck, Steer, GoalTick, GoalDone, BoosterRejected: no visual of their own yet;
+                    // `End` re-reads the state
                     return;
             }
         }
 
         private IPieceVisual? Piece(int id) => id >= 0 ? p.Pieces.Get(id) : null;
+
+        /// <summary>
+        /// V2: the sound `name` `delayMs` after the step's start (JUICE sound column). Sounds keep their own pace — a grab that fast-forwards
+        /// the board does not move them (web `later.at`): a delayed one is a HUD-tagged callback, a zero delay plays at once. `rate` is a
+        /// pitch step, `gain` linear.
+        /// </summary>
+        private void Snd(string name, float delayMs, double rate = 1, double gain = 1)
+        {
+            var audio = p.Audio;
+            if (audio == null) return;
+            if (!(delayMs > 0))
+            {
+                audio.Play(name, rate, gain);
+                return;
+            }
+            var seq = new Sequence().AppendInterval(delayMs).AppendCallback(() => audio.Play(name, rate, gain));
+            seq.Tag = LevelPlayer.HudTag;
+            p.Clock.Play(seq, Math.Max(0f, p.Clock.Now - runTime));
+        }
+
+        /// <summary>JUICE #12 / #15: the pitch step of a streak value (1 … 4).</summary>
+        private double ComboPitch(int reached) => p.Audio != null ? SoundFeel.ComboRate(p.Audio.Bank.Set, reached) : 1;
 
         /// <summary>Starts `t` at the step's scheduled `time` (catching up the frame), or completes it at once.</summary>
         private void Play(Tweenable t, float time, bool instant, bool board)

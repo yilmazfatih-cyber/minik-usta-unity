@@ -81,6 +81,9 @@ namespace MinikUsta.Unity
 
         public Font Font { get; }
 
+        /// <summary>V2: called when an enabled, pressable button is pressed (pointer down): the button sound and the audio unlock.</summary>
+        public Action? Pressed { get; set; }
+
         /// <summary>The design canvas size (design px): the origin of `UnityUiSpark` positions.</summary>
         public float DesignW { get; private set; } = 1080f;
         public float DesignH { get; private set; } = 1920f;
@@ -221,7 +224,7 @@ namespace MinikUsta.Unity
                 var l = layer;
                 button.onClick.AddListener(() => Tapped(l, node));
                 b.Button = button;
-                if (n.Pressable) rt.gameObject.AddComponent<PressableButton>().Init(rt, feel);
+                if (n.Pressable) rt.gameObject.AddComponent<PressableButton>().Init(rt, feel, () => Pressed?.Invoke());
             }
             bound[n] = b;
             Apply(b, parentRect);

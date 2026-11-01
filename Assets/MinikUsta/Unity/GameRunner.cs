@@ -5,6 +5,7 @@
 // get keyboard shortcuts (principle 8, first slice of the debug panel): N next level, R restart, A log the ASCII board
 // (TECH Appendix A), S play the next move of the level's golden solution.
 using MinikUsta.Core;
+using MinikUsta.Presentation.Audio;
 using MinikUsta.Presentation.Feel;
 using MinikUsta.Presentation.Flow;
 using MinikUsta.Presentation.Game;
@@ -52,8 +53,14 @@ namespace MinikUsta.Unity
             var haptics = new FixedPulseHaptics(false, () => { });
 #endif
             string? economyText = ReadText("config/economy");
+            // V2 sound: ZzFX recipes (Resources/audio/sounds.json) rendered in the background of the first seconds, one AudioSource.
+            // WebGL keeps audio locked until the first user input (the browser's rule); other platforms start unlocked.
+            var bank = new SoundBank(SoundSet.FromText(ReadText("audio/sounds")));
+            bank.RequestAll();
+            var audio = new AudioPlayer(bank, new UnityAudioOutput(gameObject, cam), Application.platform == RuntimePlatform.WebGLPlayer);
             app = new GameApp(view, ui, catalog, i18n, EconomyConfig.FromText(economyText), new PlayerPrefsStore(), feel, layout, haptics,
-                EconomyInfo.FromText(economyText), message => Debug.LogWarning(message));
+                EconomyInfo.FromText(economyText), message => Debug.LogWarning(message), audio);
+            ui.Pressed = () => app?.UiPressed();
             input = new PointerInput();
             screenW = Screen.width;
             screenH = Screen.height;
