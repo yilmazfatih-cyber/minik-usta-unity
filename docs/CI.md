@@ -5,26 +5,34 @@ Unity Editor kurmadan oyunu denemenin yolu: GitHub, projeyi kendi sunucusunda de
 ya da dosya yoktur (§1: yalnız iki secret; `unity-activation.yml` P3-03 ile kaldırıldı). Unity sürümü `ProjectSettings/ProjectVersion.txt` ile sabit:
 **6000.0.85f1**; iş akışı sürümü oradan okur, imaj `unityci/editor:ubuntu-6000.0.85f1-webgl-3` Docker Hub'da var (2026-11-01'de denetlendi).
 
-Yayın adresi (ilk başarılı derlemeden sonra açılır): https://yilmazfatih-cyber.github.io/minik-usta-unity/
+Yayın adresi: https://yilmazfatih-cyber.github.io/minik-usta-unity/ (ilk dağıtım koşu 41352478361'de başarıyla bildirildi; sayfanın içeriği bu ortamdan açılamadı, bkz. Durum)
 
-**Durum:** Bu ortamda Unity derlenmez; tek kanıt Actions koşusudur. v6 geçişinde iki koşu yapıldı (2026-11-01):
+**Durum:** Bu ortamda Unity derlenmez; tek kanıt Actions koşusudur. v6 geçişinde üç koşu yapıldı (2026-11-01); sonuncusu ilk yeşil koşudur:
 
 | Koşu | Commit | Sonuç |
 | --- | --- | --- |
 | [41350030654](https://github.com/yilmazfatih-cyber/minik-usta-unity/actions/runs/41350030654) | `be4536a` | Lisans tamam: CLI v0.1.72 indi (SHA256 doğrulandı), `unityci/editor:ubuntu-6000.0.85f1-webgl-3` çekildi, **Personal koltuk yalnız `UNITY_EMAIL` + `UNITY_PASSWORD` ile alındı** (`Licensing method: personal`, `Seat ID: …-UnityPersonal`, editörde `Product: Unity Personal`) ve iş bitince **iade edildi** (`Successfully returned the entitlement license`). Derleme proje tarafında kırıldı: `Project has invalid dependencies: com.unity.modules.vibration` (§2b). |
 | [41350760117](https://github.com/yilmazfatih-cyber/minik-usta-unity/actions/runs/41350760117) | `a2679b0` | Manifest düzeltmesi işledi. **Unity derlemesi başarılı**: hiç `error CS` yok (yalnız `CiBuild.cs(67,30): warning CS8632`, 2 kez), `Build Finished, Result: Success.`, `WebGL build succeeded: /github/workspace/build/WebGL/MinikUsta (35 MB)` (Unity derlemesi 5 dk 35 sn, iş toplamı 9 dk 13 sn); `Build/MinikUsta.{data,wasm,framework.js,loader.js}` ve `TemplateData/` günlükte görüldü; koltuk yine iade edildi. İş yine de **kırmızı** bitti: `[ERROR] Error: There was an error building the project. Please read the logs for details. at validateBuild`, ardından `Build failed with exit code 1`. Neden: CLI v0.1.72, Unity çıkış kodu 0 olsa bile konteyner çıktısında `Build succeeded!` (ya da `# Build results #` bloğunda `Errors: 0` + `Size:`) arar; `CiBuild` ikisini de yazmıyordu. v4 yalnız çıkış koduna bakardı, yani v6 geçişinde `buildMethod` sözleşmesi değişti (önceki "değişmedi" notu yanlıştı). Pages adımları atlandı. |
+| [41352478361](https://github.com/yilmazfatih-cyber/minik-usta-unity/actions/runs/41352478361) | `f119d06` | **İlk yeşil koşu.** `Check CiBuild reports success to the GameCI CLI` geçti; Unity derlemesi başarılı (`WebGL build succeeded: /github/workspace/build/WebGL/MinikUsta (35 MB)`, `Errors: 0`, `Warnings: 0`, `Size: 37569149 bytes`); günlükte `Build succeeded!` var ve `validateBuild` hatası yok; koltuk iade edildi. `Prepare Pages artifact` çıktısında `index.html`, `Build/`, `StreamingAssets/`, `TemplateData/` listelendi. **Deploy to GitHub Pages** işi `Reported success!` ile bitti, `Evaluated environment url: https://yilmazfatih-cyber.github.io/minik-usta-unity/`. İş toplamı 9 dk 31 sn (Unity derlemesi 5 dk 43 sn), deploy 20 sn. Artifact'ler: `github-pages` (12,9 MB) ve `unity-generated-files` (400 dosya, 131555 bayt; **2026-11-15'te silinir**). |
 
-**Düzeltme (E1, bu commit):** `CiBuild.ReportSuccess` başarı yolunda yerleşik raporlayıcının metnini yazar (`# Build results #` bloğu ve `Build succeeded!`);
-hata yolu bunu yazmaz, istisna atar (çıkış kodu 1). İş akışına koruma adımı eklendi (§2b). Bu ortamda doğrulananlar: `CiBuild.cs` gerçek dosya olarak
-Unity API taslaklarıyla derlendi; başarı çıktısı CLI'nin iki denetiminden de geçti, hata çıktısı ikisinden de geçmedi (CLI denetiminin Python
-portuyla; CLI kodu çalıştırılmadı); koruma betiği gerçek ve bozulmuş dosyalarla denendi. **Doğrulanmayan:** düzeltmeden sonraki gerçek koşu.
-Kanıt o koşudur: Build adımı yeşil, günlükte `Build succeeded!`, Pages adımları çalışmış olmalı.
+**E1 kapandı (41352478361):** `CiBuild.ReportSuccess` başarı yolunda yerleşik raporlayıcının metnini yazar (`# Build results #` bloğu ve `Build succeeded!`);
+hata yolu bunu yazmaz, istisna atar (çıkış kodu 1). İş akışındaki koruma adımı bunu Unity'den önce denetler (§2b). Düzeltme push'tan önce bu ortamda şöyle
+sınandı: `CiBuild.cs` gerçek dosya olarak Unity API taslaklarıyla derlenip çalıştırıldı; başarı çıktısı CLI'nin iki denetiminden de geçti, hata
+çıktısı ikisinden de geçmedi (denetimin Python portuyla; CLI kodu çalıştırılmadı); koruma betiği gerçek ve bozulmuş dosyalarla denendi. Kesin kanıt yukarıdaki yeşil koşudur.
+
+**Not (savunma katmanı):** aynı gün `acc3f82` commit'i ek bir koruma getirdi: Build adımı `continue-on-error: true`, başarı diskteki oyuncuya bakan
+"Verify WebGL output" adımıyla belirlenir (§2b "Unity derlemesi başarılı ama adım kırmızı"). E1 düzeltmesi 41352478361'de Build adımını kendi başına
+yeşil bitirdi, yani `continue-on-error` artık yalnız ikinci savunma hattıdır; Verify adımı bağımsız olarak değerlidir. `continue-on-error` kalsın mı
+sorusu orkestratöre bırakıldı (kalırsa CLI'nin gelecekteki yanlış kırmızıları yayını engellemez; kalkarsa Build adımı gerçek durumu yansıtır).
+
+**Pages kaynağı (O2):** `deploy-pages` adımı başarılı oldu; kaynak "GitHub Actions" değilse bu adım kırmızı biterdi, yani ayar doğru (dolaylı kanıt: Settings ekranı ve
+`GET /repos/…/pages` bu ortamdan okunamıyor, vekil sunucu 403 veriyor).
 
 **Açık işler:**
-- **Pages kaynağı (proje sahibi, bir kez):** Settings → Pages → Build and deployment → Source = **GitHub Actions** (§1 adım 3). `has_pages` `true`, ama kaynak türü
-  bu ortamdan okunamadı (`GET /repos/…/pages` vekil sunucuda 403). Kaynak "Deploy from a branch" ise deploy işi `deploy-pages` adımında kırmızı biter.
-- **İlk Pages dağıtımı:** henüz olmadı. Olunca deploy işinin `page_url` çıktısı buraya yazılacak: _(boş)_.
-- **`unity-generated-files`:** 41350760117 koşusunun artifact'i hazır (400 dosya, 131560 bayt; **2026-11-15'te silinir**). §4 beklemeden uygulanabilir.
+- **Yayının içeriği doğrulanmadı:** vekil sunucu `*.github.io` adresini engelliyor, bu yüzden sayfa ve `Build/*` dosyaları HTTP ile denenemedi. Proje sahibi adresi tarayıcıda bir kez açıp
+  oyunun yüklendiğini teyit etmeli (WebGL ilk açılışta indirme büyüktür, §3). Sonuç `docs/CI.md` Durum bölümüne yazılır.
+- **`unity-generated-files` işlenmedi:** artifact hazır, §4 uygulanabilir (P3-05). Bu görevin kapsamı dışında bırakıldı; sıradaki iş.
+- `CiBuild.cs(92,30): warning CS8632` (`string?` için `#nullable` bağlamı yok) sürüyor; zararsız (§3), düzeltme gerekirse ayrı küçük iş.
 
 ## 1. Tek seferlik: Unity hesabı ve gizli değerler
 
@@ -101,7 +109,7 @@ Actions → **Unity WebGL → Pages** → **Run workflow**. İş: **Build WebGL 
 | Build | CLI indirilir (`Installing game-ci CLI v0.1.72`), imaj çekilir, günlükte `Requesting activation (personal license via Unity account)`, Unity açılır, `CiBuild.BuildWebGL` çalışır. Başarıda sırayla `Build Finished, Result: Success.`, `WebGL build succeeded: /github/workspace/build/WebGL/MinikUsta (N MB)` (yol konteyner içindedir, mutlak), `# Build results #` bloğu (`Errors: 0`, `Size:`), `Build succeeded!` ve build.sh'ın kendi `Build succeeded` satırı (ünlemsiz; CLI için sayılmaz); sonunda koltuk iade edilir | Lisans: §2b tablosu. Derleme: `error CS…`. Betik: `WebGL build failed: …`. Unity yeşil ama adım kırmızı (`at validateBuild`): §2b |
 | Verify WebGL output | Dosya listesi (bayt ve yol) yazdırılır; `index.html`, `Build/*.wasm*` ve `Build/*.data*` var ve boş değil. Build adımı kırmızı olsa bile bu adım geçerse iş yeşil kalır ve `::warning::` yazar (§2b "Unity derlemesi başarılı ama adım kırmızı") | `::error::Unity build produced no WebGL player (see the Build step log)`: gerçek derleme hatası; nedeni Build adımının günlüğünde ara. Pages adımları ve deploy atlanır |
 | Collect / Upload files Unity generated | Koşu sayfasının **Artifacts** bölümünde `unity-generated-files` (§4); derleme kırmızı olsa da yüklenir | Adım atlanırsa sahne yok (`has=false`) ya da Build adımı hiç başlamadı (secret denetimi kırmızı) |
-| Prepare Pages artifact | `ls` çıktısında `index.html`, `Build/` (loader, framework, data, wasm dosyaları) ve `TemplateData/`. Sıkıştırma kapalı olduğundan `.br` / `.gz` dosyası olmaz | Klasör yoksa çıktı yolu farklı (§2b) |
+| Prepare Pages artifact | `ls` çıktısında `index.html`, `Build/` (loader, framework, data, wasm dosyaları), `StreamingAssets/` ve `TemplateData/` (41352478361'de görüldü). Sıkıştırma kapalı olduğundan `.br` / `.gz` dosyası olmaz | Klasör yoksa çıktı yolu farklı (§2b) |
 | Upload Pages artifact, Deploy to GitHub Pages | Deploy işinin `page_url` çıktısındaki adres açılır | 404: Pages kaynağı "GitHub Actions" değil (§1 adım 3) |
 
 Açılışta Pages adresi doğrudan Bölüm 1'i gösterir (menü yok). Bölüm dosyası geçersizse oyun oynanmaz ve tarayıcı konsoluna
@@ -245,7 +253,7 @@ Actions → Run workflow.
   (WebGL'de açık) kullanılmayan modülü zaten derlemeden çıkarır, kaldırmanın kazancı yok.
 - Lisans akışı (unity-builder v6 + CLI v0.1.72 + Personal hesap, 6000.0.85f1) uçtan uca çalıştı (etkinleştirme + iade; bkz. Durum).
   Çıktı yolu (`-customBuildPath /github/workspace/build/WebGL/MinikUsta`) ve sığ klonda `Semantic` sürümleme (`0.0.40`, ikinci koşuda `0.0.42`) günlükte doğrulandı.
-  Unity WebGL derlemesi ikinci koşuda başarılı oldu (35 MB). Henüz görülmeyen: CLI doğrulamasından geçen bir derleme (E1 düzeltmesi bekliyor) ve Pages dağıtımı.
+  Unity WebGL derlemesi ikinci koşuda başarılı oldu (35 MB); CLI doğrulamasından geçen derleme ve Pages dağıtımı üçüncü koşuda görüldü (41352478361). Henüz görülmeyen: yayındaki oyunun tarayıcıda açılması.
 
 ## 4. Unity'nin ürettiği dosyaları depoya işle (P3-05)
 
@@ -255,8 +263,8 @@ Bulutta Unity açılamadığı için bazı dosyaları Unity ilk koşuda kendisi 
 varlık (prefab, ScriptableObject) bir betiğe GUID ile bağlanırsa her klonda kopar. İş akışı bu dosyaları her koşuda
 **`unity-generated-files`** adlı artifact olarak yükler (derleme kırmızı olsa da; saklama 14 gün).
 
-**İlk yeşil koşuyu beklemek gerekmez.** Unity derlemesi 41350760117 koşusunda başarılı oldu ve artifact'i hazır (400 dosya, 131560 bayt;
-**2026-11-15'te silinir**). E1 düzeltmesinden sonraki her koşu yeni bir artifact üretir; hangisi alınırsa alınsın aynı adımlar geçerlidir.
+**Artifact hazır.** İlk yeşil koşu 41352478361'in `unity-generated-files` artifact'i (400 dosya, 131555 bayt; **2026-11-15'te silinir**) en yeni commit'ten geldiği için en az yetim `.meta` içerir.
+Her koşu yeni bir artifact üretir (kırmızı olsa da); hangisi alınırsa alınsın aynı adımlar geçerlidir.
 
 **Çok ajanlı depo kuralı:** bu depoda aynı anda başka ajanlar çalışır; çalışma ağacında başkalarının yarım işi ve hazırlanmış (staged)
 değişiklikleri bulunabilir. Bu yüzden **`git add -A` kullanılmaz**, yalnız Unity'nin ürettiği yollar eklenir ve işlem ayrı bir çalışma ağacında yapılır.
@@ -264,7 +272,7 @@ Kirli ağaçta `git pull --rebase` zaten reddedilir; temiz ağaç hem bunu hem y
 
 1. Artifact'i indir (içinde `ProjectSettings/`, `Packages/` ve `Assets/` olmalı):
    ```
-   gh run download 41350760117 -n unity-generated-files -D ../unity-generated
+   gh run download 41352478361 -n unity-generated-files -D ../unity-generated
    ```
 2. `origin/main`'den temiz bir çalışma ağacı aç ve artifact'i üzerine kopyala (aynı ad varsa üzerine yazılsın):
    ```
