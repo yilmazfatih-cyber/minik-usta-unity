@@ -2,13 +2,15 @@
 // ART_REFERENCE §5.2 v3 deltas: outline 4 px × 0,50, lip 20 × 0,74, top bevel band 0,20 h × 1,28, gloss α 0,30,
 // stud crescents). A piece is drawn as ONE polyomino (single outline, single side wall, pillows with grooves); the atlas
 // keeps per-cell tiles: `blk_<c>_<mask>` = the centre cell of its 3 × 3 neighbourhood (mask bits 1 left, 2 right,
-// 4 down, 8 up — Presentation.Core `Atlas.Body` / `BoardPose.NeighbourMask`), diagonals present whenever both
-// orthogonal neighbours are; concave corners (diagonal missing) get the `blk_<c>_cc_<tl|tr|bl|br>` overlay patch.
+// 4 down, 8 up — Presentation.Core `Atlas.Body` / `BoardPose.NeighbourMask`) drawn with NO diagonal neighbours (every
+// inner corner concave); where the diagonal cell IS part of the piece the opaque corner-fill patch
+// `blk_<c>_<mask>_cf_<tl|tr|bl|br>` is laid on top (exact: concave corners are sharp, so all their geometry lies in the
+// corner cell's 32 px box). Drop-shadow lines are the other way round (diagonals present, `_cc_` patch adds the corner).
 import { mul, mix, lstar, rr, lin, uid, doc, r1, circlePath, arcPath } from './lib.mjs';
 
 export const C = 120;
 export const B = {
-  inset: 4, outline: 4, outlineF: 0.5, lip: 20, darkF: 0.74, grooveF: 0.88, R: 24, r: 8,
+  inset: 4, outline: 4, outlineF: 0.5, lip: 20, darkF: 0.74, grooveF: 0.88, R: 24, r: 0,
   pShared: 7, pOpen: 14, pR: 19, lightMix: 0.32, gradStop: 0.3, bottomF: 0.92, bevelH: 0.2, bevelL: 1.28,
   shadeH: 0.18, shadeA: 0.28, gloss: [0.34, 0.13, 0.18, 0.06], glossRot: -8, glossA: 0.3,
   studRatio: 0.54, studSide: 6, studMargin: 6, studHiPx: 6, studHiL: 1.25, studHiA: 0.7, studShPx: 8, studShF: 0.8,
@@ -184,8 +186,9 @@ export function studOf(P) {
 export function bodyPaths(cells) {
   const lp = loops(cells);
   const S = offsetPath(lp, () => B.inset, B.R, B.r);
-  const Bp = offsetPath(lp, () => B.inset + B.outline, B.R - B.outline, B.r + B.outline);
-  const F = offsetPath(lp, (n) => B.inset + B.outline + (n[1] === -1 ? B.lip : 0), B.R - B.outline, B.r + B.outline);
+  // concave corners stay sharp (r 0): the per-cell tiles + the corner patch then reproduce the piece exactly
+  const Bp = offsetPath(lp, () => B.inset + B.outline, B.R - B.outline, B.r);
+  const F = offsetPath(lp, (n) => B.inset + B.outline + (n[1] === -1 ? B.lip : 0), B.R - B.outline, B.r);
   return { S, B: Bp, F };
 }
 
@@ -224,10 +227,11 @@ function toneDefs(t) {
 }
 
 const DIRS = { 1: [-1, 0], 2: [1, 0], 4: [0, 1], 8: [0, -1] };
-/** 3 × 3 neighbourhood of a mask (centre (1,1)); diagonals when both orthogonals are present. */
-export function neighbourhood(mask) {
+/** 3 × 3 neighbourhood of a mask (centre (1,1)); with `diag`, diagonals where both orthogonals are present. */
+export function neighbourhood(mask, diag = true) {
   const cells = [[1, 1]];
   for (const bit of [1, 2, 4, 8]) if (mask & bit) cells.push([1 + DIRS[bit][0], 1 + DIRS[bit][1]]);
+  if (!diag) return cells;
   const L = mask & 1, Rt = mask & 2, D = mask & 4, U = mask & 8;
   if (U && L) cells.push([0, 0]);
   if (U && Rt) cells.push([2, 0]);
@@ -238,7 +242,7 @@ export function neighbourhood(mask) {
 
 export function blockTile(code, mask) {
   const t = tones(COLORS[code]);
-  const cells = neighbourhood(mask);
+  const cells = neighbourhood(mask, false);
   const set = new Set(cells.map(([x, y]) => key(x, y)));
   const has = (x, y) => set.has(key(x, y));
   const { S, B: Bp, F } = bodyPaths(cells);
@@ -261,17 +265,16 @@ export function blockTile(code, mask) {
 }
 
 /**
- * Concave-corner overlay of the centre cell with neighbour mask `mask` (corner tl / tr / bl / br; both orthogonal
- * neighbours of that corner present, the diagonal missing): the exact render of that cell cropped to a 32 px corner box
- * (pillow included, so the overlay matches the base tile pixel for pixel) + the tiny notch outside the outline filled
- * with the outline tone. Frame name `blk_<c>_<mask>_cc_<corner>`; pivot = the cell corner.
+ * Corner-fill overlay of the centre cell with neighbour mask `mask` at corner tl / tr / bl / br (both orthogonal
+ * neighbours of that corner present AND the diagonal cell part of the piece): the exact render of that cell with the
+ * diagonal, cropped to a 32 px corner box — it covers the concave corner of the base tile. Pivot = the cell corner.
  */
 export const CC_BOX = 32;
-export function concaveTile(code, corner, mask) {
+export function cornerFillTile(code, corner, mask) {
   const t = tones(COLORS[code]);
   const dx = corner.includes('l') ? -1 : 1;
   const dy = corner.includes('t') ? -1 : 1;
-  const cells = neighbourhood(mask).filter(([x, y]) => !(x === 1 + dx && y === 1 + dy));
+  const cells = neighbourhood(mask, false).concat([[1 + dx, 1 + dy]]);
   const set = new Set(cells.map(([x, y]) => key(x, y)));
   const has = (x, y) => set.has(key(x, y));
   const { S, B: Bp, F } = bodyPaths(cells);
@@ -279,13 +282,35 @@ export function concaveTile(code, corner, mask) {
   const x0 = dx < 0 ? C : 2 * C - CC_BOX;
   const y0 = dy < 0 ? C : 2 * C - CC_BOX;
   const P = pillowRect(has, 1, 1);
-  const nx = dx < 0 ? C : 2 * C - 10;
-  const ny = dy < 0 ? C : 2 * C - 10;
-  let body = `<rect x="${nx}" y="${ny}" width="10" height="10" fill="${t.outline}"/><path d="${S}" fill="${t.outline}"/><path d="${Bp}" fill="${t.dark}"/><path d="${F}" fill="${t.groove}"/>`;
+  let body = `<path d="${S}" fill="${t.outline}"/><path d="${Bp}" fill="${t.dark}"/><path d="${F}" fill="${t.groove}"/>`;
   body += pillowMarkup(t, P, ids);
   return doc(CC_BOX, CC_BOX, defs, body, {
     viewBox: `${x0} ${y0} ${CC_BOX} ${CC_BOX}`,
     scale: 1.5,
+    pivot: [dx < 0 ? 0 : 1, dy < 0 ? 1 : 0],
+  });
+}
+/** Drop-shadow line patch (concave corner, diagonal missing) — white, additive. */
+export function shadowConcaveTile(kind, corner, mask) {
+  const dx = corner.includes('l') ? -1 : 1;
+  const dy = corner.includes('t') ? -1 : 1;
+  const cells = neighbourhood(mask, true).filter(([x, y]) => !(x === 1 + dx && y === 1 + dy));
+  const lp = loops(cells);
+  const x0 = dx < 0 ? C : 2 * C - CC_BOX;
+  const y0 = dy < 0 ? C : 2 * C - CC_BOX;
+  let body;
+  if (kind === 'line') {
+    const p = offsetPath(lp, () => 7, B.R - 3, 0);
+    body = `<path d="${p}" fill="none" stroke="#FFFFFF" stroke-opacity="0.12" stroke-width="14"/><path d="${p}" fill="none" stroke="#FFFFFF" stroke-opacity="0.2" stroke-width="10"/><path d="${p}" fill="none" stroke="#FFFFFF" stroke-width="6"/>`;
+  } else {
+    const p = offsetPath(lp, () => 8, B.R - 4, 0);
+    body = `<path d="${p}" fill="none" stroke="#FFFFFF" stroke-width="7" stroke-linecap="square"/>`;
+  }
+  const clip = uid('sc');
+  const defs = `<clipPath id="${clip}"><rect x="${x0}" y="${y0}" width="${CC_BOX / 2}" height="${CC_BOX / 2}" transform="translate(${dx < 0 ? 0 : CC_BOX / 2} ${dy < 0 ? 0 : CC_BOX / 2})"/></clipPath>`;
+  return doc(CC_BOX, CC_BOX, defs, `<g clip-path="url(#${clip})">${body}</g>`, {
+    viewBox: `${x0} ${y0} ${CC_BOX} ${CC_BOX}`,
+    scale: 1,
     pivot: [dx < 0 ? 0 : 1, dy < 0 ? 1 : 0],
   });
 }
@@ -360,10 +385,10 @@ export function shadowTile(kind, mask) {
   if (kind === 'fill') {
     body = `<path d="${offsetPath(lp, () => B.inset, B.R, B.r)}" fill="#FFFFFF"/>`;
   } else if (kind === 'line') {
-    const p = offsetPath(lp, () => 7, B.R - 3, B.r + 3);
+    const p = offsetPath(lp, () => 7, B.R - 3, 0);
     body = `<path d="${p}" fill="none" stroke="#FFFFFF" stroke-opacity="0.12" stroke-width="14"/><path d="${p}" fill="none" stroke="#FFFFFF" stroke-opacity="0.2" stroke-width="10"/><path d="${p}" fill="none" stroke="#FFFFFF" stroke-width="6"/>`;
   } else {
-    const p = offsetPath(lp, () => 8, B.R - 4, B.r + 4);
+    const p = offsetPath(lp, () => 8, B.R - 4, 0);
     body = `<path d="${p}" fill="none" stroke="#FFFFFF" stroke-width="7" stroke-dasharray="16 10" stroke-linecap="round"/>`;
   }
   return doc(C, C, '', body, { viewBox: `${C} ${C} ${C} ${C}`, scale: 1, pivot: [0.5, 0.5] });

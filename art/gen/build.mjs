@@ -25,7 +25,7 @@ export async function collect() {
     for (const k of ['tl', 'tr', 'bl', 'br']) {
       for (const m of blocks.concaveMasks(k)) {
         resetIds();
-        add('block', `blk_${c}_${pad2(m)}_cc_${k}`, blocks.concaveTile(code, k, m));
+        add('block', `blk_${c}_${pad2(m)}_cf_${k}`, blocks.cornerFillTile(code, k, m));
       }
     }
     resetIds();
@@ -42,6 +42,14 @@ export async function collect() {
     for (const kind of ['fill', 'line', 'dash']) {
       resetIds();
       add('shadow', `shadow_${kind}_${pad2(m)}`, blocks.shadowTile(kind, m));
+    }
+  }
+  for (const kind of ['line', 'dash']) {
+    for (const k of ['tl', 'tr', 'bl', 'br']) {
+      for (const m of blocks.concaveMasks(k)) {
+        resetIds();
+        add('shadow', `shadow_${kind}_${pad2(m)}_cc_${k}`, blocks.shadowConcaveTile(kind, k, m));
+      }
     }
   }
   const extra = ['board', 'ui', 'icons', 'fx', 'bg', 'chr', 'logo'];
