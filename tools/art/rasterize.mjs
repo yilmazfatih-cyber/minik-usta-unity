@@ -3,7 +3,7 @@
  * v4 art pack rasteriser (design-lead, package V0; docs/ART_UNITY.md). Reads every `art/svg/**\/*.svg`, rasterises it in
  * the preinstalled Chromium (Playwright from the web repo's node_modules — no new dependency), packs the frames into
  * ≤ 2048 × 2048 atlas pages (skyline packer, bottom-left heuristic, `--pad` px gutter filled by edge extrusion) and writes
- *   Assets/MinikUsta/Resources/art/atlas-<N>.png.bytes   (PNG; Unity loads it as a TextAsset → Texture2D.LoadImage)
+ *   Assets/MinikUsta/Resources/art/atlas_<N>.bytes   (PNG; Unity loads it as the TextAsset "art/atlas_<N>" → ImageConversion.LoadImage; V1: no dotted Resources names, P3-13)
  *   Assets/MinikUsta/Resources/art/atlas.json            (frame contract, see docs/ART_UNITY.md §2)
  *
  * Frame metadata comes from the SVG root: width/height = DESIGN px (1080-wide canvas); data-scale (raster px per design
@@ -293,7 +293,7 @@ export function atlasJson(frames, pages) {
     origin: 'top-left',
     pivotOrigin: 'bottom-left',
     units: 'x y w h border* = atlas px; pivot* anchor* = 0..1 from bottom-left; studD symD = design px; sprite ppu = ppu * scale',
-    atlases: pages.map((p) => ({ file: `art/atlas-${p.index}.png`, w: p.w, h: p.h })),
+    atlases: pages.map((p) => ({ file: `art/atlas_${p.index}`, w: p.w, h: p.h })),
     frames: fr,
   };
 }
@@ -307,7 +307,7 @@ if (import.meta.url === `file://${process.argv[1]}`) {
   mkdirSync(OUT, { recursive: true });
   let total = 0;
   pngs.forEach((buf, i) => {
-    writeFileSync(join(OUT, `atlas-${i}.png.bytes`), buf);
+    writeFileSync(join(OUT, `atlas_${i}.bytes`), buf);
     total += buf.length;
     if (PNG_DIR) {
       mkdirSync(PNG_DIR, { recursive: true });

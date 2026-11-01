@@ -10,22 +10,22 @@
  "units": "x y w h border* = atlas px; pivot* anchor* = 0..1 from bottom-left; studD symD = design px; sprite ppu = ppu * scale",
  "atlases": [
   {
-   "file": "art/atlas-0.png",
+   "file": "art/atlas_0",
    "w": 2048,
    "h": 2048
   },
   {
-   "file": "art/atlas-1.png",
+   "file": "art/atlas_1",
    "w": 2044,
    "h": 2044
   },
   {
-   "file": "art/atlas-2.png",
+   "file": "art/atlas_2",
    "w": 2048,
    "h": 2048
   },
   {
-   "file": "art/atlas-3.png",
+   "file": "art/atlas_3",
    "w": 2044,
    "h": 1968
   }

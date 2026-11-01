@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 /**
  * v4 art pack composite mocks (design-lead, package V0). Draws ONLY from the shipped atlas (Assets/MinikUsta/Resources/
- * art/atlas-N.png.bytes + atlas.json) so the mocks also prove the frame contract (pivot, 9-slice border, scale, stud
+ * art/atlas_N.bytes + atlas.json) so the mocks also prove the frame contract (pivot, 9-slice border, scale, stud
  * anchor): artifacts/preview/v4-level.png (Bölüm 3 data, mid-move), v4-home.png, v4-win.png, v4-sheet.png.
  * Layout numbers = Presentation.Core ScreenLayout (FIT 1080 × 1920) and ART_REFERENCE §9. Texts are i18n strings
  * (Resources/i18n/tr.json) rendered in Baloo 2 (web repo font, OFL) or the system font when missing.
@@ -27,7 +27,7 @@ const ART = join(ROOT, 'Assets', 'MinikUsta', 'Resources', 'art');
 const RES = join(ROOT, 'Assets', 'MinikUsta', 'Resources');
 
 const atlas = JSON.parse(readFileSync(join(ART, 'atlas.json'), 'utf8'));
-const pages = atlas.atlases.map((a, i) => readFileSync(join(ART, `atlas-${i}.png.bytes`)).toString('base64'));
+const pages = atlas.atlases.map((a) => readFileSync(join(RES, a.file + ".bytes")).toString('base64'));
 const tr = JSON.parse(readFileSync(join(RES, 'i18n', 'tr.json'), 'utf8'));
 const level3 = JSON.parse(readFileSync(join(RES, 'levels', 'level_003.json'), 'utf8'));
 const fontPath = join(WEB, 'public', 'fonts', 'baloo2-latin-tr.woff2');
