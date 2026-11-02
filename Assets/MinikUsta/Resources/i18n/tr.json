@@ -188,7 +188,7 @@
     "life": "Bir can gitti.",
     "offer": {
       "count": "Teklif {n}/{max}",
-      "gift": "+{n} hamle · Usta Dede'den hediye",
+      "gift": "+{n} hamle · Usta Kral'dan hediye",
       "last": "Teklif {n}/{max} · son teklif",
       "moves": "+{n} hamle"
     },
@@ -227,7 +227,7 @@
       "desc": "Hafif yerçekimi: düşerken tahtaya dokun, blok o yana kayar."
     },
     "s1": {
-      "desc": "Bu kat bitince şantiye kayar, kamyon malzeme getirir."
+      "desc": "Bu kat bitince şantiye kayar; kalan bloklar sahada bekler."
     },
     "s2": {
       "desc": "Taralı hücre boş kalmalı. Üstünü geçitten ya da köprüyle doldur."
@@ -367,7 +367,7 @@
         "tuna": "Bu eski tabela da ne?"
       },
       "p2": {
-        "dede": "Bizim firma! Yıllardır kapalıydı."
+        "king": "Bizim firma! Yıllardır kapalıydı."
       },
       "p3": {
         "kepce": "Hav!",
@@ -408,7 +408,6 @@
       "goldtrowel": "Mala ile sahadaki bloğa dokun.",
       "lastmoves": "Hamleler azaldı, sakin düşün.",
       "queue": "Sahada yer aç, kamyon boşaltsın.",
-      "reshuffle": "Sıkıştık! Kamyon sahayı yeniden diziyor.",
       "resume": "Tahta bıraktığın gibi duruyor, evlat.",
       "streak": "Hatasız {n} doğru, Altın Mala getirir!",
       "support": "Önce alttaki boşluğu doldur, evlat.",

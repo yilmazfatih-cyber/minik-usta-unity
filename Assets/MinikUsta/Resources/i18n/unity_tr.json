@@ -1,5 +1,5 @@
 {
-  "_doc": "Unity-only keys (paket V1): merged on top of the web copy i18n/tr.json by MinikUsta.Presentation.I18n.Localizer. Keep the same keys in unity_en.json. B2 (D-101): keys whose web text names Usta Dede are overridden here with Usta Kral (the web STORY / i18n rename is a separate package).",
+  "_doc": "Unity-only keys (paket V1): merged on top of the web copy i18n/tr.json by MinikUsta.Presentation.I18n.Localizer. Keep the same keys in unity_en.json. P4B-07: the web source now carries Usta Kral (lose.offer.gift, story.prologue.p2.king), so the B2 override of lose.offer.gift was removed; no web key is overridden here any more.",
   "home": {
     "playLevel": "Oyna · Bölüm {n}"
   },
@@ -13,10 +13,5 @@
   "lang": {
     "tr": "Türkçe",
     "en": "English"
-  },
-  "lose": {
-    "offer": {
-      "gift": "+{n} hamle · Usta Kral'dan hediye"
-    }
   }
 }

@@ -104,8 +104,8 @@ jobs:
           buildName: MinikUsta
           buildMethod: MinikUsta.Editor.CiBuild.BuildWebGL
           allowDirtyBuild: true
-      # Success is defined by the player on disk. Compression is off (ProjectSettings), so Build/ holds plain .wasm and .data files;
-      # the .br and .gz variants are accepted too in case that setting changes. Files must be non-empty. The workspace is fresh on
+      # Success is defined by the player on disk. CiBuild.BuildWebGL builds with Gzip + decompression fallback (P4B-04), so Build/ holds
+      # `*.wasm.unityweb` / `*.data.unityweb` (or `.gz` / `.br` / plain files if that setting changes); the globs below accept all of them. Files must be non-empty. The workspace is fresh on
       # every run (only Library is cached), so a stale player from an earlier run cannot satisfy this check.
       - name: Verify WebGL output
         id: verify
@@ -136,6 +136,15 @@ jobs:
           fi
           echo "ok=true" >> "$GITHUB_OUTPUT"
           echo "WebGL player is complete (index.html, Build/*.wasm*, Build/*.data*)."
+          # P4B-04: the first-visit download. With Gzip + decompression fallback (CiBuild.BuildWebGL) the files on disk ARE what the
+          # browser downloads (GitHub Pages sends no Content-Encoding for them); Disabled was 48,6 MB in run 41386489687.
+          bytes=$(stat -c %s "$dir"/Build/*.data* "$dir"/Build/*.wasm* 2>/dev/null | awk '{s+=$1} END {print s+0}')
+          mb=$(( ${bytes:-0} / 1048576 ))
+          echo "Download size of Build/*.data* + Build/*.wasm*: ${bytes:-0} bytes (${mb} MB); budget 25 MB (docs/CI.md section 9)."
+          echo "### WebGL download size: ${mb} MB (.data + .wasm; budget 25 MB)" >> "$GITHUB_STEP_SUMMARY"
+          if [ "${bytes:-0}" -gt 26214400 ]; then
+            echo "::warning title=WebGL download size::.data + .wasm are ${mb} MB (budget 25 MB): the first visit on a mobile network will miss the 10 second FTUE target"
+          fi
           if [ "$BUILD_OUTCOME" != "success" ]; then
             echo "::warning::The Build step reported '$BUILD_OUTCOME' although Unity produced a complete WebGL player; continuing. Read the Build step log (docs/CI.md section 2b, validateBuild)."
           fi
@@ -242,7 +251,7 @@ jobs:
         id: shoot_expand
         if: steps.shoot.outcome == 'success'
         continue-on-error: true
-        run: node tools/ci-shots/shoot.mjs --dir player --out artifacts/shots/expand --sha "$GITHUB_SHA" --query scale=expand --only level_start,tutorial,win
+        run: node tools/ci-shots/shoot.mjs --dir player --out artifacts/shots/expand --sha "$GITHUB_SHA" --query scale=expand --only level_start,tutorial,win --no-motion
       - name: Upload screenshots (artifact)
         if: always() && hashFiles('artifacts/shots/manifest.json') != ''
         uses: actions/upload-artifact@v4
@@ -271,6 +280,14 @@ jobs:
           print('Branch `ci-shots`: `latest/` and `' + d['shortSha'] + '/` (`bash tools/ci-shots/fetch.sh`). Shots: ' + ', '.join(d['shots']) + '.')
           for name, v in d['viewports'].items():
               print('- ' + name + ': ' + str(len(v['screens'])) + '/' + str(len(d['shots'])) + ' screens' + (', errors: ' + '; '.join(v['errors']) if v['errors'] else ''))
+              a = v.get('art3d')
+              if a:
+                  print('  - 3D page decode: ' + str(a['totalMs']) + ' ms (budget ' + str(a['budgetMs']) + ' ms), during play: ' + (', '.join(a['lateDecodes']) or 'none'))
+              for sq, m in (v.get('motion') or {}).items():
+                  if m.get('pictures'):
+                      print('  - motion ' + sq + ': ' + str(m['pictures']) + ' pictures, ' + str(m['uniquePictures']) + ' unique, ' + str(m['changedPairs']) + ' changed pairs, ' + str(m['changesPerGameSecond']) + ' changes per game second' + (' (undersampled)' if m.get('undersampled') else '') + ', strip ' + m['strip'])
+                  else:
+                      print('  - motion ' + sq + ': ' + str(m.get('error')))
           for w in d.get('warnings', []):
               print('- warning: ' + w)
           PY

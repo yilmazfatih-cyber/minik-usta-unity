@@ -198,8 +198,8 @@ oyuncuya bakılarak belirlenir.
 
 Gerçek derleme hatasında (`error CS…`, paket çözümleme) oyuncu oluşmaz, Verify kırmızı biter; hatanın nedeni yine **Build** adımının günlüğündedir.
 
-Android: `.github/workflows/unity-android.yml` henüz yok. Eklendiğinde aynı korumayı taşımalıdır (Build `continue-on-error: true`, `.apk` dosyasını
-var ve boş değil diye doğrulayan bir Verify adımı, yükleme adımının Verify'a bağlanması) ve aynı `unity-license` eşzamanlılık grubunu kullanmalıdır.
+Android: `.github/workflows/unity-android.yml` aynı korumayı taşır (§8): Build `continue-on-error: true`, `.apk`/`.aab` doğrulayan Verify, yükleme Verify'a bağlı,
+aynı `unity-license` grubu. (P4B-13: eski «henüz yok» satırı kaldırıldı.)
 
 ### Yeniden deneme
 
@@ -229,15 +229,21 @@ Actions → Run workflow.
   koşusunda betikler derlendi (hiç `error CS` yok); `UnityEngine.UI` referansı doğrulandı. Aday adlar (`Unity.ugui`, `Unity.UI`) gerekmedi.
   Başka bir asmdef adı hatası çıkarsa kesin cevap `Library/PackageCache/com.unity.ugui@*/` altındaki `.asmdef` dosyasının adıdır.
 - **`ProjectSettings.asset`:** `companyName` "Tuna & Co.", `productName` "Minik Usta", portre (`defaultScreenOrientation: 0`),
-  eski Input Manager (`activeInputHandler: 0`), WebGL sıkıştırma **kapalı** (`webGLCompressionFormat: 2`; Unity'de
-  `WebGLCompressionFormat` = Brotli 0, Gzip 1, Disabled 2; UnityCsReference `webgl.cs` kaynağıyla doğrulandı), gamma renk uzayı.
-  `CiBuild.BuildWebGL` sıkıştırmayı zaten derleme anında kapatır.
+  eski Input Manager (`activeInputHandler: 0`), WebGL sıkıştırma **Gzip + açma yedeği** (`webGLCompressionFormat: 1`, `webGLDecompressionFallback: 1`; P4B-04,
+  önceden `2` = kapalı; Unity'de `WebGLCompressionFormat` = Brotli 0, Gzip 1, Disabled 2; UnityCsReference `webgl.cs` kaynağıyla doğrulandı), gamma renk uzayı.
+  `CiBuild.BuildWebGL` aynı iki ayarı derleme anında da verir.
 - **`.meta` dosyaları:** Repoda şu an yalnız `Level.unity.meta` izlenir. Unity diğer `.meta` dosyalarını her koşuda yeni GUID'le
   üretir (Library önbelleği isabetsizleşir). §4 ile depoya işlenir (karar: işlenir; GUID kararlılığı). İlk yeşil koşu beklenmez: 41350760117 artifact'i hazır.
 - **Beklenen uyarı (görüldü):** `CiBuild.cs`, `#nullable` bağlamı olmadan `string?` kullanır; Unity derleyicisi bunu uyarı (CS8632,
   `CiBuild.cs(67,30)`) olarak verdi (41350760117, 2 kez). GameCI uyarıları hata saymaz; derleme durmadı.
-- WebGL derlemesi sıkıştırmasız üretilir (`CiBuild.BuildWebGL`); GitHub Pages Brotli/Gzip başlıklarını vermediği için zorunlu.
-  İndirme boyutu bu yüzden büyüktür (tahmini ≈ 30–60 MB); telefon tarayıcısında ilk açılış yavaş olabilir.
+- **WebGL sıkıştırması (P4B-04, 2026-11-02):** `CiBuild.BuildWebGL` **Gzip + `decompressionFallback = true`** üretir. GitHub Pages `Content-Encoding` başlığını
+  bu dosyalar için vermez; açma yedeği açıkken Unity yükleyicisi dosyayı kendi JavaScript açıcısıyla açar (dosyalar `*.data.unityweb`, `*.wasm.unityweb`, `*.framework.js.unityweb`
+  adını alır; `Verify` adımının `*.wasm*` / `*.data*` kalıpları hepsini kabul eder). Sıkıştırma kapalıyken (`Disabled`) koşu 41386489687'de `.data` 20,3 MB + `.wasm` 27,8 MB
+  = **48,1 MB** indiriliyordu (3B sanat `.data`'yı 10,2 → 20,3 MB yaptı). Gzip `.wasm`'ı 3–4× küçültür; PNG'ler (`king_0` 5,3 MB, `atlas_0/1` 2,8 + 2,9 MB) zaten sıkışık olduğundan
+  `.data` az küçülür. **İlk ölçüm** yeni koşunun `Verify` adımının günlüğünde ve iş özetinde ("WebGL download size"); sayı §9'a yazılır. Bütçe: `.data` + `.wasm` ≤ 25 MB
+  (aşılırsa `::warning title=WebGL download size`). Bedeli: açma işlemi tarayıcıda JavaScript ile yapılır (masaüstünde ~1 sn, telefonda birkaç sn tahmini; **ölçülmedi**).
+  Denenmedi (ayrı koşu ister): `Managed Stripping Level: High` (IL2CPP'de yansıma kullanan uGUI türlerini silebilir) ve WebGL "Code Optimization: Disk Size"
+  (`UnityEditor.WebGL.UserBuildSettings.codeOptimization`; bu API UnityCsReference 6000.0'da yok, kapalı modülde, docs.unity3d.com bu ortamdan açılamadı: doğrulanmadan kullanılmadı).
 - Telefonda gerçek his için Android APK daha doğrudur: `CiBuild.BuildAndroid` hazır; ayrı bir iş akışı istendiğinde eklenir
   (imza anahtarı gerekmez, debug APK "bilinmeyen kaynak" izniyle kurulur).
 - Lisans dosyası olmadığı için süresi dolan bir şey yoktur; Unity şifresi değişirse `UNITY_PASSWORD` secret'ı güncellenir.
@@ -435,3 +441,29 @@ Her itişte **çalışmaz**: IL2CPP Android derlemesi WebGL'den çok uzundur ve 
 - **Doğrulanmadı:** bu ortamda Unity ve Android imajı yok; ilk gerçek koşu elle başlatılmadı. Kullanılan `PlayerSettings` üyeleri UnityCsReference 6000.0 ile doğrulandı
   (`SetApplicationIdentifier(NamedBuildTarget, string)`, `SetScriptingBackend(NamedBuildTarget, ScriptingImplementation)`, `Android.targetArchitectures`, `Android.bundleVersionCode`,
   `Android.useCustomKeystore`, `keystoreName`, `keystorePass`, `keyaliasName`, `keyaliasPass`, `defaultInterfaceOrientation`).
+
+## 9. İndirme boyutu ve 3B sayfa çözme bütçesi (paket F1, P4B-04 / P4B-05 / P4B-08)
+
+- **İndirme bütçesi:** `Build/*.data*` + `Build/*.wasm*` ≤ **25 MB** (sıkıştırılmış, diskteki dosyalar tarayıcının indirdiği dosyalardır). `Verify WebGL output` adımı
+  boyutu günlüğe ve iş özetine yazar ("WebGL download size"), aşılırsa `::warning title=WebGL download size`. FTUE çıtası: ilk açılıştan Bölüm 1'e ≤ 10 sn
+  (20 Mbit/s bağlantıda 25 MB ≈ 10 sn, ek JS açma süresi ayrı). Ölçümler aşağıda **Ölçümler** tablosundadır.
+- **3B sayfa çözme bütçesi:** `[minik] art3d decode …` satırlarının toplamı ≤ **250 ms** (CI'nin masaüstü sınıfı CPU'su; telefon birkaç kat yavaştır) ve **hiçbir çözme
+  oyun sırasında olmamalı** (`tutorial` çekiminden sonra). `tools/ci-shots/shoot.mjs` her görünümün `manifest.json` kaydına `art3d { decodes, totalMs, budgetMs, lateDecodes }`
+  yazar, bütçe aşılırsa ya da oyun sırasında çözme olursa `::warning` verir (yayını engellemez). `ArtWarmup`: kral sayfaları `Awake`'te, fx sayfaları ana ekrandan çıkınca ya da
+  2,5 sn sakin ana ekrandan sonra.
+- **Hareket kanıtı (P4B-08):** `?shots=1&motion=0.1` (`shoot.mjs` her zaman ekler; `--no-motion` ile kapanır) iki pencereyi yavaş çekimde oynatır: `king_wave` (ana ekran, açılıştan
+  sonraki ilk 2,4 oyun sn'si, `home` çekiminden önce) ve `king_big_cheer` (kazanma penceresi açılınca, `win` çekiminden önce). Pencerede oyun gerçek zamanın onda biriyle ilerler
+  (`ShotScenario.TimeScale`; `GameRunner` uygulamanın kare süresini bununla çarpar) ve her kare `seq:<ad>:t=<oyun ms>` yazar. Playwright begin–end arasında sayfayı olabildiğince sık
+  fotoğraflar (JPEG, CSS pikseli), her resmi son `t` ile etiketler ve tarayıcıda çözümler: bir önceki resimden farklı olan çiftler (≥ 24 piksel, kanal toplamı farkı > 48), benzersiz resim
+  sayısı, oyun saniyesi başına değişim sayısı, hareket kutusu ve 24 resimlik şerit PNG (`<görünüm>/seq_<ad>_strip.png`, `ci-shots` dalında). `undersampled: true` ise resimler arası
+  ortalama oyun süresi 16,7 ms'den uzundur: değişim sayısı alt sınırdır. **Bu sayılar hareketin akıcılığını ölçer, "Royal Match gibi" olduğunu kanıtlamaz**: şeridi design-lead rubrikle puanlar.
+  Tasarım gereği 2,5B katman (nefes, ezilme, pop) klip çizimlerinin üstünde sürekli hareket eder; klip çizim sayısı `king.json`'dadır (`king_idle` 48 kare / 9 çizim …, P4B-08).
+- **Ayrı bir CI denemesi ister, yapılmadı:** `Managed Stripping Level: High`, WebGL "Code Optimization: Disk Size" (API doğrulanamadı, §3 sıkıştırma maddesi), `king_0` render
+  ölçeğinin %70'e çekilmesi (design-lead; sayfa ≈ yarıya iner), ASTC/ETC2 içe aktarılmış dokular (P3-11).
+
+### Ölçümler
+
+| Koşu | `.data` | `.wasm` | Toplam | Not |
+| --- | --- | --- | --- | --- |
+| 41386489687 (`e4be42e`, sıkıştırma kapalı) | 20 323 050 B | 27 790 131 B | 48,1 MB | yük: P4B-04 kanıtı |
+| (F1 koşusu: Gzip + açma yedeği) | – | – | – | aşağıda doldurulur |

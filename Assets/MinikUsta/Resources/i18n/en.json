@@ -188,7 +188,7 @@
     "life": "You lost a life.",
     "offer": {
       "count": "Offer {n}/{max}",
-      "gift": "+{n} moves · a gift from Grandpa",
+      "gift": "+{n} moves · a gift from the King",
       "last": "Offer {n}/{max} · last offer",
       "moves": "+{n} moves"
     },
@@ -227,7 +227,7 @@
       "desc": "Low gravity: tap the board while it falls to nudge it."
     },
     "s1": {
-      "desc": "Finish this floor; the site slides and the truck delivers."
+      "desc": "Finish this floor; the site slides, your blocks wait."
     },
     "s2": {
       "desc": "Keep hatched cells empty. Fill above them via a gap or bridge."
@@ -367,7 +367,7 @@
         "tuna": "What's this old sign?"
       },
       "p2": {
-        "dede": "Our old company! Closed for years."
+        "king": "Our old company! Closed for years."
       },
       "p3": {
         "kepce": "Woof!",
@@ -408,7 +408,6 @@
       "goldtrowel": "Trowel: tap a block to place.",
       "lastmoves": "Few moves left. Think it through.",
       "queue": "Make room for the truck.",
-      "reshuffle": "Stuck! The truck reshuffles the yard.",
       "resume": "Just as you left it, kiddo.",
       "streak": "{n} right placements: Golden Trowel!",
       "support": "Fill the gap below first, kiddo.",

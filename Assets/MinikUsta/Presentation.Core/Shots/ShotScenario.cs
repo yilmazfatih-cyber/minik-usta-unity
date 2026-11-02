@@ -13,6 +13,14 @@
 //   block to its golden release node, held and then cancelled: the lifted block and its green K-18 shadow) → landed (that move committed and settled) → … golden solution …
 //   → win (the win window and its rewards settled) → done
 //
+// Motion windows (P4B-08; only with `?shots=1&motion=<scale>`): two stretches of game time are played in slow motion so that a software-GL
+// browser, which draws a few frames per second, can still photograph every frame of the animation: `seq:king_wave` (the home king's
+// arrival wave, the first `MotionGameMs` after boot, before the `home` shot) and `seq:king_big_cheer` (the win window's king, from the
+// moment the win window opens, before the `win` shot). Inside a window `TimeScale` is the scale (the Unity layer multiplies the app's frame
+// time by it) and the scenario reports `seq:<name>:begin`, `seq:<name>:t=<game ms>` (every frame) and `seq:<name>:end`; the Playwright
+// script (tools/ci-shots) photographs the page between begin and end, tags each picture with the last `t`, resamples the pictures to
+// 60 and 30 frames per game second, counts how many differ from the previous one and writes a strip PNG.
+//
 // Pure: no engine, no wall clock — the clock is the sum of `Tick` frame times, so a test drives it with fixed frames.
 using System;
 using System.Collections.Generic;
@@ -28,6 +36,12 @@ namespace MinikUsta.Presentation.Shots
     {
         /// <summary>Game milliseconds the scenario stands still after a shot signal.</summary>
         public float HoldMs = 2500f;
+
+        /// <summary>P4B-08: `&amp;motion=0.1` plays the two motion windows at that fraction of real time (0 = no windows).</summary>
+        public float MotionScale;
+
+        /// <summary>P4B-08: game milliseconds of one motion window (`&amp;motionMs=2400`).</summary>
+        public float MotionGameMs = 2400f;
 
         /// <summary>`url` is `Application.absoluteURL` (empty outside WebGL); null when `shots=1` is not in the query.</summary>
         public static ShotOptions? FromUrl(string? url)
@@ -49,6 +63,12 @@ namespace MinikUsta.Presentation.Shots
                     case "shots":
                         on = val == "1";
                         break;
+                    case "motion":
+                        if (float.TryParse(val, System.Globalization.NumberStyles.Float, System.Globalization.CultureInfo.InvariantCulture, out float ms) && ms >= 0.02f && ms <= 1f) o.MotionScale = ms;
+                        break;
+                    case "motionMs":
+                        if (float.TryParse(val, System.Globalization.NumberStyles.Float, System.Globalization.CultureInfo.InvariantCulture, out float mg) && mg >= 500f && mg <= 6000f) o.MotionGameMs = mg;
+                        break;
                     case "shotsHold":
                         if (float.TryParse(val, System.Globalization.NumberStyles.Float, System.Globalization.CultureInfo.InvariantCulture, out float h) && h >= 200f && h <= 20000f) o.HoldMs = h;
                         break;
@@ -65,6 +85,9 @@ namespace MinikUsta.Presentation.Shots
 
         /// <summary>The shots in the order they are signalled (`shot:&lt;name&gt;`); the CI manifest lists the same names.</summary>
         public static readonly string[] ShotNames = { "home", "settings", "level_start", "tutorial", "drag_mid", "landed", "win" };
+
+        /// <summary>The motion windows (`seq:&lt;name&gt;`) and the shot each one comes right before; tools/ci-shots/shots.json lists the same.</summary>
+        public static readonly (string Name, string Before)[] SequenceNames = { ("king_wave", "home"), ("king_big_cheer", "win") };
 
         /// <summary>Game milliseconds from the start after which the scenario gives up (`error:timeout`).</summary>
         public const float TimeoutMs = 240000f;
@@ -115,6 +138,11 @@ namespace MinikUsta.Presentation.Shots
 
         public bool Done { get; private set; }
         public bool Failed { get; private set; }
+
+        /// <summary>P4B-08: factor the Unity layer applies to the app's frame time (1 outside a motion window).</summary>
+        public float TimeScale { get; private set; } = 1f;
+        private bool motionOpen;
+        private float motionGameMs;
         /// <summary>Name of the step being waited for / run (tests, logs).</summary>
         public string Current => index < steps.Count ? steps[index].Name : "done";
         /// <summary>Shots signalled so far, in order.</summary>
@@ -125,6 +153,7 @@ namespace MinikUsta.Presentation.Shots
         private void Build()
         {
             float hold = options.HoldMs;
+            Add("home_motion", 0f, Motion("king_wave", () => app.Flow.Current == AppScreen.Home));
             Add("boot", 2500f, Once(() => RequireScreen(AppScreen.Home) ? Shot("home") : false));
             Add("open_settings", hold, Once(() => TapHome(HomeView.SettingsAction)));
             Add("settings", 1000f, Once(() => Shot("settings")));
@@ -145,6 +174,7 @@ namespace MinikUsta.Presentation.Shots
             Add("first_move", 1000f, Once(CommitNext));
             Add("landed", 0f, WaitIdleThen(450f, () => Shot("landed")));
             Add("solve", hold, Solve);
+            Add("win_motion", 0f, Motion("king_big_cheer", () => app.Player.Panel == PanelKind.Win));
             Add("win", 0f, WaitWin);
             Add("done", hold, Once(() =>
             {
@@ -155,6 +185,31 @@ namespace MinikUsta.Presentation.Shots
         }
 
         private void Add(string name, float waitMs, Run run) => steps.Add(new Step(name, waitMs, run));
+
+        /// <summary>
+        /// P4B-08: a motion window. Waits (up to the scenario's own timeout) until `ready`, then plays `MotionGameMs` game milliseconds at
+        /// `MotionScale` of real time, reporting `seq:name:begin`, one `seq:name:t=` line per frame and `seq:name:end`. No window without a scale.
+        /// </summary>
+        private Run Motion(string name, Func<bool> ready) => dtMs =>
+        {
+            if (options.MotionScale <= 0f) return true;
+            if (!motionOpen)
+            {
+                if (!ready()) return false;
+                motionOpen = true;
+                motionGameMs = 0f;
+                TimeScale = options.MotionScale;
+                Say("seq:" + name + ":begin");
+                return false;
+            }
+            motionGameMs += dtMs * TimeScale;
+            Say("seq:" + name + ":t=" + ((int)motionGameMs).ToString(System.Globalization.CultureInfo.InvariantCulture));
+            if (motionGameMs < options.MotionGameMs) return false;
+            motionOpen = false;
+            TimeScale = 1f;
+            Say("seq:" + name + ":end");
+            return true;
+        };
 
         /// <summary>A step that does its work once: `act` returns false to fail the scenario.</summary>
         private Run Once(Func<bool> act) => _ =>

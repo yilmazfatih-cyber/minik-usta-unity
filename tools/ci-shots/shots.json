@@ -1,9 +1,37 @@
 {
-  "doc": "Single list of the CI screenshots, in the order ShotScenario signals them (Assets/MinikUsta/Presentation.Core/Shots/ShotScenario.cs; a unit test keeps both equal). The Playwright script waits for '[minikShot] shot:<name>' lines and saves <viewport>/<name>.png.",
+  "doc": "Single list of the CI screenshots, in the order ShotScenario signals them (Assets/MinikUsta/Presentation.Core/Shots/ShotScenario.cs; a unit test keeps both equal). The Playwright script waits for '[minikShot] shot:<name>' lines and saves <viewport>/<name>.png. `sequences` are the motion windows (P4B-08): the script photographs the page between '[minikShot] seq:<name>:begin' and ':end' (the game runs at `motionScale` of real time inside them), writes <viewport>/seq_<name>_strip.png and the frame statistics into manifest.json; a sequence comes right before the shot named in `before`.",
   "tag": "[minikShot]",
-  "shots": ["home", "settings", "level_start", "tutorial", "drag_mid", "landed", "win"],
+  "shots": [
+    "home",
+    "settings",
+    "level_start",
+    "tutorial",
+    "drag_mid",
+    "landed",
+    "win"
+  ],
+  "sequences": [
+    {
+      "name": "king_wave",
+      "before": "home"
+    },
+    {
+      "name": "king_big_cheer",
+      "before": "win"
+    }
+  ],
+  "motionScale": 0.1,
+  "art3dDecodeBudgetMs": 250,
   "viewports": [
-    { "name": "390x844", "width": 390, "height": 844 },
-    { "name": "360x800", "width": 360, "height": 800 }
+    {
+      "name": "390x844",
+      "width": 390,
+      "height": 844
+    },
+    {
+      "name": "360x800",
+      "width": 360,
+      "height": 800
+    }
   ]
 }

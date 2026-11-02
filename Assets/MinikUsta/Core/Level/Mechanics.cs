@@ -103,7 +103,7 @@ namespace MinikUsta.Core.Level
             new MechanicSignature("Y6", 14, l => l.Gravity.Yard),
             new MechanicSignature("Y7", 19, l => AnyObstacle(l, "screw")),
             new MechanicSignature("Y8", 35, l => AnyFlag(l, PieceFlags.Mortar)),
-            new MechanicSignature("S1", 5, l => l.Build.Mode == "segments" && l.Build.Segments.Length >= 2),
+            new MechanicSignature("S1", 1, l => l.Build.Mode == "segments" && l.Build.Segments.Length >= 2),
             new MechanicSignature("S3", 21, l => AnyFlag(l, PieceFlags.Glass)),
             new MechanicSignature("S4", 17, l => (l.Build.Debris?.Length ?? 0) > 0),
             new MechanicSignature("S5", 31, l => l.Build.Mode == "carousel"),

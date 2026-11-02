@@ -12,8 +12,9 @@ namespace MinikUsta.Editor
 {
     /// <summary>
     /// Headless build entry points for GitHub Actions (GameCI unity-builder `buildMethod`).
-    /// WebGL is built with compression disabled because GitHub Pages does not send the
-    /// Content-Encoding headers that Brotli/Gzip builds need.
+    /// WebGL is built with Gzip and the decompression fallback (P4B-04): GitHub Pages does not send the Content-Encoding headers that a
+    /// plain Gzip/Brotli build needs, so the Unity loader inflates the files itself (a JavaScript decompressor is included). The files
+    /// on disk are what the browser downloads; with compression Disabled they were 48,6 MB (run 41386489687, 3D art in the data file).
     /// </summary>
     public static class CiBuild
     {
@@ -24,8 +25,8 @@ namespace MinikUsta.Editor
             if (scenes.Length == 0)
                 throw new InvalidOperationException("No enabled scenes in EditorBuildSettings; add a scene before building.");
 
-            PlayerSettings.WebGL.compressionFormat = WebGLCompressionFormat.Disabled;
-            PlayerSettings.WebGL.decompressionFallback = false;
+            PlayerSettings.WebGL.compressionFormat = WebGLCompressionFormat.Gzip;
+            PlayerSettings.WebGL.decompressionFallback = true;
             PlayerSettings.WebGL.dataCaching = true;
             PlayerSettings.runInBackground = true;
 

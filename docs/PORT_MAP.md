@@ -1,6 +1,6 @@
 # TS → C# eşleme tablosu (PORT_MAP)
 
-Kaynak gerçek: web reposu `src/core/**` (`../minik-usta`; **A3 sonrası: `wip/a2-levels` `e80a318`** — `RULES_VERSION` 3, K-55; önceki satırlar `fd61abd` içindir; çekirdek, testler ve veri `4ce980f` ile aynı — `4ce980f`'den bu yana yalnız belge commit'leri var:
+Kaynak gerçek: web reposu `src/core/**` (`../minik-usta`; **F1 sonrası: birleşik `wip/phase-2r` `6269c0c`** (= `wip/a2-levels`; P4B-01: `e80a318` veri + test paketi + Faz 2R arşivi); A3 `e80a318` ile taşındı — `RULES_VERSION` 3, K-55; önceki satırlar `fd61abd` içindir; çekirdek, testler ve veri `4ce980f` ile aynı — `4ce980f`'den bu yana yalnız belge commit'leri var:
 `8ae243a`, `b31c4e8`, `fd61abd`. Q3 denetimi: `git diff --stat 4ce980f fd61abd -- src tests levels config` boş). Her paket bu tabloyu günceller.
 Durum: **P0** = iskelet paketinde taşındı · **P1** = hareket paketinde taşındı · **P2** = kural / çıkmaz / güçlendirici
 paketinde taşındı · **P3** = hamle hattı + oturum paketinde taşındı · **P4** = doğrulama derinliği paketinde eklendi
@@ -126,6 +126,20 @@ P4'te ad değişikliği (gövde aynı, TS başlığındaki kimlik ada eklendi; k
 
 Toplam: 1 460 test (P1 sonunda 366; P2 sonunda 618; P3 sonunda 937; P4 +483: 406 fuzz durumu dahil — kehanet çıktısıyla; inceleme +26; P6 +14: 1 455 geçer, 5 `Ignore`),
 `dotnet build -warnaserror` 0 uyarı; `fi_FI`, `ar_SA`, `sv_SE`, `tr_TR` yerel ayarlarında da 0 kırmızı.
+
+### Paket F1 — inceleme turu (P4B-01), web `wip/phase-2r` (`6269c0c`)
+
+Web, `wip/a2-levels`'i kırmızı testleriyle değil, yeşil `npm run check` ile (2 227 test) `wip/phase-2r`'ye birleştirdi; Faz 2R verisi web'de de arşivdir (`tests/fixtures/levels-2r/` = `Core.Tests/Archive2R`, bayt bayt aynı).
+`tools/sync-from-web.sh` birleşik daldan yeniden koştu: `levels/`, `tests/golden/`, `economy.json`, `tokens.json`, fikstürler, çözümler **bayt bayt değişmedi** (kanıt); yalnız `i18n/{tr,en}.json` değişti (P4B-07).
+`gen-p0…p3`, `gen-rule-ids` yeniden koştu: yalnız `webCommit` satırı değişti. Kehanet: `node tools/diff/ts-oracle.mjs <web>` 655 dizi / 16 376 eylem, `dotnet test` Core 1 882 geçer, 5 atlanır, 0 kırmızı.
+
+| TS | C# | Not |
+| --- | --- | --- |
+| `level/mechanics.ts` `MECHANICS` S1 `firstLevel` 5 → 1 | `Level/Mechanics.cs` S1 `1`, `MechanicsTests.cs` | OBSTACLES "Veri imzası" ile eşit (yalnız tablo; doğrulayıcı kullanmaz) |
+| `src/i18n/*.json` (`obs.s1.desc`, `lose.offer.gift`, `story.prologue.p2.king`; `tut.ctx.reshuffle` silindi) | `Resources/i18n/{tr,en}.json` (eşitlendi), `unity_{tr,en}.json` (gift örtüsü kalktı) | web kaynağı Usta Kral'ı taşır |
+| — (Unity'ye özgü) | `Presentation.Core/Anim/ArtWarmup.cs`, `Unity/GameRunner.cs` | P4B-05: kral sayfaları `Awake`'te, fx sayfaları ana ekrandan çıkınca ya da 2,5 sn sakin ana ekrandan sonra çözülür (`ClipSprites.Warm`) |
+| — (Unity'ye özgü) | `Presentation.Core/Shots/ShotScenario.cs` (`Motion`, `TimeScale`, `ShotOptions.MotionScale`), `tools/ci-shots/shoot.mjs` | P4B-08: iki yavaş çekim penceresi (`seq:king_wave`, `seq:king_big_cheer`), kare istatistiği + şerit PNG; P4B-05: 3B sayfa çözme süreleri manifest'e |
+| — | `Editor/CiBuild.cs`, `ProjectSettings.asset`, `unity-webgl.yml` | P4B-04: Gzip + `decompressionFallback`, indirme boyutu bütçesi (§9) |
 
 ### Paket A3 — K-55 sabit saha (D-099), web `wip/a2-levels` (`e80a318`)
 

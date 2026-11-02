@@ -10,6 +10,14 @@
 //   node shoot.mjs --dir build/WebGL/MinikUsta --out artifacts/shots --sha <git sha> [--dpr 2] [--port 0]
 //                  [--ready-timeout 240] [--shot-timeout 150] [--url-path /] [--settle 600]
 //                  [--query scale=expand] [--only level_start,tutorial,win]   (extra URL parameters; save only these shots)
+//                  [--no-motion] [--seq-timeout 420]   (P4B-08: skip / limit the motion windows)
+// Motion windows (P4B-08): the game runs two stretches in slow motion (shots.json `sequences`, `motionScale`, ShotScenario) and reports
+// `seq:<name>:begin|t=<game ms>|end`. Between begin and end this script photographs the page as fast as it can (JPEG, CSS pixels), tags
+// every picture with the last t, and analyses them in the browser: the pictures that differ from the previous one (frame statistics in the
+// manifest: samples, unique pictures, changed pairs, changes per game second), the box where anything moved, and a strip PNG
+// (<viewport>/seq_<name>_strip.png, 24 pictures cropped to that box). The numbers say how fluid the animation is; the strip is for the
+// design-lead's rubric. Decode times of the 3D pages (`[minik] art3d decode ...`) go into the manifest too (P4B-05): a budget warning
+// when their sum exceeds shots.json `art3dDecodeBudgetMs`, and every decode after the tutorial shot (during play) is listed as late.
 // Environment: PLAYWRIGHT_CHROMIUM_EXECUTABLE (use a preinstalled Chromium), GITHUB_* (written into the manifest).
 import fs from 'node:fs';
 import http from 'node:http';
@@ -37,6 +45,8 @@ const settleMs = Number(arg('settle', '600'));
 const urlPath = arg('url-path', '/');
 const extraQuery = arg('query', '');
 const only = arg('only', '');
+const noMotion = process.argv.includes('--no-motion');
+const seqTimeoutMs = Number(arg('seq-timeout', '420')) * 1000;
 const want = only ? new Set(only.split(',').map((x) => x.trim()).filter(Boolean)) : null;
 if (!dir || !fs.existsSync(path.join(dir, 'index.html'))) {
   console.error('shoot.mjs: --dir must hold the WebGL player (index.html not found in ' + dir + ')');
@@ -168,6 +178,121 @@ function distinctColours(file) {
   return seen.size;
 }
 
+// --- motion analysis (P4B-08) ----------------------------------------------------------------------------------------------------
+// Runs in a scratch page of the same browser context: decodes the pictures (JPEG, CSS pixels) to canvases, counts the consecutive pairs
+// that differ (a pair "changed" when at least 24 pixels differ by more than 48 in the channel sum), takes the union of the changed
+// pixels as the box where anything moved, and lays 24 evenly spaced pictures, cropped to that box, out as a strip (PNG data URL).
+async function analyseFrames(context, frames) {
+  const ap = await context.newPage();
+  try {
+    await ap.setContent('<!doctype html><body style="margin:0"></body>');
+    const items = frames.map((f) => ({ t: f.t, b64: f.buf.toString('base64') }));
+    return await ap.evaluate(async (list) => {
+      const imgs = [];
+      for (const it of list) {
+        const im = new Image();
+        im.src = 'data:image/jpeg;base64,' + it.b64;
+        await im.decode();
+        imgs.push(im);
+      }
+      const w = imgs[0].naturalWidth;
+      const h = imgs[0].naturalHeight;
+      const cv = document.createElement('canvas');
+      cv.width = w;
+      cv.height = h;
+      const g = cv.getContext('2d', { willReadFrequently: true });
+      const px = imgs.map((im) => {
+        g.drawImage(im, 0, 0);
+        return g.getImageData(0, 0, w, h).data;
+      });
+      let bx0 = w;
+      let by0 = h;
+      let bx1 = -1;
+      let by1 = -1;
+      let changedPairs = 0;
+      const gaps = [];
+      for (let i = 1; i < px.length; i++) {
+        const a = px[i - 1];
+        const b = px[i];
+        let cnt = 0;
+        let x0 = w;
+        let y0 = h;
+        let x1 = -1;
+        let y1 = -1;
+        for (let y = 0; y < h; y++) {
+          for (let x = 0; x < w; x++) {
+            const o = (y * w + x) * 4;
+            const d = Math.abs(a[o] - b[o]) + Math.abs(a[o + 1] - b[o + 1]) + Math.abs(a[o + 2] - b[o + 2]);
+            if (d > 48) {
+              cnt++;
+              if (x < x0) x0 = x;
+              if (x > x1) x1 = x;
+              if (y < y0) y0 = y;
+              if (y > y1) y1 = y;
+            }
+          }
+        }
+        if (cnt >= 24) {
+          changedPairs++;
+          bx0 = Math.min(bx0, x0);
+          by0 = Math.min(by0, y0);
+          bx1 = Math.max(bx1, x1);
+          by1 = Math.max(by1, y1);
+        }
+        gaps.push(list[i].t - list[i - 1].t);
+      }
+      const pad = 24;
+      let box;
+      if (bx1 < 0) box = { x: Math.round(w / 4), y: Math.round(h / 4), w: Math.round(w / 2), h: Math.round(h / 2) };
+      else {
+        const x = Math.max(0, bx0 - pad);
+        const y = Math.max(0, by0 - pad);
+        box = { x, y, w: Math.min(w - x, Math.max(160, bx1 - x + pad)), h: Math.min(h - y, Math.max(160, by1 - y + pad)) };
+      }
+      const n = Math.min(24, imgs.length);
+      const pick = [];
+      for (let k = 0; k < n; k++) pick.push(Math.round((k * (imgs.length - 1)) / Math.max(1, n - 1)));
+      const scale = 200 / box.h;
+      const cw = Math.max(1, Math.round(box.w * scale));
+      const cols = 8;
+      const rows = Math.ceil(n / cols);
+      const sheet = document.createElement('canvas');
+      sheet.width = cols * (cw + 4) + 4;
+      sheet.height = rows * (200 + 18) + 4;
+      const sg = sheet.getContext('2d');
+      sg.fillStyle = '#26323f';
+      sg.fillRect(0, 0, sheet.width, sheet.height);
+      sg.font = '11px sans-serif';
+      pick.forEach((idx, k) => {
+        const cx = 4 + (k % cols) * (cw + 4);
+        const cy = 4 + Math.floor(k / cols) * 218;
+        sg.drawImage(imgs[idx], box.x, box.y, box.w, box.h, cx, cy + 16, cw, 200);
+        sg.fillStyle = '#ffffff';
+        sg.fillText('t=' + list[idx].t + ' ms', cx + 2, cy + 12);
+      });
+      const span = list[list.length - 1].t - list[0].t;
+      const sorted = [...gaps].sort((p, q) => p - q);
+      const median = sorted.length ? sorted[Math.floor(sorted.length / 2)] : 0;
+      return {
+        sheet: sheet.toDataURL('image/png'),
+        pictureSize: { w, h },
+        box,
+        firstT: list[0].t,
+        lastT: list[list.length - 1].t,
+        gameSpanMs: span,
+        medianGapMs: median,
+        changedPairs,
+        changedRatio: gaps.length ? Math.round((changedPairs / gaps.length) * 100) / 100 : 0,
+        changesPerGameSecond: span > 0 ? Math.round((changedPairs / (span / 1000)) * 10) / 10 : null,
+        // above ~16.7 ms between pictures the cadence is below 60 per game second: the count is a lower bound
+        undersampled: median > 16.7,
+      };
+    }, items);
+  } finally {
+    await ap.close().catch(() => {});
+  }
+}
+
 // --- one viewport ------------------------------------------------------------------------------------------------------------
 const ANDROID_UA =
   'Mozilla/5.0 (Linux; Android 13; Pixel 7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/130.0.0.0 Mobile Safari/537.36';
@@ -187,12 +312,31 @@ async function captureViewport(browser, vp, baseUrl) {
   const page = await ctx.newPage();
   const events = [];
   const consoleLog = [];
+  const decodes = []; // P4B-05: `[minik] art3d decode <resource> <w>x<h> <ms> ms`
+  const seqT = {}; // P4B-08: the last `seq:<name>:t=` per sequence
+  const seqEnded = new Set();
+  let currentShot = 'boot';
   page.on('console', (msg) => {
     const text = msg.text();
-    consoleLog.push('[' + msg.type() + '] ' + text);
-    if (consoleLog.length > 3000) consoleLog.splice(0, 1000);
+    const d = /\[minik\] art3d decode (\S+) (\d+)x(\d+) (\d+) ms/.exec(text);
+    if (d) decodes.push({ resource: d[1], width: Number(d[2]), height: Number(d[3]), ms: Number(d[4]), afterShot: currentShot });
     const i = text.indexOf(cfg.tag);
-    if (i >= 0) events.push(text.slice(i + cfg.tag.length).trim().split('\n')[0].trim());
+    const ev = i >= 0 ? text.slice(i + cfg.tag.length).trim().split('\n')[0].trim() : null;
+    const tm = ev ? /^seq:([a-z_]+):t=(\d+)$/.exec(ev) : null;
+    // the per-frame t lines are kept out of the console tail (hundreds of them) and out of the ordered event list
+    if (!tm) {
+      consoleLog.push('[' + msg.type() + '] ' + text);
+      if (consoleLog.length > 3000) consoleLog.splice(0, 1000);
+    }
+    if (!ev) return;
+    if (tm) {
+      seqT[tm[1]] = Number(tm[2]);
+      return;
+    }
+    if (ev.startsWith('shot:')) currentShot = ev.slice(5);
+    const end = /^seq:([a-z_]+):end$/.exec(ev);
+    if (end) seqEnded.add(end[1]);
+    events.push(ev);
   });
   page.on('pageerror', (e) => consoleLog.push('[pageerror] ' + e.message));
   page.on('crash', () => consoleLog.push('[crash] the page crashed'));
@@ -208,6 +352,33 @@ async function captureViewport(browser, vp, baseUrl) {
       await sleep(100);
     }
   }
+  /** P4B-08: photographs the page between `seq:<name>:begin` and `:end`, analyses the pictures in the browser, writes the strip. */
+  async function captureSequence(pg, context, viewport, name, dir) {
+    const begin = await next((e) => e === 'seq:' + name + ':begin' || e.startsWith('error:'), shotTimeoutMs);
+    if (begin === null || begin.startsWith('error:')) {
+      const why = begin === null ? 'seq:' + name + ':begin did not arrive within ' + shotTimeoutMs / 1000 + ' s' : begin;
+      warn(viewport.name + ': ' + why);
+      return { ok: false, error: why };
+    }
+    const frames = [];
+    const deadline = Date.now() + seqTimeoutMs;
+    while (!seqEnded.has(name) && Date.now() < deadline) {
+      const t = seqT[name] === undefined ? 0 : seqT[name];
+      const buf = await pg.screenshot({ type: 'jpeg', quality: 60, scale: 'css' });
+      frames.push({ t, buf });
+    }
+    const finished = seqEnded.has(name);
+    if (!finished) warn(viewport.name + ': seq:' + name + ':end did not arrive within ' + seqTimeoutMs / 1000 + ' s (' + frames.length + ' pictures)');
+    if (frames.length < 3) return { ok: false, error: 'only ' + frames.length + ' picture(s)' };
+    const crypto = await import('node:crypto');
+    const unique = new Set(frames.map((f) => crypto.createHash('sha1').update(f.buf).digest('hex'))).size;
+    const analysis = await analyseFrames(context, frames);
+    const stripName = 'seq_' + name + '_strip.png';
+    fs.writeFileSync(path.join(dir, stripName), Buffer.from(analysis.sheet.split(',')[1], 'base64'));
+    delete analysis.sheet;
+    return { ok: finished, finished, pictures: frames.length, uniquePictures: unique, strip: viewport.name + '/' + stripName, ...analysis };
+  }
+
   const finish = async () => {
     fs.writeFileSync(path.join(out, 'console-' + vp.name + '.log'), consoleLog.slice(-600).join('\n') + '\n');
     await ctx.close();
@@ -224,7 +395,8 @@ async function captureViewport(browser, vp, baseUrl) {
     result.gl = gl;
     if (!gl) warn(vp.name + ': this Chromium has no WebGL2 (software GL flags did not take effect)');
 
-    await page.goto(baseUrl + '?shots=1' + (extraQuery ? '&' + extraQuery : ''), { waitUntil: 'domcontentloaded', timeout: 60000 });
+    const motionQuery = noMotion || !cfg.motionScale ? '' : '&motion=' + cfg.motionScale;
+    await page.goto(baseUrl + '?shots=1' + motionQuery + (extraQuery ? '&' + extraQuery : ''), { waitUntil: 'domcontentloaded', timeout: 60000 });
     const ready = await next((e) => e.startsWith('ready') || e.startsWith('error:'), readyTimeoutMs);
     if (ready === null || ready.startsWith('error:')) {
       result.errors.push(ready === null ? 'the game did not report "ready" within ' + readyTimeoutMs / 1000 + ' s' : ready);
@@ -239,6 +411,17 @@ async function captureViewport(browser, vp, baseUrl) {
     result.ready = ready;
 
     for (const name of cfg.shots) {
+      for (const sq of (cfg.sequences || []).filter((s) => s.before === name)) {
+        if (noMotion) continue;
+        try {
+          result.motion = result.motion || {};
+          result.motion[sq.name] = await captureSequence(page, ctx, vp, sq.name, dirVp);
+        } catch (e) {
+          result.motionErrors = result.motionErrors || [];
+          result.motionErrors.push(sq.name + ': ' + String(e && e.message ? e.message : e));
+          warn(vp.name + ': motion window ' + sq.name + ' failed: ' + String(e && e.message ? e.message : e));
+        }
+      }
       const ev = await next((e) => e === 'shot:' + name || e.startsWith('error:'), shotTimeoutMs);
       if (ev === null) {
         result.errors.push('shot "' + name + '" did not arrive within ' + shotTimeoutMs / 1000 + ' s');
@@ -267,6 +450,12 @@ async function captureViewport(browser, vp, baseUrl) {
       if (blank) warn(vp.name + '/' + name + '.png is flat (' + colours + ' colours): the canvas was probably not captured');
       result.screens.push({ name, file: vp.name + '/' + name + '.png', bytes, colours, blank });
     }
+    // P4B-05: the decode budget (a desktop-class CPU in CI; a phone is a few times slower)
+    const total = decodes.reduce((s, d) => s + d.ms, 0);
+    const late = decodes.filter((d) => ['tutorial', 'drag_mid', 'landed', 'win'].includes(d.afterShot));
+    result.art3d = { decodes, totalMs: total, budgetMs: cfg.art3dDecodeBudgetMs, lateDecodes: late.map((d) => d.resource + ' (' + d.ms + ' ms after ' + d.afterShot + ')') };
+    if (cfg.art3dDecodeBudgetMs && total > cfg.art3dDecodeBudgetMs) warn(vp.name + ': 3D page decodes took ' + total + ' ms in total (budget ' + cfg.art3dDecodeBudgetMs + ' ms)');
+    if (late.length > 0) warn(vp.name + ': 3D page decode during play: ' + result.art3d.lateDecodes.join(', '));
     result.ok = result.errors.length === 0 && result.screens.length === (want ? want.size : cfg.shots.length) && !result.screens.some((s) => s.blank);
     return result;
   } catch (e) {

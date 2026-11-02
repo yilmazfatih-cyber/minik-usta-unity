@@ -5,6 +5,7 @@
 // get keyboard shortcuts (principle 8, first slice of the debug panel): N next level, R restart, A log the ASCII board
 // (TECH Appendix A), S play the next move of the level's golden solution.
 using MinikUsta.Core;
+using MinikUsta.Presentation.Anim;
 using MinikUsta.Presentation.Audio;
 using MinikUsta.Presentation.Feel;
 using MinikUsta.Presentation.Flow;
@@ -27,6 +28,7 @@ namespace MinikUsta.Unity
         private UiRenderer? ui;
         private PointerInput? input;
         private ShotScenario? shots;
+        private ArtWarmup? warmup;
         private int screenW;
         private int screenH;
 
@@ -43,6 +45,10 @@ namespace MinikUsta.Unity
             }
             // B2: the 3D clip libraries (Usta Kral, FX, home layers); pages decode on first use (ClipSprites)
             var art = ClipSprites.Load();
+            // P4B-05: the king pages decode now, before the first frame (a 160 ms hitch on the first home frame otherwise); the fx
+            // pages decode when the player leaves the home screen (ArtWarmup.Tick), never at the first correct placement
+            warmup = new ArtWarmup(ClipSprites.Warm);
+            warmup.WarmKing();
             var layout = new LayoutSettings();
             var urlMode = ScreenFit.ModeFromUrl(Application.absoluteURL);
             if (urlMode.HasValue) layout.Mode = urlMode.Value; // C1: ?scale=fit | ?scale=expand
@@ -105,7 +111,8 @@ namespace MinikUsta.Unity
             input.Poll(a, a.Player.Viewport);
             if (Debug.isDebugBuild) DebugKeys(a);
             float dtMs = Mathf.Min(Time.unscaledDeltaTime * 1000f, MaxFrameMs);
-            a.Tick(dtMs);
+            warmup?.Tick(dtMs, a.Flow.Current);
+            a.Tick(shots != null ? dtMs * shots.TimeScale : dtMs);
             shots?.Tick(dtMs);
         }
 

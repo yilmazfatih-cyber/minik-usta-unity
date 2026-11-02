@@ -1,5 +1,5 @@
 {
-  "_doc": "Unity-only keys (paket V1): merged on top of the web copy i18n/en.json by MinikUsta.Presentation.I18n.Localizer. Keep the same keys in unity_tr.json. B2 (D-101): keys whose web text names Usta Dede (Grandpa) are overridden here with the King (the EN name of Usta Kral is open: ART_3D §13.1).",
+  "_doc": "Unity-only keys (paket V1): merged on top of the web copy i18n/en.json by MinikUsta.Presentation.I18n.Localizer. Keep the same keys in unity_tr.json. P4B-07: the web source now carries the King (lose.offer.gift, story.prologue.p2.king), so the B2 override of lose.offer.gift was removed; no web key is overridden here any more (the EN name of Usta Kral is open: ART_3D §13.1).",
   "home": {
     "playLevel": "Play · Level {n}"
   },
@@ -13,10 +13,5 @@
   "lang": {
     "tr": "Türkçe",
     "en": "English"
-  },
-  "lose": {
-    "offer": {
-      "gift": "+{n} moves · a gift from the King"
-    }
   }
 }

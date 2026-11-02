@@ -34,6 +34,6 @@ PlayerSettings:
   bundleVersion: 0.3.0
   webGLDataCaching: 1
   webGLTemplate: APPLICATION:Default
-  webGLCompressionFormat: 2
-  webGLDecompressionFallback: 0
+  webGLCompressionFormat: 1
+  webGLDecompressionFallback: 1
   activeInputHandler: 0
