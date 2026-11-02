@@ -1,10 +1,14 @@
 #nullable enable
 // The home screen v2 as a UI tree (paket V1; UX_FLOWS §3 Faz 2R slice; ART_UNITY §4.4 "Ana sayfa"; the v4 mock): day sky
 // background, top bar (lives in the heart, coins, settings), the logo frame (`logo_wordmark`, replaceable — D-033 / D-068),
-// the area ribbon + progress (levels won / 10, UX §3 fallback), the chapter 1 tree house, Tuna, Usta Dede and Kepçe, the one
-// primary button "Oyna · Bölüm N" and the bottom navigation (the four tabs other than home are locked, Faz 2R). EXPAND: the
-// middle group moves down by (H − 1920) × 0,5, the button and the navigation stay at the bottom.
+// the area ribbon + progress (levels won / 10, UX §3 fallback), the chapter 1 tree house, Usta Kral (B2, D-101: the main
+// symbol, his clips drawn by `KingDirector`; a tap cheers), Tuna and Kepçe, the one primary button "Oyna · Bölüm N" and the
+// bottom navigation (the four tabs other than home are locked, Faz 2R). B2: the 3D Renkli Tepe background as its 7 parallax
+// layers (fx.json `layers`, drifting slowly with time — `HomeParallax`; no device tilt), else the flattened `bg_home`.
+// EXPAND: the middle group moves down by (H − 1920) × 0,5, the button and the navigation stay at the bottom.
 using System;
+using System.Collections.Generic;
+using MinikUsta.Presentation.Anim;
 using MinikUsta.Presentation.Art;
 using MinikUsta.Presentation.Meta;
 using MinikUsta.Presentation.Text;
@@ -23,6 +27,8 @@ namespace MinikUsta.Presentation.Ui
         /// <summary>Every level of the slice is won: "Yeni bölümler yolda" over the button (UX §6 loop).</summary>
         public bool AllWon;
         public string Lang = "tr";
+        /// <summary>B2: the 3D parallax layers of fx.json (null / empty = the flattened `bg_home`).</summary>
+        public IReadOnlyList<ParallaxLayer>? Layers;
     }
 
     public static class HomeView
@@ -30,6 +36,14 @@ namespace MinikUsta.Presentation.Ui
         public const string PlayAction = "home:play";
         public const string SettingsAction = "home:settings";
         public const string PlayId = "home.play";
+        public const string KingAction = "home:king";
+        public const string KingId = "home.king";
+        public const string LayerPrefix = "home.bg.";
+        /// <summary>B2: the parallax drift amplitude (design px at parallax 1); every layer is drawn this much wider on each side × its factor.</summary>
+        public const double ParallaxAmpPx = 22;
+
+        /// <summary>The home king's box on a canvas `H` tall (feet at its bottom centre; B2).</summary>
+        public static PxRect KingBox(double H) => new PxRect(468 - 190, 1342 + (H - 1920) * 0.5 - 600, 380, 600);
 
         public static UiNode Build(HomeModel m, double W, double H, Strings t)
         {
@@ -39,13 +53,28 @@ namespace MinikUsta.Presentation.Ui
             r.BlocksInput = true;
             // background: cover the canvas (keeps the 1080 × 1920 aspect, crops the sides on tall screens)
             double bw = Math.Max(W, H * 1080 / 1920), bh = bw * 1920 / 1080;
-            r.Add(UiKit.Image("home.bg", Frames.BgHome, new PxRect((W - bw) / 2, (H - bh) / 2, bw, bh)));
-            // tree house + characters (the calm middle, UX §3)
+            double ox = (W - bw) / 2, oy = (H - bh) / 2, k = bw / 1080;
+            if (m.Layers != null && m.Layers.Count > 0)
+            {
+                foreach (var l in m.Layers)
+                {
+                    var lr = l.TopLeftRect;
+                    double over = l.Parallax * ParallaxAmpPx;
+                    var n = UiKit.Image(LayerPrefix + l.Name, l.Frame, new PxRect(ox + (lr.X - over) * k, oy + lr.Y * k, (lr.W + 2 * over) * k, lr.H * k));
+                    n.Isolated = l.Parallax > 0;
+                    r.Add(n);
+                }
+            }
+            else r.Add(UiKit.Image("home.bg", Frames.BgHome, new PxRect(ox, oy, bw, bh)));
+            // tree house + characters (the calm middle, UX §3): Usta Kral in front, Tuna and Kepçe beside him
             double tw = 760 * 0.62, th = 820 * 0.62;
             r.Add(UiKit.Image("home.town", "town_ch1_treehouse", new PxRect(812 - tw / 2, 1236 + mid - th, tw, th)));
-            r.Add(UiKit.Image("home.dede", "chr_dede_idle", new PxRect(330, 846 + mid, 285, 456)));
-            r.Add(UiKit.Image("home.kepce", "chr_kepce_idle", new PxRect(30, 1170 + mid, 290, 200)));
-            r.Add(UiKit.Image("home.tuna", "chr_tuna_cheer", new PxRect(96, 880 + mid, 330, 440)));
+            r.Add(UiKit.Image("home.tuna", "chr_tuna_cheer", new PxRect(28, 966 + mid, 270, 360)));
+            r.Add(UiKit.Image("home.kepce", "chr_kepce_idle", new PxRect(170, 1196 + mid, 200, 138)));
+            var king = UiKit.Button(KingId, KingDirector.FallbackFrame, KingBox(H), KingAction, false);
+            king.PreserveAspect = true;
+            king.Isolated = true;
+            r.Add(king);
             // top bar: lives (count in the heart), coins (+ locked shop), settings
             var lives = r.Add(UiKit.Image("home.lives", "capsule_home", new PxRect(160, 104, 300, 88), true));
             lives.Add(UiKit.Icon("home.lives.icon", "icon_heart", 182, 148, 112, 112));

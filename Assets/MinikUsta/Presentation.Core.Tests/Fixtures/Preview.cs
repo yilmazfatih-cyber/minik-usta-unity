@@ -105,22 +105,7 @@ namespace MinikUsta.Presentation.Tests.Fixtures
                     o.Add(Atlas.Symbol(piece.Color), x, y, w * 0.42, h * 0.42, Palette.SymbolInk(piece.Color), b + 2, piece.Alpha);
                 }
             }
-            // Q2: the truck (behind the blocks), sprite particles (over everything on the board)
-            if (v.Truck.Visible)
-            {
-                var truck = v.Truck;
-                double cp = truck.CellPx > 0 ? truck.CellPx : c;
-                double th = truck.Rotation * Math.PI / 180.0;
-                int z = 0;
-                foreach (var part in TruckModel.Parts())
-                {
-                    double px = part.X * cp * truck.Scale.X, py = part.Y * cp * truck.Scale.Y;
-                    // rotate the part's offset about the truck centre (counter-clockwise on screen, y down)
-                    double rx = px * Math.Cos(th) + py * Math.Sin(th), ry = -px * Math.Sin(th) + py * Math.Cos(th);
-                    o.Add(part.Tile, truck.Position.X + rx, truck.Position.Y + ry, part.W * cp * truck.Scale.X, part.H * cp * truck.Scale.Y, part.Color, 90 + z, truck.Alpha, part.Sliced, truck.Rotation);
-                    z++;
-                }
-            }
+            // Q2: sprite particles (over everything on the board; D-099 removed the truck)
             foreach (var sp in v.SparksOut)
             {
                 if (!sp.Visible) continue;

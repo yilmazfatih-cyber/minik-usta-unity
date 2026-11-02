@@ -8,6 +8,7 @@
 // card next to Tuna (`PlanThumb.Whole`, every segment as built).
 using System;
 using System.Collections.Generic;
+using MinikUsta.Presentation.Anim;
 using MinikUsta.Presentation.Art;
 using MinikUsta.Presentation.Game;
 using MinikUsta.Presentation.Layout;
@@ -28,6 +29,7 @@ namespace MinikUsta.Presentation.Ui
         /// <summary>Ids of the nodes the player animates.</summary>
         public const string GroupId = "win.group";
         public const string StarId = "win.star";
+        public const string BurstId = "win.burst";
 
         public static string ActionOf(PanelAction a) => ActionPrefix + a;
 
@@ -143,7 +145,7 @@ namespace MinikUsta.Presentation.Ui
             double optH = s.PopupOptionH, gap = s.PopupOptionGap;
             double bottom = PanelBottom(H, s);
             double optsTop = bottom - s.PopupOptionsBottomInsetPx - n * optH - Math.Max(0, n - 1) * gap;
-            bool rich = d != null && (d.Character != null || d.Thumb != null || d.Lines.Length > 0);
+            bool rich = d != null && (d.Character != null || d.King != null || d.Thumb != null || d.Lines.Length > 0);
             double counterH = d?.Counter != null ? 64 : 0;
             double bodyH = rich ? 330 : m.Body.Length > 0 ? s.PopupBodyH : 40;
             double top = optsTop - counterH - bodyH - 130;
@@ -153,7 +155,13 @@ namespace MinikUsta.Presentation.Ui
             if (rich)
             {
                 double textX = body.X;
-                if (d!.Character != null)
+                if (d!.King != null)
+                {
+                    // B2 (D-101): Usta Kral beside the text (LevelHud binds his clip; the node holds the v4 still until then)
+                    group.Add(KingNode(new PxRect(body.X - 16, body.Y - 40, 236, body.H + 40)));
+                    textX = body.X + 220;
+                }
+                else if (d.Character != null)
                 {
                     group.Add(UiKit.Image("win.chr", d.Character, new PxRect(body.X, body.Y, 200, body.H)).WithAspect());
                     textX = body.X + 220;
@@ -234,6 +242,8 @@ namespace MinikUsta.Presentation.Ui
             root.Insert(2, glow);
             if (m.Star)
             {
+                // B2 / JUICE #96: the star burst clip plays here, behind the star and over the panel (KingDirector.PlayWindowBurst)
+                group.Add(new UiNode(BurstId, L.Star) { Visible = false, Isolated = true });
                 group.Add(UiKit.Image(StarId, "icon_star", L.Star));
                 foreach (var (x, y, z, r) in new[] { (-260.0, -40.0, 52.0, 0f), (250.0, -20.0, 60.0, 20f), (-170.0, -120.0, 38.0, 0f), (190.0, -110.0, 42.0, 0f) })
                 {
@@ -244,7 +254,8 @@ namespace MinikUsta.Presentation.Ui
             }
             group.Add(UiKit.Label("win.clear", m.Body, new PxRect(L.Panel.X + 40, L.Star.Bottom + 4, L.Panel.W - 80, 56), TextStyle.Label, 50, TextAlign.Center, null, Rgba.Hex("#2A1D8B")));
             group.Add(UiKit.Image("win.card", "panel_card", L.Card, true));
-            if (d.Character != null) group.Add(UiKit.Image("win.chr", d.Character, new PxRect(L.Card.X + 20, L.Card.Y - 30, 230, 306)).WithAspect());
+            if (d.King != null) group.Add(KingNode(new PxRect(L.Card.X - 4, L.Card.Y - 120, 280, L.Card.H + 116)));
+            else if (d.Character != null) group.Add(UiKit.Image("win.chr", d.Character, new PxRect(L.Card.X + 20, L.Card.Y - 30, 230, 306)).WithAspect());
             if (d.Thumb != null)
                 foreach (var c in d.Thumb.Nodes("win.thumb", L.Structure, 64)) group.Add(c);
             // the structure's name and "Yapı tamam!" beside it (the card tells what was built)
@@ -328,8 +339,19 @@ namespace MinikUsta.Presentation.Ui
                 group.Add(UiKit.Label("win.slot" + i + ".text", d.LockedSlots[i], new PxRect(r.X + 6, r.Y + 120, r.W - 12, 48), TextStyle.Lavender, 30));
             }
             if (m.Buttons.Length > 0) group.Add(Option("win.opt0", m.Buttons[0], new PxRect(W / 2 - 280, panel.Bottom - 80 - 212, 560, 212), lang));
+            // B2 (D-101): the king stands left of the play button and points at it (king_point faces screen right)
+            if (d.King != null) group.Add(KingNode(new PxRect(panel.X - 40, panel.Bottom - 44 - 400, 260, 400)));
             if (d.CloseAction != null) Close(group, panel, d.CloseAction.Value);
             return root;
+        }
+
+        /// <summary>B2: the window's king node (`LevelHud.WindowKingId`): the box he stands in (feet at its bottom centre), the v4 still until bound.</summary>
+        private static UiNode KingNode(PxRect box)
+        {
+            var n = UiKit.Image(LevelHud.WindowKingId, KingDirector.FallbackFrame, box);
+            n.PreserveAspect = true;
+            n.Isolated = true;
+            return n;
         }
 
         private static UiNode WithAspect(this UiNode n)

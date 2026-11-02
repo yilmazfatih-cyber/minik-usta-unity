@@ -2,13 +2,15 @@
 // The level HUD v3 as a UI tree (paket V1; ART_REFERENCE §9.4; ART_UNITY §4.4; UX_FLOWS §5.1, §5.9, §5.10; GDD K-54):
 //   row 1  "Bölüm N" capsule · blocks-left chip (icon_blocks overflowing) · Usta Serisi capsule (4 beads + Golden Trowel ×n)
 //   row 2  panorama well (level name, star, plan picture of the visible segment, segment counter) · moves plate · pause tool
-//   bottom Tuna + Kepçe corner · 4 booster slots (K-54: locked / no target / empty "+" / ready with a count) · truck chip
+//   bottom Usta Kral + Kepçe corner (B2, D-101: the king's clips; Tuna stays on the home screen) · 4 booster slots (K-54: locked /
+//          no target / empty "+" / ready with a count) · truck chip (D-099: only while a block waits in the queue)
 // It implements the HUD half of `ILevelView` over an `IUiSurface` (Unity: uGUI), so the Unity layer only forwards calls; the
 // level windows are built by `WindowViews` on the Window layer. Pure: the tests drive it with a fake surface.
 using System;
 using System.Collections.Generic;
 using System.Globalization;
 using MinikUsta.Core;
+using MinikUsta.Presentation.Anim;
 using MinikUsta.Presentation.Art;
 using MinikUsta.Presentation.Game;
 using MinikUsta.Presentation.Layout;
@@ -20,6 +22,8 @@ namespace MinikUsta.Presentation.Ui
     public sealed class LevelHud
     {
         public const string PauseAction = "hud:pause";
+        public const string KingId = "hud.king";
+        public const string WindowKingId = "win.king";
         public const string BoosterAction = "hud:booster:";
         /// <summary>UX §5.1 slot icons, `HudState.SlotOrder`.</summary>
         public static readonly string[] SlotIcons = { "icon_hammer", "icon_crane", "icon_brush", "icon_undo" };
@@ -52,6 +56,12 @@ namespace MinikUsta.Presentation.Ui
             this.onPause = onPause;
             for (int i = 0; i < Beads; i++) beads[i] = new ProxyTarget();
         }
+
+        /// <summary>B2: Usta Kral's clips (the corner and the window king bind to it); null = the v4 still.</summary>
+        public KingDirector? King { get; set; }
+
+        /// <summary>The corner king's feet (design px) and box of a layout (B2): the box is the UX §5.10 character corner.</summary>
+        public static PxRect KingBox(ScreenLayout L) => new PxRect(L.Character.X - 20, L.Character.Y - 18, 236, L.Character.H + 14);
 
         public UiNode? Root => root;
         public UiNode? Window => window;
@@ -116,8 +126,12 @@ namespace MinikUsta.Presentation.Ui
             pb.Add(UiKit.Icon("hud.pause.icon", "icon_pause", pr.CenterX, pr.CenterY - 4, 80, 80));
             // bottom: characters, booster slots, truck chip
             var cr = L.Character;
-            r.Add(UiKit.Image("hud.tuna", "chr_tuna_idle", new PxRect(cr.X - 10, L.H - 336, 200, 320)));
-            r.Add(UiKit.Image("hud.kepce", "chr_kepce_idle", new PxRect(cr.X + 104, L.H - 172, 190, 131)));
+            // B2 (D-101): Usta Kral in the corner, Kepçe at his feet; the node carries the v4 still until the clips draw it
+            var kb = KingBox(L);
+            var kingNode = r.Add(UiKit.Image(KingId, KingDirector.FallbackFrame, kb));
+            kingNode.PreserveAspect = true;
+            kingNode.Isolated = true;
+            r.Add(UiKit.Image("hud.kepce", "chr_kepce_idle", new PxRect(cr.X + 156, L.H - 118, 136, 94)));
             for (int i = 0; i < L.Boosters.Length && i < SlotIcons.Length; i++)
             {
                 var b = L.Boosters[i];
@@ -135,6 +149,7 @@ namespace MinikUsta.Presentation.Ui
             truck.Visible = false;
             root = r;
             surface.Show(UiLayer.Hud, r, OnTap);
+            if (King != null) King.BindCorner(surface, kingNode, new Vec2((float)kb.CenterX, (float)(kb.Bottom - 6)), King.SizeFor(King.Corner, kb.H));
             moves.Inner = surface.Target(N("hud.moves"));
             blocks.Inner = surface.Target(N("hud.blocks"));
             trowel.Inner = surface.Target(N("hud.trowel"));
@@ -282,6 +297,7 @@ namespace MinikUsta.Presentation.Ui
             if (model == null)
             {
                 window = null;
+                King?.UnbindWindow();
                 surface.Show(UiLayer.Window, null, null);
                 panel.Inner = null;
                 star.Inner = null;
@@ -289,6 +305,18 @@ namespace MinikUsta.Presentation.Ui
             }
             window = WindowViews.Build(model, canvasW, canvasH, settings, text);
             surface.Show(UiLayer.Window, window, OnWindowTap);
+            var wk = window.Find(WindowKingId);
+            var wb = window.Find(WindowViews.BurstId);
+            if (King != null)
+            {
+                if (wb != null) King.BindWindowBurst(surface, wb, new Vec2((float)wb.Rect.CenterX, (float)wb.Rect.CenterY));
+                if (wk != null && model.Detail?.King != null)
+                {
+                    var box = wk.Rect;
+                    King.BindWindow(surface, wk, new Vec2((float)box.CenterX, (float)box.Bottom), King.SizeFor(King.Window, box.H), model.Detail.King.Value);
+                }
+                else King.UnbindWindow();
+            }
             panel.Inner = surface.Target(window.Get(WindowViews.GroupId));
             var s = window.Find(WindowViews.StarId);
             star.Inner = s != null ? surface.Target(s) : null;

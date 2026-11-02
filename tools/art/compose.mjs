@@ -38,6 +38,20 @@ const SIZES = [
 
 const atlas = JSON.parse(readFileSync(join(RES, 'art', 'atlas.json'), 'utf8'));
 const pages = atlas.atlases.map((a) => readFileSync(join(RES, a.file + '.bytes')).toString('base64'));
+// B2: the 3D libraries (Resources/art3d/king.json, fx.json) — their frames join the atlas map with their pages appended; king
+// aliases (stills, deprecated v4 names) resolve to their drawing. A name the v4 atlas has keeps its v4 frame (Unity: AtlasSprites first).
+for (const lib of ['king', 'fx']) {
+  let j;
+  try {
+    j = JSON.parse(readFileSync(join(RES, 'art3d', lib + '.json'), 'utf8'));
+  } catch {
+    continue;
+  }
+  const base = pages.length;
+  for (const a of j.atlases) pages.push(readFileSync(join(RES, a.file + '.bytes')).toString('base64'));
+  for (const [n, f] of Object.entries(j.frames)) if (!atlas.frames[n]) atlas.frames[n] = { ...f, atlas: f.atlas + base };
+  for (const [n, a] of Object.entries(j.aliases ?? {})) if (!atlas.frames[n] && j.frames[a.of]) atlas.frames[n] = { ...j.frames[a.of], atlas: j.frames[a.of].atlas + base };
+}
 const font = readFileSync(join(RES, 'fonts', 'Baloo2-ExtraBold.ttf')).toString('base64');
 const scenes = readdirSync(IN)
   .filter((f) => f.endsWith('.json'))

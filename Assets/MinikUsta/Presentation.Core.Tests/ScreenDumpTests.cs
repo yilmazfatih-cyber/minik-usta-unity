@@ -42,7 +42,7 @@ namespace MinikUsta.Presentation.Tests
 
         private static void Emit(JsonValue scene)
         {
-            foreach (var f in Frames(scene)) Assert.IsTrue(ArtContractTests.Atlas.Has(f), scene["name"]!.AsString + ": " + f);
+            foreach (var f in Frames(scene)) Assert.IsTrue(TestArt.Has(f), scene["name"]!.AsString + ": " + f);
             var dir = Dir();
             if (dir != null) SceneDump.Write(dir, scene);
         }
@@ -128,6 +128,61 @@ namespace MinikUsta.Presentation.Tests
             Assert.AreEqual(Flow.AppScreen.Win, win.Screen);
             // the star pop and the window pop have finished: the scene shows the window at rest
             Emit(SceneDump.Scene("win", win));
+        }
+
+        /// <summary>Ticks until `done` (or `maxMs`) in 60 fps frames.</summary>
+        private static void Until(AppRig rig, Func<bool> done, float maxMs = 6000)
+        {
+            for (float t = 0; t < maxMs && !done(); t += Rig.FrameMs) rig.App.Tick(Rig.FrameMs);
+        }
+
+        [Test]
+        public void B2_scenes_the_3D_king_and_fx_clips_in_motion_are_built_from_atlas_and_art3d_frames()
+        {
+            // home: the king mid-wave over the drifting layers
+            var home = new AppRig(Store(3, 1250, true));
+            home.App.Boot();
+            Until(home, () => home.App.King.Home.Actor.Player.Frame == "chr_king_wave_04");
+            Emit(SceneDump.Scene("home-wave", home));
+
+            // level: a correct placement — the stud glints (lock shine), the 3D dust, the corner king cheering
+            var place = new AppRig(Store(10, 1250, true));
+            place.App.Boot();
+            place.Tap(HomeView.PlayId);
+            place.Settle();
+            place.Player.Commit(Play.SolverGolden(1).Drags[0]);
+            Until(place, () => place.View.FxOut.Any(f => f.Frame != null && f.Frame.StartsWith("fx_lock_shine_0")) && place.App.King.Corner.Playing == "king_cheer");
+            place.Tick(70);
+            Emit(SceneDump.Scene("place", place));
+
+            // level 5: the segment flare behind the finished structure, the big cheer in the corner
+            var seg = new AppRig(Store(10, 1250, true));
+            seg.App.Boot();
+            seg.Tap(HomeView.PlayId);
+            seg.App.DebugStartLevel(5);
+            var d5 = Play.SolverGolden(5).Drags;
+            int slide = KingTests.SlideIndex(5);
+            for (int i = 0; i < slide; i++)
+            {
+                seg.Settle();
+                seg.Player.Commit(d5[i]);
+            }
+            seg.Settle();
+            seg.Player.Commit(d5[slide]);
+            Until(seg, () => seg.View.FxOut.Any(f => f.Frame == "fx_segment_done_04"));
+            Assert.IsTrue(seg.View.FxOut.Any(f => f.Frame == "fx_segment_done_04"), "the flare plays");
+            Emit(SceneDump.Scene("segment", seg));
+
+            // the win window while the star bursts (fx_star_burst inside the window, behind the star)
+            var win = new AppRig(Store(2, 1250, true));
+            win.App.Boot();
+            win.Tap(HomeView.PlayId);
+            win.TapOption(PanelAction.Play);
+            win.PlayGolden(3, Play.SolverGolden(3).Drags.Length - 1);
+            win.Player.Commit(Play.SolverGolden(3).Drags.Last());
+            Until(win, () => win.Ui.Root(UiLayer.Window)?.Find(WindowViews.BurstId)?.Frame == "fx_star_burst_04", 12000);
+            Assert.IsTrue(win.App.King.BurstPlaying, "the burst plays behind the star");
+            Emit(SceneDump.Scene("win-burst", win));
         }
     }
 }

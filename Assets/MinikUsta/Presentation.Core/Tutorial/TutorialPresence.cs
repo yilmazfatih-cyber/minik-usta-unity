@@ -53,10 +53,11 @@ namespace MinikUsta.Presentation.Tutorial
         /// <summary>Screen margin of the bubble (UX §13.1 "Balon").</summary>
         public float MarginPx = 24;
         /// <summary>
-        /// Atlas frame of the guide's portrait beside the bubble. D-101: Usta Kral replaces Usta Dede here — the king's bust frame is
-        /// set by renaming this one string (the portrait is drawn aspect-preserved in a 128 px disc).
+        /// Frame of the guide's portrait beside the bubble. D-101 / B2: Usta Kral's talking bust (king.json `chr_king_bust_talk`; a
+        /// build without king.json falls back to the v4 `chr_dede_bust`, which B1 already re-rendered as the king), drawn
+        /// aspect-preserved in a 128 px disc. The corner king talks / points with the bubble (`KingDirector.Tutorial`).
         /// </summary>
-        public string PortraitFrame = "chr_dede_bust";
+        public string PortraitFrame = "chr_king_bust_talk";
     }
 
     public enum PresencePhase

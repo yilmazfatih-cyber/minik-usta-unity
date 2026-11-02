@@ -16,6 +16,7 @@ using System;
 using System.Collections.Generic;
 using MinikUsta.Core;
 using MinikUsta.Core.Level;
+using MinikUsta.Presentation.Anim;
 using MinikUsta.Presentation.Animation;
 using MinikUsta.Presentation.Art;
 using MinikUsta.Presentation.Audio;
@@ -71,6 +72,13 @@ namespace MinikUsta.Presentation.Game
         private string? lastShadowKey;
         /// <summary>C1: the events of every committed move whose plan has not ended yet (the tutorial reads a move when it finished playing).</summary>
         private readonly Queue<GameEvent[]> moveEnds = new Queue<GameEvent[]>();
+        private KingDirector? king;
+        // B2 drag lean (a spring on the dragged block's rotation)
+        private int tiltPiece = -1;
+        private float tiltDeg;
+        private float tiltVel;
+        private float tiltLastX;
+        private bool tiltHasX;
 
         public LevelPlayer(ILevelView view, LevelCatalog catalog, Strings strings, FeelSettings? feel = null, LayoutSettings? layout = null,
             IHapticSink? haptics = null, EconomyInfo? economy = null)
@@ -83,6 +91,7 @@ namespace MinikUsta.Presentation.Game
             Economy = economy ?? new EconomyInfo();
             Haptics = new HapticRouter(haptics);
             Particles = new ParticleField(view, Feel);
+            Fx = new FxPlayer(view.AcquireFx, view.ReleaseFx);
             runner = new StepRunner(this);
             Queue = new AnimationQueue((step, time, instant) => runner.Run(step, time, instant), Feel.LockSpeedUp);
             Mapper = new DragMapper(Feel);
@@ -101,6 +110,28 @@ namespace MinikUsta.Presentation.Game
         public PieceViews Pieces { get; }
         /// <summary>Q2: the sprite particles (sparks, dust, confetti, stars).</summary>
         public ParticleField Particles { get; }
+        /// <summary>B2: the pre-rendered 3D FX clips (fx.json) on pooled sprites; without `Art` every play is skipped.</summary>
+        public FxPlayer Fx { get; }
+
+        /// <summary>B2: the 3D libraries (king.json, fx.json); `ArtSet.Empty` = the v4 look only.</summary>
+        public ArtSet Art
+        {
+            get => Fx.Art;
+            set => Fx.Art = value ?? ArtSet.Empty;
+        }
+
+        /// <summary>B2 (D-101): Usta Kral — the corner reacts to the level (cheer, big cheer, think, talk / point, encourage).</summary>
+        public KingDirector? King
+        {
+            get => king;
+            set
+            {
+                king = value;
+                if (king != null) king.Reduced = reduced;
+                View.SetKing(value);
+            }
+        }
+
         /// <summary>Q2: the vibration policy ("Titreşim" switch, minimum gap); the sink is the engine's.</summary>
         public HapticRouter Haptics { get; }
         /// <summary>V2: the sounds (null = silent: tests, a build without audio). Every play is a request the policy may drop.</summary>
@@ -123,6 +154,8 @@ namespace MinikUsta.Presentation.Game
             {
                 reduced = value;
                 Particles.Reduced = value;
+                Fx.Reduced = value;
+                if (king != null) king.Reduced = value;
             }
         }
         /// <summary>The last `TurnSummary` (after the level start or the last package).</summary>
@@ -176,9 +209,9 @@ namespace MinikUsta.Presentation.Game
             Clock.Complete();
             Layout = ScreenLayout.Create(LayoutSettings, Viewport.H, Session.Lvl.Geo);
             View.SetViewport(Viewport, Layout);
-            View.Truck.CellPx = Layout.Grid.CellPx;
             Pieces.CellPx = Layout.Grid.CellPx;
             Particles.Reset(LevelNumber);
+            Fx.Reset();
             SyncAll();
             Tutorial?.LayoutChanged();
         }
@@ -216,13 +249,13 @@ namespace MinikUsta.Presentation.Game
             View.SetViewport(Viewport, Layout);
             Pieces.Clear();
             Pieces.CellPx = Layout.Grid.CellPx;
-            View.Truck.CellPx = Layout.Grid.CellPx;
             Panel = PanelKind.None;
             View.ShowPanel(null, OnPanelAction);
             View.SetLevel(Text.Format(Strings.Keys.LevelLabel, number), LevelName(lvl));
             Summary = Session.Summary();
             SyncAll();
             Stuck.Level(lvl.Difficulty, Clock.Now);
+            king?.LevelStarted();
             Tutorial?.LevelStarted(session, LevelWon?.Invoke(number) ?? wonLevels.Contains(number));
         }
 
@@ -251,6 +284,7 @@ namespace MinikUsta.Presentation.Game
             coinScratch.AddRange(coins);
             foreach (var c in coinScratch) ReleaseCoin(c);
             Particles.Reset(LevelNumber);
+            Fx.Reset();
             Haptics.Reset();
             pendingPanel = null;
             pendingEnd = null;
@@ -259,10 +293,15 @@ namespace MinikUsta.Presentation.Game
             ShownTrowels = 0;
             GoldShown = -1;
             Shakes = 0;
+            Zooms = 0;
             View.CameraRig.Position = Vec2.Zero;
+            View.CameraRig.Scale = Vec2.One;
             View.SiteLayer.Position = Vec2.Zero;
-            View.Truck.Visible = false;
             View.SetGold(-1);
+            tiltPiece = -1;
+            tiltDeg = 0;
+            tiltVel = 0;
+            tiltHasX = false;
         }
 
         // --- frame -----------------------------------------------------------------------------------------------------
@@ -276,12 +315,14 @@ namespace MinikUsta.Presentation.Game
             float before = Clock.Now;
             Clock.Advance(dtMs);
             Particles.Advance(Clock.Now - before); // the particles follow the animation clock (the lock speed-up included)
+            Fx.Advance(Clock.Now - before);
             Queue.Advance(Clock.Now);
             if (Layout != null)
             {
                 var f = Mapper.Update(Clock.Now, Layout);
                 if (f != null) DragFrame(f);
             }
+            DragLean(dtMs);
             StuckPulseCheck();
             if (pendingPanel != null && coins.Count == 0)
             {
@@ -296,6 +337,12 @@ namespace MinikUsta.Presentation.Game
                 Host?.Ended(this, end);
             }
             Tutorial?.Tick(dtMs);
+            if (king != null)
+            {
+                // Usta Dede's bubbles are the king's now (D-101): he talks while the bubble shows and points while the glove plays
+                var look = Tutorial?.Presence?.Look();
+                king.Tutorial(look.HasValue && look.Value.Bubble, look.HasValue && look.Value.Glove && Tutorial!.GlovePlays);
+            }
         }
 
         // --- pointer (design px, y down) ---------------------------------------------------------------------------------
@@ -307,6 +354,7 @@ namespace MinikUsta.Presentation.Game
             if (session == null || L == null) return;
             float now = Clock.Now;
             Stuck.Touched(now);
+            king?.Touched();
             if (Panel != PanelKind.None) return;
             if (Mapper.Active) return; // second finger (TECH §4.6)
             Tutorial?.TouchDown();
@@ -353,13 +401,19 @@ namespace MinikUsta.Presentation.Game
                     Tutorial?.Tapped(r.PieceId >= 0 ? r.PieceId : id);
                     return;
                 case ReleaseKind.Aborted:
-                    if (v != null) ReturnHome(v, r.PieceId);
+                    if (v != null)
+                    {
+                        LeanBack(v);
+                        ReturnHome(v, r.PieceId);
+                    }
                     return;
                 case ReleaseKind.Drag:
                     if (v != null)
                     {
                         v.Lifted = false;
+                        v.LiftHeight = 0f;
                         v.Alpha = 1;
+                        LeanBack(v);
                     }
                     Commit(r.Move!);
                     return;
@@ -459,7 +513,8 @@ namespace MinikUsta.Presentation.Game
             pop.Tag = HudTag;
             Clock.Play(pop);
             var at = View.StarCenter ?? HudLayout.Center(HudLayout.WindowStar(L, LayoutSettings, model.Buttons.Length));
-            Particles.StarBurst(at, Feel.ParticleStarBurst);
+            // B2: the pre-rendered ring + 16 stars (fx_star_burst) inside the window, behind the star; reduced motion / no clip: the sprite stars
+            if (king == null || !king.PlayWindowBurst("fx_star_burst", Feel.StarBurstFxScale)) Particles.StarBurst(at, Feel.ParticleStarBurst);
             Buzz(HapticKind.Success);
         }
 
@@ -667,6 +722,27 @@ namespace MinikUsta.Presentation.Game
             Clock.Play(t);
         }
 
+        /// <summary>
+        /// B2: the camera pushes in to `peak` (1,03 = 3 % closer) in `inMs`, holds `holdMs`, eases back in `outMs` (Sine) — the board
+        /// zooms, the HUD (overlay canvas) does not. None in reduced motion. `CameraRig.Scale` is the zoom (1 = rest).
+        /// </summary>
+        public void CameraZoom(float peak, float inMs, float holdMs, float outMs)
+        {
+            if (Reduced || !(peak > 0) || peak == 1f) return;
+            var rig = View.CameraRig;
+            var seq = new Sequence()
+                .Append(Tweens.Scale(rig, peak, Math.Max(1f, inMs), EaseType.OutQuad))
+                .AppendInterval(Math.Max(0f, holdMs))
+                .Append(Tweens.Scale(rig, 1f, Math.Max(1f, outMs), EaseType.InOutSine))
+                .AppendCallback(() => rig.Scale = Vec2.One);
+            seq.Tag = HudTag;
+            Zooms++;
+            Clock.Play(seq);
+        }
+
+        /// <summary>Camera push-ins played since the start (tests).</summary>
+        public int Zooms { get; private set; }
+
         /// <summary>Asks the haptic router for a buzz (JUICE §0 rule 7): off, closer than `HapticMinGapMs` to the last one, or no sink = dropped.</summary>
         public void Buzz(HapticKind kind) => Haptics.Pulse(kind, Clock.Now, Feel.HapticMinGapMs);
 
@@ -685,6 +761,7 @@ namespace MinikUsta.Presentation.Game
             coin.Scale = new Vec2(0.6f, 0.6f);
             coin.Rotation = 0f;
             coin.Alpha = 1f;
+            coin.Cel = 0;
             float arc = (float)(Layout != null ? Layout.Grid.CellPx : 120.0);
             float peak = Feel.BonusCoinPeak;
             var fly = new Tween(Feel.BonusCoinFlyMs, (u, k) =>
@@ -698,6 +775,7 @@ namespace MinikUsta.Presentation.Game
                 coin.Position = new Vec2(pos.X, pos.Y - arc * 4f * u * (1f - u));
                 float sc = Tweens.PopCurve(u, 0.6f, peak, 0.9f, 0.4f);
                 coin.Scale = new Vec2(sc, sc);
+                coin.Cel = (int)(u * Feel.BonusCoinFlyMs * Feel.CelFps / 1000f); // B2: the coin turns (fx_coin_spin cels)
             }, null, EaseType.InOutQuad);
             var seq = new Sequence()
                 .Append(fly)
@@ -749,10 +827,18 @@ namespace MinikUsta.Presentation.Game
                 // JUICE #1: 1,00 → 1,08 (80 ms Back.easeOut), 6 px hop, lifted silhouette, above every block
                 v.Raised = true;
                 v.Lifted = true;
+                v.LiftHeight = 0f;
                 Sound(Sounds.Pick);
                 Tutorial?.DragLifted(drag.PieceId);
                 Clock.Play(Tweens.Scale(v, Reduced ? Feel.ReducedScaleMax : Feel.LiftScale, Feel.LiftMs, Feel.LiftEase));
                 if (!Reduced) Clock.Play(Hop(v, Feel.LiftHopPx, Feel.LiftMs));
+                // B2 / JUICE #1: the shadow drops away and softens as the block rises (Back.easeOut: it overshoots a little)
+                var rise = new Tween(Reduced ? 1f : Feel.LiftMs * 1.5f, (u, k) => v.LiftHeight = u >= 1f ? 1f : k, null, Reduced ? EaseType.Linear : Feel.LiftEase);
+                Clock.Play(rise);
+                tiltPiece = drag.PieceId;
+                tiltDeg = 0;
+                tiltVel = 0;
+                tiltHasX = false;
             }
             v.Position = BoardPose.Center(L.Grid, f.Ax, f.Ay, shape);
             if (f.CrossedWall)
@@ -827,6 +913,63 @@ namespace MinikUsta.Presentation.Game
             Clock.Play(scale);
         }
 
+        /// <summary>
+        /// B2 drag lean: every frame the dragged block's rotation follows a target angle on a damped spring — the target is
+        /// `DragTiltDegPerCell` × the horizontal speed (cells/s), at most ±`DragTiltMaxDeg`; moving right tilts it counter-clockwise
+        /// (its top lags behind the finger). Integrated in fixed 4 ms sub-steps: the same frames give the same angles.
+        /// </summary>
+        private void DragLean(float dtMs)
+        {
+            if (tiltPiece < 0) return;
+            var v = Mapper.Active && Mapper.PieceId == tiltPiece ? Pieces.Get(tiltPiece) : null;
+            if (v == null || !v.Lifted || Layout == null)
+            {
+                tiltPiece = -1;
+                return;
+            }
+            if (Reduced || Feel.DragTiltMaxDeg <= 0f || !(dtMs > 0f))
+            {
+                tiltLastX = v.Position.X;
+                tiltHasX = true;
+                return;
+            }
+            float x = v.Position.X;
+            float vx = tiltHasX ? (x - tiltLastX) / dtMs : 0f; // design px per ms
+            tiltLastX = x;
+            tiltHasX = true;
+            float cellsPerSec = vx * 1000f / (float)Layout.Grid.CellPx;
+            float target = Math.Max(-Feel.DragTiltMaxDeg, Math.Min(Feel.DragTiltMaxDeg, cellsPerSec * Feel.DragTiltDegPerCell));
+            float w = 2f * (float)Math.PI * Math.Max(0.1f, Feel.DragTiltSpringHz);
+            float zeta = Math.Max(0f, Feel.DragTiltDamping);
+            float left = Math.Min(dtMs, 100f);
+            while (left > 0f)
+            {
+                float h = Math.Min(4f, left) / 1000f;
+                float acc = w * w * (target - tiltDeg) - 2f * zeta * w * tiltVel;
+                tiltVel += acc * h;
+                tiltDeg += tiltVel * h;
+                left -= 4f;
+            }
+            float lim = Feel.DragTiltMaxDeg * 1.25f; // the overshoot may pass the target a little, never wildly
+            tiltDeg = Math.Max(-lim, Math.Min(lim, tiltDeg));
+            v.Rotation = tiltDeg;
+            MaxTiltDeg = Math.Max(MaxTiltDeg, Math.Abs(tiltDeg));
+        }
+
+        /// <summary>The largest drag lean seen (tests).</summary>
+        public float MaxTiltDeg { get; private set; }
+
+        /// <summary>A released block stands up again (UX §5.3 "120 ms'de sönümlenir", Back.easeOut: one small wobble).</summary>
+        private void LeanBack(IPieceVisual v)
+        {
+            tiltPiece = -1;
+            tiltVel = 0;
+            if (v.Rotation == 0f) return;
+            var t = Tweens.Rotate(v, 0f, Feel.TiltDecayMs, EaseType.OutBack);
+            t.Tag = BoardTag;
+            Clock.Play(t);
+        }
+
         /// <summary>An upward hop of `px` and back (sin π·u): JUICE #1 lift hop, UX §5.3 tap hop.</summary>
         internal static Tween Hop(IPieceVisual v, float px, float ms) =>
             new Tween(ms, (u, k) => v.Hop = u >= 1 ? 0f : px * (float)Math.Sin(Math.PI * u), null, EaseType.Linear);
@@ -839,6 +982,7 @@ namespace MinikUsta.Presentation.Game
             if (session == null || session.Outcome != BoosterOutcomes.Playing) return;
             bool quiet = Mapper.Active || Queue.Busy || Panel != PanelKind.None;
             if (!Stuck.Due(Clock.Now, quiet)) return;
+            king?.Stuck(); // B2: the corner king thinks with the player (K-34 hook 5) until the next touch
             var needed = Summary?.NeededNow ?? session.Summary().NeededNow;
             foreach (int id in needed)
             {

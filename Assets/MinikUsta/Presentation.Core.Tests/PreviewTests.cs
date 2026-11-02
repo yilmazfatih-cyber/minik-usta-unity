@@ -130,8 +130,6 @@ namespace MinikUsta.Presentation.Tests
                 slide.DragTo(d5[4]);
                 Until(slide, () => slide.View.SiteLayer.Position.X > 200f, "the segment slide");
                 Save("q2-segment-slide", slide);
-                Until(slide, () => slide.View.Truck.Visible && slide.View.Truck.Rotation > 8f, "the truck tipping");
-                Save("q2-truck", slide);
 
                 var win = new Rig(w, h);
                 win.Load(1);

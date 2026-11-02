@@ -46,7 +46,9 @@ namespace MinikUsta.Presentation.Tests
             return t;
         }
 
-        private static int Count(Rig rig, SparkKind kind) => rig.View.SparkLog.Count(s => s.Kind == kind);
+        /// <summary>Particles of `kind` emitted so far (B2: confetti counts both its rectangle and its round 3D pieces).</summary>
+        private static int Count(Rig rig, SparkKind kind) =>
+            rig.View.SparkLog.Count(s => s.Kind == kind || (kind == SparkKind.Confetti && s.Kind == SparkKind.ConfettiRound));
 
         /// <summary>Plays the golden solution of `level` by finger, up to and including drag `upTo`; each drag settles first.</summary>
         private static void PlayTo(Rig rig, int level, int upTo, bool archive = false)
@@ -521,39 +523,29 @@ namespace MinikUsta.Presentation.Tests
         }
 
         [Test]
-        public void K25_the_truck_drives_in_from_the_right_tips_its_bed_drops_the_blocks_in_dust_and_leaves_to_the_left()
+        public void K25_K55_D099_an_archive_batch_drops_into_the_yard_in_dust_without_a_truck()
         {
+            // D-099: the truck view is gone; a `schemaVersion` 1 level (Faz 2R archive) still delivers its batch: the blocks fall
+            // in from above the yard columns, each lands in dust, the camera only shakes for the segment
             var rig = PlayToSegmentSlide(archive: true); // Faz 2R level 5 (schemaVersion 1): batch 1 arrives by truck
             var f = rig.Player.Feel;
-            float? shownAt = null, hiddenAt = null, t = 0;
             int dust0 = Count(rig, SparkKind.Dust);
-            Run(rig, () =>
-            {
-                t += Rig.FrameMs;
-                if (rig.View.Truck.Visible && shownAt == null) shownAt = t;
-                if (!rig.View.Truck.Visible && shownAt != null && hiddenAt == null) hiddenAt = t;
-            });
-            var truck = rig.View.Truck;
-            Assert.AreEqual(1, truck.Appearances, "one delivery, one truck");
-            Assert.Greater(truck.MaxX, rig.Player.Layout!.W, "it comes from beyond the right edge");
-            Assert.Less(truck.MinX, 0, "and leaves past the left edge");
-            Assert.AreEqual(f.TruckBedTiltDeg, truck.MaxRotation, 0.5f, "the bed tips");
-            Assert.AreEqual(0f, truck.Rotation, 1e-3, "and comes back");
-            Assert.IsFalse(truck.Visible);
-            Assert.AreEqual(f.TruckMs, hiddenAt!.Value - shownAt!.Value, Rig.FrameMs * 2.5f, "JUICE #19: 700 ms");
-            Assert.AreEqual(rig.Player.Layout!.Grid.CellPx, truck.CellPx, "sized for the level's cell");
+            Run(rig);
             int drops = rig.Player.LastResult!.Events.OfType<PieceFellEvent>().Count(e => e.Cause == FallCauses.Delivery);
             Assert.Greater(drops, 0);
-            Assert.GreaterOrEqual(Count(rig, SparkKind.Dust) - dust0, drops * f.ParticleDustBlock, "JUICE #19: 4 dust per block");
+            Assert.GreaterOrEqual(Count(rig, SparkKind.Dust) - dust0, drops * f.ParticleDustBlock, "4 dust per block");
+            Assert.AreEqual(1, rig.Player.Shakes, "the segment shake only");
+            CollectionAssert.DoesNotContain(rig.Player.Fx.Log, "truck");
+            rig.AssertBoardMatchesState("after the delivery");
         }
 
         [Test]
-        public void K25_reduced_motion_truck_appears_and_disappears_without_a_ride_or_a_shake()
+        public void K25_reduced_motion_delivery_has_no_ride_no_shake_no_zoom()
         {
             var rig = PlayToSegmentSlide(null, true, archive: true);
             Run(rig);
-            Assert.AreEqual(1, rig.View.Truck.Appearances);
             Assert.AreEqual(0, rig.Player.Shakes, "JUICE §0 rule 8: no screen shake");
+            Assert.AreEqual(0, rig.Player.Zooms, "no camera push-in");
             Assert.AreEqual(0, Count(rig, SparkKind.Confetti), "no confetti");
             Assert.AreEqual(0f, rig.View.SiteLayer.Position.X, "no slide");
             rig.AssertBoardMatchesState("reduced");
@@ -564,7 +556,6 @@ namespace MinikUsta.Presentation.Tests
         {
             var rig = PlayToSegmentSlide(); // the shipped level 5 (schemaVersion 2): segment 1 done on move 7, the yard stays as it is
             Run(rig);
-            Assert.AreEqual(0, rig.View.Truck.Appearances, "no batch, no truck (K-55 item 2)");
             var events = rig.Player.LastResult!.Events;
             Assert.IsTrue(events.Any(e => e is SiteShiftedEvent), "the site still slides in (K-22)");
             Assert.IsFalse(events.Any(e => e is DeliveryArrivedEvent || e is DeliveryQueuedEvent), "step 9 delivers nothing");
@@ -579,7 +570,6 @@ namespace MinikUsta.Presentation.Tests
         {
             var rig = PlayToSegmentSlide(archive: true); // Faz 2R level 5 (schemaVersion 1): batch 1 arrives by truck
             Run(rig);
-            Assert.AreEqual(1, rig.View.Truck.Appearances);
             Assert.AreEqual(rig.View.HudState!.Queue > 0, rig.View.HudState!.Truck, "the chip follows the queue (N > 0)");
         }
 
@@ -652,10 +642,12 @@ namespace MinikUsta.Presentation.Tests
             int movesLeftBefore = rig.Session.MovesLeft;
             var goldSeen = new List<int>();
             int coinsWhenOpened = -1;
-            float starPeak = 0, chipPeak = 1f, maxShake = 0;
+            float starPeak = 0, chipPeak = 1f, maxShake = 0, zoomPeak = 1f;
+            int zoomsBeforeWin = rig.Player.Zooms;
             rig.DragTo(drags[drags.Length - 1]);
             Run(rig, () =>
             {
+                zoomPeak = Math.Max(zoomPeak, rig.View.CameraRig.Scale.X);
                 if (rig.View.Gold >= 0 && (goldSeen.Count == 0 || goldSeen[goldSeen.Count - 1] != rig.View.Gold)) goldSeen.Add(rig.View.Gold);
                 if (rig.View.Panel != null && coinsWhenOpened < 0) coinsWhenOpened = rig.Player.CoinsInFlight;
                 starPeak = Math.Max(starPeak, rig.View.StarTarget.Scale.X);
@@ -682,8 +674,12 @@ namespace MinikUsta.Presentation.Tests
             Assert.IsTrue(rig.View.Panel!.Star, "META §1: a first win gives its star");
             Assert.AreEqual(f.WinStarPeak, starPeak, 0.03f, "JUICE #96: the star 0 → 1,2");
             Assert.AreEqual(1f, rig.View.StarTarget.Scale.X, 1e-4);
+            // a level player without the king's window (no HUD): the sprite stars (with the HUD the fx_star_burst clip plays: KingTests)
             Assert.AreEqual(f.ParticleStarBurst, Count(rig, SparkKind.Star), "16 small stars");
             Assert.AreEqual(1, Count(rig, SparkKind.Ring), "and the white ring");
+            Assert.AreEqual(2, rig.Player.Zooms - zoomsBeforeWin, "B2: the last segment's push-in and the win's (JUICE #18, #55)");
+            Assert.AreEqual(f.WinZoomPeak, zoomPeak, 0.005f, "the win push-in peak");
+            Assert.AreEqual(Vec2.One, rig.View.CameraRig.Scale, "and the camera is back");
             Assert.AreEqual(0f, rig.View.SiteLayer.Position.X, "the last segment does not slide");
             Assert.LessOrEqual(movesLeftBefore - lastMoves, 1);
             Assert.AreEqual(0, rig.View.SparksOut.Count, "every particle sprite went back to the pool");
@@ -910,7 +906,7 @@ namespace MinikUsta.Presentation.Tests
             rig.AssertBoardMatchesState("end");
             Assert.AreEqual(Vec2.Zero, rig.View.CameraRig.Position);
             Assert.AreEqual(0f, rig.View.SiteLayer.Position.X);
-            Assert.IsFalse(rig.View.Truck.Visible);
+            Assert.AreEqual(Vec2.One, rig.View.CameraRig.Scale, "B2: the zoom is back at rest");
         }
 
         [Test]
@@ -928,7 +924,8 @@ namespace MinikUsta.Presentation.Tests
                     {
                         rig.Tick(Rig.FrameMs);
                         foreach (var s in rig.View.SparksOut) o.Append(s.Kind).Append(s.Position).Append(s.Alpha).Append(';');
-                        o.Append(rig.View.CameraRig.Position).Append(rig.View.Truck.Position).Append(rig.View.SiteLayer.Position);
+                        o.Append(rig.View.CameraRig.Position).Append(rig.View.CameraRig.Scale).Append(rig.View.SiteLayer.Position);
+                        foreach (var fx in rig.View.FxOut) o.Append(fx.Frame).Append(fx.Position).Append(';');
                     }
                 }
                 return o.ToString();
@@ -1025,7 +1022,8 @@ namespace MinikUsta.Presentation.Tests
             Assert.AreEqual(0, rig.View.SparksOut.Count, "the pool got every sprite back");
             Assert.AreEqual(0, rig.Player.ShownBeads);
             Assert.AreEqual(0, rig.View.StreakBeads);
-            Assert.IsFalse(rig.View.Truck.Visible);
+            Assert.AreEqual(0, rig.Player.Fx.Alive, "B2: every FX clip ended");
+            Assert.AreEqual(0, rig.View.FxOut.Count, "and its sprite is back in the pool");
             Assert.AreEqual(-1, rig.View.Gold);
         }
     }

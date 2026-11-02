@@ -12,6 +12,7 @@
 using System;
 using System.Collections.Generic;
 using MinikUsta.Core;
+using MinikUsta.Presentation.Anim;
 using MinikUsta.Presentation.Animation;
 using MinikUsta.Presentation.Art;
 using MinikUsta.Presentation.Audio;
@@ -72,6 +73,7 @@ namespace MinikUsta.Presentation.Game
                         Play(Tweens.Scale(v, 1f, step.Ms, ReleaseEase(step.Ease)), time, instant, true);
                         if (!p.Reduced) Play(Squash(v, 1f, F.YardDropSquashY, step.Ms, step.Ease).SetDelay(step.Ms), time, instant, true);
                         DustAfter(step.Ms, Bottom(to, shape, c), F.ParticleDustYard, time, instant);
+                        Puff(Bottom(to, shape, c), shape, c, step.Ms * 0.8f, 0.7f, instant);
                         Snd(Sounds.SetYard, 0);
                         return;
                     }
@@ -107,6 +109,7 @@ namespace MinikUsta.Presentation.Game
                         float sy = p.Reduced ? 2 - sx : F.LandSquashY;
                         Play(LandSquash(v, shape, sx, sy, step.Ms, step.Ease), time, instant, true);
                         p.Particles.Dust(Bottom(v.Position, shape, c), F.ParticleLand);
+                        Puff(Bottom(v.Position, shape, c), shape, c, 0f, 1f, instant); // B2 / JUICE #11: the 3D dust cloud to both sides
                         Snd(Sounds.Land, 0, 1, SoundFeel.LandGain(step.N ?? 0)); // JUICE #11: +0 … +4 dB over the fall
                         return;
                     }
@@ -154,6 +157,8 @@ namespace MinikUsta.Presentation.Game
                         // Q2 (4): grow 1,0 → 1,2 and shrink into the lock, with a burst of sprite sparks in the block's colour
                         Play(GrowPulse(v, p.Reduced ? F.ReducedScaleMax : F.PlacePulsePeak, F.PlacePulseMs, F.PlacePulseSplit, F.PlacePulseEase), time, instant, true);
                         p.Particles.Sparks(v.Position, Palette.Block(PieceColor(s, step.PieceId)), F.ParticlePlaceOk);
+                        LockShine(v, BoardPose.ShapeOf(s, step.PieceId), c, instant); // B2 / JUICE #12, #92: a glint on every stud, bottom → top
+                        p.King?.Cue(KingCue.Cheer); // B2: a short cheer from the corner
                         Snd(Sounds.PlaceOk, 0, ComboPitch(step.N ?? 1)); // JUICE #12 at the streak pitch
                         return;
                     }
@@ -256,6 +261,16 @@ namespace MinikUsta.Presentation.Game
                             .Append(Tweens.Move(v, to, step.Ms, step.Ease, p.Reduced ? 0 : F.TrowelArcCells * c))
                             .Append(FlashPulse(v, F.PlaceFlashPeak, F.PlaceSheenMs));
                         Play(seq, time, instant, true);
+                        if (!instant)
+                        {
+                            // B2: the Golden Trowel turns over the flying block (#17) / the crane claw holds it (#62)
+                            var piece = v;
+                            float top = -(float)(BoardPose.ShapeOf(s, e.PieceId).H * c / 2.0);
+                            if (step.Kind == StepKind.TrowelFlight)
+                                p.Fx.Play("fx_trowel_sparkle", new Vec2(0f, top - 20f), FxDepth.Over, F.TrowelFxScale, null, 0f, () => piece.Position, lifeMs: step.Ms + F.PlaceSheenMs, fadeMs: 120f);
+                            else
+                                p.Fx.Play("fx_crane_grab", new Vec2(0f, top + 8f), FxDepth.Over, F.CraneFxScale, null, 0f, () => piece.Position);
+                        }
                         // JUICE #17 trowel: the trowel sound, then the fill sound where it lands; K-37 crane: a whoosh, then the fill sound
                         Snd(step.Kind == StepKind.TrowelFlight ? Sounds.Trowel : Sounds.Whoosh, 0);
                         Snd(Sounds.PlaceOk, step.Ms);
@@ -272,6 +287,17 @@ namespace MinikUsta.Presentation.Game
                             .Join(FlashPulse(v, F.PlaceFlashPeak, Math.Min(step.Ms, F.BlockedShakeMs)))
                             .AppendCallback(() => v.Visible = false);
                         Play(seq, time, instant, true);
+                        if (!instant)
+                        {
+                            // B2 / JUICE #61: the 3D hammer swings in from the right (pivot = the handle end) and the impact star bursts on the hit
+                            var at = v.Position;
+                            p.Fx.Play("fx_hammer_smash", new Vec2(at.X + 0.55f * c, at.Y + 0.35f * c), FxDepth.Over, F.HammerFxScale, onEvent: ev =>
+                            {
+                                if (ev.Name != "impact") return;
+                                p.Fx.Play("fx_impact_star", at, FxDepth.Over, F.HammerFxScale);
+                                p.CameraShake(F.GlassShakePx);
+                            });
+                        }
                         Snd(Sounds.Hammer, 0); // JUICE #61
                         return;
                     }
@@ -286,6 +312,12 @@ namespace MinikUsta.Presentation.Game
                             b?.SetLook(PieceColor(s, e.B), false);
                         }).AppendInterval(step.Ms / 2);
                         Play(seq, time, instant, true);
+                        if (!instant)
+                        {
+                            // B2 / JUICE #63: a 3D paint splash on each block in its NEW colour (rendered white, tinted)
+                            if (a != null) p.Fx.Play("fx_paint_splash", a.Position, FxDepth.Over, F.SplashFxScale, Palette.Block(PieceColor(s, e.A)));
+                            if (b != null) p.Fx.Play("fx_paint_splash", b.Position, FxDepth.Over, F.SplashFxScale, Palette.Block(PieceColor(s, e.B)), step.Ms * 0.15f);
+                        }
                         return;
                     }
                 case StepKind.PiecePaint:
@@ -369,6 +401,13 @@ namespace MinikUsta.Presentation.Game
                         p.Particles.Confetti(new Vec2((float)site.CenterX, (float)site.Y - 40f), (float)site.W + 160f, F.ParticleSegment, SegmentPalette(s, e.Seg),
                             F.ConfettiSegmentLifeMs, (float)site.H * 0.9f);
                         p.CameraShake(F.SegmentShakePx);
+                        if (!instant)
+                        {
+                            // B2 / JUICE #18, #93: the flare + ring behind the finished structure, a light push-in, the king's big cheer
+                            p.Fx.Play("fx_segment_done", new Vec2((float)site.CenterX, (float)site.CenterY), FxDepth.Under, F.SegmentFlareScale);
+                            p.CameraZoom(F.SegmentZoomPeak, F.SegmentZoomMs * 0.4f, 0f, F.SegmentZoomMs * 0.6f);
+                        }
+                        p.King?.Cue(KingCue.BigCheer);
                         p.Buzz(HapticKind.Heavy);
                         Snd(Sounds.Segment, 0);
                         return;
@@ -393,16 +432,12 @@ namespace MinikUsta.Presentation.Game
                             int dust = fromChip ? F.ParticleDustCascade : F.ParticleDustBlock; // JUICE #19: 4 dust per block
                             seq.InsertCallback(d.Delay + d.Ms, () => p.Particles.Dust(landed, dust));
                         }
+                        // D-099 (K-55): no truck any more — a `schemaVersion` 1 level (Faz 2R archive) still delivers its batches, the
+                        // blocks simply drop in from above the yard columns
                         if (fromChip) seq.Insert(0, Tweens.Pop(p.View.BlocksChip, 1f, F.QueueChipPeak, 1f, F.QueueChipMs));
-                        else TruckRide(seq, step, L, s);
                         Play(seq, time, instant, true);
                         if (fromChip) Snd(Sounds.Queue, 0); // JUICE #20
-                        else
-                        {
-                            // JUICE #19: the horn, then a landing thud (−6 dB) per block
-                            Snd(Sounds.TruckHorn, 0);
-                            foreach (var d in step.Drops) Snd(Sounds.Land, d.Delay + d.Ms, 1, SoundFeel.DbGain(SoundFeel.TruckLandDb));
-                        }
+                        else foreach (var d in step.Drops) Snd(Sounds.Land, d.Delay + d.Ms, 1, SoundFeel.DbGain(SoundFeel.TruckLandDb));
                         return;
                     }
                 case StepKind.Win:
@@ -416,6 +451,13 @@ namespace MinikUsta.Presentation.Game
                         WinFx(seq, L);
                         seq.AppendInterval(Math.Max(0, step.Ms - seq.Duration));
                         Play(seq, time, instant, true);
+                        if (!instant)
+                        {
+                            // B2 / JUICE #55: the camera pushes in through glow + ribbon, holds through the confetti, eases back
+                            float hold = Math.Max(0f, step.Ms - F.WinZoomInMs - F.WinZoomOutMs);
+                            p.CameraZoom(F.WinZoomPeak, F.WinZoomInMs, hold, F.WinZoomOutMs);
+                        }
+                        p.King?.Cue(KingCue.BigCheer);
                         Snd(Sounds.MusicWin, 0); // JUICE #55
                         return;
                     }
@@ -461,6 +503,7 @@ namespace MinikUsta.Presentation.Game
                         return;
                     }
                 case StepKind.OutOfMoves:
+                    p.King?.Cue(KingCue.Encourage); // JUICE #57: "kararlı", never sad or mocking
                     Snd(Sounds.OutOfMoves, 0); // JUICE #57
                     return;
                 case StepKind.YardClear:

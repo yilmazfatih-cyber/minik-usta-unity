@@ -34,7 +34,7 @@ namespace MinikUsta.Presentation.Tests.Fixtures
             var layout = new LayoutSettings();
             GameApp? app = null;
             View.Hud = new LevelHud(Ui, I18n.Text, layout, () => app!.Player.PausePressed());
-            app = new GameApp(View, Ui, new LevelCatalog(read ?? Rig.ReadLevel), I18n, Economy(), Store, null, layout, null, null, null, audio);
+            app = new GameApp(View, Ui, new LevelCatalog(read ?? Rig.ReadLevel), I18n, Economy(), Store, null, layout, null, null, null, audio, TestArt.Set);
             App = app;
             App.SetScreen(w, h);
         }

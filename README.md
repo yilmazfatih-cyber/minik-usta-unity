@@ -46,13 +46,17 @@ Faz 1 raporu: web reposunda `docs/UNITY_PORT_FAZ1.md`. TS → C# dosya eşlemesi
 │  │  │                            Meta/ (EconomyConfig, Offer, Rewards, Price), I18n/ (Localizer), Game/PlanThumb
 │  │  │                            C1: Audio/ (ZzFx, SoundBank, AudioPlayer, Sounds), Tutorial/ (TutorialController, TutorialPresence, TutorialEvents,
 │  │  │                            TutorialGlove, TutorialLayout, TutorialView, TutorialPlayer), Shots/ (ShotScenario: ?shots=1 CI sürücüsü)
+│  │  │                            B2: Anim/ (AnimClip, ClipLibrary + ArtSet: king.json / fx.json, AnimPlayer, ClipActor + ClipPlacement,
+│  │  │                            KingDirector: Usta Kral, FxPlayer: 3B FX klipleri, HomeParallax)
 │  │  ├─ Unity/                    ince Unity katmanı (asmdef MinikUsta.Unity → Core, Presentation.Core, UnityEngine.UI): GameBootstrap
 │  │  │                            ([RuntimeInitializeOnLoadMethod]), GameRunner (kare döngüsü), UnityLevelView (ILevelView), UnityPieceVisual,
 │  │  │                            UnityBoardView/UnityShadowView, UnityHud (uGUI + LegacyRuntime), PointerInput (eski Input), ProceduralSprites,
-│  │  │                            Q2: UnitySpark/UnityUiSpark (parçacık), UnityTruckView, OffsetTarget (kamera, şantiye katmanı), PressableButton
+│  │  │                            Q2: UnitySpark/UnityUiSpark (parçacık), OffsetTarget (şantiye katmanı), PressableButton
 │  │  │                            V1: AtlasSprites (v4 atlas), SpriteDraw, UiRenderer (uGUI; UnityHud'un yerine), PlayerPrefsStore
+│  │  │                            B2: ClipSprites (art3d sayfaları, tembel çözme), SpriteAnimator + UnityFxSprite / UnityUiFx, CameraTarget (sarsıntı + zoom)
 │  │  ├─ Resources/                levels/ (oyunun okuduğu bölümler), config/economy.json, i18n/{tr,en}.json (+ V1 unity_{tr,en}.json),
-│  │  │                            solutions/ (dev: çözümü oynat), art/ (V0 atlas: atlas.json + atlas_N.bytes), fonts/ (Baloo 2 ExtraBold + OFL)
+│  │  │                            solutions/ (dev: çözümü oynat), art/ (V0 atlas: atlas.json + atlas_N.bytes), fonts/ (Baloo 2 ExtraBold + OFL),
+│  │  │                            art3d/ (B1/B1k 3B kütüphaneleri: king.json + king_N.bytes, fx.json + fx_N.bytes)
 │  │  ├─ Scenes/Level.unity        yalnız ortografik Main Camera (elle yazılmış Unity 6 YAML; .meta GUID sabit)
 │  │  ├─ Presentation.Core.Tests/  NUnit 3 testleri (Editor; Golden/tokens.json = web tokens kopyası)
 │  │  └─ Core.Tests/               NUnit 3 testleri (Editor platformu; Unity EditMode ile aynı dosyalar)
@@ -162,10 +166,10 @@ Unity içinde: Window → General → Test Runner → EditMode; `MinikUsta.Core.
 ### Nasıl oynanır (paket V1)
 
 - Adres: https://yilmazfatih-cyber.github.io/minik-usta-unity/ (ilk başarılı derlemeden sonra açılır).
-- Açılışta **ana sayfa** gelir: can ve altın kapsülleri, Ağaç Ev ilerlemesi, Tuna, Usta Dede, Kepçe ve tek yeşil düğme **"Oyna · Bölüm N"**.
+- Açılışta **ana sayfa** gelir: can ve altın kapsülleri, Ağaç Ev ilerlemesi, Usta Kral (B2), Tuna, Kepçe ve tek yeşil düğme **"Oyna · Bölüm N"**.
   Bölüm 1–2 tek dokunuşla başlar; Bölüm 3'ten itibaren önce bölüm başı penceresi (yapı resmi, blok ve hamle sayısı) açılır, **Oyna**'ya basılır.
 - Bir bloğa bas ve sürükle; doğru yere bırakılan blok yerine oturur, yanlış yere bırakılan geri seker. Kırmızı çarpı ve puan kaybı yok.
-- Hamleler bitince **+5 hamle** teklifi gelir: hayattaki ilk teklif Usta Dede'nin hediyesidir, sonra 900 / 1.350 / 1.800 altın (≈ ₺ karşılığı
+- Hamleler bitince **+5 hamle** teklifi gelir: hayattaki ilk teklif Usta Kral'ın hediyesidir, sonra 900 / 1.350 / 1.800 altın (≈ ₺ karşılığı
   altında). Altın yetmezse düğme gri ve pasiftir; reklam seçeneği gri "Şu an reklam yok". "Hayır, teşekkürler" → bir can gider → **Tekrar dene** ya da **Ana sayfa**.
 - Kazanınca: yıldız, Bonus İnşaat altını, kalan Altın Mala; bitmiş yapı pencerenin içindeki kartta görünür. **Devam** ana sayfaya döner.
 - Duraklat: **Devam**, **Bölümü baştan başlat**, **Ana sayfa** ve köşede ayar dişlisi. Hamle yapmadan çıkmak cezasızdır; hamleden sonra 1 can gider (onay penceresi sorar).
@@ -180,7 +184,7 @@ Unity içinde: Window → General → Test Runner → EditMode; `MinikUsta.Core.
 3. İlk açılış birkaç dakika sürer. Unity eksik `.meta` dosyalarını üretir; `git status` ile değişenleri gözden geçir.
 4. `Assets/MinikUsta/Scenes/Level.unity` dosyasını aç ve **Play**'e bas.
 5. Testler: **Window → General → Test Runner → EditMode → Run All**. Koşan assembly'ler: `MinikUsta.Core.Tests`
-   ve `MinikUsta.Presentation.Core.Tests`. Beklenen sayılar dotnet koşusuna göre (paket A3, K-55): Presentation 471 geçer. Core, `tools/diff/out`
+   ve `MinikUsta.Presentation.Core.Tests`. Beklenen sayılar dotnet koşusuna göre (paket A3, K-55; B2): Presentation 503 geçer. Core, `tools/diff/out`
    (git dışı, `ts-oracle.mjs` çıktısı) varsa 1882 geçer ve 5 atlar (655 DiffFuzz dizisi, 0 sapma); yoksa 1226 geçer ve 7 atlar (DiffFuzz durumları üretilmez).
    Unity içinde bu koşu henüz yapılmadı.
 
@@ -189,6 +193,27 @@ Dotnet tarafı (Unity gerekmez):
 ```
 cd dotnet && dotnet build -warnaserror && dotnet test
 ```
+
+### Paket B2 — 3B / 2.5B entegrasyon (D-099, D-100, D-101)
+
+- **Usta Kral** (D-101; özgün, baretli kral): ana sayfanın ana sembolü (girişte iki kez el sallar, sonra sahne boşta; dokununca
+  sevinir), bölüm ekranının köşesinde Tuna'nın yerinde (doğru yerleşim → kısa sevinç; Altın Mala, dilim tamamlama ve kazanma →
+  büyük sevinç; 5 sn dokunuşsuz ya da takılma nabzı → düşünür; öğretici balonu → konuşur, eldiven → işaret eder; hamle bitti →
+  cesaretlendirir) ve pencerelerde (bölüm başı → Oyna'yı işaret eder; kazanma → büyük sevinç döngüsü; +5 teklifi / can gitti →
+  cesaretlendirir, sonra sakin; çıkış onayı → düşünür). Öğretici balonunun portresi kralın konuşan büstüdür. Aynı anda en çok iki
+  karakter klibi koşar (pencere açıkken köşe donar). Klipler pivotla (ayaklar) yerleştirilir, kutuya sığdırılmaz; boşta nefes
+  tween'i; "Hareketi azalt"ta durağan poz, yarı süre, olay sesi yok.
+- **3B FX klipleri** (`fx.json`): inişte toz bulutu, doğru yerleşimde her çıkıntıda kilit parlaması (alttan üste 40 ms),
+  dilim tamamlamada şantiyenin arkasında parlama + kamera hafif yakınlaşma, kazanmada yakınlaşma + 3B konfeti (döner kareler) +
+  dönen sikkeler + pencerede yıldızın ARKASINDA yıldız patlaması, güçlendiricilerde çekiç + darbe yıldızı, vinç pençesi, boya
+  sıçraması, Altın Mala parıltısı. Bütçe: 24 canlı FX; azaltılmış harekette ağır FX yok, hafifler iki kat hızlı.
+- **2.5B his:** sürüklenen blok hızına göre yaylı eğilir (±8°, bırakınca 120 ms'de doğrulur), kalkınca gölgesi aşağı kayar,
+  genişler ve yumuşar; düğmeler basılıyken kitin `_pressed` çizimini gösterir; ana sayfa arka planı 7 paralaks katmanı olarak
+  zamanla hafifçe kayar (cihaz eğimi yok).
+- **D-099:** kamyon görünümü kalktı; Faz 2R arşiv bölümünün partisi kamyonsuz düşer, kuyruk çipi yalnız kuyrukta blok varken görünür.
+- `FeelSettings` yeni alanları: `DragTilt*`, `LiftShadow*`, `LandPuffScale`, `LockShine*`, `SegmentFlareScale`, `SegmentZoom*`,
+  `WinZoom*`, `CelFps`, `*FxScale`, `KingThinkAfterMs`. Önizleme: `ScreenDumpTests` → `tools/art/compose.mjs` (art3d kareleri de
+  çizilir) → `artifacts/preview/b2-*.png` (Unity ekran görüntüsü DEĞİL).
 
 ### Bilinen eksikler (V1 sonrası)
 

@@ -52,6 +52,25 @@ namespace MinikUsta.Presentation.Art
         public const string FxRays = "fx_rays";
         public const string FxGlow = "fx_glow";
 
+        /// <summary>
+        /// B2: the v4 atlas stand-in of a 3D library frame when the library did not load (B1 re-rendered `chr_dede_*` as Usta Kral):
+        /// a king bust → `chr_dede_bust`, any other king drawing → `chr_dede_idle`; null for the rest (fx frames have no stand-in).
+        /// </summary>
+        public static string? Fallback3d(string name)
+        {
+            if (name.StartsWith("chr_king_bust", System.StringComparison.Ordinal)) return "chr_dede_bust";
+            if (name.StartsWith("chr_king_", System.StringComparison.Ordinal)) return "chr_dede_idle";
+            return null;
+        }
+
+        /// <summary>B2 / JUICE #69: the pressed twin of a kit button frame (`btn_primary` → `btn_primary_pressed`), when the atlas has one.</summary>
+        public static string? Pressed(string? frame, AtlasData atlas)
+        {
+            if (frame == null) return null;
+            string p = frame + "_pressed";
+            return atlas.Has(p) ? p : null;
+        }
+
         /// <summary>Lower-case colour letter of a colour index (ColorCodes.All: w y g r o c b p).</summary>
         public static string Letter(int colorIndex)
         {

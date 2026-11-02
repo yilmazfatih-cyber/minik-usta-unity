@@ -1,12 +1,14 @@
 #nullable enable
 // `ILevelView` on Unity objects (Faz 3 Q1; paket V1 v4 art): the orthographic camera (FIT of the 1080 × 1920 design canvas),
-// the static board, the pooled block visuals and flyers, the K-18 shadow, the particles and the truck as SpriteRenderers on
-// the atlas; the HUD and the level windows are the engine-independent `LevelHud` drawn by the shared `UiRenderer`. It holds no
-// game logic: `LevelPlayer` (Presentation.Core) decides what is shown, this only draws it.
+// the static board, the pooled block visuals and flyers, the K-18 shadow, the particles and (B2) the pooled 3D FX clip sprites
+// as SpriteRenderers on the atlas pages; the HUD and the level windows are the engine-independent `LevelHud` drawn by the shared
+// `UiRenderer`. The camera is a tween target with a zoom (B2 push-ins). D-099 removed the delivery truck. It holds no game logic:
+// `LevelPlayer` (Presentation.Core) decides what is shown, this only draws it.
 using System;
 using System.Collections.Generic;
 using MinikUsta.Core;
 using MinikUsta.Presentation;
+using MinikUsta.Presentation.Anim;
 using MinikUsta.Presentation.Art;
 using MinikUsta.Presentation.Feel;
 using MinikUsta.Presentation.Game;
@@ -32,12 +34,17 @@ namespace MinikUsta.Unity
         private readonly Stack<UnitySpark> sparkPool = new Stack<UnitySpark>();
         private readonly Stack<UnityUiSpark> uiSparks = new Stack<UnityUiSpark>();
         private readonly Transform sparkRoot;
-        private readonly UnityTruckView truck;
+        private readonly Stack<UnityFxSprite> fxUnder = new Stack<UnityFxSprite>();
+        private readonly Stack<UnityFxSprite> fxOver = new Stack<UnityFxSprite>();
+        private readonly Stack<UnityUiFx> fxUi = new Stack<UnityUiFx>();
+        private readonly FeelSettings feel;
+        private readonly CameraTarget cameraRig;
 
         public UnityLevelView(Camera camera, UiRenderer ui, Strings text, Action onPause, LayoutSettings settings, FeelSettings feel)
         {
             this.camera = camera;
             this.ui = ui;
+            this.feel = feel;
             AtlasSprites.Load();
             world = new GameObject("World").transform;
             var boardRoot = new GameObject("Board").transform;
@@ -50,13 +57,12 @@ namespace MinikUsta.Unity
             sparkRoot.SetParent(world, false);
             board = new UnityBoardView(space, boardRoot);
             shadow = new UnityShadowView(space, shadowRoot);
-            truck = new UnityTruckView(space, world);
             Hud = new LevelHud(ui, text, settings, onPause);
             camera.orthographic = true;
             camera.clearFlags = CameraClearFlags.SolidColor;
             camera.backgroundColor = UnityConvert.ToColor(Rgba.Hex(Palette.GameBottom));
             camera.transform.position = new Vector3(0f, 0f, -10f);
-            CameraRig = new OffsetTarget(camera.transform);
+            cameraRig = new CameraTarget(camera);
         }
 
         /// <summary>The HUD and level windows (engine-independent, drawn by the UiRenderer).</summary>
@@ -65,7 +71,7 @@ namespace MinikUsta.Unity
         public void SetViewport(DesignViewport viewport, ScreenLayout layout)
         {
             space.Set(viewport);
-            camera.orthographicSize = (float)viewport.OrthographicSize(DesignSpace.PixelsPerUnit);
+            cameraRig.BaseSize = (float)viewport.OrthographicSize(DesignSpace.PixelsPerUnit);
             ui.SetCanvas(viewport.W, viewport.H);
             Hud.Layout(layout);
         }
@@ -74,7 +80,7 @@ namespace MinikUsta.Unity
 
         public IPieceVisual AcquirePiece(int pieceId, ShapeDef shape, int colorIndex, double cellPx)
         {
-            var v = piecePool.Count > 0 ? piecePool.Pop() : new UnityPieceVisual(space, pieceRoot);
+            var v = piecePool.Count > 0 ? piecePool.Pop() : new UnityPieceVisual(space, pieceRoot, feel);
             v.Configure(pieceId, shape, colorIndex, cellPx);
             return v;
         }
@@ -145,11 +151,9 @@ namespace MinikUsta.Unity
             sparkPool.Push(s);
         }
 
-        public ITweenTarget CameraRig { get; }
+        public ITweenTarget CameraRig => cameraRig;
 
         public ITweenTarget SiteLayer => board.SiteLayer;
-
-        public IPropView Truck => truck;
 
         public void SetStreak(int beads, int trowels, string label, string trowelText) => Hud.SetStreak(beads, trowels, label, trowelText);
 
@@ -174,5 +178,29 @@ namespace MinikUsta.Unity
         public void SetHudState(HudState state) => Hud.SetHudState(state);
 
         public Vec2? StarCenter => Hud.StarCenter;
+
+        // --- B2 ----------------------------------------------------------------------------------------------------------------
+
+        public IFxSprite AcquireFx(FxDepth depth)
+        {
+            switch (depth)
+            {
+                case FxDepth.Ui:
+                    return fxUi.Count > 0 ? fxUi.Pop() : new UnityUiFx(ui.Layer(UiLayer.Fx), ui);
+                case FxDepth.Under:
+                    return fxUnder.Count > 0 ? fxUnder.Pop() : new UnityFxSprite(space, sparkRoot, FxDepth.Under);
+                default:
+                    return fxOver.Count > 0 ? fxOver.Pop() : new UnityFxSprite(space, sparkRoot, FxDepth.Over);
+            }
+        }
+
+        public void ReleaseFx(IFxSprite fx)
+        {
+            fx.Visible = false;
+            if (fx is UnityUiFx u) fxUi.Push(u);
+            else if (fx is UnityFxSprite w) (w.Depth == FxDepth.Under ? fxUnder : fxOver).Push(w);
+        }
+
+        public void SetKing(KingDirector? king) => Hud.King = king;
     }
 }

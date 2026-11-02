@@ -17,10 +17,13 @@
 //   coins are short (no shop yet), the ad option grey ("Şu an reklam yok"); "Hayır, teşekkürler" / × → loss.
 // - Pause: continue, restart, home (+ the settings gear in the corner); restart and home go through the K-43/2 exit
 //   confirmation (movesSpent 0: free, the reserved life comes back; ≥ 1: a loss).
+// - B2 (D-100, D-101): Usta Kral (`KingDirector`) on the home screen, in the level corner and in the windows; the home background
+//   as drifting parallax layers (`HomeParallax`); the 3D FX clips (`LevelPlayer.Fx`). Without king.json / fx.json the v4 stills stay.
 using System;
 using System.Collections.Generic;
 using MinikUsta.Core;
 using MinikUsta.Core.Level;
+using MinikUsta.Presentation.Anim;
 using MinikUsta.Presentation.Audio;
 using MinikUsta.Presentation.Feel;
 using MinikUsta.Presentation.Game;
@@ -54,10 +57,11 @@ namespace MinikUsta.Presentation.Flow
         private int pendingStartLevel;
         private double canvasW = 1080;
         private double canvasH = 1920;
+        private bool homeShown;
 
         public GameApp(ILevelView view, IUiSurface ui, LevelCatalog catalog, Localizer i18n, EconomyConfig economy, ISaveStore store,
             FeelSettings? feel = null, LayoutSettings? layout = null, IHapticSink? haptics = null, EconomyInfo? economyInfo = null, Action<string>? log = null,
-            AudioPlayer? audio = null)
+            AudioPlayer? audio = null, ArtSet? art = null)
         {
             this.view = view ?? throw new ArgumentNullException(nameof(view));
             this.ui = ui ?? throw new ArgumentNullException(nameof(ui));
@@ -79,6 +83,41 @@ namespace MinikUsta.Presentation.Flow
             Player.Tutorial = new MinikUsta.Presentation.Tutorial.TutorialPlayer(Player, ui);
             Player.BoosterCount = id => Save.BoosterCount(id);
             Player.LevelWon = n => Save.Won(n);
+            Art = art ?? ArtSet.Empty;
+            Player.Art = Art;
+            King = new KingDirector(Art) { ThinkAfterMs = Player.Feel.KingThinkAfterMs, OnEvent = KingEvent };
+            Player.King = King;
+        }
+
+        /// <summary>B2: the 3D clip libraries (king.json, fx.json); `ArtSet.Empty` = the v4 look.</summary>
+        public ArtSet Art { get; }
+
+        /// <summary>B2 (D-101): Usta Kral on the home screen, in the level corner and in the windows.</summary>
+        public KingDirector King { get; }
+
+        /// <summary>B2: the drifting home background layers.</summary>
+        public HomeParallax Parallax { get; } = new HomeParallax();
+
+        /// <summary>
+        /// ART_3D §7.2 event hooks: `land` → `sfx_land` −6 dB + a light buzz, `hat_land` → `sfx_clamp`, `pump` → a light buzz. The
+        /// home king stays silent (no sound before the first user input, and the home screen is calm).
+        /// </summary>
+        private void KingEvent(string slot, AnimEvent e)
+        {
+            if (slot == "home") return;
+            switch (e.Name)
+            {
+                case "land":
+                    Player.Sound(Sounds.Land, 1, SoundFeel.DbGain(-6));
+                    Player.Buzz(HapticKind.Light);
+                    break;
+                case "hat_land":
+                    Player.Sound(Sounds.Clamp);
+                    break;
+                case "pump":
+                    Player.Buzz(HapticKind.Light);
+                    break;
+            }
         }
 
         public LevelPlayer Player { get; }
@@ -118,6 +157,7 @@ namespace MinikUsta.Presentation.Flow
             var s = Save.Settings;
             I18n.SetLang(s.Lang);
             Player.Reduced = s.ReduceMotion;
+            Parallax.Reduced = s.ReduceMotion;
             Player.Haptics.Enabled = s.Haptics;
             if (Audio != null)
             {
@@ -190,6 +230,8 @@ namespace MinikUsta.Presentation.Flow
         {
             Audio?.Tick(dtMs);
             Player.Tick(dtMs);
+            King.Advance(dtMs);
+            if (Flow.Current == AppScreen.Home || Flow.Current == AppScreen.LevelStart) Parallax.Advance(dtMs);
         }
 
         /// <summary>
@@ -248,6 +290,7 @@ namespace MinikUsta.Presentation.Flow
             Levels = LevelCatalog.Last,
             AllWon = Save.WonCount >= LevelCatalog.Last,
             Lang = I18n.Lang,
+            Layers = Art.Fx?.Layers,
         };
 
         private void ShowHome()
@@ -258,6 +301,15 @@ namespace MinikUsta.Presentation.Flow
             Home = HomeView.Build(HomeModelOf(), canvasW, canvasH, T);
             ui.Show(UiLayer.Home, Home, OnUiTap);
             ui.SetLayerVisible(UiLayer.Home, true);
+            // B2: the king greets (a wave) when the home screen is entered, not when it is only rebuilt (resize, language)
+            var box = HomeView.KingBox(canvasH);
+            var kingNode = Home.Find(HomeView.KingId);
+            if (kingNode != null)
+                King.BindHome(ui, kingNode, new Vec2((float)box.CenterX, (float)box.Bottom), King.SizeFor(King.Home, box.H), !homeShown);
+            Parallax.Bind(ui, Home, Art.Fx?.Layers);
+            King.HomeVisible = true;
+            King.CornerVisible = false;
+            homeShown = true;
         }
 
         private void ShowBoard()
@@ -265,6 +317,10 @@ namespace MinikUsta.Presentation.Flow
             ui.SetLayerVisible(UiLayer.Home, false);
             ui.SetLayerVisible(UiLayer.Hud, true);
             view.WorldVisible = true;
+            King.HomeVisible = false;
+            King.CornerVisible = true;
+            Parallax.Unbind();
+            homeShown = false;
         }
 
         /// <summary>A tap on a home / settings button (the surface calls it; tests call it with the node).</summary>
@@ -280,6 +336,9 @@ namespace MinikUsta.Presentation.Flow
                 case HomeView.SettingsAction:
                     Flow.OpenSettings();
                     ShowSettings();
+                    return;
+                case HomeView.KingAction:
+                    King.HomeTapped();
                     return;
             }
             if (n.Action.StartsWith(SettingsView.Prefix, StringComparison.Ordinal)) SettingsTap(n.Action);
@@ -315,6 +374,7 @@ namespace MinikUsta.Presentation.Flow
                 SlotsTitle = T.Get("levelStart.boosters"),
                 LockedSlots = PreLevelSlots(n),
                 CloseAction = Game.PanelAction.Close,
+                King = KingCue.Point,
             };
             Player.OpenPanel(new PanelModel(PanelKind.LevelStart, T.Format(Strings.Keys.LevelLabel, n), "", new[]
             {
@@ -531,7 +591,7 @@ namespace MinikUsta.Presentation.Flow
             {
                 new PanelButton(T.Get("exit.stay"), Game.PanelAction.Stay, ButtonKind.Primary),
                 new PanelButton(T.Get("exit.leave"), Game.PanelAction.Leave, ButtonKind.Danger),
-            }, false, new PanelDetail { Lines = lines.ToArray(), Character = "chr_tuna_think" }));
+            }, false, new PanelDetail { Lines = lines.ToArray(), King = KingCue.Think }));
         }
 
         private void Leave()
@@ -603,7 +663,7 @@ namespace MinikUsta.Presentation.Flow
             var session = Player.Session!;
             var d = new PanelDetail
             {
-                Character = "chr_tuna_think",
+                King = KingCue.Encourage,
                 Thumb = PlanThumb.Visible(session.State),
                 Counter = T.Format(offer.CounterKey, ("n", offer.N), ("max", offer.Max)),
                 CloseAction = Game.PanelAction.Decline,
@@ -641,7 +701,7 @@ namespace MinikUsta.Presentation.Flow
             {
                 new PanelButton(T.Get(Strings.Keys.LoseRetry), Game.PanelAction.Retry, ButtonKind.Primary),
                 new PanelButton(T.Get("common.home"), Game.PanelAction.Home, ButtonKind.Secondary),
-            }, false, new PanelDetail { Lines = lines.ToArray(), Character = "chr_tuna_think" }));
+            }, false, new PanelDetail { Lines = lines.ToArray(), King = KingCue.Encourage }));
         }
 
         private void Retry()
@@ -667,7 +727,7 @@ namespace MinikUsta.Presentation.Flow
             var session = player.Session!;
             var d = new PanelDetail
             {
-                Character = "chr_tuna_cheer",
+                King = KingCue.BigCheer,
                 Thumb = PlanThumb.Whole(session.State),
                 LevelName = player.LevelName(session.Lvl),
                 CardCaption = T.Get("build.done"),
@@ -709,6 +769,7 @@ namespace MinikUsta.Presentation.Flow
                 case SettingsView.Motion:
                     s.ReduceMotion = !s.ReduceMotion;
                     Player.Reduced = s.ReduceMotion;
+                    Parallax.Reduced = s.ReduceMotion;
                     break;
                 case SettingsView.LangTr:
                 case SettingsView.LangEn:

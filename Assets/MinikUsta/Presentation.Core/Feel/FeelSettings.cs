@@ -506,6 +506,51 @@ namespace MinikUsta.Presentation.Feel
         /// <summary>The white glow (0 … 1) the hinted blocks get during the stuck pulse.</summary>
         public float HintGlowPeak = 0.3f;
 
+        // --- B2 2.5D feel (D-100 "Royal Match çıtası"; the 3D clips of fx.json / king.json; every value tunable) ----------------------
+
+        /// <summary>
+        /// B2: the dragged block leans with its horizontal speed on a spring (the top lags behind the finger), at most ±8° — the B2
+        /// brief's value. JUICE #3 and the token `drag.tiltMaxDeg` say ±4° (`TiltMaxDeg`, kept for the token test): set this to 4 for
+        /// the web value. 0 turns the lean off. Reduced motion: none (JUICE #3 "eğim yok").
+        /// </summary>
+        public float DragTiltMaxDeg = 8;
+        /// <summary>Lean per cell/s of horizontal speed (8° at 8 cells/s).</summary>
+        public float DragTiltDegPerCell = 1f;
+        /// <summary>The lean spring's natural frequency (Hz) and damping ratio (&lt; 1 overshoots: the block wobbles once and settles).</summary>
+        public float DragTiltSpringHz = 5f;
+        public float DragTiltDamping = 0.35f;
+        /// <summary>JUICE #1 "gölge belirir (y +18, bulanık 16, %30)": the lifted shadow moves this far down and softens …</summary>
+        public float LiftShadowOffsetPx = 18;
+        /// <summary>… its opacity goes from `LiftShadowRestAlpha` (just lifted) to `LiftShadowAlpha` (fully lifted) …</summary>
+        public float LiftShadowAlpha = 0.3f;
+        public float LiftShadowRestAlpha = 0.65f;
+        /// <summary>… and it grows by this share (a softer, wider blur).</summary>
+        public float LiftShadowSpread = 0.2f;
+        /// <summary>JUICE #11: the `fx_dust_puff` clip at a landing, × the block width / the clip width.</summary>
+        public float LandPuffScale = 1.1f;
+        /// <summary>JUICE #12 / #92: `fx_lock_shine` on every stud of a correct placement, bottom → top, this far apart.</summary>
+        public float LockShineStaggerMs = 40;
+        public float LockShineScale = 1.2f;
+        /// <summary>JUICE #18 / #93: the `fx_segment_done` flare behind the site and a light camera push-in (1 → peak → 1).</summary>
+        public float SegmentFlareScale = 1f;
+        public float SegmentZoomPeak = 1.03f;
+        public float SegmentZoomMs = 600;
+        /// <summary>JUICE #55: the camera pushes in during the win (glow + ribbon), holds through the confetti and eases back.</summary>
+        public float WinZoomPeak = 1.06f;
+        public float WinZoomInMs = 500;
+        public float WinZoomOutMs = 700;
+        /// <summary>The 3D cels of confetti and coins (`fx_confetti3d_*`, `fx_coin_spin`) turn at this rate.</summary>
+        public float CelFps = 24;
+        /// <summary>JUICE #61 / #62 / #63 / #17: the booster clips (hammer + impact star, crane claw, paint splash, trowel sparkle) × their design size.</summary>
+        public float HammerFxScale = 1f;
+        public float CraneFxScale = 1f;
+        public float SplashFxScale = 1.2f;
+        public float TrowelFxScale = 0.9f;
+        /// <summary>JUICE #96: the `fx_star_burst` clip behind the win star × its design size.</summary>
+        public float StarBurstFxScale = 1.1f;
+        /// <summary>B2: the corner king thinks after this long without a touch (the stuck pulse may start him earlier).</summary>
+        public float KingThinkAfterMs = 5000;
+
         /// <summary>The defaults (a fresh instance).</summary>
         public static FeelSettings CreateDefault() => new FeelSettings();
 

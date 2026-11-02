@@ -6,6 +6,7 @@
 using System;
 using System.Collections.Generic;
 using MinikUsta.Core;
+using MinikUsta.Presentation.Anim;
 using MinikUsta.Presentation.Animation;
 using MinikUsta.Presentation.Art;
 using MinikUsta.Presentation.Audio;
@@ -53,6 +54,44 @@ namespace MinikUsta.Presentation.Game
 
         private void DustAfter(float delayMs, Vec2 at, int count, float time, bool instant) =>
             After(delayMs, () => p.Particles.Dust(at, count), time, instant);
+
+        /// <summary>
+        /// B2 / JUICE #11: the pre-rendered dust cloud (`fx_dust_puff`, pivot = its bottom centre) at a block's ground contact, as wide
+        /// as `LandPuffScale` × the block, `delayMs` after the step start; `k` scales it (a yard drop is smaller).
+        /// </summary>
+        private void Puff(Vec2 bottom, ShapeDef shape, float cellPx, float delayMs, float k, bool instant)
+        {
+            if (instant) return;
+            var clip = p.Art.Fx?.Clip("fx_dust_puff");
+            if (clip == null || clip.CanvasW <= 0) return;
+            float scale = (float)(shape.W * cellPx * F.LandPuffScale / clip.CanvasW) * k;
+            p.Fx.Play("fx_dust_puff", bottom, FxDepth.Over, scale, Rgba.Hex("#F3EAD8"), delayMs);
+        }
+
+        /// <summary>
+        /// B2 / JUICE #12, #92 "kilit parlaması": `fx_lock_shine` (60 fps, 200 ms) on the stud of every cell of a correctly placed
+        /// block, `LockShineStaggerMs` apart from the bottom row to the top (cells of a row left to right).
+        /// </summary>
+        private void LockShine(IPieceVisual v, ShapeDef shape, float cellPx, bool instant)
+        {
+            if (instant) return;
+            var order = new int[shape.Cells.Length];
+            for (int i = 0; i < order.Length; i++) order[i] = i;
+            Array.Sort(order, (a, b) =>
+            {
+                var ca = shape.Cells[a];
+                var cb = shape.Cells[b];
+                return ca.Y != cb.Y ? ca.Y.CompareTo(cb.Y) : ca.X.CompareTo(cb.X);
+            });
+            var center = v.Position;
+            for (int i = 0; i < order.Length; i++)
+            {
+                var o = BoardPose.CellOffset(shape, shape.Cells[order[i]], cellPx);
+                // the stud sits a little above the cell centre (the 24 px front lip below it, ART_3D §2.2)
+                var at = new Vec2(center.X + o.X, center.Y + o.Y - 0.1f * cellPx);
+                p.Fx.Play("fx_lock_shine", at, FxDepth.Over, F.LockShineScale * cellPx / 120f, null, i * F.LockShineStaggerMs);
+            }
+        }
 
         /// <summary>Q2 (4): `Grow` 1 → `peak` (at `split` of the time) → 1: the block swells and shrinks into its lock.</summary>
         internal static Tween GrowPulse(IPieceVisual v, float peak, float ms, float split, EaseType ease) =>
@@ -111,6 +150,9 @@ namespace MinikUsta.Presentation.Game
                 Play(spin, time, instant, false);
             }
             p.Particles.GoldRain(HudLayout.Center(HudLayout.TrowelIcon(L)), F.ParticleCombo);
+            // B2: the 3D Golden Trowel turns and glints over the HUD icon; the corner king celebrates the streak
+            if (!instant) p.Fx.Play("fx_trowel_sparkle", HudLayout.Center(HudLayout.TrowelIcon(L)), FxDepth.Ui, F.TrowelFxScale, lifeMs: step.Ms + 300f, fadeMs: 200f);
+            p.King?.Cue(KingCue.BigCheer);
             p.Buzz(HapticKind.Medium);
             Snd(Sounds.Combo, 0); // JUICE #16
         }
@@ -137,7 +179,7 @@ namespace MinikUsta.Presentation.Game
             Play(seq, time, instant, false);
         }
 
-        // --- segment slide, truck (JUICE #18, #19) -----------------------------------------------------------------------------
+        // --- segment slide (JUICE #18; the #19 truck is gone: D-099) ----------------------------------------------------------------
 
         /// <summary>JUICE #18: the next segment's site enters from the right edge of the screen (the layer returns to rest).</summary>
         private Tween SiteSlideIn(ScreenLayout L, float ms, EaseType ease)
@@ -160,56 +202,6 @@ namespace MinikUsta.Presentation.Game
             }
             if (o.Count == 0) o.AddRange(WinPalette);
             return o;
-        }
-
-        /// <summary>
-        /// JUICE #19: the truck drives in from the right (`TruckEnterMs`, Back.easeOut), tips its bed while the blocks drop from the
-        /// columns, and drives off to the left (`TruckExitMs`, Quad.easeIn) so the whole ride is `TruckMs` (700). Reduced motion:
-        /// it just appears and disappears ("kamyon görünür/kaybolur").
-        /// </summary>
-        private void TruckRide(Sequence seq, AnimationStep step, ScreenLayout L, GameState s)
-        {
-            var drops = step.Drops;
-            if (drops == null || drops.Length == 0) return;
-            var g = L.Grid;
-            var truck = p.View.Truck;
-            float c = (float)g.CellPx;
-            float width = TruckModel.WidthCells * c;
-            float sumX = 0, topY = float.MaxValue;
-            foreach (var d in drops)
-            {
-                var from = BoardPose.Center(g, d.From, BoardPose.ShapeOf(s, d.PieceId));
-                sumX += from.X;
-                topY = Math.Min(topY, from.Y);
-            }
-            float x = Math.Max(width / 2f + 8f, Math.Min((float)L.W - width / 2f - 8f, sumX / drops.Length));
-            float y = topY + 0.15f * c;
-            var stand = new Vec2(x, y);
-            seq.InsertCallback(0, () =>
-            {
-                truck.Visible = true;
-                truck.Scale = Vec2.One;
-                truck.Alpha = 1f;
-                truck.Rotation = 0f;
-                truck.Position = p.Reduced ? stand : new Vec2((float)L.W + width / 2f + 20f, y);
-            });
-            if (p.Reduced)
-            {
-                seq.InsertCallback(F.ReducedFadeMs, () => truck.Visible = false);
-                return;
-            }
-            float enter = Math.Min(F.TruckEnterMs, step.Ms);
-            float exitAt = Math.Max(enter, step.Ms - F.TruckExitMs);
-            float tilt = Math.Min(F.TruckBedTiltMs, Math.Max(0f, exitAt - enter));
-            seq.Insert(0, Tweens.Move(truck, stand, enter, F.TruckEnterEase));
-            if (tilt > 0)
-            {
-                seq.Insert(enter, Tweens.Rotate(truck, F.TruckBedTiltDeg, tilt, EaseType.OutQuad));
-                seq.Insert(Math.Max(enter + tilt, exitAt - tilt), Tweens.Rotate(truck, 0f, tilt, EaseType.InQuad));
-            }
-            seq.Insert(exitAt, Tweens.Move(truck, new Vec2(-width / 2f - 20f, y), Math.Max(0f, step.Ms - exitAt), F.TruckExitEase));
-            seq.InsertCallback(step.Ms, () => truck.Visible = false);
-            p.Buzz(HapticKind.Light);
         }
 
         // --- win (JUICE #55, #56) ------------------------------------------------------------------------------------------------

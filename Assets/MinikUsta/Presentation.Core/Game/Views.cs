@@ -4,6 +4,7 @@
 // plain fields. Nothing here decides a rule: the views only show what `LevelPlayer` hands them.
 using System;
 using MinikUsta.Core;
+using MinikUsta.Presentation.Anim;
 using MinikUsta.Presentation.Art;
 using MinikUsta.Presentation.Layout;
 using MinikUsta.Presentation.Tweening;
@@ -48,6 +49,25 @@ namespace MinikUsta.Presentation.Game
 
         /// <summary>V1 (K-14, ART_UNITY §4.1): placed on the site — locked look (tint #EFEFEF + mortar dots, no gloss).</summary>
         bool Placed { get; set; }
+
+        /// <summary>
+        /// B2 (JUICE #1): how high the lifted block is, 0 … 1 — its drop shadow moves `FeelSettings.LiftShadowOffsetPx` down, grows by
+        /// `LiftShadowSpread` and fades to `LiftShadowAlpha` as it rises (`LiftShadow.Pose`). Only drawn while `Lifted`.
+        /// </summary>
+        float LiftHeight { get; set; }
+    }
+
+    /// <summary>B2: the lifted block's drop shadow for a lift height (the Unity piece visual and the scene dump draw the same).</summary>
+    public static class LiftShadow
+    {
+        /// <summary>Offset down (design px), size factor and opacity of the `fx_drop_blob` at lift height `h` (0 … 1).</summary>
+        public static void Pose(float h, Feel.FeelSettings f, out float dy, out float scale, out float alpha)
+        {
+            float k = h < 0 ? 0 : h > 1.5f ? 1.5f : h;
+            dy = f.LiftShadowOffsetPx * k;
+            scale = 1f + f.LiftShadowSpread * k;
+            alpha = f.LiftShadowRestAlpha + (f.LiftShadowAlpha - f.LiftShadowRestAlpha) * Math.Min(1f, k);
+        }
     }
 
     public enum SparkKind
@@ -60,25 +80,24 @@ namespace MinikUsta.Presentation.Game
         Star,
         /// <summary>Bonus İnşaat coin (JUICE #56).</summary>
         Coin,
-        /// <summary>Confetti piece (JUICE #18, #55): a small rectangle.</summary>
+        /// <summary>Confetti piece (JUICE #18, #55): a small rectangle (B2: the `fx_confetti3d_rect` 3D flip cels).</summary>
         Confetti,
         /// <summary>Ring outline (JUICE #96 white ring).</summary>
         Ring,
+        /// <summary>B2: a round confetti piece (`fx_confetti3d_round` cels).</summary>
+        ConfettiRound,
     }
 
     /// <summary>A pooled sprite particle (D-096: no ParticleSystem; the field in `ParticleField` moves it).</summary>
     public interface ISpark : ITweenTarget
     {
         bool Visible { get; set; }
-    }
 
-    /// <summary>A scenery prop above the board (the delivery truck): shown / hidden, placed by `Position` (its centre), turned by `Rotation`.</summary>
-    public interface IPropView : ITweenTarget
-    {
-        bool Visible { get; set; }
-
-        /// <summary>The cell size (design px) the prop is drawn for: `TruckModel` sizes are in cells.</summary>
-        double CellPx { get; set; }
+        /// <summary>
+        /// B2: the 3D cel of an animated kind (`Confetti` / `ConfettiRound`: `fx_confetti3d_*_NN`, 8 cels; `Coin`: `fx_coin_NN`, 12 cels),
+        /// set every frame by the mover; other kinds ignore it.
+        /// </summary>
+        int Cel { get; set; }
     }
 
     /// <summary>A small icon flying to a HUD chip (D-091 blocks-left chip flight).</summary>
@@ -175,6 +194,8 @@ namespace MinikUsta.Presentation.Game
         public string[] Lines = new string[0];
         /// <summary>Character frame beside the body (chr_tuna_think, chr_tuna_cheer …); null = none.</summary>
         public string? Character;
+        /// <summary>B2 (D-101): Usta Kral in the window instead of `Character` — his clip (point, big cheer, encourage, think); null = none.</summary>
+        public KingCue? King;
         /// <summary>Win: coins, Bonus İnşaat, trowels, stars (META §3.1).</summary>
         public int Coins = -1;
         public int TrowelCoins;
@@ -239,7 +260,10 @@ namespace MinikUsta.Presentation.Game
         public readonly int[] Counts;
         public readonly int[] UnlockLevels;
         public readonly PlanThumb Thumb;
-        /// <summary>Truck chip: queued + pending blocks; `Truck` false hides the chip (no batches in the level).</summary>
+        /// <summary>
+        /// Truck chip: queued + pending blocks. D-099 (K-55 item 5): no truck brings blocks any more; the chip shows only while the
+        /// queue holds a block (`Truck`), e.g. a K-17 step 3 bounce with no room in the yard.
+        /// </summary>
         public readonly int Queue;
         public readonly bool Truck;
         /// <summary>The level was won before (the well shows a full star).</summary>
@@ -306,9 +330,6 @@ namespace MinikUsta.Presentation.Game
         /// <summary>The site layer of the board (blueprint, plan, platform): `Position` is its offset (the #18 slide).</summary>
         ITweenTarget SiteLayer { get; }
 
-        /// <summary>The delivery truck (JUICE #19).</summary>
-        IPropView Truck { get; }
-
         /// <summary>The streak capsule (UX §5.1 status strip): `beads` of 4 filled, `trowels` Golden Trowels held (`trowelText` = "×n"), `label` = "Usta Serisi".</summary>
         void SetStreak(int beads, int trowels, string label, string trowelText);
 
@@ -336,5 +357,15 @@ namespace MinikUsta.Presentation.Game
 
         /// <summary>Centre (design px) of the open window's star (JUICE #96 burst); null = no star shown.</summary>
         Vec2? StarCenter { get; }
+
+        // --- B2 additions -----------------------------------------------------------------------------------------------
+
+        /// <summary>A pooled sprite for a 3D FX clip (`FxPlayer`); hidden until `Visible` is set.</summary>
+        IFxSprite AcquireFx(FxDepth depth);
+
+        void ReleaseFx(IFxSprite fx);
+
+        /// <summary>Usta Kral (D-101): the HUD corner and the windows bind their king nodes to it (null = no king clips).</summary>
+        void SetKing(KingDirector? king);
     }
 }

@@ -129,11 +129,22 @@ namespace MinikUsta.Unity
             return sprite;
         }
 
-        /// <summary>The sprite to draw `name` with: the atlas frame, else its procedural fallback (`FallbackTiles`), else none.</summary>
+        /// <summary>
+        /// The sprite to draw `name` with: the v4 atlas frame, else a frame of the 3D libraries (B2: `ClipSprites`, king.json / fx.json),
+        /// else the v4 stand-in of a king drawing (`Frames.Fallback3d`), else its procedural fallback (`FallbackTiles`), else none.
+        /// </summary>
         public static FrameSprite Resolve(string name)
         {
             var s = Get(name);
             if (s != null) return new FrameSprite(s, data!.Find(name), Rgba.White, data.Find(name)!.Sliced);
+            var cf = ClipSprites.Frame(name);
+            if (cf != null)
+            {
+                var cs = ClipSprites.Get(name);
+                if (cs != null) return new FrameSprite(cs, cf, Rgba.White, false);
+            }
+            var stand = Frames.Fallback3d(name);
+            if (stand != null) return Resolve(stand);
             var fb = FallbackTiles.Of(name);
             if (Loaded && !FallbackTiles.IsProceduralOnly(name) && warned.Add(name)) Debug.LogWarning("Minik Usta: atlas frame " + name + " missing; placeholder tile");
             if (fb == null) return new FrameSprite(null, null, Rgba.White, false);

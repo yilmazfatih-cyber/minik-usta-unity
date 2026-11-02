@@ -37,6 +37,8 @@ namespace MinikUsta.Presentation.Game
             public float StartAlpha;
             public float FadeFrom;
             public EaseType Ease;
+            /// <summary>B2: the first 3D cel of an animated kind (confetti flips out of step with its neighbours).</summary>
+            public int CelPhase;
         }
 
         /// <summary>The dust colour: a light warm grey (JUICE `fx_dust`), faded by `FeelSettings.DustAlpha`.</summary>
@@ -217,7 +219,9 @@ namespace MinikUsta.Presentation.Game
             for (int i = 0; i < n; i++)
             {
                 float x = ((float)Rand() - 0.5f) * widthPx;
-                var p = New(burst, SparkKind.Confetti, palette[i % palette.Count], feel.ConfettiSizePx * (0.7f + 0.4f * (float)Rand()));
+                // B2: every third piece is a round one; the 3D flip starts at a different cel per piece (no extra draws from the generator)
+                var p = New(burst, i % 3 == 2 ? SparkKind.ConfettiRound : SparkKind.Confetti, palette[i % palette.Count], feel.ConfettiSizePx * (0.7f + 0.4f * (float)Rand()));
+                p.CelPhase = (i * 5) % 8;
                 p.From = origin + new Vec2(x, -(float)Rand() * 60f);
                 p.To = p.From + new Vec2(((float)Rand() - 0.5f) * 180f, fallPx * (0.7f + 0.3f * (float)Rand()));
                 p.Gravity = 0f;
@@ -318,6 +322,7 @@ namespace MinikUsta.Presentation.Game
             p.Size = size;
             p.Age = 0f;
             p.Spark = null;
+            p.CelPhase = 0;
             return p;
         }
 
@@ -354,6 +359,7 @@ namespace MinikUsta.Presentation.Game
             float sc = p.ScaleFrom + (p.ScaleTo - p.ScaleFrom) * u;
             s.Scale = new Vec2(sc, sc);
             s.Rotation = p.Spin * u;
+            if (p.Kind == SparkKind.Confetti || p.Kind == SparkKind.ConfettiRound) s.Cel = p.CelPhase + (int)(p.Age * feel.CelFps / 1000f);
             float fade = p.FadeFrom >= 1f || u < p.FadeFrom ? 1f : 1f - (u - p.FadeFrom) / (1f - p.FadeFrom);
             s.Alpha = p.StartAlpha * fade;
         }

@@ -28,6 +28,7 @@ namespace MinikUsta.Presentation.Tests.Fixtures
             AudioPlayer? audio = null)
         {
             Player = new LevelPlayer(View, new LevelCatalog(read ?? ReadLevel), Tr(), feel, null, haptics, new EconomyInfo());
+            Player.Art = TestArt.Set; // B2: the shipped 3D FX clips
             Audio = audio;
             Player.Audio = audio;
             Player.SetScreen(screenW, screenH);

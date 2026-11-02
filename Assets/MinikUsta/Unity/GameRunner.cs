@@ -41,6 +41,8 @@ namespace MinikUsta.Unity
                 var go = new GameObject("Main Camera");
                 cam = go.AddComponent<Camera>();
             }
+            // B2: the 3D clip libraries (Usta Kral, FX, home layers); pages decode on first use (ClipSprites)
+            var art = ClipSprites.Load();
             var layout = new LayoutSettings();
             var urlMode = ScreenFit.ModeFromUrl(Application.absoluteURL);
             if (urlMode.HasValue) layout.Mode = urlMode.Value; // C1: ?scale=fit | ?scale=expand
@@ -70,7 +72,7 @@ namespace MinikUsta.Unity
             var shotOptions = ShotOptions.FromUrl(Application.absoluteURL);
             ISaveStore store = shotOptions != null ? new MemorySaveStore() : (ISaveStore)new PlayerPrefsStore();
             app = new GameApp(view, ui, catalog, i18n, EconomyConfig.FromText(economyText), store, feel, layout, haptics,
-                EconomyInfo.FromText(economyText), message => Debug.LogWarning(message), audio);
+                EconomyInfo.FromText(economyText), message => Debug.LogWarning(message), audio, art);
             ui.Pressed = () => app?.UiPressed();
             input = new PointerInput();
             screenW = Screen.width;

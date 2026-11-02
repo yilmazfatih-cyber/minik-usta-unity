@@ -57,6 +57,9 @@ namespace MinikUsta.Unity
             set => rect.gameObject.SetActive(value);
         }
 
+        /// <summary>B2: stars and rings have no 3D cels; the value is kept only.</summary>
+        public int Cel { get; set; }
+
         public Vec2 Position
         {
             get => position;

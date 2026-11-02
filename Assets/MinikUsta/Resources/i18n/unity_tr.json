@@ -1,5 +1,5 @@
 {
-  "_doc": "Unity-only keys (paket V1): merged on top of the web copy i18n/tr.json by MinikUsta.Presentation.I18n.Localizer. Keep the same keys in unity_en.json.",
+  "_doc": "Unity-only keys (paket V1): merged on top of the web copy i18n/tr.json by MinikUsta.Presentation.I18n.Localizer. Keep the same keys in unity_en.json. B2 (D-101): keys whose web text names Usta Dede are overridden here with Usta Kral (the web STORY / i18n rename is a separate package).",
   "home": {
     "playLevel": "Oyna · Bölüm {n}"
   },
@@ -13,5 +13,10 @@
   "lang": {
     "tr": "Türkçe",
     "en": "English"
+  },
+  "lose": {
+    "offer": {
+      "gift": "+{n} hamle · Usta Kral'dan hediye"
+    }
   }
 }

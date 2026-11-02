@@ -245,6 +245,8 @@ namespace UnityEngine
         public static float deltaTime => 0f;
         public static float unscaledDeltaTime => 0f;
         public static float time => 0f;
+        /// <summary>UnityCsReference Runtime/Export/Time/Time.bindings.cs: `public static extern float realtimeSinceStartup { get; }` (B2 decode timing).</summary>
+        public static float realtimeSinceStartup => 0f;
     }
 
     public sealed class Screen
@@ -529,6 +531,8 @@ namespace UnityEngine
     {
         public static T Load<T>(string path) where T : Object => default;
         public static T GetBuiltinResource<T>(string path) where T : Object => default;
+        /// <summary>UnityCsReference Runtime/Export/Resources/Resources.bindings.cs: `public static void UnloadAsset(Object assetToUnload)` (B2: the PNG bytes of a decoded page).</summary>
+        public static void UnloadAsset(Object assetToUnload) { }
     }
 
     public enum RenderMode

@@ -1,6 +1,6 @@
 #nullable enable
 // Scene dump for tools/art/compose.mjs (paket V1): what the Unity layer would draw, as JSON — the world sprites (board items with
-// their atlas frames, every block's `BlockSkin` parts at its pose, the K-18 shadow parts and badge, the truck) sorted by sorting
+// their atlas frames, every block's `BlockSkin` parts at its pose, the K-18 shadow parts and badge, B2's 3D FX clip sprites) sorted by sorting
 // order, and the visible UI layers as `UiNode` trees. The compose tool draws exactly this from the atlas PNG pages and the Baloo 2
 // TTF: the preview is built from Presentation.Core's layout, not drawn by hand. It is NOT a Unity screenshot (no uGUI text
 // layout, no shaders); it proves frame names, rectangles, order, tints and texts.
@@ -63,8 +63,10 @@ namespace MinikUsta.Presentation.Tests.Fixtures
                 double cx = p.Position.X, cy = p.Position.Y - p.Hop;
                 if (p.Lifted)
                 {
-                    double bw = (p.Shape.W + 0.8) * cell * sc, bh = 0.5 * cell * sc;
-                    Add(new Sprite { Frame = Frames.DropBlob, Rect = new PxRect(cx - bw / 2, cy + p.Shape.H * cell * sc / 2 - bh / 2 + Palette.LiftedShadowY, bw, bh), Order = b - 1, Alpha = 0.65f });
+                    // B2: the shadow drops away and softens with the lift height (UnityPieceVisual: LiftShadow.Pose)
+                    LiftShadow.Pose(p.LiftHeight, new Feel.FeelSettings(), out float sdy, out float ssc, out float sa);
+                    double bw = (p.Shape.W + 0.8) * cell * sc * ssc, bh = 0.5 * cell * sc * ssc;
+                    Add(new Sprite { Frame = Frames.DropBlob, Rect = new PxRect(cx - bw / 2, cy + p.Shape.H * cell * sc / 2 - bh / 2 + Palette.LiftedShadowY + sdy, bw, bh), Order = b - 1, Alpha = sa });
                 }
                 foreach (var part in BlockSkin.Block(p.Shape, p.Color, cell, look, ArtContractTests.Atlas))
                 {
@@ -91,10 +93,13 @@ namespace MinikUsta.Presentation.Tests.Fixtures
                     Add(new Sprite { Frame = sh.Look.Badge == ShadowBadge.Ok ? "icon_check" : "badge_dot", Rect = new PxRect(c.X - 28, c.Y - 28, 56, 56), Order = Order.GhostBadge });
                 }
             }
-            if (v.Truck.Visible)
+            // B2: the 3D FX clip sprites (world depths; the Ui depth is drawn over the windows by `Scene`)
+            foreach (var fx in v.FxOut)
             {
-                double w = TruckModel.WidthCells * cell, h = w * 200 / 360;
-                Add(new Sprite { Frame = Frames.Truck, Rect = new PxRect(v.Truck.Position.X - w / 2, v.Truck.Position.Y - h / 2, w, h), Order = 90, Alpha = v.Truck.Alpha });
+                if (!fx.Visible || fx.Frame == null || fx.Depth == Anim.FxDepth.Ui) continue;
+                var r = FxRect(fx);
+                if (r == null) continue;
+                Add(new Sprite { Frame = fx.Frame, Rect = r.Value, Order = fx.Depth == Anim.FxDepth.Under ? Order.Pieces - 8 : Order.Flyer + 4, Tint = fx.Tint, Alpha = fx.Alpha });
             }
             var o = JsonValue.Array();
             foreach (var s in list.OrderBy(s => s.Order).ThenBy(s => s.Seq))
@@ -107,6 +112,14 @@ namespace MinikUsta.Presentation.Tests.Fixtures
                 o.Add(j);
             }
             return o;
+        }
+
+        /// <summary>B2: the design rectangle of an FX sprite (its 3D frame placed by its pivot at `Position`, × `Scale`).</summary>
+        public static PxRect? FxRect(FakeFx fx)
+        {
+            var f = fx.Frame != null ? TestArt.Set.Frame(fx.Frame) : null;
+            if (f == null) return null;
+            return Anim.ClipPlacement.Rect(f, fx.Position.X, fx.Position.Y, 1, fx.Scale.X, fx.Scale.Y);
         }
 
         public static JsonValue Node(UiNode n)
@@ -141,7 +154,21 @@ namespace MinikUsta.Presentation.Tests.Fixtures
         {
             var ui = JsonValue.Array();
             foreach (var layer in new[] { UiLayer.Home, UiLayer.Hud, UiLayer.Window, UiLayer.Fx, UiLayer.Overlay })
+            {
                 if (rig.Ui.Visible(layer)) ui.Add(Node(rig.Ui.Root(layer)!));
+                if (layer == UiLayer.Window)
+                {
+                    // B2: the uGUI FX (win star burst, trowel sparkle) sit on the Fx layer, over the window
+                    var g = UiKit.Group("fx", new PxRect(0, 0, rig.Player.Viewport.W, rig.Player.Viewport.H));
+                    foreach (var fx in rig.View.FxOut)
+                    {
+                        if (!fx.Visible || fx.Frame == null || fx.Depth != Anim.FxDepth.Ui) continue;
+                        var r = FxRect(fx);
+                        if (r != null) g.Add(new UiNode("fx." + g.Children.Count, r.Value) { Frame = fx.Frame, Tint = fx.Tint, Alpha = fx.Alpha });
+                    }
+                    if (g.Children.Count > 0) ui.Add(Node(g));
+                }
+            }
             if (extra != null) foreach (var n in extra) ui.Add(Node(n));
             var vp = rig.Player.Viewport;
             return JsonValue.Object()

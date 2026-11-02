@@ -3,12 +3,13 @@
 // centre with the parts of `BlockSkin.Block` — per cell the volume tile `blk_<c>_<mm>` (one outline, one side wall, stud and
 // embossed symbol for the whole piece), the corner fills that close the inner notches (no inner edges in O / L / T / S), the
 // gloss of a holdable block (K-09) or the mortar dots of a placed one (K-14) — and the lifted drop blob (`fx_drop_blob`, shown
-// while held, JUICE #1). Pooled by `UnityLevelView`; `Configure` re-skins it for another piece (no allocation once the pool
-// holds enough parts).
+// while held, JUICE #1; B2: it drops away, widens and softens as the block rises — `LiftShadow.Pose`). Pooled by
+// `UnityLevelView`; `Configure` re-skins it for another piece (no allocation once the pool holds enough parts).
 using System.Collections.Generic;
 using MinikUsta.Core;
 using MinikUsta.Presentation;
 using MinikUsta.Presentation.Art;
+using MinikUsta.Presentation.Feel;
 using MinikUsta.Presentation.Game;
 using UnityEngine;
 
@@ -32,6 +33,10 @@ namespace MinikUsta.Unity
         private readonly Transform tr;
         private readonly List<Part> parts = new List<Part>();
         private readonly SpriteRenderer blob;
+        private readonly FeelSettings feel;
+        private Vector3 blobPos;
+        private Vector3 blobScale = Vector3.one;
+        private float liftHeight;
         private int used;
         private ShapeDef? shape;
         private double cellPx = 120;
@@ -53,9 +58,10 @@ namespace MinikUsta.Unity
         private bool lifted;
         private bool visible = true;
 
-        public UnityPieceVisual(DesignSpace space, Transform parent)
+        public UnityPieceVisual(DesignSpace space, Transform parent, FeelSettings feel)
         {
             this.space = space;
+            this.feel = feel;
             root = new GameObject("Piece");
             tr = root.transform;
             tr.SetParent(parent, false);
@@ -99,6 +105,7 @@ namespace MinikUsta.Unity
             hop = 0;
             raised = false;
             lifted = false;
+            liftHeight = 0f;
             visible = true;
             root.SetActive(true);
             Rebuild();
@@ -140,7 +147,9 @@ namespace MinikUsta.Unity
             if (SpriteDraw.Apply(blob, bf, br.W, br.H, false, new Color(1f, 1f, 1f, 0.65f)))
             {
                 SpriteDraw.PivotPoint(bf, br, out double px, out double py);
-                blob.transform.localPosition = new Vector3(DesignSpace.Units(px), -DesignSpace.Units(py), 0f);
+                blobPos = new Vector3(DesignSpace.Units(px), -DesignSpace.Units(py), 0f);
+                blobScale = blob.transform.localScale;
+                ApplyBlob();
             }
             blob.enabled = lifted && bf.Ok;
             for (int i = 0; i < used; i++) PlacePart(parts[i]);
@@ -308,6 +317,25 @@ namespace MinikUsta.Unity
             }
         }
 
+        public float LiftHeight
+        {
+            get => liftHeight;
+            set
+            {
+                liftHeight = value;
+                ApplyBlob();
+                ApplyColors();
+            }
+        }
+
+        /// <summary>B2 / JUICE #1: the drop shadow for the lift height (down, wider, softer as the block rises).</summary>
+        private void ApplyBlob()
+        {
+            LiftShadow.Pose(liftHeight, feel, out float dy, out float sc, out _);
+            blob.transform.localPosition = new Vector3(blobPos.x, blobPos.y - DesignSpace.Units(dy), 0f);
+            blob.transform.localScale = new Vector3(blobScale.x * sc, blobScale.y * sc, 1f);
+        }
+
         public bool Placed
         {
             get => placed;
@@ -351,7 +379,8 @@ namespace MinikUsta.Unity
                 p.Sr.color = c;
             }
             var bc = blob.color;
-            blob.color = new Color(bc.r, bc.g, bc.b, 0.65f * alpha);
+            LiftShadow.Pose(liftHeight, feel, out _, out _, out float ba);
+            blob.color = new Color(bc.r, bc.g, bc.b, ba * alpha);
         }
 
         private void ApplyOrder()

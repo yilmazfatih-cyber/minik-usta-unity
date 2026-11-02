@@ -6,7 +6,9 @@
 // centred in it and one child per `UiLayer` (Home, Hud, Window, Fx, Overlay; back to front). Every `UiNode` becomes one
 // GameObject: RectTransform from its absolute design rect (made parent-relative), an Image (atlas frame, Simple or Sliced,
 // tint × alpha), a Text (ART_REFERENCE §4 style → colour + Outline + Shadow; one line at the `TextFit` size), a Button (tap → the
-// tree's handler) with the JUICE #69 press feel. It decides nothing: the screens build the trees, this only draws them.
+// tree's handler) with the JUICE #69 press feel (B2: the kit's `<frame>_pressed` drawing while held — the plate sinks onto its
+// lip). B2: an `Isolated` node (a clip actor, a drifting parallax layer: it changes every frame) gets its own nested Canvas, so its
+// redraw does not rebuild the batches of the whole screen. It decides nothing: the screens build the trees, this only draws them.
 using System;
 using System.Collections.Generic;
 using MinikUsta.Presentation;
@@ -190,6 +192,11 @@ namespace MinikUsta.Unity
         {
             var rt = NewRect(n.Id, parent);
             var b = new Bound { Node = n, Rt = rt };
+            if (n.Isolated)
+            {
+                rt.gameObject.AddComponent<Canvas>();
+                if (n.Action != null) rt.gameObject.AddComponent<GraphicRaycaster>(); // a nested canvas needs its own raycaster for taps
+            }
             bool image = n.Frame != null || n.BlocksInput || n.Action != null;
             if (image)
             {
@@ -231,7 +238,12 @@ namespace MinikUsta.Unity
                 var l = layer;
                 button.onClick.AddListener(() => Tapped(l, node));
                 b.Button = button;
-                if (n.Pressable) rt.gameObject.AddComponent<PressableButton>().Init(rt, feel, () => Pressed?.Invoke());
+                if (n.Pressable)
+                {
+                    string? down = Frames.Pressed(n.Frame, AtlasSprites.Data);
+                    var pressedSprite = down != null ? AtlasSprites.Get(down) : null;
+                    rt.gameObject.AddComponent<PressableButton>().Init(rt, feel, () => Pressed?.Invoke(), b.Image, pressedSprite);
+                }
             }
             bound[n] = b;
             Apply(b, parentRect);

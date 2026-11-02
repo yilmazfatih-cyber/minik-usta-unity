@@ -68,6 +68,11 @@ namespace MinikUsta.Presentation.Ui
         /// <summary>Eats taps that reach it (window dim, panels): nothing under it is touched.</summary>
         public bool BlocksInput;
         public bool Visible = true;
+        /// <summary>
+        /// B2: the node redraws every frame (a clip actor, a parallax layer): the Unity layer gives it its own nested canvas so its
+        /// changes do not rebuild the batches of the whole screen.
+        /// </summary>
+        public bool Isolated;
 
         public UiNode(string id, PxRect rect)
         {

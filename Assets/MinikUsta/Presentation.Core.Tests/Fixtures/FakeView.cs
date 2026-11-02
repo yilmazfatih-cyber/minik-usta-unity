@@ -4,6 +4,7 @@
 using System;
 using System.Collections.Generic;
 using MinikUsta.Core;
+using MinikUsta.Presentation.Anim;
 using MinikUsta.Presentation.Art;
 using MinikUsta.Presentation.Game;
 using MinikUsta.Presentation.Layout;
@@ -38,6 +39,7 @@ namespace MinikUsta.Presentation.Tests.Fixtures
         public float Tint { get; set; }
         public float Hop { get; set; }
         public float Grow { get; set; } = 1f;
+        public float LiftHeight { get; set; }
         public int CellCount => Shape.Cells.Length;
         /// <summary>Per-cell squash (x, y) as `SetCellScale` left it; (1, 1) = rest.</summary>
         public Vec2[] CellScales = new Vec2[0];
@@ -78,56 +80,46 @@ namespace MinikUsta.Presentation.Tests.Fixtures
         public float Rotation { get; set; }
         public float Alpha { get; set; } = 1f;
         public bool Visible { get; set; }
+        private int cel;
+
+        public int Cel
+        {
+            get => cel;
+            set
+            {
+                cel = value;
+                if (value > MaxCel) MaxCel = value;
+            }
+        }
+
+        /// <summary>The highest cel set (tests: the 3D confetti / coin turned).</summary>
+        public int MaxCel;
     }
 
-    public sealed class FakeProp : IPropView
+    /// <summary>B2: a pooled FX sprite: records what `FxPlayer` showed on it.</summary>
+    public sealed class FakeFx : IFxSprite
     {
-        private Vec2 position;
-        private bool visible;
-        private float rotation;
+        public FakeFx(FxDepth depth)
+        {
+            Depth = depth;
+        }
+
+        public FxDepth Depth { get; }
+        public bool InPool;
+        public string? Frame;
+        public Rgba Tint = Rgba.White;
+        public readonly List<string> Frames = new List<string>();
+        public Vec2 Position { get; set; }
         public Vec2 Scale { get; set; } = Vec2.One;
+        public float Rotation { get; set; }
         public float Alpha { get; set; } = 1f;
-        public double CellPx { get; set; }
-        /// <summary>How many times it turned visible (tests: the truck came).</summary>
-        public int Appearances;
-        /// <summary>The x range it reached while visible (tests: it entered from the right and left to the left).</summary>
-        public float MinX = float.MaxValue;
-        public float MaxX = float.MinValue;
-        /// <summary>The largest rotation it reached (tests: the bed tipped).</summary>
-        public float MaxRotation;
+        public bool Visible { get; set; }
 
-        public Vec2 Position
+        public void Show(string frame, Rgba tint)
         {
-            get => position;
-            set
-            {
-                position = value;
-                if (visible)
-                {
-                    MinX = System.Math.Min(MinX, value.X);
-                    MaxX = System.Math.Max(MaxX, value.X);
-                }
-            }
-        }
-
-        public bool Visible
-        {
-            get => visible;
-            set
-            {
-                if (value && !visible) Appearances++;
-                visible = value;
-            }
-        }
-
-        public float Rotation
-        {
-            get => rotation;
-            set
-            {
-                rotation = value;
-                MaxRotation = System.Math.Max(MaxRotation, value);
-            }
+            Frame = frame;
+            Tint = tint;
+            if (Frames.Count == 0 || Frames[Frames.Count - 1] != frame) Frames.Add(frame);
         }
     }
 
@@ -183,8 +175,6 @@ namespace MinikUsta.Presentation.Tests.Fixtures
         public ITweenTarget PanelTarget { get; } = new FakeTarget();
         public ITweenTarget CameraRig { get; } = new FakeTarget();
         public ITweenTarget SiteLayer { get; } = new FakeTarget();
-        public FakeProp Truck { get; } = new FakeProp();
-        IPropView ILevelView.Truck => Truck;
         public ITweenTarget TrowelIcon { get; } = new FakeTarget();
         public ITweenTarget GoldChip { get; } = new FakeTarget();
         public ITweenTarget StarTarget { get; } = new FakeTarget();
@@ -206,6 +196,32 @@ namespace MinikUsta.Presentation.Tests.Fixtures
         }
 
         public Vec2? StarCenter => Hud?.StarCenter;
+
+        // B2
+        public readonly List<FakeFx> FxOut = new List<FakeFx>();
+        public readonly List<FakeFx> FxLog = new List<FakeFx>();
+        public KingDirector? King;
+
+        public IFxSprite AcquireFx(FxDepth depth)
+        {
+            var f = new FakeFx(depth);
+            FxOut.Add(f);
+            FxLog.Add(f);
+            return f;
+        }
+
+        public void ReleaseFx(IFxSprite fx)
+        {
+            var f = (FakeFx)fx;
+            if (f.InPool || !FxOut.Remove(f)) throw new InvalidOperationException("fx released twice");
+            f.InPool = true;
+        }
+
+        public void SetKing(KingDirector? king)
+        {
+            King = king;
+            if (Hud != null) Hud.King = king;
+        }
 
         public ISpark AcquireSpark(SparkKind kind, Rgba color, double sizePx)
         {

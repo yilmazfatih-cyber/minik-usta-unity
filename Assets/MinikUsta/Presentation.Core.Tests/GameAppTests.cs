@@ -169,7 +169,7 @@ namespace MinikUsta.Presentation.Tests
             LastMove(rig, 3, 0);
             Assert.AreEqual(AppScreen.LoseOffer, rig.Screen, "K-29: the +5 window");
             var gift = rig.Option(PanelAction.BuyMoves);
-            Assert.AreEqual("+5 hamle · Usta Dede'den hediye", gift.Get(gift.Id + ".label").Text, "META §3.2: the lifetime-first offer is a gift");
+            Assert.AreEqual("+5 hamle · Usta Kral'dan hediye", gift.Get(gift.Id + ".label").Text, "META §3.2: the lifetime-first offer is a gift (B2, D-101: from Usta Kral)");
             Assert.IsNull(rig.Ui.Root(UiLayer.Window)!.All().FirstOrDefault(x => x.Action == WindowViews.ActionOf(PanelAction.AdMoves)), "no ad option on the gift");
             Assert.AreEqual("Teklif 1/3", rig.Ui.Root(UiLayer.Window)!.Get("win.counter").Text);
             rig.TapOption(PanelAction.BuyMoves);
@@ -460,7 +460,7 @@ namespace MinikUsta.Presentation.Tests
             foreach (var (name, root) in EveryScreen(1080, 1920))
                 foreach (var n in root.All())
                 {
-                    if (n.Frame != null) Assert.IsTrue(a.Has(n.Frame), name + ": frame " + n.Frame);
+                    if (n.Frame != null) Assert.IsTrue(a.Has(n.Frame) || TestArt.Set.Has(n.Frame), name + ": frame " + n.Frame);
                     if (n.Text != null && n.Shown && n.Id.EndsWith(".label")) Assert.IsNotEmpty(n.Text, name + ": " + n.Id);
                     if (n.Text != null) Assert.IsFalse(n.Text.Contains("{"), name + ": unfilled placeholder in " + n);
                 }
