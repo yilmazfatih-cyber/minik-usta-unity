@@ -96,9 +96,18 @@ namespace MinikUsta.Editor
             // P4B-06: the target API level is explicit when the workflow passes one (Play requires 35+ in 2026); otherwise Unity's
             // "automatic (highest installed)" stays. `AndroidSdkVersions.AndroidApiLevel35` exists in UnityCsReference 6000.0
             // (Editor/Mono/PlayerSettingsAndroid.bindings.cs); the enum member name is what the workflow passes.
+            // The GameCI CLI turns the workflow input into a NUMBER (run 41397122458: "AndroidApiLevel35" arrived as "NaN"), so the API
+            // level is read as an integer first (the enum values are the API levels) and by member name second.
             string? target = ArgValue("-androidTargetSdkVersion");
-            if (!string.IsNullOrEmpty(target) && Enum.TryParse(target, out AndroidSdkVersions targetLevel))
-                PlayerSettings.Android.targetSdkVersion = targetLevel;
+            if (!string.IsNullOrEmpty(target))
+            {
+                if (int.TryParse(target, System.Globalization.NumberStyles.None, System.Globalization.CultureInfo.InvariantCulture, out int level) && Enum.IsDefined(typeof(AndroidSdkVersions), level))
+                    PlayerSettings.Android.targetSdkVersion = (AndroidSdkVersions)level;
+                else if (Enum.TryParse(target, out AndroidSdkVersions named))
+                    PlayerSettings.Android.targetSdkVersion = named;
+                else
+                    Debug.LogWarning("Android: -androidTargetSdkVersion '" + target + "' is not an API level; the target API level stays automatic");
+            }
 
             string? keystore = ArgValue("-androidKeystoreName");
             if (!string.IsNullOrEmpty(keystore) && File.Exists(keystore))

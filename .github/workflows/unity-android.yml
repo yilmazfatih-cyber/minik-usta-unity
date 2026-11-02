@@ -101,8 +101,9 @@ jobs:
           allowDirtyBuild: true
           androidExportType: ${{ github.event.inputs.export_type || 'androidPackage' }}
           # P4B-06: Google Play asks for target API 35+ in 2026. The GameCI CLI installs the platform (sdkmanager) and CiBuild.ConfigureAndroid
-          # sets PlayerSettings.Android.targetSdkVersion from the same argument; without it the first run (41394679602) used "auto".
-          androidTargetSdkVersion: AndroidApiLevel35
+          # sets PlayerSettings.Android.targetSdkVersion from the same argument; without it the first run (41394679602) used "auto". The CLI
+          # takes a NUMBER: "AndroidApiLevel35" reached Unity as "NaN" (run 41397122458, targetSdk stayed AndroidApiLevelAuto).
+          androidTargetSdkVersion: 35
           # versionCode must grow with every upload to a store; the run number does. versionName: the tag without its "v", else 0.0.<run>.
           androidVersionCode: ${{ github.run_number }}
           versioning: Custom
