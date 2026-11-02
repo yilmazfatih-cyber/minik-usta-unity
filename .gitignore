@@ -51,3 +51,6 @@ TestResults/
 
 # CI screenshot tool dependencies (npm ci in tools/ci-shots)
 /tools/ci-shots/node_modules/
+
+# 3D render intermediates (art/3d/blender/*: Blender master renders, trimmed frames, turnarounds); packed sheets live in Assets/MinikUsta/Resources/art3d
+/art/3d/out/
