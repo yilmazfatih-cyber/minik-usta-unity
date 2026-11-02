@@ -8,14 +8,32 @@ Usta Kral tamamen **prosedürel** üretilir: Blender 4.0.2 `bpy` + `bmesh` + `ma
 (süperelipsoid, kesim düzlemi, EXACT boolean, bevel, solidify), Cycles CPU ile ön-görüntülenmiş sprite. Üretken
 yapay zekâ yok, satın alınmış ya da indirilmiş varlık yok, referans görüntülerinden piksel yok.
 
+## 0. Sanat turu 1 (2026-11-02) — kral kimliği ve akıcı boşta
+
+İnceleme (S1, S2): "kral okunmuyor, sakallı ustabaşı gibi; ten, gömlek ve pantolon aynı turuncuda; gözlük gibi göz
+halkası; boşta 9 çizim × 6 kare kesik nefes". Royal Match kralı kopyalanmaz (D-101); arketip ve kalite alınır.
+
+- **Taç**: baretin tepesine kalıplanmış altın taç bandı (`CORONET_Z` 0,405) + öne bakan **3 yuvarlak diş** (orta 0,112,
+  yanlar 0,088 BU; uçlarda bilye, taşsız) — baret boyunun ≈ %20'si. Ön arma `EMBLEM_SCALE` 1,45×.
+- **Madalyon**: boyunda kalın altın zincir (≈ 14 bilye) + göğüste madalyon: mavi emaye üstünde Altın Mala (sikkeyle aynı
+  amblem).
+- **Renk**: ten #E9A877 → **#F4AF86**, tulum #EC8D20 → **#D0621A**, yaka krem (#FFF3D6).
+- **Göz**: `EYE_R` 1,25×, iris %20 büyük, sıcak beyaz sklera (mavi halka yok), coat 0,10; açık gözde kapak kabukları
+  gizli (üst kenar +74°, alt −76°); mutlu / kapalı göz yayları kapalı kapağın gerçek yüzeyinde.
+- **Kaş**: baret `HAT_Z` 2,12 → 2,165; kaşlar öne (y −0,466) ve 2,088'e: siperliğin önünde görünür.
+- **Klipler**: `king_idle` / `king_home_idle` **24 çizim ikili** (`samples` 0, 2 … 46); `king_cheer` **16 çizim**
+  (kalkış ve inişte tekli). `legacy` listesi B1k çizimlerinin numarasını korur (`chr_king_cheer_05` = tepe durağanı,
+  `chr_king_idle_01..08`), ara çizimler sonra numaralanır.
+- Render: 92 çizim + 6 büst, 24,9 dk (4 çekirdek, 64 örnek).
+
 ## 1. Komutlar (repo kökünden)
 
 | Adım | Komut | Süre (4 çekirdek CPU) |
 | ---- | ----- | --------------------- |
 | 1. Render (71 çizim + 6 büst, 2× boy: 200 px/BU, büst 300 px/BU) | `blender -b --factory-startup -noaudio --python art/3d/blender/king/animate_king.py -- --out art/3d/out/king/raw --samples 64 --bust-px 300` | 16,6 dk (ölçüldü) |
 | 2. Dönüş görünüşü (K0: ön, 3/4, yan, arka) | `blender -b --factory-startup -noaudio --python art/3d/blender/king/build_king.py -- --out art/3d/out/king/turn --px 200 --samples 64` | ≈ 1 dk |
-| 3. Son işlem (gölge, 200 → 94 px/BU küçültme, alfa taşırma, kırpma) | `python3 art/3d/blender/king/post_king.py` | ≈ 10 sn |
-| 4. Paketleme (atlas sayfaları + `king.json`, 16 MB bütçe denetimi) | `node tools/art/pack3d.mjs --png artifacts/preview` | ≈ 10 sn |
+| 3. Son işlem (gölge, 200 → 86 px/BU küçültme, alfa taşırma, kırpma; sanat turu 1, B1k 94) | `python3 art/3d/blender/king/post_king.py` | ≈ 10 sn |
+| 4. Paketleme (atlas sayfaları + `king.json`, 18 MB bütçe denetimi) | `node tools/art/pack3d.mjs --budget-mb 18 --png artifacts/preview` | ≈ 10 sn |
 | 5. Önizleme | `python3 art/3d/blender/king/preview_king.py` | ≈ 10 sn |
 
 Hızlı poz denetimi: 1. adımı `--px 70 --samples 8` ile çalıştırın (≈ 1 dk). Tek çizim: `--only chr_king_cheer_05`;
@@ -76,8 +94,8 @@ tahminden azdır. **K0** (`chr_king_idle_00`) bütün kliplerin ilk ve son kares
 
 | Klip | Kare | Döngü | `out` | Çizim (K0 dahil) | Olaylar | Royal Match dili (bizim çizimimizle) |
 | ---- | ---- | ----- | ----- | ---------------- | ------- | ------------------------------------- |
-| `king_idle` | 48 | 0–47 | — | 9 | 30 `blink` | ağırlık aktarma salınımı, baş karşı-salınımı, mala ±3°, baret 4 kare geç; göz kırpma 30–35 |
-| `king_cheer` | 24 | yok | — | 10 | 4 `lift_off`, 10 `apex`, 14 `land` | çömelme (sy 0,91) → esneme 1,08 → tepe → iniş ezilmesi 0,90 → aşma; baret hazırlıkta bastırır, tepede havalanır, 2 kare geç oturur |
+| `king_idle` | 48 | 0–47 | — | **24** (sanat turu 1; B1k 9) | 30 `blink` | ağırlık aktarma salınımı, baş karşı-salınımı, mala ±3°, baret 4 kare geç; göz kırpma 30–35 |
+| `king_cheer` | 24 | yok | — | **16** (sanat turu 1; B1k 10) | 4 `lift_off`, 10 `apex`, 14 `land` | çömelme (sy 0,91) → esneme 1,08 → tepe → iniş ezilmesi 0,90 → aşma; baret hazırlıkta bastırır, tepede havalanır, 2 kare geç oturur |
 | `king_think` | 36 | 8–35 | 0–7 ters | 9 | 12 / 24 `tap`, 28 `blink` | işaret parmağı sakalda, tek kaş kalkık, gözler sağ-yukarı, parmak tıklaması, bakış kayması |
 | `king_talk` | 24 | 0–23 | — | 9 | 0 / 12 `beat` | A-O-E-M ağız döngüsü, avuç yukarı açılan el, vuruşta baş sallama |
 | `king_point` | 18 | 12–17 | R ×2, K0 ×2 | 8 | 6 `point_hit`, 12 `hold_start`, 14 `glint` | geri çekiş + gövde zıt yöne, malayla vuruş 6° aşma, oturma, tutuşta nefes; sol hedefe `scaleX = −1` |
@@ -121,14 +139,17 @@ birer çizime bağlanır (yeni piksel yok).
 
 ## 6. Bellek bütçesi
 
-Hedef: bütün kral sayfaları **≤ 16 MB RGBA32** (WebGL, sıkıştırmasız `LoadImage`). Ölçümler:
+Hedef: B1k'de kral sayfaları **≤ 16 MB RGBA32**; sanat turu 1'den beri **≤ 18 MB** ve atlas + king + fx ≤ 64 MB (WebGL, sıkıştırmasız `LoadImage`; `AnimTests`). Ölçümler:
 
 | Deneme | Kırpılmış alan | Paket | Sonuç |
 | ------ | -------------- | ----- | ----- |
 | 106,7 px/BU, 78 çizim | 4,67 Mpx (17,8 MB) | — | aştı |
 | 100 px/BU, 71 çizim | 3,90 Mpx; kenar paylı 4,05 Mpx (bütçenin %96,5'i) | skyline 19,6 MB | aştı (hiçbir paketleyici sığdıramaz) |
 | 96 px/BU | 3,61 Mpx | MaxRects 2 sayfa, 15,67 MB | sığar, pay az |
-| **94 px/BU** (karar) + büst 150 px/BU | 3,59 Mpx | **MaxRects 1964 × 2012 + 588 × 224, doluluk %91,4, 15,58 MB** | sığar |
+| 94 px/BU (B1k kararı) + büst 150 px/BU | 3,59 Mpx | MaxRects 1964 × 2012 + 588 × 224, doluluk %91,4, 15,58 MB | sığar (B1k) |
+| sanat turu 1: 92 çizim, 94 px/BU | 4,72 Mpx | 2 sayfa, 20,94 MB | atlas + king + fx 64 MB'ı aşar |
+| sanat turu 1: 92 çizim, 88 / 84 px/BU | 4,18 / 3,85 Mpx | 18,24 / 17,49 MB | — |
+| **sanat turu 1: 92 çizim, 86 px/BU (karar)** | 4,01 Mpx | **1920 × 1924 + 1808 × 528, doluluk %89,8, 17,73 MB** | atlas 34,19 + king 17,73 + fx 11,06 = **62,99 MB ≤ 64** |
 
 Karar: çizimler **94 px/BU** (2× ana render'dan LANCZOS; köşe seti ölçeği 0,88125 → 390 pt telefonda ≈ 1,2×
 büyütme), büstler 150 px/BU (Ø 132 öğretici portresi keskin kalsın). 78 → 71 çizim: en az hareket katan 7 ara çizim

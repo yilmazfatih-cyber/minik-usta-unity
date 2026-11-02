@@ -277,50 +277,176 @@ def b_music(sc):
 
 
 def b_speaker(sc, on=True):
+    """Art turn 1: a chunky toy loudspeaker (rounded box + flared cone + cap) with two thick sound arcs, or a red X badge
+    when off. Same kit as the other 3D icons: candy plastic, 3 tones from the rig C light, soft drop shadow (post)."""
     m = C.mat_candy('s', '#2E9BF0')
-    C.gradient_input(m, [(0.0, '#1767B8'), (1.0, '#6CC4FF')], axis='Y', lo=-1.0, hi=1.0, space='Object')
-    pts = [(-0.9, -0.32), (-0.45, -0.32), (0.05, -0.75), (0.05, 0.75), (-0.45, 0.32), (-0.9, 0.32)]
-    parts = [puffy(sc, pts, 0.4, m, bevel=0.12, loc=(-0.2, 0, 0))]
+    C.gradient_input(m, [(0.0, '#1767B8'), (1.0, '#6CC4FF')], axis='Z', lo=-0.6, hi=0.6, space='Object')
+    cone_m = C.mat_candy('c', '#4FB3FF')
+    C.gradient_input(cone_m, [(0.0, '#2A86D8'), (1.0, '#9AD8FF')], axis='Z', lo=-0.8, hi=0.8, space='Object')
+    inner = C.principled('in', '#123E7A', rough=0.5, coat=0.2)
+    cap = C.mat_candy('cap', '#FFD119')
+    parts = [C.superellipsoid(sc, 'box', 0.36, 0.42, 0.42, n=3.6, loc=(-0.62, 0, 0), mat=m)]
+    cone = C.cylinder(sc, 'cone', 0.30, 0.62, loc=(-0.08, 0, 0), mat=cone_m, seg=64, r2=0.78, rot=(0, 90, 0), bevel=0.05, bevel_seg=4)
+    parts.append(cone)
+    parts.append(C.cylinder(sc, 'membrane', 0.70, 0.04, loc=(0.2, 0, 0), mat=inner, seg=64, rot=(0, 90, 0)))
+    parts.append(C.torus(sc, 'lip', 0.76, 0.07, loc=(0.23, 0, 0), mat=cone_m, rot=(0, 90, 0)))
+    parts.append(C.uv_sphere(sc, 'cap', 0.22, loc=(0.2, 0, 0), mat=cap, scale=(0.55, 1, 1)))
     if on:
-        w = C.mat_candy('w', '#6CC4FF')
-        for r in (0.45, 0.8):
-            pp = arc_pts(r, -50, 50, 20, cx=0.0)
-            t = C.curve_tube(sc, 'wave', [(x, y, z) for x, y, z in pp], 0.08, w)
-            t.rotation_euler = (0, 0, math.radians(-20))
-            t.location = (0.05, 0, 0)
-            parts.append(t)
+        w = C.mat_candy('w', '#FFFFFF')
+        C.gradient_input(w, [(0.0, '#BFE6FF'), (1.0, '#FFFFFF')], axis='Z', lo=-1.0, hi=1.0, space='Object')
+        for r in (0.98, 1.36):
+            pp = [(0.12 + r * math.cos(math.radians(a)), 0.0, r * math.sin(math.radians(a))) for a in range(-42, 43, 6)]
+            parts.append(C.curve_tube(sc, 'wave', pp, 0.095, w))
     else:
         r = C.mat_candy('x', '#FE3232')
+        C.gradient_input(r, [(0.0, '#B80E12'), (1.0, '#FF6A5E')], axis='Z', lo=-0.5, hi=0.5, space='Object')
         for a in (45, -45):
-            o = puffy(sc, C.rrect_pts(-0.42, -0.1, 0.42, 0.1, 0.1, 6), 0.26, r, bevel=0.08, loc=(0.55, -0.1, 0))
-            o.rotation_euler = (math.radians(90), math.radians(a), math.radians(-20))
+            o = C.puffy(sc, 'x', C.ccw(C.rrect_pts(-0.48, -0.12, 0.48, 0.12, 0.12, 6)), 0.3, r, bevel=0.1)
+            o.location = (1.12, -0.1, 0)
+            o.rotation_euler = (math.radians(90), math.radians(a), 0)
             parts.append(o)
+    C.group(sc, parts, rot=(0, 0, -24))
     return parts
 
 
 def b_vibration(sc):
+    """Art turn 1: a chunky phone (deep rounded body, glossy screen, camera dot) shaking: thick yellow zigzags."""
     body = C.mat_candy('ph', '#3A3B8E')
-    screen = C.principled('sc', '#7AD0FF', rough=0.08, coat=1.0, emission='#7AD0FF', emission_strength=0.4)
+    C.gradient_input(body, [(0.0, '#24256A'), (1.0, '#5B5CC4')], axis='Z', lo=-0.9, hi=0.9, space='Object')
+    screen = C.principled('sc', '#7AD0FF', rough=0.06, coat=1.0, emission='#7AD0FF', emission_strength=0.45)
+    C.gradient_input(screen, [(0.0, '#3FA8F0'), (1.0, '#B8EAFF')], axis='Z', lo=-0.7, hi=0.7, space='Object')
     zz = C.mat_candy('z', '#FFD119')
-    ph = puffy(sc, C.rrect_pts(-0.42, -0.85, 0.42, 0.85, 0.16, 8), 0.24, body, bevel=0.08)
-    scr = puffy(sc, C.rrect_pts(-0.32, -0.62, 0.32, 0.68, 0.06, 6), 0.06, screen, bevel=0.02, loc=(0, -0.11, 0))
-    parts = [ph, scr]
+    parts = [C.superellipsoid(sc, 'ph', 0.44, 0.17, 0.86, n=4.2, loc=(0, 0, 0), mat=body)]
+    parts.append(C.superellipsoid(sc, 'scr', 0.34, 0.03, 0.66, n=6, loc=(0, -0.16, 0.04), mat=screen))
+    parts.append(C.uv_sphere(sc, 'cam', 0.04, loc=(0, -0.17, 0.76), mat=C.principled('k', '#15163A', rough=0.2, coat=0.8)))
     for sx in (-1, 1):
-        pts = [(sx * 0.62, 0, 0.5), (sx * 0.78, 0, 0.25), (sx * 0.62, 0, 0.0), (sx * 0.78, 0, -0.25), (sx * 0.62, 0, -0.5)]
-        t = C.curve_tube(sc, 'z', pts, 0.06, zz)
-        t.rotation_euler = (0, 0, math.radians(-20))
-        parts.append(t)
+        for k, off in enumerate((0.0, 0.2)):
+            x0 = sx * (0.66 + off)
+            pts = [(x0, 0, 0.42 - 0.2 * k), (x0 + sx * 0.12, 0, 0.21 - 0.2 * k), (x0, 0, 0.0 - 0.2 * k), (x0 + sx * 0.12, 0, -0.21 - 0.2 * k),
+                   (x0, 0, -0.42 - 0.2 * k)]
+            if k == 1:
+                pts = pts[1:4]
+            parts.append(C.curve_tube(sc, 'z', pts, 0.075, zz))
+    C.group(sc, parts, rot=(0, 0, -22))
     return parts
 
 
 def b_motion(sc):
-    ball = C.mat_candy('b', '#44D088')
-    C.gradient_input(ball, [(0.0, '#1F9A55'), (1.0, '#8FF0B8')], axis='Z', lo=-0.5, hi=0.5, space='Object')
-    lines = C.mat_candy('l', '#C9F5DC')
-    parts = [C.uv_sphere(sc, 'ball', 0.55, loc=(0.42, 0, 0), mat=ball, seg=48, rings=24)]
-    for k, (y, ln) in enumerate(((0.32, 0.55), (0.0, 0.75), (-0.32, 0.55))):
-        o = puffy(sc, C.rrect_pts(-ln / 2, -0.07, ln / 2, 0.07, 0.07, 6), 0.14, lines, bevel=0.06, loc=(-0.55 - (0.75 - ln) / 2, 0, y))
-        parts.append(o)
+    """Art turn 1, 'reduce motion': a calm toy snail (slow = less motion). Mint body with eye stalks, yellow candy
+    shell with a raised orange spiral; replaces the small ball + lines that read thin next to the other icons."""
+    body = C.mat_candy('b', '#44D088')
+    C.gradient_input(body, [(0.0, '#1F9A55'), (1.0, '#9AF2C2')], axis='Z', lo=-0.4, hi=0.5, space='Object')
+    shell = C.mat_candy('sh', '#FFC21A')
+    C.gradient_input(shell, [(0.0, '#F09A00'), (1.0, '#FFE680')], axis='Z', lo=-0.6, hi=0.6, space='Object')
+    spiral = C.mat_candy('sp', '#EC7A12')
+    eye = C.principled('eye', '#FFFFFF', rough=0.15, coat=0.8)
+    pupil = C.principled('pu', '#15163A', rough=0.15, coat=0.8)
+    parts = [C.superellipsoid(sc, 'foot', 0.95, 0.30, 0.17, n=2.4, loc=(0.05, 0, -0.52), mat=body)]
+    parts.append(C.superellipsoid(sc, 'head', 0.24, 0.24, 0.30, n=2.2, loc=(0.78, -0.02, -0.25), mat=body))
+    parts.append(C.superellipsoid(sc, 'shell', 0.62, 0.40, 0.60, n=2.15, loc=(-0.12, 0.02, 0.08), mat=shell))
+    pts = []
+    for i in range(60):
+        t = i / 59
+        a = math.radians(90 + 2.3 * 360 * t)
+        r = 0.52 * (1 - 0.86 * t)
+        pts.append((-0.12 + r * math.cos(a), -0.40 * math.sqrt(max(0.0, 1 - (r / 0.62) ** 2)) - 0.035, 0.08 + r * math.sin(a)))
+    parts.append(C.curve_tube(sc, 'spiral', pts, 0.045, spiral))
+    for k, (dx, dy) in enumerate(((0.70, -0.10), (0.86, 0.08))):
+        parts.append(C.curve_tube(sc, 'stalk', [(dx, dy, -0.05), (dx + 0.04, dy, 0.18), (dx + 0.08, dy, 0.32)], 0.04, body))
+        parts.append(C.uv_sphere(sc, 'eye', 0.09, loc=(dx + 0.09, dy - 0.02, 0.38), mat=eye))
+        parts.append(C.uv_sphere(sc, 'pupil', 0.045, loc=(dx + 0.12, dy - 0.085, 0.39), mat=pupil))
+    smile = [(0.82 + 0.12 * math.cos(math.radians(a)), -0.235, -0.30 + 0.06 * math.sin(math.radians(a))) for a in range(200, 341, 20)]
+    parts.append(C.curve_tube(sc, 'smile', smile, 0.018, pupil))
+    C.group(sc, parts, rot=(0, 0, -16))
+    return parts
+
+
+def flag_texture(kind, px=256):
+    """Our own flag faces rasterised in plain Python (apt Blender has no numpy / Pillow; no third-party art): Turkey
+    (red, white crescent and star, official ratios) and the UK Union Flag, square, 2x2 supersampled, packed into the
+    .blend as the badge image texture."""
+    S = px * 2
+    rt2 = math.sqrt(2)
+    star = []
+    if kind == 'tr':
+        G = S * 0.62
+        cx, cy = S * 0.40, S * 0.5
+        r1, r2 = 0.25 * G, 0.20 * G
+        c2 = cx + 0.0625 * G
+        sx, rs = c2 + r2 + 0.083 * G, 0.125 * G
+        for i in range(10):
+            a = math.radians(180 + 36 * i)
+            rr = rs if i % 2 == 0 else rs * 0.382
+            star.append((sx + rr * math.cos(a), cy + rr * math.sin(a)))
+    w = S * 0.10
+
+    def colour(x, y):
+        if kind == 'tr':
+            if (x - sx) ** 2 + (y - cy) ** 2 < rs * rs:
+                inside = False
+                for (x0, y0), (x1, y1) in zip(star, star[1:] + star[:1]):
+                    if (y0 > y) != (y1 > y) and x < x0 + (y - y0) * (x1 - x0) / (y1 - y0):
+                        inside = not inside
+                if inside:
+                    return (1.0, 1.0, 1.0)
+            if (x - cx) ** 2 + (y - cy) ** 2 < r1 * r1 and (x - c2) ** 2 + (y - cy) ** 2 >= r2 * r2:
+                return (1.0, 1.0, 1.0)
+            return (227 / 255, 10 / 255, 23 / 255)
+        red, white_, blue = (200 / 255, 16 / 255, 46 / 255), (1.0, 1.0, 1.0), (1 / 255, 33 / 255, 105 / 255)
+        if abs(x - S / 2) < w * 0.9 or abs(y - S / 2) < w * 0.9:
+            return red
+        if abs(x - S / 2) < w * 1.5 or abs(y - S / 2) < w * 1.5:
+            return white_
+        s1, s2 = (x - y) / rt2, (x + y - S) / rt2
+        if abs(s1) < w * 0.8:  # counterchanged red saltire: offset to one side per quadrant
+            return red if abs(s1 - (-1 if y > S / 2 else 1) * w * 0.25) < w * 0.27 else white_
+        if abs(s2) < w * 0.8:
+            return red if abs(s2 - (1 if x > S / 2 else -1) * w * 0.25) < w * 0.27 else white_
+        return blue
+
+    buf = []
+    for j in range(px):          # Blender image rows are bottom-up; y is measured from the bottom
+        for i in range(px):
+            r = g = b = 0.0
+            for dy in (0.5, 1.5):
+                for dx in (0.5, 1.5):
+                    c = colour(2 * i + dx, 2 * j + dy)
+                    r += c[0]
+                    g += c[1]
+                    b += c[2]
+            buf.extend((r / 4, g / 4, b / 4, 1.0))
+    im = bpy.data.images.new('flag_' + kind, px, px, alpha=True)
+    im.colorspace_settings.name = 'sRGB'
+    im.pixels.foreach_set(buf)
+    im.pack()
+    return im
+
+
+def b_flag(sc, kind):
+    """Art turn 1: the language flag as a 3D round badge: domed enamel face (the flag image), 6 px gold rim, thin dark
+    back plate; faces the camera with a small 3/4 turn."""
+    image = flag_texture(kind)
+    face = C.principled('face_' + kind, '#FFFFFF', rough=0.18, coat=0.7, coat_rough=0.04, spec=0.5)
+    nt = face.node_tree
+    tex = nt.nodes.new('ShaderNodeTexImage')
+    tex.image = image
+    tex.extension = 'EXTEND'
+    tc = nt.nodes.new('ShaderNodeTexCoord')
+    mp = nt.nodes.new('ShaderNodeMapping')
+    mp.inputs['Location'].default_value = (0.5, 0.5, 0.0)
+    mp.inputs['Scale'].default_value = (0.5, 0.5, 1.0)
+    nt.links.new(tc.outputs['Object'], mp.inputs['Vector'])
+    nt.links.new(mp.outputs['Vector'], tex.inputs['Vector'])
+    nt.links.new(tex.outputs['Color'], nt.nodes['Principled BSDF'].inputs['Base Color'])
+    gold = C.principled('rim', '#FFC93A', rough=0.2, coat=0.4, coat_rough=0.05, metallic=0.7, spec=0.6)
+    C.gradient_input(gold, [(0.0, '#E7A200'), (1.0, '#FFF0A0')], axis='Y', lo=-1.0, hi=1.0, space='Object')
+    back = C.principled('back', '#1B174A', rough=0.4, coat=0.3)
+    parts = [C.cylinder(sc, 'plate', 1.0, 0.16, loc=(0, 0, -0.06), mat=back, seg=96, bevel=0.05, bevel_seg=4)]
+    dome = C.superellipsoid(sc, 'face', 0.93, 0.93, 0.10, n=2.0, loc=(0, 0, 0.02), mat=face, sub=6)
+    parts.append(dome)
+    parts.append(C.torus(sc, 'rim', 0.955, 0.075, loc=(0, 0, 0.03), mat=gold, seg=96, mseg=20))
+    g = C.group(sc, parts)
+    g.rotation_euler = (math.radians(90), 0, math.radians(-14))
     return parts
 
 
@@ -469,15 +595,20 @@ ICONS = {
     'icon_sound_on': lambda sc: b_speaker(sc, True), 'icon_sound_off': lambda sc: b_speaker(sc, False), 'icon_vibration': b_vibration,
     'icon_motion': b_motion, 'icon_undo': b_undo, 'icon_blocks': b_blocks, 'icon_nav_home': b_house, 'icon_nav_league': b_trophy,
     'icon_nav_shop': b_shop, 'icon_nav_team': b_team, 'icon_nav_album': b_album,
+    'flag_tr': lambda sc: b_flag(sc, 'tr'), 'flag_en': lambda sc: b_flag(sc, 'en'),
 }
+# art turn 1: soft drop shadow under the settings icons and the flag badges (post_env meta 'shadow', design px)
+SHADOWED = {'icon_sound_on', 'icon_sound_off', 'icon_vibration', 'icon_motion', 'flag_tr', 'flag_en'}
 XL = ['icon_coin', 'icon_star', 'icon_heart', 'icon_chest', 'icon_crane', 'icon_hammer', 'icon_brush', 'icon_gold_trowel']
-FILL = {'icon_pause': 0.80, 'icon_play': 0.80, 'icon_check': 0.84, 'icon_coin': 0.86}
+FILL = {'icon_pause': 0.80, 'icon_play': 0.80, 'icon_check': 0.84, 'icon_coin': 0.86, 'flag_tr': 0.84, 'flag_en': 0.84}
 
 
 def render_icon(name, builder, px, fill=0.86, w=None, h=None):
     sc, cam = scene(w or px, h or px)
     builder(sc)
     C.fit_camera(sc, cam, fill)
+    if name in SHADOWED:
+        C.write_meta(name, {'shadow': {'dy': 5, 'blur': 3, 'alpha': 0.38, 'color': [16, 10, 52]}})
     C.render(sc, out(name))
 
 

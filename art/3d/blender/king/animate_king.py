@@ -192,8 +192,10 @@ def idle_fn(p, f):
 
 IDLE = dict(
     n=48, fps=24, loop=(0, 47), events={30: 'blink'}, fn=idle_fn, hat_lag=4,
-    samples=[0, 6, 12, 18, 24, 30, 32, 36, 42],
-    timeline_override={30: 30, 31: 30, 34: 30, 35: 30},
+    # T1 (art turn 1): 24 drawings on twos (B1k: 9 drawings held 6 frames read as a stepped breath). `legacy` = the B1k
+    # samples: they keep their drawing numbers (01..08), the in-betweens are numbered after them (09..23)
+    samples=list(range(0, 48, 2)),
+    legacy=[0, 6, 12, 18, 24, 30, 32, 36, 42],
 )
 # blink drawings: 30 = half lid, 32 = closed (on the pose of frame 30 / 32)
 IDLE['keys'] = [(0, K0, 'io'), (29, K0, 'io'), (30, pose('neutral', lid=0.55), 'step'),
@@ -224,7 +226,10 @@ CHEER = dict(
                     hand_l='fist', trowel_tilt=4.0), 'io'),
           (21, pose('neutral', mouth='grin', blush=0.35), 'io'),
           (23, K0, 'io')],
-    samples=[0, 2, 4, 6, 8, 10, 12, 14, 16, 21, 23],
+    # T1: 16 drawings, on ones through the rise and the landing (B1k: 10); B1k drawings keep their numbers
+    # (chr_king_cheer_05 = the apex still), the in-betweens 5, 7, 13, 15, 18, 19 are 10..15
+    samples=[0, 2, 4, 5, 6, 7, 8, 10, 12, 13, 14, 15, 16, 18, 19, 21, 23],
+    legacy=[0, 2, 4, 6, 8, 10, 12, 14, 16, 21, 23],
 )
 
 THINK_A = dict(arm_l_ik=(-0.22, -0.54, 1.30), arm_l_pole=(-1.0, -0.5, 0.5), hand_l='index',
@@ -470,7 +475,9 @@ def plan():
         short = cname[len('king_'):]
         names = {}
         idx = 0
-        for s in c['samples']:
+        legacy = c.get('legacy') or []
+        order = [x for x in legacy if x in c['samples']] + [x for x in c['samples'] if x not in legacy]
+        for s in order:
             p = evaluate(c, s)
             if s == 0 or same_pose(at_keys(c['keys'], s), K0) and not c.get('fn'):
                 names[s] = K0_NAME

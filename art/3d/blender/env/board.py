@@ -31,30 +31,27 @@ def wood_mat(name, hex_):
 
 
 def floor_yard():
-    for name, col, other in [('floor_yard_a', '#E2B97A', '#D4A867'), ('floor_yard_b', '#D4A867', '#E2B97A')]:
+    """Art turn 1: the empty yard cell is a RECESSED DARK SLOT (Block Out style empty board, ART_REFERENCE 5): slot floor
+    #221C5A (b: #25205F, a quiet checker), a 5 px rim per side whose top is the light edge #3A3480, inner walls 10 px deep
+    so the sol-ust key light throws a soft inner shadow along the top and left edges. Blocks (bright candy) and the
+    concrete wall no longer read as 'a wooden block' on an empty cell (B1 used wooden planks)."""
+    for name, col, other in [('floor_yard_a', '#221C5A', '#25205F'), ('floor_yard_b', '#25205F', '#221C5A')]:
         if not C.ARGS.wants(name):
             continue
         sc = C.reset()
         S = C.Screen(sc, 35, 120, 120, RS, 128)
         C.rig_A(sc)
-        sand = C.principled('sand', '#E9C891', rough=0.9, coat=0.0, spec=0.2)
-        C.noise_color(sand, '#E9C891', var=0.10, scale=180.0, bump=0.25)
-        nail = C.principled('nail', '#B9C0C8', rough=0.3, coat=0.0, metallic=0.9)
-        S.prism('sand', C.rrect_pts(-240, -240, 360, 360, 0), 0.0, -6, sand, sand)
+        rim = C.principled('rim', '#3A3480', rough=0.42, coat=0.25, coat_rough=0.12, spec=0.4)
+        wall = C.principled('slotwall', '#2C2770', rough=0.55, coat=0.05, spec=0.3)
         mats = {}
-        gap = 4.0
-        plank = (120 - 3 * gap) / 3
         for i in (-1, 0, 1):
             for j in (-1, 0, 1):
                 c = col if (i + j) % 2 == 0 else other
-                m = mats.setdefault(c, wood_mat('wood' + c, c))
-                for k in range(3):
-                    v0 = j * 120 + gap / 2 + k * (plank + gap)
-                    x0, x1 = i * 120 + 3, i * 120 + 117
-                    S.prism('plank', C.rrect_pts(x0, v0, x1, v0 + plank, 3), 7, 0, m, m, bevel_px=2.2, seg=3)
-                    for xn in (x0 + 9, x1 - 9):
-                        loc = S.at(xn, v0 + plank / 2, 7)
-                        C.uv_sphere(sc, 'nail', 3.2 * C.PX, loc=loc, mat=nail, scale=(1, 1, 0.45))
+                fl = mats.setdefault(c, C.principled('slot' + c, c, rough=0.6, coat=0.05, spec=0.25))
+                outer = C.rrect_pts(i * 120, j * 120, i * 120 + 120, j * 120 + 120, 0.6, seg=10)
+                inner = C.rrect_pts(i * 120 + 5, j * 120 + 5, i * 120 + 115, j * 120 + 115, 16, seg=10)
+                S.ring('cell', outer, inner, 0, -60, z_floor=-10, mat_top=rim, mat_side=wall, mat_floor=fl, bevel_px=2.0,
+                       seg=3)
         sc.render.resolution_x = round(120 * RS) // (2 if C.ARGS.quick else 1)
         sc.render.resolution_y = round(120 * RS) // (2 if C.ARGS.quick else 1)
         sc.render.film_transparent = False

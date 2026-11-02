@@ -136,7 +136,7 @@ Kod v4'teki gibi blok başına **hücre karosu** `blk_<c>_<mm>` (16 maske × 8 r
 
 | Parça | Kare (boy, tasarım px) | 3B tarif |
 | ----- | ---------------------- | -------- |
-| Saha zemini | `floor_yard_a` / `floor_yard_b` (120²) | **ahşap palet tahtası**: hücre başına 3 açık meşe tahta (#E2B97A / dama ikizi #D4A867), aralarında 4 px **kum** derzi (#E9C891, ince tane), tahta uçlarında Ø 6 çivi başı; mat (roughness 0,7); dudak yok (zemin) |
+| Saha zemini | `floor_yard_a` / `floor_yard_b` (120²) | **Sanat turu 1: gömük karanlık yuva** (Block Out boş tahtası dili): yuva tabanı #221C5A (b: #25205F, sessiz dama), hücre başına 5 px kenar, kenar üstü açık hat #3A3480, 10 px derin iç duvar #2C2770; sol üst anahtar ışık yuvanın üst ve sol kenarına yumuşak iç gölge düşürür. B1 ahşap paleti kaldırıldı: dolu ahşap blok (W) gibi okunuyordu, boşalan hücre dolmuş görünüyordu |
 | Duvar (W, 60 px) | `wall_seg` (60 × 120, dikey döşeme), `wall_cap` (64 × 36) | **beton tuğla**, koşu bağı, hücre başına 3 sıra (40 px), tuğla #C9C2B4 / #B3AB9C, derz #8C8579 4 px, çıkıntısız ve mat (R bloğundan renk, çıkıntısızlık ve yatay derzle ayrılır; kırmızı pişmiş tuğla **kullanılmaz**); başlık: sarı #FFD43B ve antrasit #3A3346 45° ikaz şeridi, plastik |
 | Geçit (W1) | `gap_seg` (60 × 120), `gap_edge` (60 × 22), `rail_seg` (120 × 16) | açıklık koyu çivit #2A2670 + iki galvaniz ray (#C9D1DA, metal 0,8, roughness 0,35), kenar başlıkları ikaz şeridi |
 | Şantiye iskelesi | `scaffold_pipe` (16 × 120), `scaffold_clamp` (28 × 24), `beam_seg` (120 × 16) | galvaniz boru Ø 0,12 hücre, turuncu kelepçe (#EC8D20 plastik), tavan kirişi sarı-antrasit ikaz; şantiye zemini `floor_site` ozalit **2B kalır** (plan kâğıdı) |
@@ -300,16 +300,16 @@ Köşe seti tuvali 320 × 320 (pivot 0,5 / 0,0625, ölçek 1,0); sahne seti 400 
 
 | Klip | Kare | fps | Döngü | Benzersiz | Olay kareleri | Nerede (JUICE) |
 | ---- | ---- | --- | ----- | --------- | ------------- | -------------- |
-| `king_idle` | 48 | 24 | 0–47 | 14 | 30 `blink` | oyun köşesi, pencereler (sürekli nefes tween'i) |
-| `king_cheer` | 24 | 24 | yok | 16 | 4 `lift_off`, 10 `apex`, 14 `land` | doğru yerleşim serisi, hedef tamam (#12, #15, #54; Tuna #82'nin yerine) |
+| `king_idle` | 48 | 24 | 0–47 | **24** (sanat turu 1; B1k 9) | 30 `blink` | oyun köşesi, pencereler (sürekli nefes tween'i) |
+| `king_cheer` | 24 | 24 | yok | 16 (sanat turu 1; B1k 10) | 4 `lift_off`, 10 `apex`, 14 `land` | doğru yerleşim serisi, hedef tamam (#12, #15, #54; Tuna #82'nin yerine) |
 | `king_think` | 36 | 24 | 8–35 (`out` = 0–7 ters) | 12 | 12 `tap`, 24 `tap`, 28 `blink` | takılma ipucu, D1 öncesi (#21a/#21c) |
 | `king_talk` | 24 | 24 | 0–23 | 10 | 0 `beat`, 12 `beat` | öğretici balonu daktilo süresince (#81, #103) |
 | `king_point` | 18 | 24 | 12–17 (`out` = u11 ×2, u0 ×2) | 12 | 6 `point_hit`, 12 `hold_start`, 14 `glint` | öğretici işaret (#103, #104 nabzı `point_hit`'te başlar); sol hedefe ayna |
 | `king_encourage` | 24 | 24 | yok | 14 | 9 `gesture`, 15 `pump` | hamleler bitti (#57), +5 teklifi (#52) — utandırmayan, sıcak |
-| `king_home_idle` | 48 | 24 | 0–47 | 14 | 30 `blink` | ana sayfa (sahne boyu) |
+| `king_home_idle` | 48 | 24 | 0–47 | 24 (`king_idle` çizimleri) | 30 `blink` | ana sayfa (sahne boyu) |
 | `king_wave` | 24 | 24 | 6–23 (`out` = 0–5 ters) | 12 | 9 `wave_peak`, 18 `wave_peak` | ana sayfa karşılama (#99) |
 | `king_big_cheer` | 48 | 24 | 24–47 | 25 | 6 `jump`, 15 `land`, 22 `hat_land`, 28 `hop`, 40 `hop` | kazanma (#55 aşama 4–5, #95) |
-| `kepce_wag` (öncelik 2) | 16 | 24 | 0–15 | 8 | — | Kepçe kralın yanında |
+| `kepce_wag` (öncelik 2) | 16 | 24 | 0–15 | 8 | — | Kepçe kralın yanında (sanat turu 1: yerine crew.json `kepce_corner_idle`, §14) |
 
 Olaylar kodda ses ve haptiğe bağlanır: `land` → `sfx_land` −6 dB + hafif haptik; `hat_land` → `sfx_clamp`; `beat` →
 `sfx_voice_king`; `point_hit` → JUICE #104 vurgu nabzı başlar; `pump` → hafif haptik. Durağanlar:
@@ -460,8 +460,123 @@ ART_REFERENCE §11 aynen geçerlidir. 3B'ye özgü ekler:
 2. **Hikâye**: STORY.md'de Usta Dede rolü (firma kurucusu, öğretmen) Usta Kral'a geçer; ipucu cümleleri ve
    `sfx_voice_dede` → `sfx_voice_king` (web STORY / i18n güncellemesi ayrı paket; Unity i18n'de Dede adı geçen anahtarlar
    listelenmeli).
-3. **Oyun köşesi**: köşede Tuna yerine **Usta Kral** (+ küçük Kepçe) önerilir (`LevelHud` `hud.tuna` → `hud.king`,
+3. **Oyun köşesi** (B2'de uygulandı; Kepçe'nin 3B'si sanat turu 1, §14): köşede Tuna yerine **Usta Kral** (+ küçük Kepçe) önerilir (`LevelHud` `hud.tuna` → `hud.king`,
    klipler §7.2); Tuna ana sayfada ve hikâyede kalır.
 4. **Sıkıştırılmış doku** içe aktarımı (§7.5) code-lead kararı; olmazsa karakter klipleri sayfa bazında yüklenir.
 5. **Blok dudağı 20 → 24 px**: `anchorY` değerleri değişir (atlas'tan okunur; kod değişmez), ama `BoardLayout` ya da
    testler 20 px'e sabit bağlıysa code-lead denetler.
+
+---
+
+## 14. Sanat turu 1 (2026-11-02): inceleme düzeltmeleri, yeni varlıklar ve kod sözleşmesi
+
+Girdi: iki bağımsız rubrik incelemesi (S1, S2; CI e4be42e görüntüleri). Karar "geçmez"di, yedi ekranın hiçbiri her
+boyutta ≥ 4 değildi. Ortak beş kusur ve bu turdaki sanat yanıtı aşağıdadır. Kod bağlaması gereken her madde §14.3'te
+code-lead'e devredilir (bu paket kod değiştirmez).
+
+### 14.1 Usta Kral kimliği (D-101) — "kral okunmuyor, ustabaşı gibi"
+
+Proje sahibinin isteği "Royal Match'teki kral ama baretli" idi. Royal Match'in kralı (King Robert) ve herhangi bir
+Dream Games karakterinin yüzü, silueti, kıyafet birleşimi, renk düzeni ve adı **kopyalanmaz** (telif ve marka;
+D-101, ART_REFERENCE §11). İstenen arketip (sevimli, ifadeli, 3B oyuncak kral) ve kalite çıtası alınır; kral okuması
+bizim öğelerimizle güçlendirildi:
+
+| Öğe | B1k | Sanat turu 1 | Neden |
+| --- | --- | ------------ | ----- |
+| Taç | baret önünde küçük arma | **baretin tepesine kalıplanmış altın taç bandı + 3 yuvarlak diş** (ortadaki uzun, uçlarda bilye; taşsız, sivri değil) + arma **1,45×** | ilk bakışta "kral"; çıplak başta taç yok, RM'nin sivri taşlı tacı yok |
+| Göğüs | kuşak + 3 rozet | + **kalın altın zincir ve madalyon** (mavi emaye üstünde Altın Mala) | ikinci kraliyet işareti; sikke amblemiyle aynı dil (mala, taç değil) |
+| Ten | #E9A877 | **#F4AF86** (açık, pembe) | yüz gövdeden ayrışır |
+| Tulum | #EC8D20 | **#D0621A** (yanık turuncu) + krem yaka | ten / tulum / pantolon aynı tonda değil |
+| Göz | 1,0× | **1,25×**, iris %20 büyük, sıcak beyaz sklera, iki parlama, kapak kabukları açıkta gizli | "gözlük" okuması (mavi halka + kapak kenarı) kalktı |
+| Kaş | siperliğin arkasında | baret 0,045 BU yukarı, kaşlar öne ve biraz aşağı | kaşlar görünür, ifade okunur |
+| Mutlu göz (^) | kabuk içinde kayboluyordu | yay kapalı kapağın gerçek yüzeyinde | kahkaha gözleri okunur |
+
+Mor-altın kaftan, pelerin, beyaz sakal, kıvrık bıyık, başta taç **yok** (king.md §10.1 yasak listesi korunur).
+
+### 14.2 Yeni ve yeniden render edilen varlıklar
+
+| Varlık | Ad (yeni ad eklenir; mevcut ad değişmez) | Nerede | Not |
+| ------ | ---------------------------------------- | ------ | --- |
+| Usta Kral boşta | `king_idle` / `king_home_idle` **24 çizim** ikili (B1k 9 çizim × 6 kare) | king.json | B1k çizimleri numarasını korur (01–08), ara çizimler 09–23 |
+| Usta Kral sevinç | `king_cheer` **16 çizim** (B1k 10) | king.json | `chr_king_cheer_05` tepe durağanı aynı; 10–15 ara çizim |
+| Tuna, Kepçe 3B | `tuna_home_idle`, `kepce_home_idle`, `kepce_corner_idle` (24 çizim) + `chr_tuna_cheer / idle / think / bust`, `chr_kepce_idle` (v4 adları, 3B piksel) | **crew.json** (yeni) + atlas | `art/3d/blender/crew/README.md`; kralla aynı ışık ve malzeme, temas gölgesi 1,1 × ayak açıklığı, α 0,35 |
+| Boş saha | `floor_yard_a/b` | atlas | §3: gömük karanlık yuva |
+| Kilit perçinleri | `blk_locked` | atlas | krem harç noktası → küçük çelik perçin (Ø 0,068 hücre); "beyaz nokta ızgarası" okuması kalktı |
+| Ayarlar ikonları | `icon_sound_on/off`, `icon_vibration`, `icon_motion` | atlas | aynı 3B kit: tıknaz hoparlör (koni + kapak + kalın dalgalar), derin gövdeli telefon, **"hareketi azalt" = sakin oyuncak salyangoz**; alt gölge |
+| Dil bayrakları | `flag_tr`, `flag_en` | atlas | 2B → **3B yuvarlak rozet** (kubbeli emaye yüz, 6 px altın kenar); bayrak yüzleri kendi çizimimiz (Python ile rasterleştirildi) |
+| Ödül patlaması | `fx_star_burst` (14) | fx.json | **14 px kalın altın halka** (#FFF3C4 iç → #FFC20F dış), arka parlama #FFE7A3 α 0,55, 12 adet 3B şeker-altın yıldız (30–56 px) takla atarak saçılır |
+| Dilim tamam | `fx_segment_done` (14) | fx.json | 12 px beyaz → #6FD6FF kalın halka + 8 adet 3B altın yıldız (6. karede uçar) |
+| Kilit parıltısı | `fx_lock_shine` (12 @ 60 fps) | fx.json | 4 kollu parıltı 1,2×; 3–6. karelerde tam (durağan karede görünür) |
+| Toz | `fx_dust_puff` (10) | fx.json | sıcak kum tonu (#F3E3C2 render; kod tint'i #E9D2A8), 9 tane, daha dolgun |
+| Ağaç ev aşamaları | `town_ch1_s00` (çıplak ağaç) + `town_ch1_p01 … p10` (parçalar) | fx.json `stages.town_ch1` (home sayfası) | 10 bölüm = 10 parça: 1 Ağaç Basamakları, 2 Platform, 3 Ön Duvar, 4 Pencere Pervazı, 5 İki Odalı Ev, 6 Uzun Gövde (direkler), 7 Çatı Altı, 8 Bahçe Çiti, 9 İp Merdiven, 10 Ağaç Ev Tamam (bayrak, baca, flama, fener) |
+| Bitmiş ağaç ev | `town_ch1_treehouse` (v4 adı) | atlas | yeni model, bütün parçalar; aşamalar bağlanana kadar ana sayfa bunu çizer |
+| Yapı parçası | `bld_<parça>_3d` × 10 (`bld_tree_steps_3d` … `bld_treehouse_3d`) | fx.json (level sayfası) | kazanma penceresinde düz plan karoları yerine 3B parça; 360 × 360, pivot 0,5 0,5, yumuşak temas elipsi |
+| Ana sayfa zemini | `bg_home_ground` (+ düzleştirilmiş `bg_home`) | fx.json + atlas | **Oyna düğmesinin altına arnavut kaldırımı meydan** (sıcak taş, Voronoi taşlar, koyu bordür): yeşil düğme artık yeşil çimin üstünde değil |
+| Sağ ön plan | `bg_home_fore_r` | fx.json | kenarda yarısı kesik tuğla paleti kaldırıldı → soldaki çalı kümesinin aynası (organik biçim kenardan taşabilir) |
+
+### 14.3 Kod sözleşmesi (code-lead bağlar; bu paket kod değiştirmez)
+
+1. **Ölçek kipi**: `LayoutSettings.Mode` varsayılanı `ScaleMode.Expand` (19,5:9'da üst/alt 75 pt lacivert şerit
+   kalkar). Ana sayfa arka planı zaten "cover" (yanlar kırpılır); bölüm ekranında tahta HUD altı ile araç sırası üstü
+   arasında dikey ortalanır, yatayda 32 tasarım px pay; öğretici balonu tahta üstünün 24 px yukarısına bağlanır.
+2. **crew.json** (`Resources/art3d/crew.json` + `crew_N.bytes`, king.json biçimi): `ArtSet`'e üçüncü kütüphane
+   (`art3d/crew`). `home.tuna` → `tuna_home_idle` (stage set; ayaklar bugünkü kutunun alt ortası), `home.kepce` →
+   `kepce_home_idle`, `hud.kepce` → `kepce_corner_idle`. Azaltılmış harekette 0. çizim (`chr_tuna_home_idle_00`,
+   `chr_kepce_idle_00`). Bağlanana kadar atlas durağanları 3B'dir (kod değişmeden stil çatışması kalkar).
+3. **Ağaç ev aşamaları**: fx.json `stages.town_ch1` = `{canvas [760, 820], pivot [0.5, 0], base, parts[10],
+   levelPieces{"1".."10"}}`. Ana sayfada `home.town` yerine `base` + `parts[0 .. won − 1]` aynı pivot noktasına
+   (bugünkü kutunun alt ortası, 0,62 ölçek) üst üste çizilir; ofset gerekmez (her kare kırpılmış ama pivotu tuval
+   pivotudur). 10/10'da `town_ch1_treehouse` ile aynı resim çıkar.
+4. **Kazanma penceresi**: `PlanThumb` yerine `levelPieces[level]` karesi (360 tasarım px); giriş ölçek 0 → 1,15 →
+   0,95 → 1,0 (420 ms) + `fx_dust_puff`; `win.king` 1,6× (≈ 420 tasarım px) panelin sol üst kenarına binsin; yıldız 3'lü
+   satır (orta 1,25×); alt bilgi 40 tasarım px krem #FFF6E3 + #16133C kontur; pencere Expand'de dikey ortalı; sikke
+   HUD'daki sikke yuvasına uçar.
+5. **Sürükleme hissi** (`FeelSettings`): `LiftShadowOffsetPx` 18 → 28, `LiftShadowAlpha` 0,30 → 0,42, gölge tonu
+   #0B0918, `LiftShadowSpread` 0,20 → 0,28; şantiye üstünde blok bırakma düğümünün 0,35 hücre yukarısında; kaldırma
+   ölçeği 1,0 → 1,12 → 1,08 (120 ms Back.easeOut); `DragTiltMaxDeg` 8; geçerli bırakmada 6 px #7CFF6B dış ışıma; K-18
+   yeşil kenar (#3EE01A, 6 px) bloğun altında kalmaz.
+6. **İniş**: `LandPuffScale` 1,1 → 1,4, `fx_dust_puff` tint #E9D2A8; ezilme sy 0,88 / sx 1,10 (90 ms) → 1,0 Back.easeOut
+   160 ms; `fx_lock_shine` hücre başına 40 ms, alttan üste, boyu 1,6 hücre.
+7. **Tipografi**: HAMLE rakamı 96 → 80 px, dış çizgi 0, dolgu #1B1B4B, plakada dikey ortalı; hedef kartı etiketi
+   ≥ 36 tasarım px (beyaz + #16133C 0,08 em); "Usta Serisi" ≥ 34.
+8. **Araç sırası**: Bölüm 1'de kilitli araçlar gizli; açılmamış araç "Bölüm N" etiketli kilit kutusu, simge α 0,7,
+   kilit rozeti 0,6×.
+9. **Öğretici**: tek yol vurgusu (blok + yay + hedef yuva tek maske, 8 px #FFB21B, 1,2 sn nabız); iz sonunda ok ucu
+   (ART_REFERENCE §3.14, 120 × 170); hedef yuva #24CCFF α 0,8 → 0,3 nabız; eldiven 1,15×, basışta 0,9 → 1,1 → 1,0
+   (80 ms).
+10. **Ayarlar penceresi**: karartma #05030D α 0,72 ve pencere 60 tasarım px aşağı (arkadaki "Ağaç Ev" kurdelesi
+    görünmesin; S1 0,85, S2 0,40 istedi — ikisini birden karşılayan orta değer); Dil satırı–Tamam boşluğu 48 px; açılış
+    ölçek 0,9 → 1,04 → 1,0 (250 ms Back.easeOut), kurdele 80 ms gecikmeyle 0,6 → 1,0.
+11. **CI görüntüleri**: `landed_fx` (inişten +150 ms), FTUE dışı bölüm başı (`?shots=1&shotsLevel=4`), pencere
+    açılışı (+120 ms), kazanma patlaması (+300 ms).
+12. **Ayarlar penceresinde karakter**: `chr_king_bust_happy` (king.json, 150 tasarım px) pencerenin sol alt köşesine,
+    panel kenarına binerek; Dil satırında etiket + iki bayrak düğmesi eşit genişlikte (her biri 200 px); bayrak
+    düğmeleri `flag_tr / flag_en` 3B rozetini 96 px çizer.
+13. **Ana sayfa alt çubuğu**: kilitli sekme simgeleri α 0,45 → 0,7, kilit rozeti 0,6×; Oyna düğmesine 14 px aşağı damla
+    gölge (α 0,45) — düğme artık meydan taşının (§14.2) üstünde durur.
+
+### 14.4 Bellek (RGBA32, sayfa boyutu)
+
+Değerler §14.5'teki paketleyici çıktısıdır; `AnimTests.B2_memory_…` sınırı (atlas + king + fx ≤ 64 MB) korunur.
+crew.json bu toplamın dışında ayrı bir sayfa takımıdır (yalnız ana sayfa ve oyun köşesi yükler).
+
+| Takım | Sayfa | RGBA32 | Not |
+| ----- | ----- | ------ | --- |
+| `art/atlas` | 2048², 2048², 2048 × 280 | **34,19 MB** (B1 38,26) | `bg_home` 0,25 (yalnız yedek), kodun çizmediği `deco_brick_*`, `logo_emblem`, `chr_tuna_idle / think` 0,5 |
+| `art3d/king` | 1920 × 1924, 1808 × 528 | **17,73 MB** (B1k 15,58) | 92 çizim + 6 büst; **86 px/BU** (B1k 94): 24 çizimli boşta ve 16 çizimli sevinç 64 MB sınırına bu çözünürlükle sığar; köşe seti ölçeği 0,80625, sahne 0,645 (oran 1,25 korunur) |
+| `art3d/fx` | 1920 × 884 (level), 1916 × 628 (home) | **11,06 MB** (B1 9,26) | + 10 `bld_*_3d` (level), + ağaç ev aşamaları (home) |
+| **atlas + king + fx** | | **62,99 MB ≤ 64** | `AnimTests.B2_memory_…` yeşil |
+| `art3d/crew` (ayrı) | 2036 × 1032 | 8,02 MB | 51 çizim + 1 büst, 112 px/BU; ekran başına karakter bütçesi (§7.5): ana sayfa kral + crew ≈ 25,8 MB, oyun ekranı kral + Kepçe köşesi aynı sayfa |
+
+### 14.5 Doğrulama (bu pakette)
+
+- `dotnet build -warnaserror` + `dotnet test`: 514 + 1226 test yeşil (7 atlanan); `tools/stub-gate-selftest.sh` 4/4.
+- `crew.json` mevcut `ClipLibrary.Parse` ile hatasız okunur (geçici konsol projesiyle denendi: 3 klip, 5 takma ad,
+  `tuna_home_idle` 48 kare / 24 çizim / ölçek 0,84; king.json `king_idle` 24, `king_cheer` 16 çizim).
+- Sözleşme: 488 v4 karesinin hiçbirinin `w / h / pivot / border` değeri değişmedi (`frames.json` 783 → 875 kare, 22 →
+  25 klip; silinen ad yok). Ağaç ev aşamaları paketlenmiş `fx.json`'dan yeniden kurularak denendi
+  (`art/3d/blender/env/preview/t1-town-stages.png`).
+- Önizlemeler: `art/3d/blender/king/preview/`, `art/3d/blender/crew/preview/`, `art/3d/blender/env/preview/t1-*.png`;
+  kompozitler `artifacts/preview/v6-*.png` (git dışı; Unity ekran görüntüsü değil).
+- **Unity'de görülmedi**: klip oynatma, crew bağlama, aşamalı ağaç ev ve kazanma parçası code-lead bağladıktan sonra CI
+  görüntüleriyle (§14.3 madde 11) puanlanmalı.

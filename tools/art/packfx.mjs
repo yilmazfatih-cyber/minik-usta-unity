@@ -54,7 +54,7 @@ if (import.meta.url === `file://${process.argv[1]}`) {
   const contract = JSON.parse(readFileSync(join(ROOT, 'art', '3d', 'spec', 'frames.json'), 'utf8'));
   const scales = JSON.parse(readFileSync(join(ROOT, 'art', '3d', 'blender', 'env', 'scales.json'), 'utf8')).newFrames;
   const names = Object.keys(meta).sort();
-  const use = (n) => (meta[n].group === 'bg' ? 'home' : 'level');
+  const use = (n) => (meta[n].group === 'bg' || meta[n].group === 'town' ? 'home' : 'level');
   const all = names.map((name) => {
     const m = meta[name];
     const img = decodePng(readFileSync(join(FRAMES, name + '.png')));
@@ -123,6 +123,22 @@ if (import.meta.url === `file://${process.argv[1]}`) {
   }
   const layers = {};
   for (const [n, f] of Object.entries(meta)) if (f.layer) layers[n] = { frame: n, ...f.layer };
+  // art turn 1: the chapter 1 tree house in stages (art/3d/blender/env/town.py). Every frame shares the 760 x 820 canvas
+  // and its pivot (0.5, 0): draw `base` then parts[0 .. won - 1] at the SAME pivot point (no offsets needed); the
+  // level -> piece map gives the win-window 3D piece (bld_*_3d) of each level of the chapter.
+  const stages = {};
+  if (frames.town_ch1_s00) {
+    const parts = Object.keys(frames).filter((n) => /^town_ch1_p\d\d$/.test(n)).sort();
+    const pieces = ['tree_steps', 'platform', 'front_wall', 'window_sill', 'two_rooms', 'tall_trunk', 'under_roof', 'garden_fence', 'rope_ladder', 'treehouse'];
+    stages.town_ch1 = {
+      canvas: [760, 820],
+      pivot: [0.5, 0.0],
+      base: 'town_ch1_s00',
+      parts,
+      finished: 'town_ch1_treehouse (atlas.json, v4 name)',
+      levelPieces: Object.fromEntries(pieces.map((p, i) => [String(i + 1), `bld_${p}_3d`]).filter(([, f]) => frames[f])),
+    };
+  }
   const json = {
     version: 1,
     doc: 'art/3d/blender/env/README.md',
@@ -140,6 +156,7 @@ if (import.meta.url === `file://${process.argv[1]}`) {
     frames,
     clips,
     layers,
+    stages,
   };
   if (bytes > BUDGET_MB * 1048576) {
     console.error(`packfx: ${pages.map((p) => p.w + 'x' + p.h).join(', ')} = ${(bytes / 1048576).toFixed(2)} MB > budget ${BUDGET_MB} MB`);

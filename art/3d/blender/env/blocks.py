@@ -278,18 +278,19 @@ def run_overlays():
         C.camera_pitch(sc, PITCH, 0.5, v_cap, 72 / 120, 216, 216)
         C.render(sc, os.path.join(C.ARGS.out, 'blk_gloss.png'))
         C.write_meta('blk_gloss', {'post': 'luma_alpha'})
-    # blk_locked: 4 mortar dots on the top face with their contact shadow (shadow catcher), transparent elsewhere
+    # blk_locked: 4 rivets on the top face with their contact shadow (shadow catcher), transparent elsewhere
     if C.ARGS.wants('blk_locked'):
         sc = C.reset()
         C.setup_render(sc, TILE_PX, TILE_PX, 128)
         C.rig_A(sc)
-        mortar = C.principled('mortar', '#EFE8D8', rough=0.75, coat=0.0, spec=0.3, sss=0.05)
+        # art turn 1: small steel rivets instead of cream mortar dots (the cream dots read as a white dot grid, review)
+        mortar = C.principled('rivet', '#8E96A3', rough=0.28, coat=0.3, spec=0.6, metallic=0.7)
         cat = slab(sc, 'catch', [(0, 0), (0, -1)], 0, 0, C.principled('c', '#FFFFFF', coat=0))
         cat.is_shadow_catcher = True
         for x in (0.115, 0.885):
             for v in (0.33, 0.885):
                 y = (v - T * math.sin(P)) / C35
-                C.uv_sphere(sc, 'dot', 0.05, loc=(x, y, T + 0.006), mat=mortar, scale=(1, 1, 0.55))
+                C.uv_sphere(sc, 'dot', 0.034, loc=(x, y, T + 0.006), mat=mortar, scale=(1, 1, 0.6))
         C.camera_pitch(sc, PITCH, 0.5, 0.5, 1.0, TILE_PX, TILE_PX)
         C.render(sc, os.path.join(C.ARGS.out, 'blk_locked.png'))
     # deco bricks (loading screen): 3/4 view pieces without symbols, rig C light

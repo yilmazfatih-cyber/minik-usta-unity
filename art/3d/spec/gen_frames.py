@@ -10,6 +10,7 @@ loop, unique drawings, timeline and event frames; tween clips (data only). Deter
 """
 import json
 import os
+import sys
 from collections import OrderedDict
 
 HERE = os.path.dirname(os.path.abspath(__file__))
@@ -124,8 +125,10 @@ def classify(name):
     if name.startswith(('ghost_', 'shadow_')):
         return name.split('_')[0], None, 'svg', 'flat by rule (ART 4, K-18): printed plan / drop-shadow overlay, no 3D'
     if name in ('floor_site', 'floor_site_deep', 'crane_band', 'px_white', 'fx_glow', 'fx_rays', 'fx_sheen', 'fx_drop_blob',
-                'logo_wordmark', 'flag_tr', 'flag_en'):
+                'logo_wordmark'):
         return 'flat', None, 'svg', 'kept 2D: flat / soft / text by design'
+    if name in ('flag_tr', 'flag_en'):
+        return 'icon', 'C_prop', 'blender', 'art turn 1: 3D round badge (domed enamel face, 6 px gold rim)'
     if name.startswith(('floor_', 'wall_', 'gap_', 'rail_', 'scaffold_', 'beam_')):
         return 'board', 'A_tile', 'blender', 'tiles seamlessly with the same pitch rig as blocks'
     if name in ('crane_hook', 'truck'):
@@ -207,6 +210,19 @@ def tl(*runs):
 
 IDLE_TL = tl((0, 4), (1, 4), (2, 4), (3, 4), (4, 4), (5, 4), (6, 4), (7, 2), (12, 2), (13, 2), (12, 1), (8, 1), (9, 4), (10, 4), (11, 4))
 
+
+def king_timeline(clip_name):
+    """Art turn 1: the runtime timeline of art/3d/blender/king/animate_king.plan() (= king.json) as drawing numbers."""
+    sys.path.insert(0, os.path.join(REPO, 'art', '3d', 'blender', 'king'))
+    import animate_king
+    _d, clips = animate_king.plan()
+    return [int(n[-2:]) for n in clips[clip_name]['frames']]
+
+
+# art turn 1: king_idle 24 drawings on twos (B1k 9 held 6), king_cheer 16 drawings; numbers = king.json drawing names
+IDLE_TL = king_timeline('king_idle')
+CHEER_TL = king_timeline('king_cheer')
+
 KING_CORNER = {'canvas': [320, 320], 'scale': 1.0, 'pivot': [0.5, 0.0625], 'set': 'corner'}
 KING_STAGE = {'canvas': [400, 480], 'scale': 1.0, 'pivot': [0.5, 0.05], 'set': 'stage'}
 
@@ -246,9 +262,9 @@ BREATH = {'scaleY': '1 + 0.015 * sin(2*pi*t / 2.0)', 'scaleX': '1 - 0.006 * sin(
 
 clip('king_idle', 'chr_king_idle', KING_CORNER, 24, IDLE_TL, loop={'start': 0, 'end': 47},
      events={30: 'blink'}, tween=BREATH, use='level screen corner, tutorial idle, popups',
-     drawings='u0 = K0 (shared rest pose: every clip starts and ends on it); u1-u5 inhale / weight on left foot (+3 px), hat follows 4 frames late (+1.5 deg), trowel sways +3 deg; u6-u11 exhale / weight on right foot; u12 eyes half, u13 eyes closed (both on the pose of u8)')
+     drawings='art turn 1: 24 drawings on twos (u1-u8 = the B1k samples 6..42, u9-u23 the in-betweens); u0 = K0 (shared rest pose: every clip starts and ends on it); weight shift with the hat 4 frames late, trowel sway; blink 30 half / 32 closed / 34 half')
 clip('king_cheer', 'chr_king_cheer', KING_CORNER, 24,
-     tl((0, 2), (1, 2), (2, 1), (3, 1), (4, 1), (5, 1), (6, 1), (7, 1), (8, 2), (9, 2), (10, 1), (11, 1), (12, 1), (13, 2), (14, 2), (15, 3)),
+     CHEER_TL,
      events={4: 'lift_off', 10: 'apex', 14: 'land'}, use='correct placement streak, booster success, goal done',
      juice='#12 / #15 / #54 accents (Tuna #82 reaction moves to the king)',
      drawings='0-3 anticipation crouch (squash sy 0.92 sx 1.05, eyes squeeze); 4-9 launch, fists up (stretch 1.08); 10-13 apex, hat lifts 6 px; 14-16 land (squash 0.90), hat lands 2 frames late; 17-23 overshoot 1.03 -> settle; u15 = K0')
@@ -286,6 +302,16 @@ clip('king_big_cheer', 'chr_king_big_cheer', KING_STAGE, 24,
      loop={'start': 24, 'end': 47}, events={6: 'jump', 15: 'land', 22: 'hat_land', 28: 'hop', 40: 'hop'},
      use='win (JUICE #55 / #95): replaces the Tuna joy pose on the win card', juice='#55 stage 4-5',
      drawings='0-5 deep crouch, eyes shut; 6-14 big jump, trowel and fist up, hat pops off the head (secondary); 15-19 land squash; 20-23 hat lands back; 24-47 victory loop: body sway +-6 deg, two small hops (28, 40)')
+CREW_STAGE = {'canvas': [400, 480], 'scale': 0.84, 'pivot': [0.5, 0.05], 'set': 'stage'}
+CREW_CORNER = {'canvas': [320, 320], 'scale': 1.05, 'pivot': [0.5, 0.0625], 'set': 'corner'}
+clip('tuna_home_idle', 'chr_tuna_home_idle', CREW_STAGE, 24, tl(*[(i, 2) for i in range(24)]), loop={'start': 0, 'end': 47},
+     events={3: 'wave_peak', 15: 'wave_peak', 27: 'wave_peak', 30: 'blink', 39: 'wave_peak'}, use='home screen beside Usta Kral (art turn 1, crew.json)',
+     drawings='screen-left glove waves at 2 Hz, the glove 2 frames behind the forearm; other glove on the hip; weight shift, knee bounce, head counter-tilt; blink 30-35')
+clip('kepce_home_idle', 'chr_kepce_idle', CREW_STAGE, 24, tl(*[(i, 2) for i in range(24)]), loop={'start': 0, 'end': 47},
+     events={30: 'blink'}, use='home screen beside Tuna (art turn 1, crew.json)',
+     drawings='tail wag 2 Hz, panting, breathing, slow head tilt, ears 3 frames late, hat follow-through; blink 30-35')
+clip('kepce_corner_idle', 'chr_kepce_idle', CREW_CORNER, 24, tl(*[(i, 2) for i in range(24)]), loop={'start': 0, 'end': 47},
+     events={30: 'blink'}, use='level screen corner beside the king (art turn 1; the kepce_home_idle drawings at corner size)')
 clip('kepce_wag', 'chr_kepce_wag', {'canvas': [240, 168], 'scale': 1.0, 'pivot': [0.5, 0.06]}, 24,
      tl((0, 2), (1, 2), (2, 2), (3, 2), (4, 2), (5, 2), (6, 2), (7, 2)), loop={'start': 0, 'end': 15},
      use='Kepce beside the king in the level corner (secondary)', drawings='tail wag cycle, ears bounce 1 frame late', priority=2)
@@ -358,7 +384,7 @@ def new_frames():
     # clip frames
     for cname, c in CLIPS.items():
         prefix = c['frameName'].replace('_{NN}', '')
-        group = 'chr' if cname.startswith(('king_', 'kepce_')) else 'fx'
+        group = 'chr' if cname.startswith(('king_', 'kepce_', 'tuna_')) else 'fx'
         rig = 'B_char' if group == 'chr' else ('A_tile' if cname == 'fx_lock_shine' else 'E_fx')
         for i in range(c['unique']):
             out[f'{prefix}_{i:02d}'] = frame(group, c['canvas'][0], c['canvas'][1], c['scale'], c['pivot'], rig, f'clip {cname} drawing {i}')
@@ -379,6 +405,16 @@ def new_frames():
         e = frame('bg', w, h, s, [0.5, 0.0] if n != 'bg_home_sky' else [0.5, 0.5], 'F_bg', note)
         e['parallax'] = par
         out[n] = e
+    # art turn 1: Tuna stills (crew.json drawings behind the v4 chr_tuna_* atlas names)
+    for pose in ('cheer', 'idle', 'think'):
+        out[f'chr_tuna_still_{pose}'] = frame('chr', 300, 480, 0.84, [0.5, 0.02], 'B_char', 'crew.json still; drawn into the v4 atlas name chr_tuna_' + pose)
+    # art turn 1: chapter 1 tree house in stages (town.py): base + 10 pieces on one canvas and pivot, stacked by the code
+    out['town_ch1_s00'] = frame('town', 760, 820, 0.6, [0.5, 0.0], 'C_prop', 'the bare tree (0 / 10); fx.json stages.town_ch1.base')
+    pieces = ['tree_steps', 'platform', 'front_wall', 'window_sill', 'two_rooms', 'tall_trunk', 'under_roof', 'garden_fence', 'rope_ladder', 'treehouse']
+    for k, p in enumerate(pieces, start=1):
+        out['town_ch1_p%02d' % k] = frame('town', 760, 820, 0.6, [0.5, 0.0], 'C_prop', 'piece %d (%s) alone, earlier pieces as holdout; draw over s00 at the same pivot' % (k, p))
+    for k, p in enumerate(pieces, start=1):
+        out['bld_%s_3d' % p] = frame('reward', 360, 360, 0.6, [0.5, 0.5], 'C_prop', 'win window: the structure piece of level %d, soft contact ellipse' % k)
     return out
 
 

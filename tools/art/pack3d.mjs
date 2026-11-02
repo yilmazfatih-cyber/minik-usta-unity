@@ -259,11 +259,14 @@ if (import.meta.url === `file://${process.argv[1]}`) {
   const pxPerBU = doc.pxPerBU;
   const stage = setInfo('stage', pxPerBU);
   const corner = setInfo('corner', pxPerBU);
-  // bust box: 256 x 320 design = 1.28 x 1.6 BU (animate_king.BUST_*), i.e. 200 design px per BU
-  const bustScale = round6((doc.frames[names.find((n) => n.includes('_bust_'))]?.pxPerBU ?? 150) / 200);
+  // bust box: 256 x 320 design = 1.28 x 1.6 BU (animate_king.BUST_*), i.e. 200 design px per BU; the crew sheet
+  // (art/3d/blender/crew, art turn 1) writes its own bustDesignPxPerBU (256: a 1.0 x 1.25 BU box)
+  const isBustName = (n) => /_bust(_|$)/.test(n);
+  const bustPx = doc.frames[names.find(isBustName)]?.pxPerBU ?? 150;
+  const bustScale = round6(bustPx / (doc.bustDesignPxPerBU ?? 200));
   const out = {};
   for (const f of [...frames].sort((a, b) => (a.name < b.name ? -1 : 1))) {
-    const isBust = f.name.includes('_bust_');
+    const isBust = isBustName(f.name);
     out[f.name] = {
       atlas: f.atlas,
       x: f.x,
@@ -299,12 +302,19 @@ if (import.meta.url === `file://${process.argv[1]}`) {
   }
   // aliases: key-pose stills (stage scale) and the deprecated chr_dede_* names (ART_3D: rendered as Usta Kral)
   const aliases = {};
-  for (const [pose, [clip, frame]] of Object.entries(doc.stills ?? {}).sort()) {
-    aliases[`chr_king_still_${pose}`] = { of: doc.clips[clip].frames[frame], scale: stage.scale };
+  if (doc.aliases) {
+    // crew sheet: v4 atlas names -> drawing + the design px per BU it is shown at (scale = stored px per design px)
+    for (const [a, v] of Object.entries(doc.aliases).sort()) {
+      aliases[a] = { of: v.of, scale: round6((isBustName(v.of) ? bustPx : pxPerBU) / v.designPxPerBU) };
+    }
+  } else {
+    for (const [pose, [clip, frame]] of Object.entries(doc.stills ?? {}).sort()) {
+      aliases[`chr_king_still_${pose}`] = { of: doc.clips[clip].frames[frame], scale: stage.scale };
+    }
+    aliases.chr_dede_idle = { of: aliases.chr_king_still_idle.of, scale: stage.scale, deprecated: true };
+    aliases.chr_dede_talk = { of: aliases.chr_king_still_talk.of, scale: stage.scale, deprecated: true };
+    aliases.chr_dede_bust = { of: 'chr_king_bust_neutral', scale: bustScale, deprecated: true };
   }
-  aliases.chr_dede_idle = { of: aliases.chr_king_still_idle.of, scale: stage.scale, deprecated: true };
-  aliases.chr_dede_talk = { of: aliases.chr_king_still_talk.of, scale: stage.scale, deprecated: true };
-  aliases.chr_dede_bust = { of: 'chr_king_bust_neutral', scale: bustScale, deprecated: true };
   for (const [a, v] of Object.entries(aliases)) {
     if (!out[v.of]) throw new Error(`alias ${a} -> missing frame ${v.of}`);
   }
@@ -313,7 +323,7 @@ if (import.meta.url === `file://${process.argv[1]}`) {
   }
   const json = {
     version: 1,
-    doc: 'art/3d/blender/king/README.md',
+    doc: NAME === 'crew' ? 'art/3d/blender/crew/README.md' : 'art/3d/blender/king/README.md',
     generator: 'tools/art/pack3d.mjs',
     ppu: PPU,
     pad: PAD,

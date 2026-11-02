@@ -44,14 +44,14 @@ MATS = {
     'hat': ('#FFD43B', 0.28, 0.60, 0.06, 0.0, 0.0, 0.0, 0.5),
     'gold': ('#FFD45A', 0.24, 0.00, 0.00, 0.0, 0.0, 1.0, 0.5),
     'enamel': ('#2984DE', 0.18, 0.80, 0.04, 0.0, 0.0, 0.0, 0.5),
-    'suit': ('#EC8D20', 0.62, 0.00, 0.00, 0.0, 0.15, 0.0, 0.4),
+    'suit': ('#D0621A', 0.62, 0.00, 0.00, 0.0, 0.15, 0.0, 0.4),
     'cuff': ('#F6AC55', 0.62, 0.00, 0.00, 0.0, 0.15, 0.0, 0.4),
     'shirt': ('#FFF3D6', 0.70, 0.00, 0.00, 0.0, 0.10, 0.0, 0.35),
     'sash': ('#2984DE', 0.32, 0.15, 0.10, 0.0, 0.25, 0.0, 0.5),
     'leather': ('#8A4E1C', 0.50, 0.20, 0.20, 0.0, 0.0, 0.0, 0.5),
     'boot': ('#5A3418', 0.45, 0.30, 0.15, 0.0, 0.0, 0.0, 0.5),
     'sole': ('#F2E3C6', 0.60, 0.00, 0.00, 0.0, 0.0, 0.0, 0.4),
-    'skin': ('#E9A877', 0.45, 0.00, 0.00, 0.12, 0.0, 0.0, 0.45),
+    'skin': ('#F4AF86', 0.45, 0.00, 0.00, 0.10, 0.0, 0.0, 0.45),
     'hair': ('#7A4222', 0.55, 0.00, 0.00, 0.0, 0.12, 0.0, 0.45),
     'brow': ('#5A2E14', 0.50, 0.00, 0.00, 0.0, 0.10, 0.0, 0.4),
     'lash': ('#2E1406', 0.50, 0.00, 0.00, 0.0, 0.0, 0.0, 0.3),
@@ -140,8 +140,8 @@ def eye_mat(name, gaze_obj):
     m.use_nodes = True
     nt = m.node_tree
     b = principled(m)
-    b.inputs['Roughness'].default_value = 0.22
-    b.inputs['Coat Weight'].default_value = 0.18
+    b.inputs['Roughness'].default_value = 0.30
+    b.inputs['Coat Weight'].default_value = 0.10
     b.inputs['Coat Roughness'].default_value = 0.08
     b.inputs['Specular IOR Level'].default_value = 0.3
     tc = nt.nodes.new('ShaderNodeTexCoord')
@@ -161,8 +161,9 @@ def eye_mat(name, gaze_obj):
     ramp = nt.nodes.new('ShaderNodeValToRGB')
     cr = ramp.color_ramp
     cr.interpolation = 'LINEAR'
-    stops = [(0.0, '#160A04'), (0.255, '#1E0F06'), (0.285, '#6E3C10'), (0.40, '#B5732E'), (0.50, '#E8AC5E'),
-             (0.585, '#C88A3E'), (0.625, '#5A3010'), (0.655, '#FFFFFF'), (0.93, '#F4F7FB'), (1.0, '#DCE6F2')]
+    # T1: iris 1.2x (boundary 0.655 -> 0.785 of the visible radius): less white ring, no 'spectacles' read
+    stops = [(0.0, '#160A04'), (0.31, '#1E0F06'), (0.345, '#6E3C10'), (0.48, '#B5732E'), (0.60, '#E8AC5E'),
+             (0.70, '#C88A3E'), (0.75, '#5A3010'), (0.785, '#FFFDF8'), (0.94, '#FBF7F0'), (1.0, '#EFE9E0')]
     cr.elements[0].position, cr.elements[0].color = stops[0][0], hex_lin(stops[0][1])
     cr.elements[1].position, cr.elements[1].color = stops[-1][0], hex_lin(stops[-1][1])
     for pos, col in stops[1:-1]:
@@ -491,11 +492,14 @@ TORSO_C = Vector((0, 0, 0.98))
 TORSO_R = (0.53, 0.37, 0.50)
 HEAD_C = Vector((0, 0, 1.88))
 HEAD_R = (0.45, 0.40, 0.40)
-EYE_Z = 1.955
-EYE_X = 0.172
-EYE_R = (0.098, 0.08, 0.115)
-EYE_Y = -0.365
+EYE_Z = 1.940
+EYE_X = 0.186
+EYE_R = (0.1225, 0.10, 0.144)  # T1: 1.25x the B1k eye (0.098, 0.08, 0.115)
+EYE_Y = -0.352
 TROWEL_GRIP = (0.56, -0.01, 0.61)
+EMBLEM_SCALE = 1.45  # T1: hard-hat crown emblem 1.45x (B1k 1.0)
+HAT_Z = 2.165       # T1: hard hat 0.045 higher (B1k 2.12) so the brick brows read in front of the visor
+CORONET_Z = 0.405   # T1: coronet band height above the hat joint (dome top 0.45)
 
 
 def torso_deform(p):
@@ -549,8 +553,8 @@ class King:
         J('leg_l', (-0.215, 0, 0.56), 'root')
         J('leg_r', (0.215, 0, 0.56), 'root')
         J('head', (0, 0, 1.45), 'body')
-        J('hat', (0, 0, 2.12), 'head')
-        J('hat_tilt', (0, 0, 2.12), 'hat')
+        J('hat', (0, 0, HAT_Z), 'head')
+        J('hat_tilt', (0, 0, HAT_Z), 'hat')
         self.j['hat_tilt'].rotation_euler = (math.radians(-10.0), 0, 0)
         for s, side in ((-1, 'l'), (1, 'r')):
             J('arm_' + side, (0.53 * s, 0.0, 1.30), 'body')
@@ -589,9 +593,9 @@ class King:
         P(se('buckle_hole', 'leather', (0, hit.y - 0.046, 0.695), (0.042, 0.012, 0.033), 4.0), 'body')
         # collar: V of the cream shirt + two light lapels
         P(decal('vneck', [(-0.15, 1.50), (0.15, 1.50), (0.0, 1.27)], tb, 'shirt', 0.006, 0.012, 3), 'body')
-        P(decal('lapel_l', [(-0.155, 1.50), (-0.005, 1.275), (-0.07, 1.25), (-0.24, 1.44)], tb, 'cuff', 0.012, 0.014, 3),
+        P(decal('lapel_l', [(-0.155, 1.50), (-0.005, 1.275), (-0.07, 1.25), (-0.24, 1.44)], tb, 'shirt', 0.012, 0.014, 3),
           'body')
-        P(decal('lapel_r', [(0.155, 1.50), (0.005, 1.275), (0.07, 1.25), (0.24, 1.44)], tb, 'cuff', 0.012, 0.014, 3),
+        P(decal('lapel_r', [(0.155, 1.50), (0.005, 1.275), (0.07, 1.25), (0.24, 1.44)], tb, 'shirt', 0.012, 0.014, 3),
           'body')
         # zipper dashes
         z = 1.23
@@ -631,6 +635,36 @@ class King:
             if i == 0:
                 sym.scale = (1.0, 1.0, 0.55)
             P(sym, 'body')
+
+        # T1 (art turn 1, king identity): thick gold chain + medallion with the Golden Trowel on blue enamel, under the
+        # beard and over the sash: a second royal sign that reads at sprite size (the coin emblem, not a crown)
+        bpy.context.view_layer.update()
+        tb = mesh_bvh([torso])
+        k = 0
+        x = -0.30
+        while x <= 0.3001:
+            zc = 1.322 + 1.25 * x * x
+            hit, nrm = surface_hit(tb, x, zc)
+            if hit is not None:
+                P(se('chain%d' % k, 'gold', hit + nrm * 0.016, (0.026, 0.026, 0.026), 2.0, 6), 'body')
+            x += 0.046
+            k += 1
+        hit, nrm = surface_hit(tb, 0.0, 1.215)
+        md = se('medal', 'gold', (0, 0, 0), (0.112, 0.030, 0.112), 2.3, 12)
+        orient_to(md, hit + nrm * 0.035, nrm)
+        P(md, 'body')
+        md2 = se('medal_enamel', 'enamel', (0, 0, 0), (0.080, 0.014, 0.080), 2.3, 10)
+        orient_to(md2, hit + nrm * 0.058, nrm)
+        P(md2, 'body')
+        tw = se('medal_trowel', 'gold', (0, 0, 0), (0.040, 0.012, 0.050), 1.25, 8)
+        orient_to(tw, hit + nrm * 0.068 + Vector((0, 0, 0.012)), nrm)
+        P(tw, 'body')
+        th = se('medal_handle', 'gold', (0, 0, 0), (0.012, 0.010, 0.026), 2.2, 6)
+        orient_to(th, hit + nrm * 0.066 + Vector((0, 0, -0.052)), nrm)
+        P(th, 'body')
+        bail = se('medal_bail', 'gold', (0, 0, 0), (0.030, 0.016, 0.024), 2.4, 6)
+        orient_to(bail, hit + nrm * 0.030 + Vector((0, 0, 0.115)), nrm)
+        P(bail, 'body')
 
         # ---- arms and hands
         for s, side in ((-1, 'l'), (1, 'r')):
@@ -699,14 +733,14 @@ class King:
             lid_up = self.joint('lidup_' + side, c, 'head')
             lid_lo = self.joint('lidlo_' + side, c, 'head')
             for nm, jn, keep in (('lidU_', 'lidup_', 'outer'), ('lidL_', 'lidlo_', 'inner')):
-                bm = se_bmesh((EYE_R[0] * 1.10, EYE_R[1] * 1.16, EYE_R[2] * 1.09), 2.0, 12)
+                bm = se_bmesh((EYE_R[0] * 1.05, EYE_R[1] * 1.09, EYE_R[2] * 1.05), 2.0, 12)
                 bisect_keep(bm, Vector((0, 0, 0)), Vector((0, 0, 1)), keep)
                 o = bm_to_obj(nm + side, bm, 'skin', c)
                 sd = o.modifiers.new('solid', 'SOLIDIFY')
                 sd.thickness = 0.01
                 P(o, jn + side)
             # highlights (fixed to the head; upper-left big, lower-right small)
-            for k, (dx, dz, r) in enumerate(((-0.032, 0.045, 0.024), (0.036, -0.04, 0.012))):
+            for k, (dx, dz, r) in enumerate(((-0.040, 0.056, 0.031), (0.045, -0.050, 0.015))):
                 hx = c.x + dx
                 hz = c.z + dz
                 ny = 1 - (dx / EYE_R[0]) ** 2 - (dz / EYE_R[2]) ** 2
@@ -719,21 +753,26 @@ class King:
                 for i in range(15):
                     t = -1 + 2 * i / 14
                     x = c.x + EYE_R[0] * 0.92 * t
+                    ke = EYE_R[2] / 0.115  # T1: arcs scale with the 1.25x eye
                     if kind == 'closed':
-                        z = c.z - 0.012 - 0.022 * (1 - t * t)
+                        z = c.z - ke * (0.012 + 0.022 * (1 - t * t))
                     elif kind == 'happy':
-                        z = c.z - 0.02 + 0.05 * (1 - t * t)
+                        z = c.z + ke * (-0.02 + 0.05 * (1 - t * t))
                     else:
-                        z = c.z - 0.005 + 0.012 * (1 - t * t)
-                    ny = 1 - ((x - c.x) / (EYE_R[0] * 1.1)) ** 2 - ((z - c.z) / (EYE_R[2] * 1.09)) ** 2
-                    y = c.y - EYE_R[1] * 1.16 * math.sqrt(max(0.0, ny)) - 0.01
+                        z = c.z + ke * (-0.005 + 0.012 * (1 - t * t))
+                    if kind == 'soft':
+                        ny = 1 - ((x - c.x) / (EYE_R[0] * 1.05)) ** 2 - ((z - c.z) / (EYE_R[2] * 1.05)) ** 2
+                        y = c.y - EYE_R[1] * 1.09 * math.sqrt(max(0.0, ny)) - 0.01
+                    else:  # T1: on the CLOSED lid (shell turned ~88 deg: front extent = z radius, height = y radius)
+                        ny = 1 - ((x - c.x) / (EYE_R[0] * 1.05)) ** 2 - ((z - c.z) / (EYE_R[1] * 1.09)) ** 2
+                        y = c.y - EYE_R[2] * 1.05 * math.sqrt(max(0.0, ny)) - 0.008
                     pts.append((x, y, z))
-                arc = polyline_curve('lash_%s_%s' % (kind, side), pts, 0.011, 'lash')
+                arc = polyline_curve('lash_%s_%s' % (kind, side), pts, 0.0135, 'lash')
                 P(arc, 'head')
             self.eyes.append(side)
             # brick brow
-            bj = self.joint('brow_' + side, (EYE_X * s * 1.03, -0.452, 2.098), 'head')
-            P(se('brow_' + side, 'brow', bj.location, (0.108, 0.042, 0.037), 2.8), 'brow_' + side)
+            bj = self.joint('brow_' + side, (EYE_X * s * 1.03, -0.466, 2.088), 'head')
+            P(se('brow_' + side, 'brow', bj.location, (0.118, 0.044, 0.040), 2.8), 'brow_' + side)
         # mouths
         bpy.context.view_layer.update()
         mb = mesh_bvh([head, muzzle])
@@ -752,7 +791,7 @@ class King:
             self.mouths[kind] = objs
 
         # ---- hard hat (king.md section 6): dome, ridge, brim, emblem plate, gold 3-point crown with stud tips
-        hc = Vector((0, 0, 2.12))
+        hc = Vector((0, 0, HAT_Z))
         bm = se_bmesh((0.525, 0.505, 0.45), 2.35, 20)
         bisect_keep(bm, Vector((0, 0, 0)), Vector((0, 0, -1)), 'inner')
         dome = bm_to_obj('dome', bm, 'hat', hc)
@@ -785,7 +824,7 @@ class King:
         P(brim, 'hat_tilt')
         bpy.context.view_layer.update()
         db = mesh_bvh([dome])
-        hit, nrm = surface_hit(db, 0.0, 2.35)
+        hit, nrm = surface_hit(db, 0.0, HAT_Z + 0.195)
         plate = empty('emblem', (0, 0, 0))
         orient_to(plate, hit, nrm)
         attach(plate, self.j['hat_tilt'])
@@ -817,6 +856,26 @@ class King:
             on_plate(co, 0.026)
         for k, (x, zz) in enumerate(((-0.074, 0.046), (0.0, 0.064), (0.074, 0.046))):
             on_plate(se('crown_stud%d' % k, 'gold', (x, 0, zz), (0.022, 0.022, 0.022), 2.0, 6), 0.042)
+        plate.scale = (EMBLEM_SCALE, 1.2, EMBLEM_SCALE)
+        # coronet (T1): a gold band round the top of the dome with three rounded teeth at the front (left, centre,
+        # right; centre tallest), each with a stud ball like the emblem crown. Molded into the hard hat, not a crown on
+        # a bare head; rounded, no gems, no spikes (king.md section 10.1)
+        zc = hc.z + CORONET_Z
+        u = (CORONET_Z / 0.45) ** 2.35
+        rr = 0.525 * (1 - u) ** (1 / 2.35)
+        pts = [((rr + 0.004) * math.cos(2 * math.pi * i / 48), (rr + 0.004) * 0.962 * math.sin(2 * math.pi * i / 48), zc)
+               for i in range(49)]
+        P(polyline_curve('coronet_band', pts, 0.030, 'gold'), 'hat_tilt')
+        for k, (az, hh, ww) in enumerate(((-90 - 50, 0.088, 0.060), (-90, 0.112, 0.070), (-90 + 50, 0.088, 0.060))):
+            a = math.radians(az)
+            cx, cy = rr * math.cos(a), rr * 0.962 * math.sin(a)
+            out = Vector((math.cos(a), math.sin(a), 0.0))
+            tooth = se('coronet_tooth%d' % k, 'gold', (cx + out.x * 0.012, cy + out.y * 0.012, zc + hh * 0.55),
+                       (ww, 0.034, hh), 2.4, 10)
+            tooth.rotation_euler = (math.radians(14), 0.0, a + math.pi / 2)  # top leans outward 14 deg
+            P(tooth, 'hat_tilt')
+            P(se('coronet_stud%d' % k, 'gold', (cx + out.x * 0.022, cy + out.y * 0.022, zc + hh * 1.25),
+                 (0.036, 0.036, 0.036), 2.0, 6), 'hat_tilt')
         bpy.context.view_layer.update()
         self.rest = {k: (v.location.copy(), v.rotation_euler.copy(), v.scale.copy()) for k, v in self.j.items()}
         self.rest_world = {k: v.matrix_world.copy() for k, v in self.j.items()}
@@ -1015,8 +1074,8 @@ class King:
             happy = g('eyes', 'open')
             if happy in ('happy', 'closed'):
                 lid, low = 1.0, 0.0
-            up_ang = -58 + 140 * lid  # 0 open (edge at +58 deg) .. 1 closed (edge at -82 deg)
-            lo_ang = 62 - 70 * low     # 0 open (edge at -62 deg) .. 1 raised (edge at +8 deg)
+            up_ang = -74 + 156 * lid  # 0 open (edge at +74 deg) .. 1 closed (edge at -82 deg); T1: wider open, no rim
+            lo_ang = 76 - 84 * low     # 0 open (edge at -76 deg) .. 1 raised (edge at +8 deg)
             if happy in ('happy', 'closed'):
                 up_ang, lo_ang = 88, 88
             j['lidup_' + side].rotation_euler = (R(up_ang), 0, 0)

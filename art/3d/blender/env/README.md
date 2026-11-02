@@ -212,3 +212,23 @@ altın; (9) çekiç ilk karelerde tuvalden taşıyordu → savrulma açısı kay
 5. **Rig F** kamera eğimi 12° yerine 6° (ana sayfa düzeni için); paralaks katman boyları içerikten ölçülür
    (`fx.json → layers`), frames.json'daki önerilen boylardan farklıdır (yeni kareler, kod henüz okumuyor).
 6. Render sırasında makinede başka bir ajan CPU kullanıyordu; tablodaki süreler bu yüzden üst sınırdır.
+
+## 7. Sanat turu 1 (2026-11-02, design-lead) — değişen aileler
+
+Ayrıntı ve kod sözleşmesi `docs/ART_3D.md` §14. Yalnız değişen kareler yeniden render edildi; geri kalan ham
+render'lar B1 ile bit bit aynıdır (atlas yeniden üretimi B1 commit'iyle doğrulandı).
+
+| Aile | Dosya | Değişiklik |
+| ---- | ----- | ---------- |
+| Tahta | `board.py` `floor_yard()` | ahşap palet → **gömük karanlık yuva** (#221C5A / #25205F, 5 px kenar #3A3480, 10 px iç duvar) |
+| Blok | `blocks.py` `blk_locked` | krem harç noktaları → küçük çelik perçin (Ø 0,068 hücre) |
+| İkon | `icons.py` | `icon_sound_on/off` tıknaz hoparlör, `icon_vibration` derin gövdeli telefon, `icon_motion` oyuncak salyangoz, `flag_tr/en` 3B rozet (bayrak yüzü saf Python ile rasterleştirilir: apt Blender'da numpy ve Pillow yok); bu altı kareye `shadow` meta (dy 5, blur 3, α 0,38) |
+| Efekt | `fx.py` | `fx_star_burst` ve `fx_segment_done`: 14 / 12 px kalın degrade halka (`thick_ring`) + 3B şeker-altın yıldızlar (`gold_star_mat`, rig C ışığı); `fx_lock_shine` 3–6. karelerde tam, 1,2×; `fx_dust_puff` sıcak kum tonu, 9 tane |
+| Kasaba | `town.py` | ağaç ev yeniden modellendi (gerçek ağaç + 10 parça); `town_ch1_s00`, `town_ch1_p01..p10` (öncekiler holdout), `town_ch1_treehouse` (bitmiş), `bld_<parça>_3d` × 10; `scales.json` → `newFrames` (`group: town` = home sayfası, `group: reward` = level sayfası); `packfx.mjs` → `fx.json` `stages.town_ch1` |
+| Arka plan | `bg.py` | `bg_home_fore_r` tuğla paleti → çalı kümesi (kenarda yarım kesik nesne kalmadı); `bg_home_ground` → Oyna düğmesinin altında arnavut kaldırımı meydan; `bg_home` (düzleştirilmiş, yalnız yedek) ölçeği 0,5 → 0,25 |
+| Karakter durağanları | `post_env.py` `king_aliases('crew', …)` | `chr_tuna_cheer / idle / think / bust`, `chr_kepce_idle` 3B (crew.json çizimlerinden pivotla); ölçekler 0,84 / 0,7 / 0,7 / 0,75 / 0,75 |
+
+Komut (bu turun yeniden render'ı, ≈ 40 dk): `board.py --only floor_yard_a,floor_yard_b`, `blocks.py --only blk_locked`,
+`icons.py --only icon_sound_on,icon_sound_off,icon_vibration,icon_motion,flag_tr,flag_en`, `fx.py --only
+'fx_star_burst_*,fx_segment_done_*,fx_lock_shine_*,fx_dust_puff_*'`, `town.py`, `bg.py --only bg_home_ground,bg_home_fore_r`
+→ `post_env.py` → `rasterize.mjs` → `packfx.mjs`.

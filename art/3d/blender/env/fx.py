@@ -347,43 +347,61 @@ def coin_spin():
             C.render(sc, out(name))
 
 
+def gold_star_mat(name='gstar'):
+    m = C.principled(name, '#FFD119', rough=0.2, coat=0.65, coat_rough=0.05, sss=0.1, spec=0.6, emission='#FFC20F', emission_strength=0.25)
+    C.gradient_input(m, [(0.0, '#FFAD00'), (0.5, '#FFD119'), (1.0, '#FFF3C4')], axis='Y', lo=-1.0, hi=1.0, space='Object')
+    return m
+
+
+def thick_ring(sc, name, c, inner_hex, outer_hex, strength, tube=0.07):
+    """Art turn 1: a fat glowing ring (14 design px) with a gold gradient: a bright inner torus inside a deeper outer one."""
+    outer = ring_mat(name + 'o', outer_hex, strength)
+    inner = ring_mat(name + 'i', inner_hex, strength * 1.15)
+    ro = C.torus(sc, name + 'o', 1.0, tube, loc=c, mat=outer, rot=(90, 0, 0), seg=128, mseg=10)
+    ri = C.torus(sc, name + 'i', 1.0 - tube * 0.45, tube * 0.55, loc=(c[0], c[1] - 0.02, c[2]), mat=inner, rot=(90, 0, 0), seg=128, mseg=10)
+    return (ro, outer), (ri, inner)
+
+
 def star_burst():
+    """Art turn 1 (RM-class reward pop): back glow #FFE7A3, a FAT gold ring (14 px, #FFF3C4 -> #FFC20F) that expands and
+    thins out, a white-gold flash, and 12 real 3D candy-gold stars (24-48 design px) that fly out tumbling, lit by rig C."""
     if not want('fx_star_burst', 14):
         return
     w, h = 512, 512
-    sc = scene(w, h, lights='none', samples=32)
+    sc = scene(w, h, lights='C', samples=48)
     c = (w / 2 * U, 0, h / 2 * U)
-    ring_m = bpy.data.materials.new('ring')
-    ringg = glow_mat('ringg', '#FFE7A3', 2.2, 1.0, core='#FFFFFF')
-    # ring = torus with emission + small stars
-    ring = C.torus(sc, 'ring', 1.0, 0.05, loc=c, mat=ringg, rot=(90, 0, 0), seg=96, mseg=8)
-    ring_em = ring_mat('ringem', '#FFF2C0', 2.5)
-    ring.data.materials[0] = ring_em
-    flash = glow_mat('flash', '#FFD45A', 2.4, 2.0, core='#FFFFFF')
-    pf = plane(sc, 'flash', 2.0, (c[0], 0.02, c[2]), flash)
-    stars = []
-    sm = C.emission_mat('stars', '#FFE680', 2.2)
+    (ro, rom), (ri, rim_) = thick_ring(sc, 'ring', c, '#FFF3C4', '#FFC20F', 2.4)
+    back = glow_mat('back', '#FFE7A3', 1.6, 1.6)
+    pb = plane(sc, 'back', 3.2, (c[0], 0.05, c[2]), back)
+    flash = glow_mat('flash', '#FFD45A', 2.6, 2.0, core='#FFFFFF')
+    pf = plane(sc, 'flash', 2.0, (c[0], 0.03, c[2]), flash)
+    sm = gold_star_mat()
     rnd = random.Random(5)
-    for k in range(16):
-        a = 2 * math.pi * k / 16 + rnd.uniform(-0.1, 0.1)
-        o = flat_shape(sc, 'st', C.star_pts(5, 1.0, 0.45, rot=90), sm, c, 0.12)
-        stars.append((o, a, rnd.uniform(0.8, 1.15), rnd.uniform(0.7, 1.2)))
+    stars = []
+    for k in range(12):
+        a = 2 * math.pi * k / 12 + rnd.uniform(-0.12, 0.12)
+        o = C.puffy(sc, 'st', C.ccw(C.star_pts(5, 1.0, 0.5, rot=90)), 0.42, sm, bevel=0.17, sub=2)
+        stars.append((o, a, rnd.uniform(0.85, 1.15), rnd.uniform(0.30, 0.56), rnd.uniform(-1, 1)))
     for d in range(14):
         name = 'fx_star_burst_%02d' % d
         t = d / 13
-        R = 0.3 + 1.9 * ease_out(t)
-        ring.scale = (R, R, R)
-        ring.hide_render = t > 0.85
-        rs = max(0.0, 1 - t) * 1.0
-        set_ring(ring_em, rs)
-        pf.scale = (1.6 + 1.4 * t, 1.6 + 1.4 * t, 1)
-        set_opacity(flash, max(0.0, 1 - t * 2.2))
-        for o, a, sp, sz in stars:
-            rr = (0.4 + 1.9 * ease_out(t)) * sp
-            o.location = (c[0] + math.cos(a) * rr, -0.01, c[2] + math.sin(a) * rr)
-            s = 0.13 * sz * (1 - t ** 3)
+        R = 0.35 + 1.85 * ease_out(t)
+        thin = max(0.25, 1.0 - 0.75 * t)
+        for o in (ro, ri):
+            o.scale = (R, R, R * thin)  # torus local z = its tube thickness across the view after the 90 deg turn
+            o.hide_render = t > 0.9
+        set_ring(rom, max(0.0, 1 - t) ** 0.7)
+        set_ring(rim_, max(0.0, 1 - t) ** 0.9)
+        pf.scale = (1.4 + 1.6 * t, 1.4 + 1.6 * t, 1)
+        set_opacity(flash, max(0.0, 1 - t * 2.4))
+        pb.scale = (2.6 + 1.0 * ease_out(t), 2.6 + 1.0 * ease_out(t), 1)
+        set_opacity(back, 0.55 * max(0.0, 1 - t ** 1.5))
+        for o, a, sp, sz, spin in stars:
+            rr = (0.45 + 1.75 * ease_out(t)) * sp
+            o.location = (c[0] + math.cos(a) * rr, -0.4, c[2] + math.sin(a) * rr)
+            s = sz * 0.5 * (min(1.0, 0.4 + t * 3.0)) * (1 - t ** 3)
             o.scale = (s, s, s)
-            o.rotation_euler = (math.radians(90), math.radians(40 * t * sp), 0)
+            o.rotation_euler = (math.radians(90 + 25 * spin * t), math.radians(160 * t * spin), math.radians(30 * spin * t))
         if C.ARGS.wants(name):
             C.render(sc, out(name))
 
@@ -419,12 +437,13 @@ def dust_puff():
         return
     w, h = 192, 128
     sc = scene(w, h, samples=48)
+    sc.cycles.transparent_max_bounces = 32
     rnd = random.Random(11)
     puffs = []
-    for k in range(7):
-        m = C.principled('dust%d' % k, '#F2EEE6', rough=0.9, coat=0.0, sss=0.2, alpha=1.0)
+    for k in range(9):
+        m = C.principled('dust%d' % k, '#F3E3C2', rough=0.9, coat=0.0, sss=0.2, alpha=1.0)  # art turn 1: warm sand (code tint #E9D2A8)
         a = math.radians(rnd.uniform(8, 172))
-        puffs.append((C.uv_sphere(sc, 'puff', 1.0, loc=(w / 2 * U, 0, 0.12), mat=m, seg=24, rings=12), m, a, rnd.uniform(0.6, 1.0), rnd.uniform(0.16, 0.26)))
+        puffs.append((C.uv_sphere(sc, 'puff', 1.0, loc=(w / 2 * U, 0, 0.12), mat=m, seg=24, rings=12), m, a, rnd.uniform(0.6, 1.0), rnd.uniform(0.19, 0.30)))
     for d in range(10):
         name = 'fx_dust_puff_%02d' % d
         t = d / 9
@@ -435,41 +454,49 @@ def dust_puff():
             o.scale = (s, s, s * 0.85)
             m.node_tree.nodes['Principled BSDF'].inputs['Alpha'].default_value = max(0.0, 1 - t ** 1.6)
             m.blend_method = 'BLEND'
+            o.hide_render = 1 - t ** 1.6 <= 0.01  # a fully clear puff is left out (9 stacked clear spheres ran out of
+            # transparent bounces and came back as an opaque black blob, art turn 1)
         if C.ARGS.wants(name):
             C.render(sc, out(name))
 
 
 def segment_done():
+    """Art turn 1: slice-done flash: white-cyan flare, a FAT ring (12 px, #FFFFFF -> #6FD6FF) and 8 3D gold stars that pop
+    at 0 and fly at 6 (the code then sends them to the panorama, JUICE #18 / #93)."""
     if not want('fx_segment_done', 14):
         return
     w, h = 512, 512
-    sc = scene(w, h, lights='none', samples=32)
+    sc = scene(w, h, lights='C', samples=48)
     c = (w / 2 * U, 0, h / 2 * U)
     flare = glow_mat('flare', '#BFE8FF', 2.6, 1.6, core='#FFFFFF')
     pf = plane(sc, 'flare', 2.0, c, flare)
-    ring_em = ring_mat('ring', '#9FE0FF', 2.4)
-    ring = C.torus(sc, 'ring', 1.0, 0.045, loc=c, mat=ring_em, rot=(90, 0, 0), seg=96, mseg=8)
-    sm = glow_mat('spk', '#FFF6D0', 3.0, 0.7, core='#FFFFFF')
+    (ro, rom), (ri, rim_) = thick_ring(sc, 'ring', c, '#FFFFFF', '#6FD6FF', 2.4, tube=0.06)
+    sm = gold_star_mat()
     rnd = random.Random(9)
     sparks = []
-    for k in range(10):
-        a = 2 * math.pi * k / 10 + rnd.uniform(-0.2, 0.2)
-        o = flat_shape(sc, 'spk', star_glint_pts(4, 0.16), sm, c, 0.2)
-        sparks.append((o, a, rnd.uniform(0.7, 1.1)))
+    for k in range(8):
+        a = 2 * math.pi * k / 8 + rnd.uniform(-0.2, 0.2)
+        o = C.puffy(sc, 'spk', C.ccw(C.star_pts(5, 1.0, 0.5, rot=90)), 0.42, sm, bevel=0.17, sub=2)
+        sparks.append((o, a, rnd.uniform(0.75, 1.1), rnd.uniform(0.22, 0.36), rnd.uniform(-1, 1)))
     for d in range(14):
         name = 'fx_segment_done_%02d' % d
         t = d / 13
         pf.scale = (1.0 + 2.2 * ease_out(min(1, t * 2)), 1.0 + 2.2 * ease_out(min(1, t * 2)), 1)
         set_opacity(flare, max(0.0, 1 - t * 1.8))
         R = 0.4 + 2.0 * ease_out(t)
-        ring.scale = (R, R, R)
-        set_ring(ring_em, max(0.0, 1 - t) ** 0.8)
-        for o, a, sp in sparks:
+        thin = max(0.3, 1.0 - 0.7 * t)
+        for o in (ro, ri):
+            o.scale = (R, R, R * thin)
+            o.hide_render = t > 0.92
+        set_ring(rom, max(0.0, 1 - t) ** 0.8)
+        set_ring(rim_, max(0.0, 1 - t) ** 0.9)
+        for o, a, sp, sz, spin in sparks:
             tt = max(0.0, (d - 4) / 9)  # fly at 6
             rr = (0.5 + 1.6 * ease_out(tt)) * sp
-            o.location = (c[0] + math.cos(a) * rr, -0.02, c[2] + math.sin(a) * rr)
-            s = 0.22 * (1 - tt ** 2) * (0.4 if d < 4 else 1.0)
+            o.location = (c[0] + math.cos(a) * rr, -0.4, c[2] + math.sin(a) * rr)
+            s = sz * 0.5 * (1 - tt ** 2) * (min(1.0, 0.35 + d * 0.22))
             o.scale = (s, s, s)
+            o.rotation_euler = (math.radians(90 + 20 * spin * tt), math.radians(140 * tt * spin), 0)
         if C.ARGS.wants(name):
             C.render(sc, out(name))
 
@@ -487,8 +514,9 @@ def lock_shine():
     for d in range(12):
         name = 'fx_lock_shine_%02d' % d
         t = d / 11
-        k = math.sin(math.pi * min(1.0, t * 1.15)) if t < 0.87 else 0.0
-        s = 0.06 + 0.3 * k
+        # art turn 1: rise 0-2, HOLD near full on 3-6 (readable in a still), fall 7-10; arms 1.2x
+        k = (min(1.0, d / 3.0) if d <= 6 else max(0.0, 1.0 - (d - 6) / 4.0)) ** 0.8
+        s = 0.07 + 0.36 * k
         st.scale = (s, s, s)
         st.rotation_euler = (math.radians(90), math.radians(45 * t), 0)
         ph.scale = (0.2 + 0.5 * k, 0.2 + 0.5 * k, 1)

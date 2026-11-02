@@ -184,15 +184,22 @@ def flatten_home():
     return ('atlas', 'bg_home', {'scale': s, 'w': W, 'h': H})
 
 
-def king_aliases():
+KING_ALIASES = ('chr_dede_idle', 'chr_dede_talk', 'chr_dede_bust')
+CREW_ALIASES = ('chr_tuna_cheer', 'chr_tuna_idle', 'chr_tuna_think', 'chr_tuna_bust', 'chr_kepce_idle')
+
+
+def king_aliases(sheet='king', names=KING_ALIASES):
     """chr_dede_idle / chr_dede_talk / chr_dede_bust (deprecated v4 names, ART_3D 9: rendered as Usta Kral) from the B1k
     sheet (Resources/art3d/king.json + king_N.bytes): the aliased drawing is placed by its pivot (feet / bust centre) on
-    the v4 frame pivot, resampled to the atlas scale; the contact shadow under the feet fades out at the frame edge."""
+    the v4 frame pivot, resampled to the atlas scale; the contact shadow under the feet fades out at the frame edge.
+    Art turn 1: the same for the crew sheet (crew.json: chr_tuna_cheer / idle / think / bust, chr_kepce_idle in 3D)."""
     res = os.path.join(ROOT, 'Assets', 'MinikUsta', 'Resources', 'art3d')
-    kj = json.load(open(os.path.join(res, 'king.json')))
+    if not os.path.exists(os.path.join(res, sheet + '.json')):
+        return {}
+    kj = json.load(open(os.path.join(res, sheet + '.json')))
     pages = [Image.open(os.path.join(res, a['file'].split('/')[-1] + '.bytes')).convert('RGBA') for a in kj['atlases']]
     outm = {}
-    for name in ('chr_dede_idle', 'chr_dede_talk', 'chr_dede_bust'):
+    for name in names:
         if not wants(name):
             continue
         al = kj['aliases'][name]
@@ -209,7 +216,7 @@ def king_aliases():
         y0 = round(H - (py + (1 - f['pivotY']) * sh))  # top-left y of the pasted rect (image rows)
         canvas = Image.new('RGBA', (W, H), (0, 0, 0, 0))
         canvas.alpha_composite(src, (max(0, x0), max(0, y0)), (max(0, -x0), max(0, -y0)))
-        if name != 'chr_dede_bust':
+        if not name.endswith('_bust'):
             # fade the last 5 px rows (contact shadow cut by the v4 frame pivot)
             a = canvas.getchannel('A')
             px_ = a.load()
@@ -297,8 +304,12 @@ def main():
         kind, nm, m = process(name)
         (am if kind == 'atlas' else fm)[nm] = m
         n += 1
-    if any(wants(n_) for n_ in ('chr_dede_idle', 'chr_dede_talk', 'chr_dede_bust')):
+    if any(wants(n_) for n_ in KING_ALIASES):
         for k_, v_ in king_aliases().items():
+            am[k_] = v_
+            n += 1
+    if any(wants(n_) for n_ in CREW_ALIASES):
+        for k_, v_ in king_aliases('crew', CREW_ALIASES).items():
             am[k_] = v_
             n += 1
     if wants('bg_home') or any(n_.startswith('bg_home_') for n_ in ONLY):

@@ -288,20 +288,38 @@ def build_home(sc):
         blob(fl_l, sc, 'bush', r, (x, y, z), m_, sz=0.85, seg=32)
     for k in range(9):
         blob(fl_l, sc, 'bloom', 0.13, (-4.6 + rnd.uniform(-1.2, 1.6), -1.4 + rnd.uniform(-0.2, 1.4), 0.7 + rnd.uniform(0, 1.6)), fl[k % 3], seg=10)
+    # art turn 1: the right foreground mirrors the left bush cluster (the half-cut brick pallet at the right edge read
+    # as a rendering error in the review); organic shapes may run off the frame edge, a cut man-made object may not
     fl_r = cols['bg_home_fore_r']
-    wood = C.mat_wood('pallet', '#C99257')
-    for k in range(5):
-        box(fl_r, sc, 'plank', (2.6, 0.38, 0.12), (4.9, 1.0 + k * 0.48, 0.32), wood)
-    for k in range(3):
-        box(fl_r, sc, 'bearer', (2.6, 0.3, 0.26), (4.9, 1.0 + k * 0.95, 0.13), wood)
-    bricks = [('#CF404E', (4.2, 1.3, 0.62)), ('#2984DE', (5.3, 1.4, 0.62)), ('#FFE23E', (4.7, 2.3, 0.62)), ('#44D088', (4.75, 1.4, 1.04))]
-    for col_, loc in bricks:
-        m_ = C.mat_candy('brick' + col_, col_)
-        box(fl_r, sc, 'brick', (0.95, 0.85, 0.42), loc, m_)
-        put(fl_r, C.cylinder(sc, 'stud', 0.2, 0.12, loc=(loc[0], loc[1], loc[2] + 0.26), mat=m_, seg=32, bevel=0.03))
-    sandm = C.principled('sandpile', '#E9C891', rough=0.9, coat=0.0)
-    C.noise_color(sandm, '#E9C891', var=0.08, scale=6.0, bump=0.2)
-    o = put(fl_r, C.cylinder(sc, 'pile', 1.6, 1.3, loc=(6.6, 3.4, 0.55), mat=sandm, seg=48, r2=0.15, bevel=0.4, bevel_seg=6))
+    for (x, y, z, r, m_) in [(6.0, 0.0, 0.6, 1.6, bush2), (4.6, -0.8, 0.3, 1.1, bush), (6.8, 1.2, 1.3, 1.3, bush), (5.2, 1.4, 1.6, 1.0, bush2),
+                             (3.9, 0.6, 0.5, 0.8, bush)]:
+        blob(fl_r, sc, 'bush', r, (x, y, z), m_, sz=0.85, seg=32)
+    for k in range(9):
+        blob(fl_r, sc, 'bloom', 0.13, (6.2 + rnd.uniform(-1.6, 1.2), -1.4 + rnd.uniform(-0.2, 1.4), 0.7 + rnd.uniform(0, 1.6)), fl[(k + 1) % 3], seg=10)
+    # art turn 1: a cobbled town square under the Play button (the green button no longer sits on green grass):
+    # warm stone cobbles (Voronoi cells), a darker kerb ring, on the ground layer at the button's ground point
+    stone = C.principled('cobble', '#D2BE9A', rough=0.8, coat=0.0, spec=0.25)
+    nt = stone.node_tree
+    tc = nt.nodes.new('ShaderNodeTexCoord')
+    vor = nt.nodes.new('ShaderNodeTexVoronoi')
+    vor.feature = 'DISTANCE_TO_EDGE'
+    vor.inputs['Scale'].default_value = 5.5
+    nt.links.new(tc.outputs['Object'], vor.inputs['Vector'])
+    ramp = nt.nodes.new('ShaderNodeValToRGB')
+    cr = ramp.color_ramp
+    cr.elements[0].position, cr.elements[0].color = 0.0, C.lin('#8C7658')
+    cr.elements[1].position, cr.elements[1].color = 0.08, C.lin('#D8C6A2')
+    nt.links.new(vor.outputs['Distance'], ramp.inputs['Fac'])
+    nt.links.new(ramp.outputs['Color'], nt.nodes['Principled BSDF'].inputs['Base Color'])
+    bp = nt.nodes.new('ShaderNodeBump')
+    bp.inputs['Strength'].default_value = 0.35
+    nt.links.new(vor.outputs['Distance'], bp.inputs['Height'])
+    nt.links.new(bp.outputs['Normal'], nt.nodes['Principled BSDF'].inputs['Normal'])
+    kerb = C.principled('kerb', '#9C8768', rough=0.7, coat=0.05)
+    pc = (0.8, 0.5)
+    pz = near_h(*pc)
+    put(g, C.cylinder(sc, 'plaza', 2.6, 0.40, loc=(pc[0], pc[1], pz - 0.05), mat=stone, seg=96, bevel=0.04, bevel_seg=3))
+    put(g, C.torus(sc, 'kerb', 2.62, 0.09, loc=(pc[0], pc[1], pz + 0.15), mat=kerb, seg=96, mseg=12))
     return cols
 
 

@@ -1,11 +1,11 @@
 """Usta Kral — post-process the Blender master renders into trimmed atlas frames (package B1k).
 
-    python3 art/3d/blender/king/post_king.py [--raw art/3d/out/king/raw] [--out art/3d/out/king/frames] [--div 2.1277]
+    python3 art/3d/blender/king/post_king.py [--raw art/3d/out/king/raw] [--out art/3d/out/king/frames] [--div 2.3256]
 
 Standard library + Pillow only. Per drawing (art/3d/out/king/raw/manifest.json):
   1. contact shadow: soft warm ellipse on the ground under the character (smaller and lighter while airborne),
      composited BEHIND the render (the render itself has no ground; long cast shadows are not baked);
-  2. LANCZOS downsample by --div on premultiplied alpha (ART_3D 6.3: render at 2x; default 200 -> 94 px/BU);
+  2. LANCZOS downsample by --div on premultiplied alpha (ART_3D 6.3: render at 2x; default 200 -> 86 px/BU);
   3. alpha bleed: fully transparent pixels get the colour of the nearest opaque pixels (about 4 px), so bilinear
      filtering in Unity has no dark fringe;
   4. trim to the alpha bounding box (+2 px), keeping the root (feet on the ground) inside the rectangle;
@@ -32,12 +32,13 @@ def arg(name, default):
 SHADOW_RGB = (59, 38, 20)  # #3B2614, warm dark brown (never pure black on the warm palette)
 
 
-def contact_shadow(size, cx, cy, px_per_bu, height):
-    """Soft ellipse at (cx, cy): 1.28 BU wide on the ground, 0.24 of that tall (10 deg camera + softness)."""
+def contact_shadow(size, cx, cy, px_per_bu, height, w_bu=1.28, peak0=0.42):
+    """Soft ellipse at (cx, cy): w_bu wide on the ground (king 1.28 BU; the crew passes 1.1 x its feet span), 0.24 of that
+    tall (10 deg camera + softness); peak alpha peak0 (crew 0.35, art turn 1)."""
     k = max(0.0, min(1.0, height / 0.45))
-    rx = 0.64 * px_per_bu * (1.0 - 0.38 * k)
+    rx = 0.5 * w_bu * px_per_bu * (1.0 - 0.38 * k)
     ry = rx * 0.24
-    peak = 0.42 * (1.0 - 0.55 * k)
+    peak = peak0 * (1.0 - 0.55 * k)
     w, h = size
     layer = Image.new('L', (w, h), 0)
     d = ImageDraw.Draw(layer)
@@ -102,8 +103,9 @@ def process(src, div, shadow=None, root=None, keep_canvas=False):
 def main():
     raw = os.path.abspath(arg('--raw', os.path.join(REPO, 'art', '3d', 'out', 'king', 'raw')))
     out = os.path.abspath(arg('--out', os.path.join(REPO, 'art', '3d', 'out', 'king', 'frames')))
-    # 200 px/BU master -> 94 px/BU store: the largest size whose packed pages fit the 16 MB RGBA32 budget
-    div = float(arg('--div', str(200.0 / 94.0)))
+    # 200 px/BU master -> 86 px/BU store (art turn 1; B1k 94): with the 24-drawing idle and the 16-drawing cheer the king
+    # pages (17.7 MB) keep atlas + king + fx <= 64 MB RGBA32 (AnimTests). The crew passes --div 2 (224 -> 112 px/BU).
+    div = float(arg('--div', str(200.0 / 86.0)))
     os.makedirs(out, exist_ok=True)
     m = json.load(open(os.path.join(raw, 'manifest.json')))
     pxbu = m['pxPerBU']
@@ -114,7 +116,8 @@ def main():
             print('missing', name)
             continue
         sx, sy = d['shadow']
-        crop, mt = process(src, div, shadow=(sx, sy, pxbu, d.get('height', 0.0)), root=d['root'])
+        crop, mt = process(src, div, shadow=(sx, sy, pxbu, d.get('height', 0.0), d.get('shadowWBU', 1.28),
+                                             d.get('shadowAlpha', 0.42)), root=d['root'])
         crop.save(os.path.join(out, name + '.png'), optimize=True)
         meta[name] = mt
     for name, d in sorted(m.get('busts', {}).items()):
@@ -129,6 +132,9 @@ def main():
     doc = dict(version=1, generator='art/3d/blender/king/post_king.py', div=div, pxPerBU=pxbu / div,
                canvas=dict(wBU=m['canvas']['wBU'], hBU=m['canvas']['hBU'], rootYBU=m['canvas']['rootYBU']),
                frames=meta, clips=m['clips'], stills=m.get('stills', {}), k0=m.get('k0'))
+    for k in ('aliases', 'bustDesignPxPerBU'):  # crew sheet (art/3d/blender/crew/animate_crew.py)
+        if m.get(k):
+            doc[k] = m[k]
     with open(os.path.join(out, 'frames.json'), 'w') as fh:
         json.dump(doc, fh, indent=1, sort_keys=True)
     area = sum(v['w'] * v['h'] for v in meta.values())
