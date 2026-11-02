@@ -1,0 +1,13 @@
+W base #764012 top #814C2B dE00  5.28  lip/base 0.93  symbol contrast 6.89:1
+Y base #FFE23E top #FFE84E dE00  2.01  lip/base 0.85  symbol contrast 4.85:1
+G base #44D088 top #58D68E dE00  1.98  lip/base 0.87  symbol contrast 4.08:1
+R base #CF404E top #DB545C dE00  5.40  lip/base 0.89  symbol contrast 3.86:1
+O base #EC8D20 top #F9943C dE00  4.25  lip/base 0.89  symbol contrast 3.68:1
+C base #C8CFDA top #D6D7E0 dE00  3.49  lip/base 0.85  symbol contrast 4.44:1
+B base #2984DE top #458CE2 dE00  3.25  lip/base 0.90  symbol contrast 3.32:1
+P base #5D3AAE top #6E50B3 dE00  6.51  lip/base 0.90  symbol contrast 5.92:1
+WORST_DE00 6.51
+CVD protan worst pair W-R dE00 13.2
+CVD deutan worst pair Y-O dE00 12.7
+CVD tritan worst pair R-O dE00 13.0
+SEAM mean 1.08/255 (inside-tile neighbour columns 0.72/255), max 50/255 over 28800 seam pixels, 12 shapes x 8 colours

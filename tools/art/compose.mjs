@@ -10,8 +10,8 @@
  *
  * Usage:
  *   cd dotnet && MINIK_PREVIEW_DIR=../artifacts/preview dotnet test --filter ScreenDumpTests
- *   node tools/art/compose.mjs [--web ../minik-usta] [--in artifacts/preview/scenes] [--out artifacts/preview]
- * Output: <out>/v4-unity-<scene>.png (1080 × 1920), -360x800.png, -390x844.png.
+ *   node tools/art/compose.mjs [--web ../minik-usta] [--in artifacts/preview/scenes] [--out artifacts/preview] [--prefix v4-unity-]
+ * Output: <out>/<prefix><scene>.png (1080 × 1920), -360x800.png, -390x844.png. The 3D atlas (package B1) uses --prefix v5-.
  * Needs Playwright from the web repo's node_modules and Chromium at /opt/pw-browsers/chromium (no new dependency).
  */
 import { createRequire } from 'node:module';
@@ -29,6 +29,7 @@ const opt = (n, d) => {
 const WEB = resolve(opt('web', join(ROOT, '..', 'minik-usta')));
 const IN = resolve(opt('in', join(ROOT, 'artifacts', 'preview', 'scenes')));
 const OUT = resolve(opt('out', join(ROOT, 'artifacts', 'preview')));
+const PREFIX = opt('prefix', 'v4-unity-');
 const RES = join(ROOT, 'Assets', 'MinikUsta', 'Resources');
 const SIZES = [
   [360, 800],
@@ -162,7 +163,7 @@ async function main() {
       { sc, sizes: SIZES },
     );
     for (const [suffix, b64] of shots) {
-      const file = join(OUT, `v4-unity-${sc.name}${suffix}.png`);
+      const file = join(OUT, `${PREFIX}${sc.name}${suffix}.png`);
       writeFileSync(file, optimizePng(Buffer.from(b64, 'base64')));
       console.log('compose:', file);
     }

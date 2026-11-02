@@ -12,7 +12,13 @@
  * (design px). SVGs with <text> are drawn through the DOM (document fonts: Baloo 2 from the web repo, OFL 1.1).
  *
  * Usage: node tools/art/rasterize.mjs [--web ../minik-usta] [--pad 2] [--max 2048] [--out <dir>] [--png <dir>]
+ *                                     [--3d art/3d/out/env/atlas] [--scales art/3d/blender/env/scales.json] [--no3d]
  *   --png <dir>  also writes plain atlas-N.png copies (for review; artifacts/ is git-ignored)
+ *
+ * 3D version (package B1, art/3d/blender/env/README.md): a frame whose `<3d>/<name>.png` exists (Blender render after
+ * post_env.py, exact stored size) is packed from that PNG instead of its SVG; `<3d>/meta.json` overrides the block anchor
+ * fields. `--scales` sets the stored scale per frame (design w / h / pivot / border unchanged, DesignW = w / scale). The
+ * frame names, the atlas.json format and the page naming stay the v4 contract (ART_UNITY section 3).
  */
 import { createRequire } from 'node:module';
 import { existsSync, mkdirSync, readFileSync, readdirSync, rmSync, statSync, writeFileSync } from 'node:fs';
@@ -32,6 +38,17 @@ const MAX = Number(opt('max', '2048'));
 const OUT = resolve(opt('out', join(ROOT, 'Assets', 'MinikUsta', 'Resources', 'art')));
 const PNG_DIR = opt('png', '');
 const SVG_DIR = join(ROOT, 'art', 'svg');
+const D3 = args.includes('--no3d') ? '' : resolve(opt('3d', join(ROOT, 'art', '3d', 'out', 'env', 'atlas')));
+const SCALES_FILE = resolve(opt('scales', join(ROOT, 'art', '3d', 'blender', 'env', 'scales.json')));
+const SCALES = existsSync(SCALES_FILE) && !args.includes('--no3d') ? JSON.parse(readFileSync(SCALES_FILE, 'utf8')).frames : {};
+const META3D = D3 && existsSync(join(D3, 'meta.json')) ? JSON.parse(readFileSync(join(D3, 'meta.json'), 'utf8')) : {};
+
+/** stored-scale override (scales.json: exact name or `prefix*`, first match in file order). */
+function scaleOverride(name) {
+  for (const [k, v] of Object.entries(SCALES)) if (k === name || (k.endsWith('*') && name.startsWith(k.slice(0, -1)))) return v;
+  return undefined;
+}
+const pngSize = (buf) => [buf.readUInt32BE(16), buf.readUInt32BE(20)];
 const CHROMIUM = process.env.PLAYWRIGHT_CHROMIUM_EXECUTABLE ?? '/opt/pw-browsers/chromium';
 const DEFAULT_SCALE = 1.5;
 const PPU = 100;
@@ -60,13 +77,29 @@ export function readFrames(dir = SVG_DIR) {
     const w = Number(attr(svg, 'width'));
     const h = Number(attr(svg, 'height'));
     if (!(w > 0 && h > 0)) throw new Error(`${path}: width / height (design px) missing`);
-    const scale = Number(attr(svg, 'data-scale') ?? DEFAULT_SCALE);
+    const scale = scaleOverride(name) ?? Number(attr(svg, 'data-scale') ?? DEFAULT_SCALE);
     const [px, py] = nums(attr(svg, 'data-pivot'), 2, [0.5, 0.5]);
     const border = nums(attr(svg, 'data-border'), 4, [0, 0, 0, 0]).map((v) => Math.round(v * scale));
-    const anchor = nums(attr(svg, 'data-anchor'), 2, undefined);
-    const stud = attr(svg, 'data-stud');
-    const sym = attr(svg, 'data-sym');
+    let anchor = nums(attr(svg, 'data-anchor'), 2, undefined);
+    let stud = attr(svg, 'data-stud');
+    let sym = attr(svg, 'data-sym');
+    let png;
+    if (D3 && existsSync(join(D3, name + '.png'))) {
+      const buf = readFileSync(join(D3, name + '.png'));
+      const [pw, ph] = pngSize(buf);
+      const ew = Math.max(1, Math.round(w * scale));
+      const eh = Math.max(1, Math.round(h * scale));
+      if (pw !== ew || ph !== eh) throw new Error(`${name}: 3D PNG ${pw}x${ph} != stored ${ew}x${eh} (design ${w}x${h} x ${scale})`);
+      png = buf.toString('base64');
+      const m = META3D[name];
+      if (m && m.anchorX !== undefined) {
+        anchor = [m.anchorX, m.anchorY];
+        stud = String(m.studD);
+        sym = String(m.symD);
+      }
+    }
     frames.push({
+      png,
       name,
       path: relative(ROOT, path).replace(/\\/g, '/'),
       svg,
@@ -204,8 +237,8 @@ export async function rasterise(frames, pages, { pngDir } = {}) {
   }, pages);
   for (const f of frames) {
     const svg = sized(f.svg, f.w, f.h);
-    let pngB64 = null;
-    if (f.text) {
+    let pngB64 = f.png ?? null;
+    if (!pngB64 && f.text) {
       await page.evaluate((s) => {
         document.getElementById('dom').innerHTML = s;
       }, svg);
@@ -216,6 +249,7 @@ export async function rasterise(frames, pages, { pngDir } = {}) {
       async ({ f, svg, pngB64, pad }) => {
         const img = new Image();
         img.src = pngB64 ? 'data:image/png;base64,' + pngB64 : 'data:image/svg+xml;base64,' + btoa(unescape(encodeURIComponent(svg)));
+        // (3D frames arrive as exact-size PNGs: drawImage at 1:1)
         await img.decode();
         const c = window.__pages[f.atlas];
         const g = c.getContext('2d');
@@ -293,6 +327,7 @@ export function atlasJson(frames, pages) {
     origin: 'top-left',
     pivotOrigin: 'bottom-left',
     units: 'x y w h border* = atlas px; pivot* anchor* = 0..1 from bottom-left; studD symD = design px; sprite ppu = ppu * scale',
+    art3d: frames.filter((f) => f.png).length ? { doc: 'art/3d/blender/env/README.md', frames3d: frames.filter((f) => f.png).length } : undefined,
     atlases: pages.map((p) => ({ file: `art/atlas_${p.index}`, w: p.w, h: p.h })),
     frames: fr,
   };
@@ -319,7 +354,7 @@ if (import.meta.url === `file://${process.argv[1]}`) {
   const area = frames.reduce((s, f) => s + (f.w + 2 * PAD) * (f.h + 2 * PAD), 0);
   const pageArea = pages.reduce((s, p) => s + p.w * p.h, 0);
   console.log(
-    `atlas: ${frames.length} frames → ${pages.length} page(s) ${pages.map((p) => p.w + '×' + p.h).join(', ')}; fill ${((100 * area) / pageArea).toFixed(1)} %; ` +
+    `atlas: ${frames.length} frames (${frames.filter((f) => f.png).length} 3D) → ${pages.length} page(s) ${pages.map((p) => p.w + '×' + p.h).join(', ')}; RGBA32 ${((pageArea * 4) / 1048576).toFixed(2)} MB; fill ${((100 * area) / pageArea).toFixed(1)} %; ` +
       `PNG ${(total / 1048576).toFixed(2)} MB; json ${(json.length / 1024).toFixed(0)} KB; ${((Date.now() - t0) / 1000).toFixed(1)} s`,
   );
 }

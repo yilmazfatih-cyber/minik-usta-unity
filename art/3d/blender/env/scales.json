@@ -1,0 +1,38 @@
+{
+ "doc": "B1 stored scales (raster px per design px). Atlas frames keep their design w/h/pivot/border (frames.json); only the stored resolution changes, so DesignW = w / scale and the code layout are unchanged. Budget: all pages loaded at once (atlas + fx + king) <= 64 MB RGBA32. Blocks and their board tiles 1.25 (150 px per 120 px cell = 1.15 x a 390 pt DPR 3 cell; ArtContractTests pin 125 px per unit), the 9-slice tray 1.5 (pinned borders); the rest is ~1:1 with a 390 pt DPR 3 screen (1080 design px = 1170 device px).",
+ "frames": {
+  "blk_*": 1.25, "stud_*": 1.25, "sym_*": 1.0, "ghost_*": 1.0, "shadow_*": 1.0,
+  "floor_yard_*": 1.25, "floor_site": 1.0, "floor_site_deep": 0.5,
+  "wall_*": 1.25, "gap_seg": 1.25, "gap_edge": 1.5, "rail_seg": 1.25, "scaffold_*": 1.25, "beam_seg": 1.25, "board_tray": 1.5,
+  "crane_band": 1.0, "crane_hook": 1.0, "truck": 1.0,
+  "btn_*": 1.0, "badge_*": 1.0, "bead_*": 1.0, "capsule_*": 1.0, "hud_*": 1.0, "panel_*": 1.0, "ribbon_title": 1.0,
+  "progress_*": 1.0, "toggle_*": 1.0, "bubble_*": 1.0, "nav_*": 1.0, "px_white": 1.0,
+  "icon_*": 1.0, "ui_glove": 1.0, "deco_brick_*": 1.0, "flag_*": 1.0,
+  "fx_chip": 1.5, "fx_confetti": 1.5, "fx_confetti_round": 1.5, "fx_spark": 1.0, "fx_star": 1.0, "fx_ring": 1.0, "fx_dust": 1.0,
+  "fx_glow": 0.5, "fx_rays": 0.5, "fx_sheen": 0.5, "fx_drop_blob": 0.5,
+  "chr_dede_idle": 0.7, "chr_dede_talk": 0.7, "chr_dede_bust": 0.75, "chr_tuna_bust": 0.75, "chr_tuna_*": 1.0, "chr_kepce_idle": 1.0,
+  "bg_home": 0.5, "bg_level": 0.375, "town_ch1_treehouse": 0.6, "logo_wordmark": 1.0, "logo_emblem": 0.75
+ },
+ "newFrames": {
+  "fx_crane_claw_*": {"w": 160, "h": 200, "scale": 0.6, "pivot": [0.5, 1.0], "clip": "fx_crane_grab"},
+  "fx_hammer_*": {"w": 320, "h": 320, "scale": 0.5, "pivot": [0.8, 0.1], "clip": "fx_hammer_smash"},
+  "fx_impact_star_*": {"w": 256, "h": 256, "scale": 0.375, "pivot": [0.5, 0.5], "clip": "fx_impact_star"},
+  "fx_paint_splash_*": {"w": 256, "h": 256, "scale": 0.375, "pivot": [0.5, 0.5], "clip": "fx_paint_splash"},
+  "fx_trowel_sparkle_*": {"w": 192, "h": 192, "scale": 0.625, "pivot": [0.5, 0.5], "clip": "fx_trowel_sparkle"},
+  "fx_coin_*": {"w": 128, "h": 128, "scale": 0.75, "pivot": [0.5, 0.5], "clip": "fx_coin_spin"},
+  "fx_star_burst_*": {"w": 512, "h": 512, "scale": 0.3125, "pivot": [0.5, 0.5], "clip": "fx_star_burst"},
+  "fx_confetti3d_rect_*": {"w": 24, "h": 12, "scale": 1.5, "pivot": [0.5, 0.5], "clip": "fx_confetti3d_rect"},
+  "fx_confetti3d_round_*": {"w": 16, "h": 16, "scale": 1.5, "pivot": [0.5, 0.5], "clip": "fx_confetti3d_round"},
+  "fx_dust_puff_*": {"w": 192, "h": 128, "scale": 0.5, "pivot": [0.5, 0.0], "clip": "fx_dust_puff"},
+  "fx_segment_done_*": {"w": 512, "h": 512, "scale": 0.3125, "pivot": [0.5, 0.5], "clip": "fx_segment_done"},
+  "fx_lock_shine_*": {"w": 72, "h": 72, "scale": 1.0, "pivot": [0.5, 0.5], "clip": "fx_lock_shine"},
+  "icon_*_xl": {"w": 256, "h": 256, "scale": 1.0, "pivot": [0.5, 0.5], "group": "icon"},
+  "bg_home_sky": {"w": 1080, "h": 1920, "scale": 0.15, "pivot": [0.5, 0.5], "group": "bg", "layer": {"parallax": 0.0, "z": 0}},
+  "bg_home_clouds": {"w": 1080, "h": 640, "scale": 0.375, "pivot": [0.5, 0.0], "group": "bg", "layer": {"parallax": 0.06, "z": 1}},
+  "bg_home_far": {"w": 1080, "h": 720, "scale": 0.375, "pivot": [0.5, 0.0], "group": "bg", "layer": {"parallax": 0.15, "z": 2}},
+  "bg_home_town": {"w": 1080, "h": 900, "scale": 0.5, "pivot": [0.5, 0.0], "group": "bg", "layer": {"parallax": 0.35, "z": 3}},
+  "bg_home_ground": {"w": 1080, "h": 760, "scale": 0.5, "pivot": [0.5, 0.0], "group": "bg", "layer": {"parallax": 0.6, "z": 4}},
+  "bg_home_fore_l": {"w": 420, "h": 760, "scale": 0.5, "pivot": [0.5, 0.0], "group": "bg", "layer": {"parallax": 1.0, "z": 5, "x0": 0}},
+  "bg_home_fore_r": {"w": 420, "h": 760, "scale": 0.5, "pivot": [0.5, 0.0], "group": "bg", "layer": {"parallax": 1.0, "z": 6, "x0": 660}}
+ }
+}

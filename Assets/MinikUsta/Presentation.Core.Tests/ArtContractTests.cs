@@ -22,12 +22,20 @@ namespace MinikUsta.Presentation.Tests
         public static AtlasData Atlas => atlas ??= AtlasData.Parse(PresentationPaths.ResourceText("art/atlas")!);
 
         [Test]
-        public void ART_UNITY_atlas_json_parses_488_frames_on_4_pages()
+        public void ART_UNITY_atlas_json_parses_488_frames_on_at_most_4_pages_within_the_memory_budget()
         {
             var a = Atlas;
             Assert.AreEqual(4, a.Version);
             Assert.AreEqual(100, a.Ppu);
-            Assert.AreEqual(4, a.Pages.Count);
+            // B1 (3D atlas, art/3d/blender/env/README.md): pages <= 2048², RGBA32 <= 48 MB so that atlas + art3d/fx + art3d/king <= 64 MB
+            Assert.That(a.Pages.Count >= 1 && a.Pages.Count <= 4, "1..4 pages, got " + a.Pages.Count);
+            long bytes = 0;
+            foreach (var p in a.Pages)
+            {
+                Assert.That(p.W <= 2048 && p.H <= 2048, p.Resource + " ≤ 2048²");
+                bytes += 4L * p.W * p.H;
+            }
+            Assert.LessOrEqual(bytes, 48L * 1024 * 1024, "RGBA32 page memory");
             Assert.AreEqual(488, a.Count, "ART_UNITY §1: 488 frames");
             foreach (var f in a.Frames)
             {
@@ -46,7 +54,7 @@ namespace MinikUsta.Presentation.Tests
             int pageH = a.Pages[blk.Page].H;
             blk.UnityRect(pageH, out float x, out float y, out float w, out float h);
             Assert.AreEqual((blk.X, pageH - blk.Y - blk.H, blk.W, blk.H), ((int)x, (int)y, (int)w, (int)h));
-            Assert.AreEqual(150f, blk.PixelsPerUnit(a.Ppu), 1e-4, "scale 1,5 → 150 px per unit: a 180 px tile spans 120 design px");
+            Assert.AreEqual(125f, blk.PixelsPerUnit(a.Ppu), 1e-4, "B1 3D atlas: scale 1,25 → 125 px per unit: a 150 px tile spans 120 design px");
             Assert.AreEqual(120, blk.DesignW, 1e-9);
             Assert.IsTrue(blk.HasAnchor);
             var tray = a["board_tray"];
