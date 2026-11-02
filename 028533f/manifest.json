@@ -1,0 +1,156 @@
+{
+  "schema": 1,
+  "commit": "028533fb04d3131c5b174ff390c42ac18238f0ca",
+  "shortSha": "028533f",
+  "generatedAt": "2026-11-02T03:43:23.436Z",
+  "run": "https://github.com/yilmazfatih-cyber/minik-usta-unity/actions/runs/41383898158",
+  "renderer": "headless Chromium, software GL (SwiftShader), Playwright 1.64.1",
+  "dpr": 2,
+  "query": null,
+  "shots": [
+    "home",
+    "settings",
+    "level_start",
+    "tutorial",
+    "drag_mid",
+    "landed",
+    "win"
+  ],
+  "viewports": {
+    "390x844": {
+      "width": 390,
+      "height": 844,
+      "dpr": 2,
+      "screens": [
+        {
+          "name": "home",
+          "file": "390x844/home.png",
+          "bytes": 1062577,
+          "colours": 501,
+          "blank": false
+        },
+        {
+          "name": "settings",
+          "file": "390x844/settings.png",
+          "bytes": 616203,
+          "colours": 197,
+          "blank": false
+        },
+        {
+          "name": "level_start",
+          "file": "390x844/level_start.png",
+          "bytes": 769364,
+          "colours": 230,
+          "blank": false
+        },
+        {
+          "name": "tutorial",
+          "file": "390x844/tutorial.png",
+          "bytes": 764878,
+          "colours": 227,
+          "blank": false
+        },
+        {
+          "name": "drag_mid",
+          "file": "390x844/drag_mid.png",
+          "bytes": 752735,
+          "colours": 202,
+          "blank": false
+        },
+        {
+          "name": "landed",
+          "file": "390x844/landed.png",
+          "bytes": 759305,
+          "colours": 201,
+          "blank": false
+        },
+        {
+          "name": "win",
+          "file": "390x844/win.png",
+          "bytes": 571354,
+          "colours": 175,
+          "blank": false
+        }
+      ],
+      "errors": [],
+      "ok": true,
+      "canvas": {
+        "cssWidth": 390,
+        "cssHeight": 844,
+        "pixelWidth": 780,
+        "pixelHeight": 1688
+      },
+      "gl": "ANGLE (Google, Vulkan 1.3.0 (SwiftShader Device (Subzero) (0x0000C0DE)), SwiftShader driver)",
+      "ready": "ready 1080x1920"
+    },
+    "360x800": {
+      "width": 360,
+      "height": 800,
+      "dpr": 2,
+      "screens": [
+        {
+          "name": "home",
+          "file": "360x800/home.png",
+          "bytes": 936865,
+          "colours": 471,
+          "blank": false
+        },
+        {
+          "name": "settings",
+          "file": "360x800/settings.png",
+          "bytes": 541347,
+          "colours": 194,
+          "blank": false
+        },
+        {
+          "name": "level_start",
+          "file": "360x800/level_start.png",
+          "bytes": 619606,
+          "colours": 252,
+          "blank": false
+        },
+        {
+          "name": "tutorial",
+          "file": "360x800/tutorial.png",
+          "bytes": 618509,
+          "colours": 245,
+          "blank": false
+        },
+        {
+          "name": "drag_mid",
+          "file": "360x800/drag_mid.png",
+          "bytes": 601290,
+          "colours": 219,
+          "blank": false
+        },
+        {
+          "name": "landed",
+          "file": "360x800/landed.png",
+          "bytes": 597962,
+          "colours": 225,
+          "blank": false
+        },
+        {
+          "name": "win",
+          "file": "360x800/win.png",
+          "bytes": 493038,
+          "colours": 158,
+          "blank": false
+        }
+      ],
+      "errors": [],
+      "ok": true,
+      "canvas": {
+        "cssWidth": 360,
+        "cssHeight": 800,
+        "pixelWidth": 720,
+        "pixelHeight": 1600
+      },
+      "gl": "ANGLE (Google, Vulkan 1.3.0 (SwiftShader Device (Subzero) (0x0000C0DE)), SwiftShader driver)",
+      "ready": "ready 1080x1920"
+    }
+  },
+  "ok": true,
+  "warnings": [],
+  "chromium": "156.0.8078.4"
+}

@@ -1,0 +1,169 @@
+{
+  "schema": 1,
+  "commit": "bbed30162c85ff3e2f09c751d1c5ea5b27c4de57",
+  "shortSha": "bbed301",
+  "generatedAt": "2026-11-02T06:31:19.454Z",
+  "run": "https://github.com/yilmazfatih-cyber/minik-usta-unity/actions/runs/41398658668",
+  "renderer": "headless Chromium, software GL (SwiftShader), Playwright 1.64.1",
+  "dpr": 2,
+  "query": "scale=expand",
+  "shots": [
+    "level_start",
+    "tutorial",
+    "win"
+  ],
+  "viewports": {
+    "390x844": {
+      "width": 390,
+      "height": 844,
+      "dpr": 2,
+      "screens": [
+        {
+          "name": "level_start",
+          "file": "390x844/level_start.png",
+          "bytes": 844111,
+          "colours": 240,
+          "blank": false
+        },
+        {
+          "name": "tutorial",
+          "file": "390x844/tutorial.png",
+          "bytes": 838898,
+          "colours": 234,
+          "blank": false
+        },
+        {
+          "name": "win",
+          "file": "390x844/win.png",
+          "bytes": 612298,
+          "colours": 187,
+          "blank": false
+        }
+      ],
+      "errors": [],
+      "ok": true,
+      "canvas": {
+        "cssWidth": 390,
+        "cssHeight": 844,
+        "pixelWidth": 780,
+        "pixelHeight": 1688
+      },
+      "gl": "ANGLE (Google, Vulkan 1.3.0 (SwiftShader Device (Subzero) (0x0000C0DE)), SwiftShader driver)",
+      "ready": "ready 1080x2337",
+      "art3d": {
+        "decodes": [
+          {
+            "resource": "art3d/king_0",
+            "width": 1964,
+            "height": 2012,
+            "ms": 153,
+            "afterShot": "boot"
+          },
+          {
+            "resource": "art3d/king_1",
+            "width": 588,
+            "height": 224,
+            "ms": 4,
+            "afterShot": "boot"
+          },
+          {
+            "resource": "art3d/fx_1",
+            "width": 1684,
+            "height": 504,
+            "ms": 22,
+            "afterShot": "boot"
+          },
+          {
+            "resource": "art3d/fx_0",
+            "width": 1920,
+            "height": 752,
+            "ms": 84,
+            "afterShot": "boot"
+          }
+        ],
+        "totalMs": 263,
+        "budgetMs": 250,
+        "lateDecodes": []
+      }
+    },
+    "360x800": {
+      "width": 360,
+      "height": 800,
+      "dpr": 2,
+      "screens": [
+        {
+          "name": "level_start",
+          "file": "360x800/level_start.png",
+          "bytes": 695111,
+          "colours": 249,
+          "blank": false
+        },
+        {
+          "name": "tutorial",
+          "file": "360x800/tutorial.png",
+          "bytes": 690933,
+          "colours": 244,
+          "blank": false
+        },
+        {
+          "name": "win",
+          "file": "360x800/win.png",
+          "bytes": 533092,
+          "colours": 165,
+          "blank": false
+        }
+      ],
+      "errors": [],
+      "ok": true,
+      "canvas": {
+        "cssWidth": 360,
+        "cssHeight": 800,
+        "pixelWidth": 720,
+        "pixelHeight": 1600
+      },
+      "gl": "ANGLE (Google, Vulkan 1.3.0 (SwiftShader Device (Subzero) (0x0000C0DE)), SwiftShader driver)",
+      "ready": "ready 1080x2400",
+      "art3d": {
+        "decodes": [
+          {
+            "resource": "art3d/king_0",
+            "width": 1964,
+            "height": 2012,
+            "ms": 155,
+            "afterShot": "boot"
+          },
+          {
+            "resource": "art3d/king_1",
+            "width": 588,
+            "height": 224,
+            "ms": 4,
+            "afterShot": "boot"
+          },
+          {
+            "resource": "art3d/fx_1",
+            "width": 1684,
+            "height": 504,
+            "ms": 23,
+            "afterShot": "boot"
+          },
+          {
+            "resource": "art3d/fx_0",
+            "width": 1920,
+            "height": 752,
+            "ms": 88,
+            "afterShot": "boot"
+          }
+        ],
+        "totalMs": 270,
+        "budgetMs": 250,
+        "lateDecodes": []
+      }
+    }
+  },
+  "ok": true,
+  "warnings": [
+    "390x844: 3D page decodes took 263 ms in total (budget 250 ms)",
+    "360x800: 3D page decodes took 270 ms in total (budget 250 ms)"
+  ],
+  "chromium": "156.0.8078.4"
+}

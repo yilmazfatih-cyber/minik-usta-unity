@@ -1,0 +1,114 @@
+[log] You can reduce startup time if you configure your web server to add "Content-Encoding: gzip" response header when serving "Build/MinikUsta.framework.js.unityweb" file.
+[log] You can reduce startup time if you configure your web server to add "Content-Encoding: gzip" response header when serving "Build/MinikUsta.wasm.unityweb" file.
+[log] You can reduce startup time if you configure your web server to add "Content-Encoding: gzip" response header when serving "Build/MinikUsta.data.unityweb" file.
+[log] [UnityCache] 'http://127.0.0.1:45137/Build/MinikUsta.data.unityweb' successfully downloaded and stored in the browser cache
+[log] [UnityMemory] Configuration Parameters - Can be set up in boot.config
+
+[log]     "memorysetup-allocator-temp-initial-block-size-main=262144"
+
+[log]     "memorysetup-allocator-temp-initial-block-size-worker=262144"
+
+[log]     "memorysetup-temp-allocator-size-audio-worker=65536"
+
+[log]     "memorysetup-remapper-allocator-initial-capacity=32768"
+
+[log]     "memorysetup-temp-allocator-size-background-worker=32768"
+
+[log]     "memorysetup-bucket-allocator-granularity=16"
+
+[log]     "memorysetup-bucket-allocator-bucket-count=8"
+
+[log]     "memorysetup-bucket-allocator-block-size=4194304"
+
+[log]     "memorysetup-bucket-allocator-block-count=1"
+
+[log]     "memorysetup-main-allocator-block-size=16777216"
+
+[log]     "memorysetup-thread-allocator-block-size=16777216"
+
+[log]     "memorysetup-gfx-main-allocator-block-size=16777216"
+
+[log]     "memorysetup-gfx-thread-allocator-block-size=16777216"
+
+[log]     "memorysetup-cache-allocator-block-size=4194304"
+
+[log]     "memorysetup-typetree-allocator-block-size=2097152"
+
+[log]     "memorysetup-profiler-bucket-allocator-granularity=16"
+
+[log]     "memorysetup-profiler-bucket-allocator-bucket-count=8"
+
+[log]     "memorysetup-profiler-bucket-allocator-block-size=4194304"
+
+[log]     "memorysetup-profiler-bucket-allocator-block-count=1"
+
+[log]     "memorysetup-profiler-allocator-block-size=16777216"
+
+[log]     "memorysetup-profiler-editor-allocator-block-size=1048576"
+
+[log]     "memorysetup-temp-allocator-size-main=4194304"
+
+[log]     "memorysetup-job-temp-allocator-block-size=2097152"
+
+[log]     "memorysetup-job-temp-allocator-block-size-background=1048576"
+
+[log]     "memorysetup-job-temp-allocator-reduction-small-platforms=262144"
+
+[log] Loading player data from data.unity3d
+
+[log] Initialize engine version: 6000.0.85f1 (ee7790f1426a)
+
+[log] Creating WebGL 2.0 context.
+[log] Renderer: WebKit WebGL
+
+[log] Vendor:   WebKit
+
+[log] Version:  OpenGL ES 3.0 (WebGL 2.0 (OpenGL ES 3.0 Chromium))
+
+[log] GLES:     3
+
+[log]  EXT_clip_control EXT_color_buffer_float EXT_color_buffer_half_float EXT_conservative_depth EXT_depth_clamp EXT_disjoint_timer_query_webgl2 EXT_float_blend EXT_polygon_offset_clamp EXT_texture_compression_bptc EXT_texture_compression_rgtc EXT_texture_filter_anisotropic EXT_texture_mirror_clamp_to_edge NV_shader_noperspective_interpolation OES_draw_buffers_indexed OES_sample_variables OES_shader_multisample_interpolation OES_texture_float_linear OVR_multiview2 WEBGL_clip_cull_distance WEBGL_compressed_texture_astc WEBGL_compressed_texture_etc WEBGL_compressed_texture_etc1 WEBGL_compressed_texture_s3tc WEBGL_compressed_texture_s3tc_srgb WEBGL_debug_renderer_info WEBGL_debug_shaders WEBGL_lose_context WEBGL_multi_draw WEBGL_polygon_mode WEBGL_stencil_texturing GL_EXT_clip_control GL_EXT_color_buffer_float GL_EXT_color_buffer_half_float GL_EXT_conservative_depth GL_EXT_depth_clamp GL_EXT_disjoint_timer_query_webgl2 GL_EXT_float_blend GL_EXT_polygon_offset_clamp GL_EXT_texture_compression_bptc GL_EXT_texture_comp
+
+[log] ression_rgtc GL_EXT_texture_filter_anisotropic GL_EXT_texture_mirror_clamp_to_edge GL_NV_shader_noperspective_interpolation GL_OES_draw_buffers_indexed GL_OES_sample_variables GL_OES_shader_multisample_interpolation GL_OES_texture_float_linear GL_OVR_multiview2 GL_WEBGL_clip_cull_distance GL_WEBGL_compressed_texture_astc GL_WEBGL_compressed_texture_etc GL_WEBGL_compressed_texture_etc1 GL_WEBGL_compressed_texture_s3tc GL_WEBGL_compressed_texture_s3tc_srgb GL_WEBGL_debug_renderer_info GL_WEBGL_debug_shaders GL_WEBGL_lose_context GL_WEBGL_multi_draw GL_WEBGL_polygon_mode GL_WEBGL_stencil_texturing
+
+[log] OPENGL LOG: Creating OpenGL ES 3.0 graphics device ; Context level  <OpenGL ES 3.0> ; Context handle 1
+
+[log] Input Manager initialize...
+
+[log] UnloadTime: 0.600001 ms
+
+[log] [minik] art3d decode art3d/king_0 1920x1924 151 ms (total 151 ms)
+
+[log] [minik] art3d decode art3d/king_1 1808x528 35 ms (total 186 ms)
+
+[log] [minik] art3d decode art3d/fx_1 1916x628 33 ms (total 219 ms)
+
+[log] Audio context resumed after 0.770 seconds.
+[log] [minikShot] ready 1080x1920
+
+[log] [minikShot] seq:king_wave:begin
+
+[log] [minik] art3d decode art3d/fx_0 1920x884 94 ms (total 313 ms)
+
+[log] [minikShot] seq:king_wave:end
+
+[log] [minikShot] shot:home
+
+[log] [minikShot] shot:settings
+
+[log] [minikShot] shot:level_start
+
+[log] [minikShot] shot:tutorial
+
+[log] [minikShot] shot:drag_mid
+
+[log] [minikShot] shot:landed
+
+[log] [minikShot] seq:king_big_cheer:begin
+
+[log] [minikShot] seq:king_big_cheer:end
+
+[log] [minikShot] shot:win
+
+[log] [minikShot] done
+

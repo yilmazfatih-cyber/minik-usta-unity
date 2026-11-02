@@ -1,0 +1,378 @@
+{
+  "schema": 1,
+  "commit": "0b85e7fbb7af192b21b186bb17eb3a31b07c484d",
+  "shortSha": "0b85e7f",
+  "generatedAt": "2026-11-02T05:59:14.963Z",
+  "run": "https://github.com/yilmazfatih-cyber/minik-usta-unity/actions/runs/41396839648",
+  "renderer": "headless Chromium, software GL (SwiftShader), Playwright 1.64.1",
+  "dpr": 2,
+  "query": null,
+  "shots": [
+    "home",
+    "settings",
+    "level_start",
+    "tutorial",
+    "drag_mid",
+    "landed",
+    "win"
+  ],
+  "viewports": {
+    "390x844": {
+      "width": 390,
+      "height": 844,
+      "dpr": 2,
+      "screens": [
+        {
+          "name": "home",
+          "file": "390x844/home.png",
+          "bytes": 980914,
+          "colours": 488,
+          "blank": false
+        },
+        {
+          "name": "settings",
+          "file": "390x844/settings.png",
+          "bytes": 580794,
+          "colours": 197,
+          "blank": false
+        },
+        {
+          "name": "level_start",
+          "file": "390x844/level_start.png",
+          "bytes": 785770,
+          "colours": 230,
+          "blank": false
+        },
+        {
+          "name": "tutorial",
+          "file": "390x844/tutorial.png",
+          "bytes": 784308,
+          "colours": 234,
+          "blank": false
+        },
+        {
+          "name": "drag_mid",
+          "file": "390x844/drag_mid.png",
+          "bytes": 767424,
+          "colours": 201,
+          "blank": false
+        },
+        {
+          "name": "landed",
+          "file": "390x844/landed.png",
+          "bytes": 772730,
+          "colours": 203,
+          "blank": false
+        },
+        {
+          "name": "win",
+          "file": "390x844/win.png",
+          "bytes": 594027,
+          "colours": 179,
+          "blank": false
+        }
+      ],
+      "errors": [],
+      "ok": true,
+      "canvas": {
+        "cssWidth": 390,
+        "cssHeight": 844,
+        "pixelWidth": 780,
+        "pixelHeight": 1688
+      },
+      "gl": "ANGLE (Google, Vulkan 1.3.0 (SwiftShader Device (Subzero) (0x0000C0DE)), SwiftShader driver)",
+      "ready": "ready 1080x1920",
+      "motion": {
+        "king_wave": {
+          "ok": true,
+          "finished": true,
+          "pictures": 119,
+          "uniquePictures": 92,
+          "strip": "390x844/seq_king_wave_strip.png",
+          "pictureSize": {
+            "w": 390,
+            "h": 844
+          },
+          "box": {
+            "x": 16,
+            "y": 321,
+            "w": 241,
+            "h": 304
+          },
+          "movedBox": {
+            "x": 16,
+            "y": 321,
+            "w": 241,
+            "h": 304
+          },
+          "focus": {
+            "x": 0.04,
+            "y": 0.38,
+            "w": 0.62,
+            "h": 0.36
+          },
+          "firstT": 1,
+          "lastT": 1791,
+          "gameSpanMs": 1790,
+          "medianGapMs": 15,
+          "changedPairs": 25,
+          "changedRatio": 0.21,
+          "changesPerGameSecond": 14,
+          "undersampled": false
+        },
+        "king_big_cheer": {
+          "ok": true,
+          "finished": true,
+          "pictures": 77,
+          "uniquePictures": 34,
+          "strip": "390x844/seq_king_big_cheer_strip.png",
+          "pictureSize": {
+            "w": 390,
+            "h": 844
+          },
+          "box": {
+            "x": 16,
+            "y": 236,
+            "w": 195,
+            "h": 304
+          },
+          "movedBox": {
+            "x": 16,
+            "y": 242,
+            "w": 195,
+            "h": 298
+          },
+          "focus": {
+            "x": 0.04,
+            "y": 0.28,
+            "w": 0.5,
+            "h": 0.36
+          },
+          "firstT": 0,
+          "lastT": 1787,
+          "gameSpanMs": 1787,
+          "medianGapMs": 24,
+          "changedPairs": 24,
+          "changedRatio": 0.32,
+          "changesPerGameSecond": 13.4,
+          "undersampled": true
+        }
+      },
+      "art3d": {
+        "decodes": [
+          {
+            "resource": "art3d/king_0",
+            "width": 1964,
+            "height": 2012,
+            "ms": 130,
+            "afterShot": "boot"
+          },
+          {
+            "resource": "art3d/king_1",
+            "width": 588,
+            "height": 224,
+            "ms": 4,
+            "afterShot": "boot"
+          },
+          {
+            "resource": "art3d/fx_1",
+            "width": 1684,
+            "height": 504,
+            "ms": 18,
+            "afterShot": "boot"
+          },
+          {
+            "resource": "art3d/fx_0",
+            "width": 1920,
+            "height": 752,
+            "ms": 40,
+            "afterShot": "boot"
+          }
+        ],
+        "totalMs": 192,
+        "budgetMs": 250,
+        "lateDecodes": []
+      }
+    },
+    "360x800": {
+      "width": 360,
+      "height": 800,
+      "dpr": 2,
+      "screens": [
+        {
+          "name": "home",
+          "file": "360x800/home.png",
+          "bytes": 867463,
+          "colours": 461,
+          "blank": false
+        },
+        {
+          "name": "settings",
+          "file": "360x800/settings.png",
+          "bytes": 511844,
+          "colours": 195,
+          "blank": false
+        },
+        {
+          "name": "level_start",
+          "file": "360x800/level_start.png",
+          "bytes": 634557,
+          "colours": 251,
+          "blank": false
+        },
+        {
+          "name": "tutorial",
+          "file": "360x800/tutorial.png",
+          "bytes": 631767,
+          "colours": 251,
+          "blank": false
+        },
+        {
+          "name": "drag_mid",
+          "file": "360x800/drag_mid.png",
+          "bytes": 614185,
+          "colours": 221,
+          "blank": false
+        },
+        {
+          "name": "landed",
+          "file": "360x800/landed.png",
+          "bytes": 609698,
+          "colours": 229,
+          "blank": false
+        },
+        {
+          "name": "win",
+          "file": "360x800/win.png",
+          "bytes": 514294,
+          "colours": 163,
+          "blank": false
+        }
+      ],
+      "errors": [],
+      "ok": true,
+      "canvas": {
+        "cssWidth": 360,
+        "cssHeight": 800,
+        "pixelWidth": 720,
+        "pixelHeight": 1600
+      },
+      "gl": "ANGLE (Google, Vulkan 1.3.0 (SwiftShader Device (Subzero) (0x0000C0DE)), SwiftShader driver)",
+      "ready": "ready 1080x1920",
+      "motion": {
+        "king_wave": {
+          "ok": true,
+          "finished": true,
+          "pictures": 136,
+          "uniquePictures": 97,
+          "strip": "360x800/seq_king_wave_strip.png",
+          "pictureSize": {
+            "w": 360,
+            "h": 800
+          },
+          "box": {
+            "x": 14,
+            "y": 304,
+            "w": 224,
+            "h": 288
+          },
+          "movedBox": {
+            "x": 14,
+            "y": 304,
+            "w": 224,
+            "h": 288
+          },
+          "focus": {
+            "x": 0.04,
+            "y": 0.38,
+            "w": 0.62,
+            "h": 0.36
+          },
+          "firstT": 1,
+          "lastT": 1795,
+          "gameSpanMs": 1794,
+          "medianGapMs": 13,
+          "changedPairs": 25,
+          "changedRatio": 0.19,
+          "changesPerGameSecond": 13.9,
+          "undersampled": false
+        },
+        "king_big_cheer": {
+          "ok": true,
+          "finished": true,
+          "pictures": 87,
+          "uniquePictures": 37,
+          "strip": "360x800/seq_king_big_cheer_strip.png",
+          "pictureSize": {
+            "w": 360,
+            "h": 800
+          },
+          "box": {
+            "x": 14,
+            "y": 224,
+            "w": 180,
+            "h": 288
+          },
+          "movedBox": {
+            "x": 14,
+            "y": 237,
+            "w": 180,
+            "h": 275
+          },
+          "focus": {
+            "x": 0.04,
+            "y": 0.28,
+            "w": 0.5,
+            "h": 0.36
+          },
+          "firstT": 0,
+          "lastT": 1794,
+          "gameSpanMs": 1794,
+          "medianGapMs": 21,
+          "changedPairs": 25,
+          "changedRatio": 0.29,
+          "changesPerGameSecond": 13.9,
+          "undersampled": true
+        }
+      },
+      "art3d": {
+        "decodes": [
+          {
+            "resource": "art3d/king_0",
+            "width": 1964,
+            "height": 2012,
+            "ms": 134,
+            "afterShot": "boot"
+          },
+          {
+            "resource": "art3d/king_1",
+            "width": 588,
+            "height": 224,
+            "ms": 4,
+            "afterShot": "boot"
+          },
+          {
+            "resource": "art3d/fx_1",
+            "width": 1684,
+            "height": 504,
+            "ms": 18,
+            "afterShot": "boot"
+          },
+          {
+            "resource": "art3d/fx_0",
+            "width": 1920,
+            "height": 752,
+            "ms": 61,
+            "afterShot": "boot"
+          }
+        ],
+        "totalMs": 217,
+        "budgetMs": 250,
+        "lateDecodes": []
+      }
+    }
+  },
+  "ok": true,
+  "warnings": [],
+  "chromium": "156.0.8078.4"
+}

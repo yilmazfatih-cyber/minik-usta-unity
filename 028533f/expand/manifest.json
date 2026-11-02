@@ -1,0 +1,96 @@
+{
+  "schema": 1,
+  "commit": "028533fb04d3131c5b174ff390c42ac18238f0ca",
+  "shortSha": "028533f",
+  "generatedAt": "2026-11-02T03:45:03.336Z",
+  "run": "https://github.com/yilmazfatih-cyber/minik-usta-unity/actions/runs/41383898158",
+  "renderer": "headless Chromium, software GL (SwiftShader), Playwright 1.64.1",
+  "dpr": 2,
+  "query": "scale=expand",
+  "shots": [
+    "level_start",
+    "tutorial",
+    "win"
+  ],
+  "viewports": {
+    "390x844": {
+      "width": 390,
+      "height": 844,
+      "dpr": 2,
+      "screens": [
+        {
+          "name": "level_start",
+          "file": "390x844/level_start.png",
+          "bytes": 825737,
+          "colours": 236,
+          "blank": false
+        },
+        {
+          "name": "tutorial",
+          "file": "390x844/tutorial.png",
+          "bytes": 823801,
+          "colours": 234,
+          "blank": false
+        },
+        {
+          "name": "win",
+          "file": "390x844/win.png",
+          "bytes": 589334,
+          "colours": 182,
+          "blank": false
+        }
+      ],
+      "errors": [],
+      "ok": true,
+      "canvas": {
+        "cssWidth": 390,
+        "cssHeight": 844,
+        "pixelWidth": 780,
+        "pixelHeight": 1688
+      },
+      "gl": "ANGLE (Google, Vulkan 1.3.0 (SwiftShader Device (Subzero) (0x0000C0DE)), SwiftShader driver)",
+      "ready": "ready 1080x2337"
+    },
+    "360x800": {
+      "width": 360,
+      "height": 800,
+      "dpr": 2,
+      "screens": [
+        {
+          "name": "level_start",
+          "file": "360x800/level_start.png",
+          "bytes": 679792,
+          "colours": 245,
+          "blank": false
+        },
+        {
+          "name": "tutorial",
+          "file": "360x800/tutorial.png",
+          "bytes": 677290,
+          "colours": 248,
+          "blank": false
+        },
+        {
+          "name": "win",
+          "file": "360x800/win.png",
+          "bytes": 512507,
+          "colours": 158,
+          "blank": false
+        }
+      ],
+      "errors": [],
+      "ok": true,
+      "canvas": {
+        "cssWidth": 360,
+        "cssHeight": 800,
+        "pixelWidth": 720,
+        "pixelHeight": 1600
+      },
+      "gl": "ANGLE (Google, Vulkan 1.3.0 (SwiftShader Device (Subzero) (0x0000C0DE)), SwiftShader driver)",
+      "ready": "ready 1080x2400"
+    }
+  },
+  "ok": true,
+  "warnings": [],
+  "chromium": "156.0.8078.4"
+}

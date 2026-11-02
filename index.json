@@ -1,0 +1,58 @@
+[
+  {
+    "shortSha": "8af961b",
+    "commit": "8af961bf5d655f49d2761369d453f1eb51fd7367",
+    "generatedAt": "2026-11-02T07:57:26.458Z",
+    "ok": true,
+    "run": "https://github.com/yilmazfatih-cyber/minik-usta-unity/actions/runs/41409259471"
+  },
+  {
+    "shortSha": "bbed301",
+    "commit": "bbed30162c85ff3e2f09c751d1c5ea5b27c4de57",
+    "generatedAt": "2026-11-02T06:18:40.168Z",
+    "ok": true,
+    "run": "https://github.com/yilmazfatih-cyber/minik-usta-unity/actions/runs/41398658668"
+  },
+  {
+    "shortSha": "0b85e7f",
+    "commit": "0b85e7fbb7af192b21b186bb17eb3a31b07c484d",
+    "generatedAt": "2026-11-02T05:59:14.963Z",
+    "ok": true,
+    "run": "https://github.com/yilmazfatih-cyber/minik-usta-unity/actions/runs/41396839648"
+  },
+  {
+    "shortSha": "d7210a9",
+    "commit": "d7210a9ccdc07c5bae769fbf65e732f4f569231f",
+    "generatedAt": "2026-11-02T05:56:22.178Z",
+    "ok": true,
+    "run": "https://github.com/yilmazfatih-cyber/minik-usta-unity/actions/runs/41396069547"
+  },
+  {
+    "shortSha": "264f07d",
+    "commit": "264f07d28059d8015ebf43e57f5764d74eb397a0",
+    "generatedAt": "2026-11-02T05:38:36.879Z",
+    "ok": true,
+    "run": "https://github.com/yilmazfatih-cyber/minik-usta-unity/actions/runs/41394615409"
+  },
+  {
+    "shortSha": "e4be42e",
+    "commit": "e4be42efb7a82ff84d7b1d73f01f76a6acc951be",
+    "generatedAt": "2026-11-02T04:10:37.528Z",
+    "ok": true,
+    "run": "https://github.com/yilmazfatih-cyber/minik-usta-unity/actions/runs/41386489687"
+  },
+  {
+    "shortSha": "143d3ab",
+    "commit": "143d3ab7b3679d466f42bfe356f96d202fbe790e",
+    "generatedAt": "2026-11-02T04:00:17.058Z",
+    "ok": true,
+    "run": "https://github.com/yilmazfatih-cyber/minik-usta-unity/actions/runs/41385361454"
+  },
+  {
+    "shortSha": "028533f",
+    "commit": "028533fb04d3131c5b174ff390c42ac18238f0ca",
+    "generatedAt": "2026-11-02T03:43:23.436Z",
+    "ok": true,
+    "run": "https://github.com/yilmazfatih-cyber/minik-usta-unity/actions/runs/41383898158"
+  }
+]

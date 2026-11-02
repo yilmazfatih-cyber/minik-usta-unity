@@ -1,0 +1,330 @@
+{
+  "schema": 1,
+  "commit": "264f07d28059d8015ebf43e57f5764d74eb397a0",
+  "shortSha": "264f07d",
+  "generatedAt": "2026-11-02T05:38:36.879Z",
+  "run": "https://github.com/yilmazfatih-cyber/minik-usta-unity/actions/runs/41394615409",
+  "renderer": "headless Chromium, software GL (SwiftShader), Playwright 1.64.1",
+  "dpr": 2,
+  "query": null,
+  "shots": [
+    "home",
+    "settings",
+    "level_start",
+    "tutorial",
+    "drag_mid",
+    "landed",
+    "win"
+  ],
+  "viewports": {
+    "390x844": {
+      "width": 390,
+      "height": 844,
+      "dpr": 2,
+      "screens": [
+        {
+          "name": "home",
+          "file": "390x844/home.png",
+          "bytes": 980915,
+          "colours": 488,
+          "blank": false
+        },
+        {
+          "name": "settings",
+          "file": "390x844/settings.png",
+          "bytes": 580492,
+          "colours": 197,
+          "blank": false
+        },
+        {
+          "name": "level_start",
+          "file": "390x844/level_start.png",
+          "bytes": 787041,
+          "colours": 233,
+          "blank": false
+        },
+        {
+          "name": "tutorial",
+          "file": "390x844/tutorial.png",
+          "bytes": 783256,
+          "colours": 233,
+          "blank": false
+        },
+        {
+          "name": "drag_mid",
+          "file": "390x844/drag_mid.png",
+          "bytes": 767445,
+          "colours": 205,
+          "blank": false
+        },
+        {
+          "name": "landed",
+          "file": "390x844/landed.png",
+          "bytes": 772730,
+          "colours": 203,
+          "blank": false
+        },
+        {
+          "name": "win",
+          "file": "390x844/win.png",
+          "bytes": 592979,
+          "colours": 179,
+          "blank": false
+        }
+      ],
+      "errors": [],
+      "ok": true,
+      "canvas": {
+        "cssWidth": 390,
+        "cssHeight": 844,
+        "pixelWidth": 780,
+        "pixelHeight": 1688
+      },
+      "gl": "ANGLE (Google, Vulkan 1.3.0 (SwiftShader Device (Subzero) (0x0000C0DE)), SwiftShader driver)",
+      "ready": "ready 1080x1920",
+      "motion": {
+        "king_wave": {
+          "ok": true,
+          "finished": true,
+          "pictures": 20,
+          "uniquePictures": 20,
+          "strip": "390x844/seq_king_wave_strip.png",
+          "pictureSize": {
+            "w": 390,
+            "h": 844
+          },
+          "box": {
+            "x": 0,
+            "y": 51,
+            "w": 390,
+            "h": 741
+          },
+          "firstT": 10,
+          "lastT": 2399,
+          "gameSpanMs": 2389,
+          "medianGapMs": 126,
+          "changedPairs": 19,
+          "changedRatio": 1,
+          "changesPerGameSecond": 8,
+          "undersampled": true
+        },
+        "king_big_cheer": {
+          "ok": true,
+          "finished": true,
+          "pictures": 13,
+          "uniquePictures": 12,
+          "strip": "390x844/seq_king_big_cheer_strip.png",
+          "pictureSize": {
+            "w": 390,
+            "h": 844
+          },
+          "box": {
+            "x": 0,
+            "y": 107,
+            "w": 390,
+            "h": 581
+          },
+          "firstT": 0,
+          "lastT": 2240,
+          "gameSpanMs": 2240,
+          "medianGapMs": 191,
+          "changedPairs": 12,
+          "changedRatio": 1,
+          "changesPerGameSecond": 5.4,
+          "undersampled": true
+        }
+      },
+      "art3d": {
+        "decodes": [
+          {
+            "resource": "art3d/king_0",
+            "width": 1964,
+            "height": 2012,
+            "ms": 133,
+            "afterShot": "boot"
+          },
+          {
+            "resource": "art3d/king_1",
+            "width": 588,
+            "height": 224,
+            "ms": 4,
+            "afterShot": "boot"
+          },
+          {
+            "resource": "art3d/fx_1",
+            "width": 1684,
+            "height": 504,
+            "ms": 19,
+            "afterShot": "boot"
+          },
+          {
+            "resource": "art3d/fx_0",
+            "width": 1920,
+            "height": 752,
+            "ms": 79,
+            "afterShot": "boot"
+          }
+        ],
+        "totalMs": 235,
+        "budgetMs": 250,
+        "lateDecodes": []
+      }
+    },
+    "360x800": {
+      "width": 360,
+      "height": 800,
+      "dpr": 2,
+      "screens": [
+        {
+          "name": "home",
+          "file": "360x800/home.png",
+          "bytes": 867456,
+          "colours": 460,
+          "blank": false
+        },
+        {
+          "name": "settings",
+          "file": "360x800/settings.png",
+          "bytes": 511470,
+          "colours": 194,
+          "blank": false
+        },
+        {
+          "name": "level_start",
+          "file": "360x800/level_start.png",
+          "bytes": 634779,
+          "colours": 252,
+          "blank": false
+        },
+        {
+          "name": "tutorial",
+          "file": "360x800/tutorial.png",
+          "bytes": 631346,
+          "colours": 253,
+          "blank": false
+        },
+        {
+          "name": "drag_mid",
+          "file": "360x800/drag_mid.png",
+          "bytes": 614185,
+          "colours": 221,
+          "blank": false
+        },
+        {
+          "name": "landed",
+          "file": "360x800/landed.png",
+          "bytes": 609698,
+          "colours": 229,
+          "blank": false
+        },
+        {
+          "name": "win",
+          "file": "360x800/win.png",
+          "bytes": 514294,
+          "colours": 163,
+          "blank": false
+        }
+      ],
+      "errors": [],
+      "ok": true,
+      "canvas": {
+        "cssWidth": 360,
+        "cssHeight": 800,
+        "pixelWidth": 720,
+        "pixelHeight": 1600
+      },
+      "gl": "ANGLE (Google, Vulkan 1.3.0 (SwiftShader Device (Subzero) (0x0000C0DE)), SwiftShader driver)",
+      "ready": "ready 1080x1920",
+      "motion": {
+        "king_wave": {
+          "ok": true,
+          "finished": true,
+          "pictures": 24,
+          "uniquePictures": 24,
+          "strip": "360x800/seq_king_wave_strip.png",
+          "pictureSize": {
+            "w": 360,
+            "h": 800
+          },
+          "box": {
+            "x": 0,
+            "y": 56,
+            "w": 360,
+            "h": 687
+          },
+          "firstT": 6,
+          "lastT": 2381,
+          "gameSpanMs": 2375,
+          "medianGapMs": 107,
+          "changedPairs": 23,
+          "changedRatio": 1,
+          "changesPerGameSecond": 9.7,
+          "undersampled": true
+        },
+        "king_big_cheer": {
+          "ok": true,
+          "finished": true,
+          "pictures": 15,
+          "uniquePictures": 12,
+          "strip": "360x800/seq_king_big_cheer_strip.png",
+          "pictureSize": {
+            "w": 360,
+            "h": 800
+          },
+          "box": {
+            "x": 0,
+            "y": 108,
+            "w": 360,
+            "h": 539
+          },
+          "firstT": 0,
+          "lastT": 2315,
+          "gameSpanMs": 2315,
+          "medianGapMs": 169,
+          "changedPairs": 14,
+          "changedRatio": 1,
+          "changesPerGameSecond": 6,
+          "undersampled": true
+        }
+      },
+      "art3d": {
+        "decodes": [
+          {
+            "resource": "art3d/king_0",
+            "width": 1964,
+            "height": 2012,
+            "ms": 132,
+            "afterShot": "boot"
+          },
+          {
+            "resource": "art3d/king_1",
+            "width": 588,
+            "height": 224,
+            "ms": 4,
+            "afterShot": "boot"
+          },
+          {
+            "resource": "art3d/fx_1",
+            "width": 1684,
+            "height": 504,
+            "ms": 18,
+            "afterShot": "boot"
+          },
+          {
+            "resource": "art3d/fx_0",
+            "width": 1920,
+            "height": 752,
+            "ms": 40,
+            "afterShot": "boot"
+          }
+        ],
+        "totalMs": 194,
+        "budgetMs": 250,
+        "lateDecodes": []
+      }
+    }
+  },
+  "ok": true,
+  "warnings": [],
+  "chromium": "156.0.8078.4"
+}
