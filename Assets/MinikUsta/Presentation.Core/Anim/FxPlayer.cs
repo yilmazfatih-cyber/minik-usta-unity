@@ -58,8 +58,10 @@ namespace MinikUsta.Presentation.Anim
         private readonly Func<FxDepth, IFxSprite> acquire;
         private readonly Action<IFxSprite> release;
         private readonly List<Live> live = new List<Live>();
+        private readonly List<Live> incoming = new List<Live>();
         private readonly Stack<Live> free = new Stack<Live>();
         private int nextId = 1;
+        private bool advancing;
 
         public FxPlayer(Func<FxDepth, IFxSprite> acquire, Action<IFxSprite> release)
         {
@@ -79,7 +81,7 @@ namespace MinikUsta.Presentation.Anim
             "fx_confetti3d_rect", "fx_confetti3d_round",
         };
 
-        public int Alive => live.Count;
+        public int Alive => live.Count + incoming.Count;
         public int Peak { get; private set; }
         /// <summary>Effects started since `Reset` (tests).</summary>
         public int Played { get; private set; }
@@ -98,7 +100,7 @@ namespace MinikUsta.Presentation.Anim
             var c = Art.Fx?.Clip(clip);
             if (c == null) return -1;
             if (Reduced && Heavy.Contains(clip)) return -1;
-            while (live.Count >= MaxAlive) End(0);
+            if (!advancing) Budget(MaxAlive - 1);
             var l = free.Count > 0 ? free.Pop() : new Live();
             l.S = null;
             l.Depth = depth;
@@ -116,10 +118,11 @@ namespace MinikUsta.Presentation.Anim
             l.P.Reduced = Reduced;
             l.P.OnEvent = onEvent;
             l.P.Play(c, c.Loops ? (lifeMs > 0 ? 0 : Math.Max(1, passes)) : 0);
-            live.Add(l);
+            // an effect started by an event of another one (the hammer's impact star) joins after the running frame
+            (advancing ? incoming : live).Add(l);
             Played++;
             Log.Add(clip);
-            if (live.Count > Peak) Peak = live.Count;
+            if (Alive > Peak) Peak = Alive;
             if (l.Delay <= 0f) Pose(l);
             return l.Id;
         }
@@ -127,6 +130,7 @@ namespace MinikUsta.Presentation.Anim
         /// <summary>Ends the effect `id` now (a loop that follows a block which has landed).</summary>
         public void Stop(int id)
         {
+            if (advancing) return;
             for (int i = 0; i < live.Count; i++)
                 if (live[i].Id == id)
                 {
@@ -138,6 +142,31 @@ namespace MinikUsta.Presentation.Anim
         public void Advance(float dtMs)
         {
             if (live.Count == 0 || !(dtMs > 0)) return;
+            advancing = true;
+            try
+            {
+                Step(dtMs);
+            }
+            finally
+            {
+                advancing = false;
+            }
+            if (incoming.Count > 0)
+            {
+                live.AddRange(incoming);
+                incoming.Clear();
+                Budget(MaxAlive);
+            }
+        }
+
+        /// <summary>The oldest effects end until at most `max` are alive.</summary>
+        private void Budget(int max)
+        {
+            while (live.Count > Math.Max(0, max)) End(0);
+        }
+
+        private void Step(float dtMs)
+        {
             for (int i = 0; i < live.Count;)
             {
                 var l = live[i];
@@ -173,6 +202,8 @@ namespace MinikUsta.Presentation.Anim
         /// <summary>Every effect gone (a new level, a resize).</summary>
         public void Reset()
         {
+            live.AddRange(incoming);
+            incoming.Clear();
             while (live.Count > 0) End(live.Count - 1);
             Played = 0;
             Peak = 0;

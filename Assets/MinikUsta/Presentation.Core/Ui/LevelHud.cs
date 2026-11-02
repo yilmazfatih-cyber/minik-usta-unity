@@ -309,13 +309,13 @@ namespace MinikUsta.Presentation.Ui
             var wb = window.Find(WindowViews.BurstId);
             if (King != null)
             {
-                if (wb != null) King.BindWindowBurst(surface, wb, new Vec2((float)wb.Rect.CenterX, (float)wb.Rect.CenterY));
                 if (wk != null && model.Detail?.King != null)
                 {
                     var box = wk.Rect;
                     King.BindWindow(surface, wk, new Vec2((float)box.CenterX, (float)box.Bottom), King.SizeFor(King.Window, box.H), model.Detail.King.Value);
                 }
                 else King.UnbindWindow();
+                if (wb != null) King.BindWindowBurst(surface, wb, new Vec2((float)wb.Rect.CenterX, (float)wb.Rect.CenterY));
             }
             panel.Inner = surface.Target(window.Get(WindowViews.GroupId));
             var s = window.Find(WindowViews.StarId);

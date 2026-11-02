@@ -135,7 +135,8 @@ namespace MinikUsta.Presentation.Anim
                     }
                     else if (p.Clip != loop && !p.Ending)
                     {
-                        if (p.Clip.Out.Length > 0) p.Release();
+                        // think / point / wave leave through their out frames, talk finishes its sentence (it ends on K0); idle cuts
+                        if (p.Clip.Out.Length > 0 || (p.Clip.Loops && p.Clip.EndsOnFirst)) p.Release();
                         else p.Play(loop);
                     }
                 }

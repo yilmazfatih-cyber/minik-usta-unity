@@ -315,6 +315,26 @@ namespace MinikUsta.Presentation.Tests
         }
 
         [Test]
+        public void B2_K36_JUICE61_the_hammer_impact_starts_the_impact_star_from_its_event_safely()
+        {
+            var (fx, sprites) = NewFx();
+            for (int i = 0; i < FxPlayer.MaxAlive - 1; i++) fx.Play("fx_dust_puff", new Vec2(i, 0), FxDepth.Over); // a full budget
+            fx.Play("fx_hammer_smash", new Vec2(300, 400), FxDepth.Over, onEvent: e =>
+            {
+                if (e.Name == "impact") fx.Play("fx_impact_star", new Vec2(260, 420), FxDepth.Over);
+            });
+            int stars = 0;
+            for (int i = 0; i < 60; i++)
+            {
+                fx.Advance(1000f / 60f);
+                Assert.LessOrEqual(fx.Alive, FxPlayer.MaxAlive, "the budget holds while an event adds an effect");
+                stars = Math.Max(stars, sprites.Count(s => s.Visible && s.Frame != null && s.Frame.StartsWith("fx_impact_star")));
+            }
+            Assert.AreEqual(1, stars, "the impact star played");
+            Assert.AreEqual(0, fx.Alive);
+        }
+
+        [Test]
         public void B2_fx_player_keeps_its_budget_and_reduced_motion_skips_the_heavy_clips()
         {
             var (fx, _) = NewFx();
