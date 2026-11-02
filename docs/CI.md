@@ -473,6 +473,20 @@ Her itişte **çalışmaz**: IL2CPP Android derlemesi WebGL'den çok uzundur ve 
 - **Ayrı bir CI denemesi ister, yapılmadı:** `Managed Stripping Level: High`, WebGL "Code Optimization: Disk Size" (API doğrulanamadı, §3 sıkıştırma maddesi), `king_0` render
   ölçeğinin %70'e çekilmesi (design-lead; sayfa ≈ yarıya iner), ASTC/ETC2 içe aktarılmış dokular (P3-11).
 
+### P4B-08 sonucu: kralın hareketi (koşu `0b85e7f`, CI Chromium, ölçek 0,0125, 1 790 oyun ms'si)
+
+| Görünüm | Pencere | Resim | Benzersiz (JPEG) | Değişen çift | Oyun sn'si başına değişim | Medyan aralık |
+| --- | --- | --- | --- | --- | --- | --- |
+| 390×844 | `king_wave` (ana ekran) | 119 | 92 | 25 (%21) | **14,0** | 15 ms (60/sn çözünürlük) |
+| 390×844 | `king_big_cheer` (kazanma) | 77 | 34 | 24 (%32) | **13,4** | 24 ms (az örneklenmiş) |
+| 360×800 | `king_wave` | 136 | 97 | 25 (%19) | **13,9** | 13 ms |
+| 360×800 | `king_big_cheer` | 87 | 37 | 25 (%29) | **13,9** | 21 ms |
+
+Okuma: kral bölgesinde (odak dikdörtgeni) saniyede ≈ **14 görünür değişiklik** var, 60 örnek/sn çözünürlükte ardışık çiftlerin yalnız %19–32'si farklı. Yani ekrandaki hareket **≈ 14 Hz basamaklıdır**,
+sürekli 60 fps iskelet hareketi değildir (klip çizim sayısıyla uyumlu: `king_wave` 24 karede 8 çizim). 2,5B katmanın (nefes, ezilme) küçük kaymaları eşik altında (≥ 24 piksel, kanal toplamı farkı > 48) kalıyor olabilir:
+sayı bir **alt sınırdır** ve çıplak gözle görünen akıcılığı yerine geçmez. Şeritler (`ci-shots/latest/<görünüm>/seq_king_wave_strip.png`, `seq_king_big_cheer_strip.png`) ayrı bir karardır: design-lead rubrikle puanlar;
+puanı < 4/5 ise yol: Blender'dan baş / gövde / kol / baret ayrı render + mevcut tween motoru (kesme rig'i) ya da klip çizim sayısını artırmak (+≈ 15 MB, önerilmez). **Bu pakette kesme rig'i yapılmadı.**
+
 ### Ölçümler
 
 | Koşu | `.data` | `.wasm` | Toplam | Not |
