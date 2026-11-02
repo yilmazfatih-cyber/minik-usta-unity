@@ -402,9 +402,15 @@ Aynı dosyalar `ci-screenshots` artifact'i (14 gün) olarak da yüklenir.
 **Yerel deneme.** `cd tools/ci-shots && npm ci && PLAYWRIGHT_CHROMIUM_EXECUTABLE=/yol/chrome node shoot.mjs --dir <WebGL klasörü> --out <çıktı> --sha <sha>`;
 `publish.sh` yerel bir `file://` uzağa karşı denendi (`REPO_URL=file:///…/bare.git SHOTS_DIR=… SHA=… bash publish.sh`).
 
-**İlk koşu (58e1700, run 41361422803).** Oyuncu derlendi, ekran görüntüleri ilk denemede alındı: 2 görünüm × 6 ekran, hepsi renkli (160–430 renk), `ok: true`. Bu görüntüler
-**gerçek bir hatayı** ortaya çıkardı: `CanvasScaler` `Shrink` kipi 9:16'dan dar her ekranda (390×844 dahil, bugünün neredeyse tüm telefonları) uGUI tuvalini iki yandan
-kırpıyordu (HUD'un sol ve sağ kenarları, ana sayfanın ayar düğmesi, 4. güçlendirici). Düzeltme: `ConstantPixelSize` + kameranın kendi ölçeği (`UiRenderer.SetCanvas`).
+**Koşular.**
+
+| Koşu | Commit | Sonuç |
+| --- | --- | --- |
+| [41361422803](https://github.com/yilmazfatih-cyber/minik-usta-unity/actions/runs/41361422803) | `58e1700` | İlk deneme: Unity derlemesi, dağıtım ve ekran görüntüsü işi yeşil (derleme ≈ 8 dk, görüntü işi ≈ 2 dk); 2 görünüm × 6 ekran, hepsi renkli (160–430 renk), `ok: true`. Görüntüler **gerçek bir hatayı** gösterdi: `CanvasScaler` `Shrink` kipi (`max(w/1080, h/1920)`) 9:16'dan dar her ekranda (390×844 dahil) uGUI tuvalini iki yandan kırpıyordu (HUD kenarları, ana sayfanın ayar düğmesi, 4. güçlendirici, ayarlar penceresinin kapat düğmesi). Önceki inceleme (`REVIEW_PHASE3.md` Q5 g) "Shrink ile kamera aynı ölçeği verir" demişti; yanlıştı. |
+| [41362863833](https://github.com/yilmazfatih-cyber/minik-usta-unity/actions/runs/41362863833) | `338d2cb` | Düzeltme (`ConstantPixelSize` + `DesignViewport.Scale`) işledi: tuval tam görünüyor. Öğretici balonu, eldiven, iz noktaları ve vurgu ilk kez ekranda (`tutorial.png`). FIT, kırpma gidince 9:16'dan uzun ekranda üst ve altta ölü bant gösterdi (aşağıda). Konsol: `Audio context resumed after 0.652 seconds.`, uyarı yok. |
+| [41364199994](https://github.com/yilmazfatih-cyber/minik-usta-unity/actions/runs/41364199994) | `626257a` | Yuvarlak vurgu çerçevesi (`tut_highlight`), `expand/` kareleri: EXPAND'de ekran tam doluyor (390×844: tasarım 1080 × 2337). `drag_mid`'de blok kırmızı "yanlış yer" gölgesi gösterdi (yolun %80'inde, altın düğümde değil); sonraki commit parmağı altın düğüme tam götürür ve yeşil ✓ gölgeyi testle (`ShadowBadge.Ok`) doğrular. |
+
+Süre: iş akışı toplamı ≈ 10 dk (Unity 6 dk 20 sn); ekran görüntüsü işi Pages dağıtımına paralel ≈ 2 dk 30 sn ve sonraki Unity derlemesini bekletmez.
 
 ## 8. Android (`unity-android.yml`, paket C1)
 

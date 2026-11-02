@@ -10,7 +10,7 @@
 //
 //   home → settings → (close) → play → level_start (0,5 s after the start, before the tutorial appears) → tutorial (3 s after the start: glow,
 //   bubble and the glove on its path) → [golden moves up to the first one that goes to the site] → drag_mid (a real pointer drag of that
-//   block over the wall, cancelled: the lifted block and its K-18 shadow) → landed (that move committed and settled) → … golden solution …
+//   block to its golden release node, held and then cancelled: the lifted block and its green K-18 shadow) → landed (that move committed and settled) → … golden solution …
 //   → win (the win window and its rewards settled) → done
 //
 // Pure: no engine, no wall clock — the clock is the sum of `Tick` frame times, so a test drives it with fixed frames.
@@ -302,9 +302,10 @@ namespace MinikUsta.Presentation.Shots
             startY = rect.CenterY;
             var from = BoardPose.Center(g, ax, ay, shape);
             var to = BoardPose.Center(g, preview.To.Ix, preview.To.Iy, shape);
-            // 80 % of the way: lifted over the wall with its shadow on the site, short of the release
-            endX = startX + (to.X - from.X) * 0.8;
-            endY = startY + (to.Y - from.Y) * 0.8;
+            // all the way to the golden release node, the finger 1,2 cells BELOW the block (K-08: the block rides above the finger), but not
+            // released: the block is lifted over the wall and its K-18 shadow shows the correct spot
+            endX = startX + (to.X - from.X);
+            endY = startY + (to.Y - from.Y) + p.Feel.FingerOffsetCells * g.CellPx;
             dragT = 0f;
             app.PointerDown(0, startX, startY);
             return true;

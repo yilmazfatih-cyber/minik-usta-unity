@@ -137,6 +137,8 @@ namespace MinikUsta.Presentation.Tests
             var drop = rig.Player.Mapper.Session!.Classify();
             Assert.IsTrue(drop.Kind == DropKinds.SiteFree || drop.Kind == DropKinds.SiteRail, "the preview is over the wall: " + drop.Kind);
             Assert.IsNotNull(rig.View.Shadow, "the K-18 shadow of the lifted block is on the site");
+            Assert.AreEqual(ShadowBadge.Ok, rig.View.Shadow!.Look.Badge, "…and it is the green correct-spot look (the preview rides to the golden release node)");
+            Assert.AreEqual(next.To.Ix, rig.Player.Mapper.Session!.Current.Ix, "the block is at the golden release node");
         }
 
         [Test]
