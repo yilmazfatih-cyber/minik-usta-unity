@@ -182,12 +182,12 @@ function distinctColours(file) {
 // Runs in a scratch page of the same browser context: decodes the pictures (JPEG, CSS pixels) to canvases, counts the consecutive pairs
 // that differ (a pair "changed" when at least 24 pixels differ by more than 48 in the channel sum), takes the union of the changed
 // pixels as the box where anything moved, and lays 24 evenly spaced pictures, cropped to that box, out as a strip (PNG data URL).
-async function analyseFrames(context, frames) {
+async function analyseFrames(context, frames, focus) {
   const ap = await context.newPage();
   try {
     await ap.setContent('<!doctype html><body style="margin:0"></body>');
     const items = frames.map((f) => ({ t: f.t, b64: f.buf.toString('base64') }));
-    return await ap.evaluate(async (list) => {
+    return await ap.evaluate(async ({ list, focus }) => {
       const imgs = [];
       for (const it of list) {
         const im = new Image();
@@ -205,6 +205,11 @@ async function analyseFrames(context, frames) {
         g.drawImage(im, 0, 0);
         return g.getImageData(0, 0, w, h).data;
       });
+      // `focus` (picture fractions, shots.json): only changes inside it count (the UI and the parallax move too), and the strip is cropped to it
+      const fx0 = focus ? Math.round(focus.x * w) : 0;
+      const fy0 = focus ? Math.round(focus.y * h) : 0;
+      const fx1 = focus ? Math.min(w, Math.round((focus.x + focus.w) * w)) : w;
+      const fy1 = focus ? Math.min(h, Math.round((focus.y + focus.h) * h)) : h;
       let bx0 = w;
       let by0 = h;
       let bx1 = -1;
@@ -219,8 +224,8 @@ async function analyseFrames(context, frames) {
         let y0 = h;
         let x1 = -1;
         let y1 = -1;
-        for (let y = 0; y < h; y++) {
-          for (let x = 0; x < w; x++) {
+        for (let y = fy0; y < fy1; y++) {
+          for (let x = fx0; x < fx1; x++) {
             const o = (y * w + x) * 4;
             const d = Math.abs(a[o] - b[o]) + Math.abs(a[o + 1] - b[o + 1]) + Math.abs(a[o + 2] - b[o + 2]);
             if (d > 48) {
@@ -243,7 +248,8 @@ async function analyseFrames(context, frames) {
       }
       const pad = 24;
       let box;
-      if (bx1 < 0) box = { x: Math.round(w / 4), y: Math.round(h / 4), w: Math.round(w / 2), h: Math.round(h / 2) };
+      if (focus) box = { x: fx0, y: fy0, w: fx1 - fx0, h: fy1 - fy0 };
+      else if (bx1 < 0) box = { x: Math.round(w / 4), y: Math.round(h / 4), w: Math.round(w / 2), h: Math.round(h / 2) };
       else {
         const x = Math.max(0, bx0 - pad);
         const y = Math.max(0, by0 - pad);
@@ -277,6 +283,8 @@ async function analyseFrames(context, frames) {
         sheet: sheet.toDataURL('image/png'),
         pictureSize: { w, h },
         box,
+        movedBox: bx1 < 0 ? null : { x: bx0, y: by0, w: bx1 - bx0 + 1, h: by1 - by0 + 1 },
+        focus: focus || null,
         firstT: list[0].t,
         lastT: list[list.length - 1].t,
         gameSpanMs: span,
@@ -287,7 +295,7 @@ async function analyseFrames(context, frames) {
         // above ~16.7 ms between pictures the cadence is below 60 per game second: the count is a lower bound
         undersampled: median > 16.7,
       };
-    }, items);
+    }, { list: items, focus: focus || null });
   } finally {
     await ap.close().catch(() => {});
   }
@@ -353,7 +361,7 @@ async function captureViewport(browser, vp, baseUrl) {
     }
   }
   /** P4B-08: photographs the page between `seq:<name>:begin` and `:end`, analyses the pictures in the browser, writes the strip. */
-  async function captureSequence(pg, context, viewport, name, dir) {
+  async function captureSequence(pg, context, viewport, name, dir, focus) {
     const begin = await next((e) => e === 'seq:' + name + ':begin' || e.startsWith('error:'), shotTimeoutMs);
     if (begin === null || begin.startsWith('error:')) {
       const why = begin === null ? 'seq:' + name + ':begin did not arrive within ' + shotTimeoutMs / 1000 + ' s' : begin;
@@ -372,7 +380,7 @@ async function captureViewport(browser, vp, baseUrl) {
     if (frames.length < 3) return { ok: false, error: 'only ' + frames.length + ' picture(s)' };
     const crypto = await import('node:crypto');
     const unique = new Set(frames.map((f) => crypto.createHash('sha1').update(f.buf).digest('hex'))).size;
-    const analysis = await analyseFrames(context, frames);
+    const analysis = await analyseFrames(context, frames, focus);
     const stripName = 'seq_' + name + '_strip.png';
     fs.writeFileSync(path.join(dir, stripName), Buffer.from(analysis.sheet.split(',')[1], 'base64'));
     delete analysis.sheet;
@@ -395,7 +403,7 @@ async function captureViewport(browser, vp, baseUrl) {
     result.gl = gl;
     if (!gl) warn(vp.name + ': this Chromium has no WebGL2 (software GL flags did not take effect)');
 
-    const motionQuery = noMotion || !cfg.motionScale ? '' : '&motion=' + cfg.motionScale;
+    const motionQuery = noMotion || !cfg.motionScale ? '' : '&motion=' + cfg.motionScale + (cfg.motionMs ? '&motionMs=' + cfg.motionMs : '');
     await page.goto(baseUrl + '?shots=1' + motionQuery + (extraQuery ? '&' + extraQuery : ''), { waitUntil: 'domcontentloaded', timeout: 60000 });
     const ready = await next((e) => e.startsWith('ready') || e.startsWith('error:'), readyTimeoutMs);
     if (ready === null || ready.startsWith('error:')) {
@@ -415,7 +423,7 @@ async function captureViewport(browser, vp, baseUrl) {
         if (noMotion) continue;
         try {
           result.motion = result.motion || {};
-          result.motion[sq.name] = await captureSequence(page, ctx, vp, sq.name, dirVp);
+          result.motion[sq.name] = await captureSequence(page, ctx, vp, sq.name, dirVp, sq.focus);
         } catch (e) {
           result.motionErrors = result.motionErrors || [];
           result.motionErrors.push(sq.name + ': ' + String(e && e.message ? e.message : e));

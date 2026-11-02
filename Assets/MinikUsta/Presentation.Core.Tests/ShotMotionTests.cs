@@ -28,7 +28,9 @@ namespace MinikUsta.Presentation.Tests
             var sc = new ShotScenario(rig.App, Solution, lines.Add, o);
             var scales = new List<float>();
             float t = 0;
-            while (!sc.Done && t < ShotScenario.TimeoutMs)
+            // the windows take MotionGameMs / MotionScale real ms each; the scenario's own timeout leaves them out
+            float windows = o != null && o.MotionScale > 0f ? 2f * o.MotionGameMs / o.MotionScale : 0f;
+            while (!sc.Done && t < ShotScenario.TimeoutMs + windows + 1000f)
             {
                 rig.App.Tick(Rig.FrameMs * sc.TimeScale);
                 sc.Tick(Rig.FrameMs);
@@ -71,13 +73,13 @@ namespace MinikUsta.Presentation.Tests
                 }
                 Assert.That(ts.Count, Is.GreaterThan(100), "a frame line every frame: " + ts.Count);
                 for (int i = 1; i < ts.Count; i++) Assert.That(ts[i], Is.GreaterThanOrEqualTo(ts[i - 1]), "game time never goes back");
-                Assert.That(ts[ts.Count - 1], Is.GreaterThanOrEqualTo(2300).And.LessThan(2500), name + " lasts about MotionGameMs (2400)");
+                Assert.That(ts[ts.Count - 1], Is.GreaterThanOrEqualTo(1700).And.LessThan(1900), name + " lasts about MotionGameMs (1800)");
             }
             // inside a window the scale is the asked one, outside it is 1
             int slow = scales.FindAll(s => s == 0.1f).Count;
             int normal = scales.FindAll(s => s == 1f).Count;
             Assert.AreEqual(scales.Count, slow + normal, "only the two values");
-            Assert.That(slow, Is.GreaterThan(400), "two windows of 2400 game ms at 0.1 = about 480 frames at 16.7 ms: " + slow);
+            Assert.That(slow, Is.GreaterThan(400), "two windows of 1800 game ms at 0.1 = about 216 frames at 16.7 ms: " + slow);
         }
 
         [Test]
@@ -111,10 +113,12 @@ namespace MinikUsta.Presentation.Tests
             Assert.AreEqual(3000f, o.MotionGameMs);
             var off = ShotOptions.FromUrl("http://h/?shots=1")!;
             Assert.AreEqual(0f, off.MotionScale, "no motion parameter, no windows");
-            Assert.AreEqual(2400f, off.MotionGameMs);
+            Assert.AreEqual(1800f, off.MotionGameMs);
             var bad = ShotOptions.FromUrl("http://h/?shots=1&motion=5&motionMs=10")!;
             Assert.AreEqual(0f, bad.MotionScale, "a scale above 1 is ignored");
-            Assert.AreEqual(2400f, bad.MotionGameMs, "a window under 500 ms is ignored");
+            Assert.AreEqual(1800f, bad.MotionGameMs, "a window under 500 ms is ignored");
+            Assert.AreEqual(0f, ShotOptions.FromUrl("http://h/?shots=1&motion=0.004")!.MotionScale, "a scale under 0.005 is ignored");
+            Assert.AreEqual(0.0125f, ShotOptions.FromUrl("http://h/?shots=1&motion=0.0125")!.MotionScale);
             Assert.IsNull(ShotOptions.FromUrl("http://h/?motion=0.1"), "motion alone does not open the driver");
         }
 
@@ -126,7 +130,14 @@ namespace MinikUsta.Presentation.Tests
             var seqs = new List<(string, string)>();
             foreach (var s in json["sequences"]!.Items) seqs.Add((s["name"]!.AsString, s["before"]!.AsString));
             CollectionAssert.AreEqual(ShotScenario.SequenceNames, seqs.ToArray());
-            Assert.AreEqual(0.1, json["motionScale"]!.AsDouble, 1e-9);
+            Assert.AreEqual(0.0125, json["motionScale"]!.AsDouble, 1e-9);
+            Assert.AreEqual(1800, json["motionMs"]!.AsDouble, 1e-9);
+            foreach (var s in json["sequences"]!.Items)
+            {
+                var f = s["focus"]!;
+                Assert.That(f["x"]!.AsDouble + f["w"]!.AsDouble, Is.LessThanOrEqualTo(1.0 + 1e-9), s["name"]!.AsString + " focus fits the picture");
+                Assert.That(f["y"]!.AsDouble + f["h"]!.AsDouble, Is.LessThanOrEqualTo(1.0 + 1e-9), s["name"]!.AsString + " focus fits the picture");
+            }
         }
     }
 }

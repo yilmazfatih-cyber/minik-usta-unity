@@ -451,8 +451,11 @@ Her itişte **çalışmaz**: IL2CPP Android derlemesi WebGL'den çok uzundur ve 
   oyun sırasında olmamalı** (`tutorial` çekiminden sonra). `tools/ci-shots/shoot.mjs` her görünümün `manifest.json` kaydına `art3d { decodes, totalMs, budgetMs, lateDecodes }`
   yazar, bütçe aşılırsa ya da oyun sırasında çözme olursa `::warning` verir (yayını engellemez). `ArtWarmup`: kral sayfaları `Awake`'te, fx sayfaları ana ekrandan çıkınca ya da
   2,5 sn sakin ana ekrandan sonra.
-- **Hareket kanıtı (P4B-08):** `?shots=1&motion=0.1` (`shoot.mjs` her zaman ekler; `--no-motion` ile kapanır) iki pencereyi yavaş çekimde oynatır: `king_wave` (ana ekran, açılıştan
-  sonraki ilk 2,4 oyun sn'si, `home` çekiminden önce) ve `king_big_cheer` (kazanma penceresi açılınca, `win` çekiminden önce). Pencerede oyun gerçek zamanın onda biriyle ilerler
+- **Hareket kanıtı (P4B-08):** `?shots=1&motion=0.0125&motionMs=1800` (`shoot.mjs` `shots.json`'dan her zaman ekler; `--no-motion` ile kapanır) iki pencereyi yavaş çekimde oynatır: `king_wave` (ana ekran, açılıştan
+  sonraki ilk 1,8 oyun sn'si, `home` çekiminden önce) ve `king_big_cheer` (kazanma penceresi açılınca, `win` çekiminden önce). İlk koşu (`264f07d`) `motion=0.1` ile yapıldı: CI'nin yazılımsal GL'sinde bir
+  resim ≈ 1,2 sn sürüyor ve oyun kare başına 10 ms ilerliyordu, yani resimler arası **126 ms oyun süresi** (`undersampled`); 60 kare/sn çözünürlüğü (≤ 16,7 ms) için ölçek 0,0125'e indi
+  (resim başına ≈ 15 ms; pencere başına ≈ 2,5 dk gerçek süre; sahne zaman aşımı pencereleri saymaz). `shots.json` `sequences[].focus` (resim kesirleri) değişim sayımını ve şeridin kırpmasını kralın bulunduğu bölgeye
+  sınırlar (kenar paralaksı ve arayüz de hareket eder). Pencerede oyun gerçek zamanın `motionScale` katıyla ilerler
   (`ShotScenario.TimeScale`; `GameRunner` uygulamanın kare süresini bununla çarpar) ve her kare `seq:<ad>:t=<oyun ms>` yazar. Playwright begin–end arasında sayfayı olabildiğince sık
   fotoğraflar (JPEG, CSS pikseli), her resmi son `t` ile etiketler ve tarayıcıda çözümler: bir önceki resimden farklı olan çiftler (≥ 24 piksel, kanal toplamı farkı > 48), benzersiz resim
   sayısı, oyun saniyesi başına değişim sayısı, hareket kutusu ve 24 resimlik şerit PNG (`<görünüm>/seq_<ad>_strip.png`, `ci-shots` dalında). `undersampled: true` ise resimler arası
@@ -466,4 +469,7 @@ Her itişte **çalışmaz**: IL2CPP Android derlemesi WebGL'den çok uzundur ve 
 | Koşu | `.data` | `.wasm` | Toplam | Not |
 | --- | --- | --- | --- | --- |
 | 41386489687 (`e4be42e`, sıkıştırma kapalı) | 20 323 050 B | 27 790 131 B | 48,1 MB | yük: P4B-04 kanıtı |
-| (F1 koşusu: Gzip + açma yedeği) | – | – | – | aşağıda doldurulur |
+| 41394615409 (`264f07d`, **Gzip + açma yedeği**) | 15 721 315 B (`.data.unityweb`) | 6 816 590 B (`.wasm.unityweb`) | **22 537 905 B = 21,5 MB** (−%53) | `framework.js.unityweb` 81 678 B, `loader.js` 47 339 B; "Complete build size" 21,7 MB (46,4 idi); Pages dağıtımı ve 7/7 ekran görüntüsü iki görünümde de yeşil: yükleyicinin JS açıcısı çalışıyor |
+
+3B sayfa çözme (CI Chromium, yazılımsal GL, `264f07d`): 390×844 `king_0` 133 ms + `king_1` 4 + `fx_1` 19 + `fx_0` 79 = **235 ms**; 360×800 132 + 4 + 18 + 40 = **194 ms** (bütçe 250); **hepsi `home` çekiminden önce**,
+oyun sırasında çözme **yok** (`lateDecodes: []`). Önceki koşuda `fx_0` (47 ms) `drag_mid` ile `landed` arasındaydı (P4B-05 kanıtı).

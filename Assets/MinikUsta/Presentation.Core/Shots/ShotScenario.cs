@@ -13,7 +13,7 @@
 //   block to its golden release node, held and then cancelled: the lifted block and its green K-18 shadow) → landed (that move committed and settled) → … golden solution …
 //   → win (the win window and its rewards settled) → done
 //
-// Motion windows (P4B-08; only with `?shots=1&motion=<scale>`): two stretches of game time are played in slow motion so that a software-GL
+// Motion windows (P4B-08; only with `?shots=1&motion=<scale>`, CI uses 0.0125): two stretches of game time are played in slow motion so that a software-GL
 // browser, which draws a few frames per second, can still photograph every frame of the animation: `seq:king_wave` (the home king's
 // arrival wave, the first `MotionGameMs` after boot, before the `home` shot) and `seq:king_big_cheer` (the win window's king, from the
 // moment the win window opens, before the `win` shot). Inside a window `TimeScale` is the scale (the Unity layer multiplies the app's frame
@@ -40,8 +40,8 @@ namespace MinikUsta.Presentation.Shots
         /// <summary>P4B-08: `&amp;motion=0.1` plays the two motion windows at that fraction of real time (0 = no windows).</summary>
         public float MotionScale;
 
-        /// <summary>P4B-08: game milliseconds of one motion window (`&amp;motionMs=2400`).</summary>
-        public float MotionGameMs = 2400f;
+        /// <summary>P4B-08: game milliseconds of one motion window (`&amp;motionMs=1800`).</summary>
+        public float MotionGameMs = 1800f;
 
         /// <summary>`url` is `Application.absoluteURL` (empty outside WebGL); null when `shots=1` is not in the query.</summary>
         public static ShotOptions? FromUrl(string? url)
@@ -64,7 +64,7 @@ namespace MinikUsta.Presentation.Shots
                         on = val == "1";
                         break;
                     case "motion":
-                        if (float.TryParse(val, System.Globalization.NumberStyles.Float, System.Globalization.CultureInfo.InvariantCulture, out float ms) && ms >= 0.02f && ms <= 1f) o.MotionScale = ms;
+                        if (float.TryParse(val, System.Globalization.NumberStyles.Float, System.Globalization.CultureInfo.InvariantCulture, out float ms) && ms >= 0.005f && ms <= 1f) o.MotionScale = ms;
                         break;
                     case "motionMs":
                         if (float.TryParse(val, System.Globalization.NumberStyles.Float, System.Globalization.CultureInfo.InvariantCulture, out float mg) && mg >= 500f && mg <= 6000f) o.MotionGameMs = mg;
@@ -143,6 +143,7 @@ namespace MinikUsta.Presentation.Shots
         public float TimeScale { get; private set; } = 1f;
         private bool motionOpen;
         private float motionGameMs;
+        private float motionRealMs;
         /// <summary>Name of the step being waited for / run (tests, logs).</summary>
         public string Current => index < steps.Count ? steps[index].Name : "done";
         /// <summary>Shots signalled so far, in order.</summary>
@@ -203,6 +204,7 @@ namespace MinikUsta.Presentation.Shots
                 return false;
             }
             motionGameMs += dtMs * TimeScale;
+            motionRealMs += dtMs;
             Say("seq:" + name + ":t=" + ((int)motionGameMs).ToString(System.Globalization.CultureInfo.InvariantCulture));
             if (motionGameMs < options.MotionGameMs) return false;
             motionOpen = false;
@@ -247,7 +249,8 @@ namespace MinikUsta.Presentation.Shots
             }
             if (!(dtMs > 0f)) return;
             total += dtMs;
-            if (total > TimeoutMs)
+            // the slow-motion windows take MotionGameMs / MotionScale real milliseconds each (a few minutes at 0.0125): they do not count
+            if (total - motionRealMs > TimeoutMs)
             {
                 Fail("timeout:" + Current);
                 return;

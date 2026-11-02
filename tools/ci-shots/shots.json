@@ -1,5 +1,5 @@
 {
-  "doc": "Single list of the CI screenshots, in the order ShotScenario signals them (Assets/MinikUsta/Presentation.Core/Shots/ShotScenario.cs; a unit test keeps both equal). The Playwright script waits for '[minikShot] shot:<name>' lines and saves <viewport>/<name>.png. `sequences` are the motion windows (P4B-08): the script photographs the page between '[minikShot] seq:<name>:begin' and ':end' (the game runs at `motionScale` of real time inside them), writes <viewport>/seq_<name>_strip.png and the frame statistics into manifest.json; a sequence comes right before the shot named in `before`.",
+  "doc": "Single list of the CI screenshots, in the order ShotScenario signals them (Assets/MinikUsta/Presentation.Core/Shots/ShotScenario.cs; a unit test keeps both equal). The Playwright script waits for '[minikShot] shot:<name>' lines and saves <viewport>/<name>.png. `sequences` are the motion windows (P4B-08): the script photographs the page between '[minikShot] seq:<name>:begin' and ':end' (the game runs at `motionScale` of real time inside them, for `motionMs` game milliseconds; `focus` = the picture fractions where the animation is, used for the changed-pair count and the strip crop), writes <viewport>/seq_<name>_strip.png and the frame statistics into manifest.json; a sequence comes right before the shot named in `before`.",
   "tag": "[minikShot]",
   "shots": [
     "home",
@@ -13,14 +13,27 @@
   "sequences": [
     {
       "name": "king_wave",
-      "before": "home"
+      "before": "home",
+      "focus": {
+        "x": 0.04,
+        "y": 0.38,
+        "w": 0.62,
+        "h": 0.36
+      }
     },
     {
       "name": "king_big_cheer",
-      "before": "win"
+      "before": "win",
+      "focus": {
+        "x": 0.04,
+        "y": 0.28,
+        "w": 0.5,
+        "h": 0.36
+      }
     }
   ],
-  "motionScale": 0.1,
+  "motionScale": 0.0125,
+  "motionMs": 1800,
   "art3dDecodeBudgetMs": 250,
   "viewports": [
     {
