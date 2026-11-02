@@ -93,6 +93,12 @@ namespace MinikUsta.Editor
                 PlayerSettings.Android.bundleVersionCode = versionCode;
             string? version = ArgValue("-buildVersion");
             if (!string.IsNullOrEmpty(version)) PlayerSettings.bundleVersion = version;
+            // P4B-06: the target API level is explicit when the workflow passes one (Play requires 35+ in 2026); otherwise Unity's
+            // "automatic (highest installed)" stays. `AndroidSdkVersions.AndroidApiLevel35` exists in UnityCsReference 6000.0
+            // (Editor/Mono/PlayerSettingsAndroid.bindings.cs); the enum member name is what the workflow passes.
+            string? target = ArgValue("-androidTargetSdkVersion");
+            if (!string.IsNullOrEmpty(target) && Enum.TryParse(target, out AndroidSdkVersions targetLevel))
+                PlayerSettings.Android.targetSdkVersion = targetLevel;
 
             string? keystore = ArgValue("-androidKeystoreName");
             if (!string.IsNullOrEmpty(keystore) && File.Exists(keystore))
@@ -109,7 +115,7 @@ namespace MinikUsta.Editor
                 PlayerSettings.Android.useCustomKeystore = false;
                 Debug.Log("Android signing: Unity debug keystore (no keystore secrets were provided)");
             }
-            Debug.Log($"Android: id {AndroidApplicationId}, version {PlayerSettings.bundleVersion} ({PlayerSettings.Android.bundleVersionCode}), IL2CPP ARM64+ARMv7, portrait");
+            Debug.Log($"Android: id {AndroidApplicationId}, version {PlayerSettings.bundleVersion} ({PlayerSettings.Android.bundleVersionCode}), IL2CPP ARM64+ARMv7, portrait, minSdk {PlayerSettings.Android.minSdkVersion}, targetSdk {PlayerSettings.Android.targetSdkVersion}");
         }
 
         /// <summary>Package name of the Android build (letters, digits, dots; not derived from the company name).</summary>

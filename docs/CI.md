@@ -438,7 +438,14 @@ Her itişte **çalışmaz**: IL2CPP Android derlemesi WebGL'den çok uzundur ve 
 - **Çıktı:** `minikusta-android-<koşu>` artifact'i (30 gün). Sürüm imzası yoksa APK hata ayıklama imzalıdır.
 - **Disk:** Android imajı yaklaşık 9 GB'dır; iş, koşucudaki kullanılmayan büyük dizinleri (`/usr/share/dotnet`, `/usr/local/lib/android`, `/opt/ghc`, …) siler. Library önbelleği bilerek yoktur
   (IL2CPP Android Library'si birkaç GB'dır ve WebGL önbelleğini 10 GB sınırından dışarı iterdi).
-- **Doğrulanmadı:** bu ortamda Unity ve Android imajı yok; ilk gerçek koşu elle başlatılmadı. Kullanılan `PlayerSettings` üyeleri UnityCsReference 6000.0 ile doğrulandı
+- **İlk gerçek koşu (P4B-06, 2026-11-02, `workflow_dispatch`, koşu 41394679602, `264f07d`):** **başarılı**. Koltuk grubu yüzünden WebGL koşusunun (41394615409) bitmesini bekledi (≈ 5 dk kuyruk);
+  iş 12 dk 30 sn: imaj çekme 1 dk 50 sn, disk temizliği 2 dk 20 sn, Unity derlemesi **7 dk 26 sn** (IL2CPP ARM64 + ARMv7), "Warnings: 0 / Errors: 0", "Build succeeded!". Çıktı `MinikUsta.apk` **46 262 569 B (44,1 MB)**,
+  artifact `minikusta-android-1` 45 485 807 B (30 gün); Verify (zip, `AndroidManifest.xml`, `classes.dex`, `lib/arm64-v8a/libunity.so`) geçti. İmza: Unity hata ayıklama anahtar deposu (gizli değerler yok). Günlük: `Android: id
+  com.tunaco.minikusta, version 0.0.1 (1), IL2CPP ARM64+ARMv7, portrait`; Android SDK `build-tools/36.0.0`, `cmdline-tools/16.0`; GameCI'nin "auto detected target API version" adımı `platforms;android-` (boş sürüm) için uyarı verdi ve
+  Unity kendi paketli SDK'sını kullandı. **Hedef API düzeyi bu koşuda okunamadı** (artifact indirmesi vekilde 403). Düzeltme: iş akışı artık `androidTargetSdkVersion: AndroidApiLevel35` verir, `CiBuild.ConfigureAndroid` aynı bağımsız değişkeni
+  `PlayerSettings.Android.targetSdkVersion` yapar (üye UnityCsReference 6000.0'da var) ve günlüğe `minSdk` / `targetSdk` yazar; Google Play 2026'da en az 35 ister. **APK bir telefonda açılmadı** (bu ortamda cihaz yok): sonraki adım.
+- **P4B-13 notu:** `unity-license` grubunda tek bekleyen iş tutulur; Android işi bekliyorsa araya yeni bir WebGL itişi girerse **bekleyen Android iptal olur**. Android'i itiş yokken başlatın (ya da bir WebGL işi *çalışırken* tek başına bekletin).
+- **Eski not (ilk koşudan önce yazıldı):** bu ortamda Unity ve Android imajı yoktu. Kullanılan `PlayerSettings` üyeleri UnityCsReference 6000.0 ile doğrulandı
   (`SetApplicationIdentifier(NamedBuildTarget, string)`, `SetScriptingBackend(NamedBuildTarget, ScriptingImplementation)`, `Android.targetArchitectures`, `Android.bundleVersionCode`,
   `Android.useCustomKeystore`, `keystoreName`, `keystorePass`, `keyaliasName`, `keyaliasPass`, `defaultInterfaceOrientation`).
 
