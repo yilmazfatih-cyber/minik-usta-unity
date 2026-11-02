@@ -291,6 +291,7 @@ namespace MinikUsta.Presentation.Flow
             AllWon = Save.WonCount >= LevelCatalog.Last,
             Lang = I18n.Lang,
             Layers = Art.Fx?.Layers,
+            Stage = Art.Town,
         };
 
         private void ShowHome()
@@ -306,6 +307,10 @@ namespace MinikUsta.Presentation.Flow
             var kingNode = Home.Find(HomeView.KingId);
             if (kingNode != null)
                 King.BindHome(ui, kingNode, new Vec2((float)box.CenterX, (float)box.Bottom), King.SizeFor(King.Home, box.H), !homeShown);
+            // art turn 1: Tuna and Kepçe are 3D idle loops standing on the bottom centre of their v4 boxes (crew.json)
+            var tunaNode = Home.Find(CrewDirector.TunaId);
+            var kepceNode = Home.Find(CrewDirector.KepceId);
+            if (tunaNode != null && kepceNode != null) King.Crew.BindHome(ui, tunaNode, HomeView.TunaFeet(canvasH), kepceNode, HomeView.KepceFeet(canvasH));
             Parallax.Bind(ui, Home, Art.Fx?.Layers);
             King.HomeVisible = true;
             King.CornerVisible = false;

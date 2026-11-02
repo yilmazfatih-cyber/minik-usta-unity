@@ -11,10 +11,11 @@
 // One state machine per slot: a ONE-SHOT (cheer, big cheer, encourage, wave) plays to its end and then the slot's LOOP (idle,
 // think, talk, point) comes back; a higher-priority one-shot replaces a lower one, an equal or lower one is dropped (no
 // jitter). Every clip starts and ends on K0, loops with `out` frames leave through them, so changes are cut-free.
-// Budget (ART_3D §7.5, B2 brief): at most two character clips advance at once — the corner freezes while a window shows the
-// king, home and corner never run together. Reduced motion: still poses, short clips, no breathing (`AnimPlayer.Reduced`).
-// It also plays the one window FX that must sit INSIDE the window, between the panel and the star: the JUICE #96 star burst
-// (`fx_star_burst` behind the earned star; the Fx layer would draw it over the star).
+// Budget (ART_3D §7.5, B2 brief): at most two KING clips advance at once — the corner freezes while a window shows the
+// king, home and corner never run together. Tuna and Kepçe (`Crew`, art turn 1) are idle loops of the same screens, counted apart. Reduced motion: still poses, short clips, no breathing (`AnimPlayer.Reduced`).
+// It also plays the window FX that must sit INSIDE the window, between the panel and its content: the JUICE #96 star burst
+// (`fx_star_burst` behind the earned star; the Fx layer would draw it over the star) and, art turn 1, the dust puff under the win
+// window's level piece when it lands (`fx_dust_puff`, tint #E9D2A8).
 using System;
 using MinikUsta.Presentation.Ui;
 
@@ -148,7 +149,9 @@ namespace MinikUsta.Presentation.Anim
         {
             Library = art?.King;
             fx = art?.Fx;
+            Crew = new CrewDirector(art);
             burst = fx != null ? new ClipActor(fx) : null;
+            puff = fx != null ? new ClipActor(fx) : null;
             Home = new Slot(this, "home", HomeIdleClip);
             Corner = new Slot(this, "corner", IdleClip);
             Window = new Slot(this, "window", HomeIdleClip);
@@ -158,6 +161,9 @@ namespace MinikUsta.Presentation.Anim
 
         public ClipLibrary? Library { get; }
         public bool Enabled => Library != null;
+
+        /// <summary>Art turn 1: Tuna and Kepçe (crew.json) ride on the same screens, visibility flags and reduced-motion switch as the king.</summary>
+        public CrewDirector Crew { get; }
 
         public Slot Home { get; }
         public Slot Corner { get; }
@@ -181,7 +187,9 @@ namespace MinikUsta.Presentation.Anim
 
         private readonly ClipLibrary? fx;
         private readonly ClipActor? burst;
+        private readonly ClipActor? puff;
         private bool burstOn;
+        private bool puffOn;
         private bool reduced;
         private float quietMs;
         private bool thinking;
@@ -198,6 +206,7 @@ namespace MinikUsta.Presentation.Anim
                 Home.Actor.Player.Reduced = value;
                 Corner.Actor.Player.Reduced = value;
                 Window.Actor.Player.Reduced = value;
+                Crew.Reduced = value;
             }
         }
 
@@ -335,6 +344,8 @@ namespace MinikUsta.Presentation.Anim
             Window.Reset();
             burst?.Unbind();
             burstOn = false;
+            puff?.Unbind();
+            puffOn = false;
         }
 
         /// <summary>The open window's star-burst node (hidden until `PlayWindowBurst`): the burst is drawn by its centre at `center`.</summary>
@@ -363,13 +374,41 @@ namespace MinikUsta.Presentation.Anim
         /// <summary>The star burst is playing (tests).</summary>
         public bool BurstPlaying => burstOn;
 
+        /// <summary>Art turn 1: the open win window's dust-puff node (hidden until `PlayWindowPuff`): the puff stands on `ground` (the clip's bottom-centre pivot).</summary>
+        public void BindWindowPuff(IUiSurface surface, UiNode node, Vec2 ground)
+        {
+            if (puff == null) return;
+            puffOn = false;
+            puff.Player.Stop();
+            puff.Bind(surface, node, ground, 1);
+        }
+
+        /// <summary>Art turn 1 (ART_3D §14.3 item 4): plays `clip` once under the window's piece; false = not played (no clip, no node, reduced motion).</summary>
+        public bool PlayWindowPuff(string clip, double size)
+        {
+            var c = fx?.Clip(clip);
+            var n = puff?.Node;
+            if (puff == null || c == null || n == null || !puff.Bound || reduced) return false;
+            puff.Size = size;
+            puff.Player.Play(c);
+            n.Visible = true;
+            puffOn = true;
+            puff.Advance(0f);
+            return true;
+        }
+
+        /// <summary>The window puff is playing (tests).</summary>
+        public bool PuffPlaying => puffOn;
+
         // --- frame -----------------------------------------------------------------------------------------------------------
 
         /// <summary>One frame (`dtMs` of real time; the king keeps his pace when the board plays 3× faster).</summary>
         public void Advance(float dtMs)
         {
-            if (!Enabled) return;
             if (!(dtMs > 0)) dtMs = 0;
+            // the crew: the home pair on the home screen, Kepçe's corner copy while no window shows the king (they do not need the king's library)
+            Crew.Advance(dtMs, HomeVisible, CornerVisible && !Window.Bound);
+            if (!Enabled) return;
             int active = 0;
             if (Home.Bound && HomeVisible)
             {
@@ -403,6 +442,20 @@ namespace MinikUsta.Presentation.Anim
                     {
                         n.Visible = false;
                         burst.Refresh();
+                    }
+                }
+            }
+            if (puffOn && puff != null)
+            {
+                puff.Advance(dtMs);
+                if (!puff.Player.Playing)
+                {
+                    puffOn = false;
+                    var n = puff.Node;
+                    if (n != null)
+                    {
+                        n.Visible = false;
+                        puff.Refresh();
                     }
                 }
             }

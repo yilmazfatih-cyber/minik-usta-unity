@@ -3,7 +3,8 @@
 // 160 ms and fx_0 (1920x752) 47 ms on a desktop CPU in the CI log, a few times that on a phone. Decoded lazily on first use, the fx
 // page was decoded exactly at the player's first correct placement (the lock flash) and the king page on the first home frame. The
 // warm-up moves both to moments where a longer frame cannot be seen:
-//   - the king pages (`KingLibrary`) at boot, before the first frame is shown (the Unity loader bar is still up);
+//   - the king pages (`KingLibrary`) and the crew page (`CrewLibrary`, Tuna and Kepçe: art turn 1, 2036x1032, both are on the first home
+//     frame and in the level corner) at boot, before the first frame is shown (the Unity loader bar is still up);
 //   - the fx pages (`FxLibrary`) as soon as the player leaves the home screen (the level-start window, 'Oyna' was pressed) or, if the
 //     player does not, after `IdleMs` of a calm home screen. Never during play.
 // Engine-independent: the Unity layer passes `ClipSprites.Warm` as the callback; tests pass a recorder.
@@ -17,6 +18,7 @@ namespace MinikUsta.Presentation.Anim
     {
         public const string KingLibrary = "king";
         public const string FxLibrary = "fx";
+        public const string CrewLibrary = "crew";
 
         /// <summary>Milliseconds of a calm home screen after which the fx pages are decoded anyway.</summary>
         public const double DefaultIdleMs = 2500;
@@ -38,13 +40,15 @@ namespace MinikUsta.Presentation.Anim
         public bool KingDone { get; private set; }
         public bool FxDone => fxDone;
 
-        /// <summary>Decodes the king pages now (called once, in `Awake`, before the first frame).</summary>
+        /// <summary>Decodes the character pages now, the king's then the crew's (called once, in `Awake`, before the first frame).</summary>
         public void WarmKing()
         {
             if (KingDone) return;
             KingDone = true;
             Warmed.Add(KingLibrary);
             warm(KingLibrary);
+            Warmed.Add(CrewLibrary);
+            warm(CrewLibrary);
         }
 
         /// <summary>

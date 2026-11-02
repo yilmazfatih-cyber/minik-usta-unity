@@ -5,6 +5,10 @@
 // symbol, his clips drawn by `KingDirector`; a tap cheers), Tuna and Kepçe, the one primary button "Oyna · Bölüm N" and the
 // bottom navigation (the four tabs other than home are locked, Faz 2R). B2: the 3D Renkli Tepe background as its 7 parallax
 // layers (fx.json `layers`, drifting slowly with time — `HomeParallax`; no device tilt), else the flattened `bg_home`.
+// Art turn 1 (ART_3D §14.3): the tree house grows with the levels won — the bare tree `town_ch1_s00` plus `town_ch1_p01 … p(won)` all
+// drawn with their stage pivot at one anchor (fx.json `stages.town_ch1`; 10 / 10 equals `town_ch1_treehouse`); Tuna and Kepçe are 3D
+// idle loops (crew.json, `CrewDirector`) standing on their old box's bottom centre; the locked tabs are α 0,7 with a 0,6× lock badge;
+// the Play button throws a 14 px drop shadow (α 0,45) onto the cobbled square of `bg_home_ground`.
 // EXPAND: the middle group moves down by (H − 1920) × 0,5, the button and the navigation stay at the bottom.
 using System;
 using System.Collections.Generic;
@@ -29,6 +33,8 @@ namespace MinikUsta.Presentation.Ui
         public string Lang = "tr";
         /// <summary>B2: the 3D parallax layers of fx.json (null / empty = the flattened `bg_home`).</summary>
         public IReadOnlyList<ParallaxLayer>? Layers;
+        /// <summary>Art turn 1: the staged tree house (fx.json `stages.town_ch1`); null = the finished `town_ch1_treehouse` still.</summary>
+        public StageSet? Stage;
     }
 
     public static class HomeView
@@ -44,6 +50,31 @@ namespace MinikUsta.Presentation.Ui
 
         /// <summary>The home king's box on a canvas `H` tall (feet at its bottom centre; B2).</summary>
         public static PxRect KingBox(double H) => new PxRect(468 - 190, 1342 + (H - 1920) * 0.5 - 600, 380, 600);
+
+        /// <summary>Art turn 1: the v4 boxes of Tuna and Kepçe (the fallback stills sit in them); the 3D clips stand on the bottom centre.</summary>
+        public static PxRect TunaBox(double H) => new PxRect(28, 966 + (H - 1920) * 0.5, 270, 360);
+
+        public static PxRect KepceBox(double H) => new PxRect(170, 1196 + (H - 1920) * 0.5, 200, 138);
+
+        /// <summary>Where Tuna's and Kepçe's feet stand (the bottom centre of their v4 boxes; design px, y down).</summary>
+        public static Vec2 TunaFeet(double H) => new Vec2((float)TunaBox(H).CenterX, (float)TunaBox(H).Bottom);
+
+        public static Vec2 KepceFeet(double H) => new Vec2((float)KepceBox(H).CenterX, (float)KepceBox(H).Bottom);
+
+        /// <summary>The tree house: its stage pivot (the bottom centre of the old 760 × 820 box) and the size of the stage canvas on screen.</summary>
+        public const double TownScale = 0.62;
+
+        public static Vec2 TownAnchor(double H) => new Vec2(812, (float)(1236 + (H - 1920) * 0.5));
+
+        /// <summary>Ids of the tree house nodes: `home.town` (the finished still) or `home.town.base` + `home.town.p01 …`.</summary>
+        public const string TownId = "home.town";
+        public const string TownBaseId = "home.town.base";
+        public const string PlayShadowId = "home.play.shadow";
+        /// <summary>Art turn 1: locked tab icons (α) and the lock badge (× size); the Play button's drop shadow (offset px, α).</summary>
+        public const float LockedTabAlpha = 0.7f;
+        public const double LockBadgeScale = 0.6;
+        public const double PlayShadowPx = 14;
+        public const float PlayShadowAlpha = 0.45f;
 
         public static UiNode Build(HomeModel m, double W, double H, Strings t)
         {
@@ -67,10 +98,30 @@ namespace MinikUsta.Presentation.Ui
             }
             else r.Add(UiKit.Image("home.bg", Frames.BgHome, new PxRect(ox, oy, bw, bh)));
             // tree house + characters (the calm middle, UX §3): Usta Kral in front, Tuna and Kepçe beside him
-            double tw = 760 * 0.62, th = 820 * 0.62;
-            r.Add(UiKit.Image("home.town", "town_ch1_treehouse", new PxRect(812 - tw / 2, 1236 + mid - th, tw, th)));
-            r.Add(UiKit.Image("home.tuna", "chr_tuna_cheer", new PxRect(28, 966 + mid, 270, 360)));
-            r.Add(UiKit.Image("home.kepce", "chr_kepce_idle", new PxRect(170, 1196 + mid, 200, 138)));
+            if (m.Stage != null)
+            {
+                // art turn 1: the bare tree + one part per level won, every frame drawn by its stage pivot at one anchor (no offsets)
+                var at = TownAnchor(H);
+                var frames = m.Stage.Frames(m.Won);
+                for (int i = 0; i < frames.Count; i++)
+                {
+                    string id = i == 0 ? TownBaseId : TownId + ".p" + i.ToString("00", System.Globalization.CultureInfo.InvariantCulture);
+                    r.Add(UiKit.Image(id, frames[i].Name, MinikUsta.Presentation.Anim.ClipPlacement.Rect(frames[i], at.X, at.Y, TownScale)));
+                }
+            }
+            else
+            {
+                double tw = 760 * TownScale, th = 820 * TownScale;
+                r.Add(UiKit.Image(TownId, "town_ch1_treehouse", new PxRect(812 - tw / 2, 1236 + mid - th, tw, th)));
+            }
+            var tuna = UiKit.Image(CrewDirector.TunaId, CrewDirector.TunaFallbackFrame, TunaBox(H));
+            tuna.PreserveAspect = true;
+            tuna.Isolated = true;
+            r.Add(tuna);
+            var kepce = UiKit.Image(CrewDirector.KepceId, CrewDirector.KepceFallbackFrame, KepceBox(H));
+            kepce.PreserveAspect = true;
+            kepce.Isolated = true;
+            r.Add(kepce);
             var king = UiKit.Button(KingId, KingDirector.FallbackFrame, KingBox(H), KingAction, false);
             king.PreserveAspect = true;
             king.Isolated = true;
@@ -104,7 +155,10 @@ namespace MinikUsta.Presentation.Ui
             // the one primary action (UX §0.2)
             if (m.AllWon)
                 r.Add(UiKit.Label("home.moreSoon", t.Get("home.moreSoon"), new PxRect(140, 1310 + bot, 800, 60), TextStyle.Label, 40));
-            var play = r.Add(UiKit.Button(PlayId, "btn_primary", new PxRect(210, 1384 + bot, 660, 200), PlayAction));
+            var playRect = new PxRect(210, 1384 + bot, 660, 200);
+            // art turn 1: the button sits on the cobbled square; a soft drop shadow (14 px down, α 0,45) seats it there
+            r.Add(UiKit.Image(PlayShadowId, "btn_primary", new PxRect(playRect.X, playRect.Y + PlayShadowPx, playRect.W, playRect.H), true, Rgba.Hex("#0B0918"), PlayShadowAlpha));
+            var play = r.Add(UiKit.Button(PlayId, "btn_primary", playRect, PlayAction));
             play.Add(UiKit.Label("home.play.text", t.Format("home.playLevel", m.NextLevel), new PxRect(250, 1396 + bot, 580, 150), TextStyle.Button, 72));
             // bottom navigation: home selected, the other tabs locked ("Yakında", Faz 2R)
             r.Add(UiKit.Image("home.nav", "nav_bar", new PxRect(0, 1704 + bot, W, 216), true));
@@ -121,8 +175,8 @@ namespace MinikUsta.Presentation.Ui
                 }
                 else
                 {
-                    r.Add(UiKit.Icon("home.tab" + i, tabs[i], cx, 1810 + bot, 115, 115, 0.55f));
-                    r.Add(UiKit.Icon("home.tab" + i + ".lock", "icon_lock", cx + 40, 1838 + bot, 52, 60));
+                    r.Add(UiKit.Icon("home.tab" + i, tabs[i], cx, 1810 + bot, 115, 115, LockedTabAlpha));
+                    r.Add(UiKit.Icon("home.tab" + i + ".lock", "icon_lock", cx + 40, 1838 + bot, 52 * LockBadgeScale, 60 * LockBadgeScale));
                 }
                 if (i == 1 || i == 4)
                     r.Add(UiKit.Image("home.tab.div" + i, Frames.White, new PxRect(tabW * (i == 1 ? 1 : 4) - 1.5, 1772 + bot, 3, 88), false, Rgba.Hex("#3624AA")));

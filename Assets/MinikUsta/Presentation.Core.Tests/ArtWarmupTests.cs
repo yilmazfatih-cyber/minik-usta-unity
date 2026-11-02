@@ -1,5 +1,5 @@
 #nullable enable
-// Paket F1 (P4B-05): the 3D clip pages are decoded where a longer frame cannot be seen. The king pages at boot, the fx pages when the
+// Paket F1 (P4B-05): the 3D clip pages are decoded where a longer frame cannot be seen. The king and crew pages at boot, the fx pages when the
 // player leaves the home screen (or after a calm 2,5 s on it), never during play; one decode per library.
 using MinikUsta.Presentation.Anim;
 using MinikUsta.Presentation.Flow;
@@ -16,7 +16,7 @@ namespace MinikUsta.Presentation.Tests
             var w = new ArtWarmup(_ => { });
             w.WarmKing();
             w.WarmKing();
-            CollectionAssert.AreEqual(new[] { ArtWarmup.KingLibrary }, w.Warmed, "king once, however often it is asked");
+            CollectionAssert.AreEqual(new[] { ArtWarmup.KingLibrary, ArtWarmup.CrewLibrary }, w.Warmed, "king and crew once, however often it is asked");
             w.Tick(16.7, AppScreen.Boot);
             w.Tick(16.7, AppScreen.Home);
             Assert.IsFalse(w.FxDone, "a home screen that has been up for 33 ms does not decode the fx pages");
@@ -30,10 +30,10 @@ namespace MinikUsta.Presentation.Tests
             w.WarmKing();
             w.Tick(16.7, AppScreen.Home);
             w.Tick(16.7, AppScreen.LevelStart); // 'Oyna' pressed: the level-start window is up, the first placement is seconds away
-            CollectionAssert.AreEqual(new[] { "king", "fx" }, called);
+            CollectionAssert.AreEqual(new[] { "king", "crew", "fx" }, called);
             w.Tick(16.7, AppScreen.Level);
             w.Tick(16.7, AppScreen.Home);
-            Assert.AreEqual(2, called.Count, "fx is decoded once; later frames and screens never call the decoder again");
+            Assert.AreEqual(3, called.Count, "fx is decoded once; later frames and screens never call the decoder again");
         }
 
         [Test]
@@ -46,7 +46,7 @@ namespace MinikUsta.Presentation.Tests
             Assert.IsFalse(w.FxDone);
             w.Tick(16.7, AppScreen.Home); // 1001.9 ms
             Assert.IsTrue(w.FxDone);
-            CollectionAssert.AreEqual(new[] { "king", "fx" }, called);
+            CollectionAssert.AreEqual(new[] { "king", "crew", "fx" }, called);
         }
 
         [Test]

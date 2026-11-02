@@ -22,7 +22,7 @@ namespace MinikUsta.Presentation.Anim
             return new PxRect(ax - f.PivotX * w, ay - (1 - f.PivotY) * h, w, h);
         }
 
-        /// <summary>Frame design px → clip design px: a stage clip (scale 0,705) draws the corner drawings (0,88125) 1,25× larger.</summary>
+        /// <summary>Frame design px → clip design px: a stage clip (scale 0,645) draws the corner drawings (0,80625) 1,25× larger.</summary>
         public static double ClipFactor(AtlasFrame f, AnimClip clip) => f.Scale / clip.Scale;
 
         /// <summary>The size factor that makes `clip`'s canvas `heightPx` design px tall.</summary>

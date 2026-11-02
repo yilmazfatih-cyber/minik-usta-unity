@@ -58,7 +58,7 @@ namespace MinikUsta.Presentation.Anim
         public double CanvasH { get; }
         public double PivotX { get; }
         public double PivotY { get; }
-        /// <summary>Raster px per design px the clip is drawn at (king corner 0,88125, stage 0,705; fx per clip).</summary>
+        /// <summary>Raster px per design px the clip is drawn at (king corner 0,80625, stage 0,645; crew corner 1,05, stage 0,84; fx per clip).</summary>
         public double Scale { get; }
         /// <summary>King: "corner" | "stage"; fx: "" .</summary>
         public string Set { get; }

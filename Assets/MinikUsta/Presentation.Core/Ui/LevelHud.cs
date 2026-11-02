@@ -63,6 +63,9 @@ namespace MinikUsta.Presentation.Ui
         /// <summary>The corner king's feet (design px) and box of a layout (B2): the box is the UX §5.10 character corner.</summary>
         public static PxRect KingBox(ScreenLayout L) => new PxRect(L.Character.X - 20, L.Character.Y - 18, 236, L.Character.H + 14);
 
+        /// <summary>Art turn 1: the v4 box of Kepçe at the king's feet (the still sits in it; the 3D clip stands on its bottom centre).</summary>
+        public static PxRect KepceBox(ScreenLayout L) => new PxRect(L.Character.X + 156, L.H - 118, 136, 94);
+
         public UiNode? Root => root;
         public UiNode? Window => window;
         public PanelModel? Shown { get; private set; }
@@ -131,7 +134,11 @@ namespace MinikUsta.Presentation.Ui
             var kingNode = r.Add(UiKit.Image(KingId, KingDirector.FallbackFrame, kb));
             kingNode.PreserveAspect = true;
             kingNode.Isolated = true;
-            r.Add(UiKit.Image("hud.kepce", "chr_kepce_idle", new PxRect(cr.X + 156, L.H - 118, 136, 94)));
+            // art turn 1: Kepçe is a 3D idle loop (crew.json `kepce_corner_idle`) standing on the bottom centre of the v4 box
+            var kepceBox = KepceBox(L);
+            var kepceNode = r.Add(UiKit.Image(CrewDirector.HudKepceId, CrewDirector.KepceFallbackFrame, kepceBox));
+            kepceNode.PreserveAspect = true;
+            kepceNode.Isolated = true;
             for (int i = 0; i < L.Boosters.Length && i < SlotIcons.Length; i++)
             {
                 var b = L.Boosters[i];
@@ -149,7 +156,11 @@ namespace MinikUsta.Presentation.Ui
             truck.Visible = false;
             root = r;
             surface.Show(UiLayer.Hud, r, OnTap);
-            if (King != null) King.BindCorner(surface, kingNode, new Vec2((float)kb.CenterX, (float)(kb.Bottom - 6)), King.SizeFor(King.Corner, kb.H));
+            if (King != null)
+            {
+                King.BindCorner(surface, kingNode, new Vec2((float)kb.CenterX, (float)(kb.Bottom - 6)), King.SizeFor(King.Corner, kb.H));
+                King.Crew.BindCorner(surface, kepceNode, new Vec2((float)kepceBox.CenterX, (float)kepceBox.Bottom));
+            }
             moves.Inner = surface.Target(N("hud.moves"));
             blocks.Inner = surface.Target(N("hud.blocks"));
             trowel.Inner = surface.Target(N("hud.trowel"));

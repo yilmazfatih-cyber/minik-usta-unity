@@ -204,6 +204,8 @@ namespace MinikUsta.Presentation.Game
         public string? TrowelLine;
         /// <summary>The structure of the level (win card, level start goal, lose preview).</summary>
         public PlanThumb? Thumb;
+        /// <summary>Art turn 1 (ART_3D §14.3 item 4): the 3D piece the level built (fx.json `levelPieces`) — the win card shows it instead of `Thumb`.</summary>
+        public Art.AtlasFrame? Piece;
         /// <summary>Small counter line above the options ("Teklif 1/3").</summary>
         public string? Counter;
         /// <summary>Win card: the caption under the structure name ("Yapı tamam!").</summary>
@@ -316,6 +318,9 @@ namespace MinikUsta.Presentation.Game
 
         /// <summary>The open window (JUICE #70 pop: scale).</summary>
         ITweenTarget PanelTarget { get; }
+
+        /// <summary>Art turn 1: the level piece on the open win window (a 360 × 360 canvas about its centre; `Scale` pops it in).</summary>
+        ITweenTarget PieceTarget { get; }
 
         // --- Q2 additions -----------------------------------------------------------------------------------------------
 
