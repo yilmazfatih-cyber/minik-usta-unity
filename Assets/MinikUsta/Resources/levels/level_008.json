@@ -1,5 +1,5 @@
 {
-  "schemaVersion": 1,
+  "schemaVersion": 2,
   "id": 8,
   "chapter": 1,
   "name": { "tr": "Bahçe Çiti", "en": "Garden Fence" },
@@ -9,10 +9,13 @@
   "goals": [{ "type": "build" }],
   "gravity": { "build": "normal", "yard": false },
   "wall": { "height": 5, "gaps": [] },
-  "site": { "cols": 2, "rows": 6 },
+  "site": { "cols": 2, "rows": 4 },
   "build": {
     "mode": "segments",
-    "segments": [{ "name": { "tr": "Çit", "en": "Fence" }, "rows": ["WW", "YY", "YW", "YW", "RR", "RR"] }]
+    "segments": [
+      { "name": { "tr": "Çit Direkleri", "en": "Fence Posts" }, "rows": ["WW", "WW", "RR", "RR"] },
+      { "name": { "tr": "Çit Tahtaları", "en": "Fence Boards" }, "rows": ["RR", "YY", "YY", "YY"] }
+    ]
   },
   "yard": {
     "cols": 6,
@@ -21,38 +24,47 @@
       {
         "forSegment": 0,
         "pieces": [
-          { "shape": "O4_0", "color": "R", "x": 0, "y": 0 },
-          { "shape": "D2_0", "color": "W", "x": 2, "y": 0 },
-          { "shape": "D2_0", "color": "Y", "x": 3, "y": 0 },
-          { "shape": "D2_90", "color": "Y", "x": 4, "y": 2 },
-          { "shape": "D2_90", "color": "W", "x": 4, "y": 3 },
-          { "shape": "Q9_0", "x": 0, "y": 2 }
+          { "shape": "D2_90", "color": "Y", "x": 0, "y": 4 },
+          { "shape": "D2_90", "color": "R", "x": 0, "y": 3 },
+          { "shape": "D2_90", "color": "R", "x": 0, "y": 2 },
+          { "shape": "D2_0", "color": "W", "x": 2, "y": 2 },
+          { "shape": "Q9_0", "x": 3, "y": 2 },
+          { "shape": "D2_0", "color": "W", "x": 0, "y": 0 },
+          { "shape": "O4_0", "color": "Y", "x": 2, "y": 0 },
+          { "shape": "D2_90", "color": "R", "x": 4, "y": 0 }
         ]
       }
     ]
   },
   "obstacles": [],
+  "targets": {
+    "min": [10, 11],
+    "minShifts": [2, 4],
+    "firstNeedDepth": [2, 3],
+    "maxCover": [2, 3],
+    "depLater": [2, 4],
+    "crossDeps": [3, 99],
+    "parkSlack": [0.6, 1.2],
+    "forced": [5, 9],
+    "greedyExcess": [0, 1],
+    "greedyWin": [0.6, 1],
+    "ahaMin": [0, 1],
+    "branch3": [0.15, 0.35],
+    "deadRate": [0, 0]
+  },
   "tutorial": [
     {
       "step": 1,
-      "highlight": ["piece:5", "piece:3", "piece:4"],
-      "hand": {
-        "kind": "drag",
-        "path": [
-          [4, 2],
-          [4, 0]
-        ]
-      },
+      "highlight": ["piece:4", "piece:6"],
       "textKey": "tut.m.heavy",
-      "done": { "event": "yardMove", "count": 1 }
+      "done": { "event": "yardMove", "count": 1, "piece": "piece:4" }
     },
     {
       "step": 2,
-      "highlight": ["booster:hammer", "piece:5"],
+      "highlight": ["booster:hammer", "piece:4"],
       "hand": { "kind": "tap" },
       "textKey": "tut.m.hammer",
       "done": { "event": "placementCorrect", "count": 1 }
     }
-  ],
-  "targets": { "minShifts": [3, 4], "firstNeedDepth": [2, 3], "deadRate": [0, 0] }
+  ]
 }

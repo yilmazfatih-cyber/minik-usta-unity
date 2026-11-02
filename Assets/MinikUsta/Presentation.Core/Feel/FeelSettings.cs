@@ -246,7 +246,7 @@ namespace MinikUsta.Presentation.Feel
         public float TruckPreviewSlideMs = 160;
         /// <summary>duration.truckHelpUnchain — JUICE #21a.</summary>
         public float TruckHelpUnchainMs = 600;
-        /// <summary>duration.reshuffle — JUICE #21c.</summary>
+        /// <summary>duration.reshuffle — JUICE #21c. Dead since RULES_VERSION 3 (D-099: the D1 reshuffle was removed; the token stays).</summary>
         public float ReshuffleMs = 900;
         /// <summary>duration.teardown — JUICE #107 Söküm (K-30), input locked.</summary>
         public float TeardownMs = 600;

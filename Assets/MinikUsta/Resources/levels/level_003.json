@@ -1,29 +1,35 @@
 {
-  "schemaVersion": 1,
+  "schemaVersion": 2,
   "id": 3,
   "chapter": 1,
   "name": { "tr": "Ön Duvar", "en": "Front Wall" },
   "difficulty": "easy",
-  "moves": 11,
+  "moves": 12,
   "goals": [{ "type": "build" }],
   "gravity": { "build": "normal", "yard": false },
-  "wall": { "height": 4, "gaps": [] },
-  "site": { "cols": 2, "rows": 5 },
+  "wall": { "height": 3, "gaps": [] },
+  "site": { "cols": 2, "rows": 4 },
   "build": {
     "mode": "segments",
-    "segments": [{ "name": { "tr": "Ön Duvar", "en": "Front Wall" }, "rows": ["YY", "GG", "GG", "YW", "YW"] }]
+    "segments": [
+      { "name": { "tr": "Duvar Altı", "en": "Wall Base" }, "rows": ["WW", "WW", "YY", "GG"] },
+      { "name": { "tr": "Duvar Üstü", "en": "Wall Top" }, "rows": ["WW", "WW", "YY", "YY"] }
+    ]
   },
   "yard": {
-    "cols": 4,
+    "cols": 5,
     "rows": 4,
     "batches": [
       {
         "forSegment": 0,
         "pieces": [
-          { "shape": "D2_0", "color": "Y", "x": 0, "y": 0 },
-          { "shape": "D2_0", "color": "W", "x": 1, "y": 0 },
-          { "shape": "O4_0", "color": "G", "x": 0, "y": 2 },
-          { "shape": "D2_90", "color": "Y", "x": 2, "y": 0 }
+          { "shape": "O4_0", "color": "Y", "x": 0, "y": 2 },
+          { "shape": "D2_90", "color": "G", "x": 0, "y": 1 },
+          { "shape": "D2_90", "color": "Y", "x": 0, "y": 0 },
+          { "shape": "D2_90", "color": "W", "x": 2, "y": 1 },
+          { "shape": "D2_90", "color": "W", "x": 2, "y": 0 },
+          { "shape": "D2_0", "color": "W", "x": 4, "y": 2 },
+          { "shape": "D2_0", "color": "W", "x": 4, "y": 0 }
         ]
       }
     ]
@@ -32,23 +38,38 @@
   "tutorial": [
     {
       "step": 1,
-      "highlight": ["piece:2"],
+      "highlight": ["piece:0"],
       "hand": {
         "kind": "drag",
         "path": [
           [0, 3],
-          [1, 3]
+          [2, 3]
         ]
       },
       "textKey": "tut.m.dig",
-      "done": { "event": "yardMove", "count": 1, "piece": "piece:2" }
+      "done": { "event": "yardMove", "count": 1, "piece": "piece:0" }
     },
     {
       "step": 2,
-      "highlight": ["piece:0", "piece:1"],
-      "textKey": "tut.m.free",
-      "done": { "event": "placementCorrect", "count": 1 }
+      "startOn": { "event": "yardMove", "piece": "piece:0" },
+      "highlight": ["piece:0", "panorama"],
+      "textKey": "tut.m.carry",
+      "done": { "event": "segmentDone", "count": 1 }
     }
   ],
-  "targets": { "minShifts": [1, 1], "firstNeedDepth": [1, 1], "deadRate": [0, 0] }
+  "targets": {
+    "min": [8, 9],
+    "minShifts": [1, 2],
+    "firstNeedDepth": [1, 1],
+    "maxCover": [1, 3],
+    "depLater": [1, 2],
+    "crossDeps": [2, 99],
+    "parkSlack": [1, 9.99],
+    "forced": [1, 7],
+    "greedyExcess": [0, 0],
+    "greedyWin": [0.85, 1],
+    "ahaMin": [0, 0],
+    "branch3": [0.25, 0.6],
+    "deadRate": [0, 0]
+  }
 }

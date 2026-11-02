@@ -1,7 +1,7 @@
 {
  "generatedFrom": {
   "webRepo": "yilmazfatih-cyber/minik-usta",
-  "webCommit": "b31c4e8",
+  "webCommit": "e80a318",
   "generator": "tools/gen-rule-ids.ts",
   "source": "tools/rule-coverage.ts ruleIds"
  },
@@ -68,6 +68,7 @@
 {"id":"K-52","kind":"K","phase":2.5},
 {"id":"K-53","kind":"K","phase":2.5},
 {"id":"K-54","kind":"K","phase":2.5},
+{"id":"K-55","kind":"K","phase":3},
 {"id":"G-H","kind":"obstacle","phase":3},
 {"id":"G-L","kind":"obstacle","phase":3},
 {"id":"S1","kind":"obstacle","phase":2},
@@ -153,6 +154,12 @@
 {"id":"E-59","kind":"E","phase":3},
 {"id":"E-60","kind":"E","phase":2.5},
 {"id":"E-61","kind":"E","phase":2.5},
+{"id":"E-62","kind":"E","phase":3},
+{"id":"E-63","kind":"E","phase":3},
+{"id":"E-64","kind":"E","phase":3},
+{"id":"E-65","kind":"E","phase":3},
+{"id":"E-66","kind":"E","phase":3},
+{"id":"E-67","kind":"E","phase":3},
 {"id":"N1","kind":"N","phase":3},
 {"id":"N2","kind":"N","phase":2.5},
 {"id":"N3","kind":"N","phase":2.5},

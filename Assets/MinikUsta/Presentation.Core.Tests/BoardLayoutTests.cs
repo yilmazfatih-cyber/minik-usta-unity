@@ -118,9 +118,18 @@ namespace MinikUsta.Presentation.Tests
             var want = new Dictionary<int, double> { { 1, 144 }, { 2, 144 }, { 3, 144 }, { 4, 144 }, { 5, 144 }, { 6, 132 }, { 7, 144 }, { 8, 120 }, { 9, 144 }, { 10, 120 } };
             foreach (var n in Play.Levels)
             {
-                var geo = Play.LevelFile(n).Geo;
+                // the table is the Faz 2R slice (the archive, EN-2R-17); the D-099 levels follow the same rule (below)
+                var geo = Play.LevelFile(n, archive: true).Geo;
                 Assert.AreEqual(want[n], BoardLayout.AdaptiveCellPx(S, geo), "B" + n);
                 Assert.AreEqual(120, BoardLayout.AdaptiveCellPx(S120, geo), "B" + n + " at 120");
+            }
+            foreach (var n in Play.Levels)
+            {
+                var geo = Play.LevelFile(n).Geo; // D-099: the shipped levels (5×4, 4×5, 6×5 yards): a multiple of the step inside 120…144
+                double cell = BoardLayout.AdaptiveCellPx(S, geo);
+                Assert.AreEqual(0, cell % S.CellStepPx, "shipped B" + n + " is a multiple of the step");
+                Assert.That(cell, Is.InRange(120d, 144d), "shipped B" + n);
+                Assert.AreEqual(120, BoardLayout.AdaptiveCellPx(S120, geo), "shipped B" + n + " at 120");
             }
             Assert.AreEqual(120, BoardLayout.AdaptiveCellPx(S, Geometry.DefaultGeo));
             var L = ScreenLayout.Create(S, 1920, Geo(4, 4, 2, 5));
@@ -243,7 +252,7 @@ namespace MinikUsta.Presentation.Tests
         [Test]
         public void TECH_10_3_the_slop_grown_hit_goes_to_the_nearest_cell_centre()
         {
-            var lvl = Play.LevelFile(1); // a (0,2) and b (1,2): D2_0 verticals side by side
+            var lvl = Play.LevelFile(1, archive: true); // Faz 2R level 1 (the archive): a (0,2) and b (1,2): D2_0 verticals side by side
             var s = CreateInitialState(lvl);
             var L = ScreenLayout.Create(S, 1920, lvl.Geo);
             var a = L.Grid.CellRect(0, 2);

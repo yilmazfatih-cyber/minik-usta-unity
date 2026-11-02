@@ -172,9 +172,11 @@ namespace MinikUsta.Core
     {
         /// <summary>
         /// Core rules version (K-43 item 4): bump it whenever a rule change can change the replay of a saved log. 2 = Faz 2R
-        /// (full cover K-47/K-48, sizes K-49, Söküm K-30, new boosters, Zobrist frame positions; TECH §2R.0 item 4).
+        /// (full cover K-47/K-48, sizes K-49, Söküm K-30, new boosters, Zobrist frame positions; TECH §2R.0 item 4). 3 = D-099
+        /// (K-55 item 8, K-30: a D1 the rules cannot lift is a Söküm with cause `access`, never a reshuffle; after an accepted
+        /// +5 offer the D1 Söküm goes back to the start of the last action). An attempt saved with 2 is voided (E-67).
         /// </summary>
-        public const int RulesVersion = 2;
+        public const int RulesVersion = 3;
         /// <summary>K-29: moves of an accepted offer.</summary>
         public const int OfferMoves = 5;
         /// <summary>K-29: offers per attempt (ad or coins).</summary>
@@ -200,6 +202,8 @@ namespace MinikUsta.Core
         private readonly SessionOptions opts;
         /// <summary>Pre-move buffer of the last committed drag while it may be undone (K-39).</summary>
         private int[]? undoSnapshot;
+        /// <summary>Start buffer of the last committed action (drag, booster, trowel): the D1 Söküm target after a +5 offer (K-29).</summary>
+        private int[]? lastPre;
         private string outcome = BoosterOutcomes.Playing;
         private int offersUsed;
         private bool adOfferUsed;
@@ -368,6 +372,7 @@ namespace MinikUsta.Core
             if (res.Status != MoveStatuses.Applied) return res;
             log.Add(SessionActionJson.Clone(move));
             undoSnapshot = move is DragMove ? snapshot : null; // K-39: only a drag move is undone
+            lastPre = snapshot;
             if (res.Won) outcome = BoosterOutcomes.Won;
             else if (res.OutOfMoves) outcome = offersUsed >= MaxOffers ? BoosterOutcomes.Lost : BoosterOutcomes.OutOfMoves;
             if (outcome == BoosterOutcomes.Lost) MarkLost();
@@ -381,6 +386,7 @@ namespace MinikUsta.Core
             if (UndoBlock() != null || snapshot == null) return false;
             Array.Copy(snapshot, state.Buf, snapshot.Length);
             undoSnapshot = null;
+            lastPre = null;
             log.Add(new UndoAction());
             return true;
         }
@@ -392,9 +398,12 @@ namespace MinikUsta.Core
             if (!offer.HasValue) return new MoveResult(NotPlaying.Status, "noOffer", false, false);
             if (source == AddMovesSource.OfferAd && !offer.Value.AdAllowed) return new MoveResult(NotPlaying.Status, "adNotAllowed", false, false);
             var move = new AddMovesMove(OfferMoves, source);
-            var res = Moves.ApplyMove(state, move, sink ?? NullSink.Instance, ApplyOptionsOf());
+            var applyOpts = ApplyOptionsOf();
+            var pre = lastPre;
+            var res = Moves.ApplyMove(state, move, sink ?? NullSink.Instance, pre != null ? applyOpts.WithPreAction(pre) : applyOpts);
             if (res.Status != MoveStatuses.Applied) return res;
             log.Add(move);
+            lastPre = null;
             offersUsed += 1;
             if (source == AddMovesSource.OfferAd) adOfferUsed = true;
             undoSnapshot = null; // K-39: no Undo across a +5 offer

@@ -86,6 +86,8 @@ namespace MinikUsta.Core.Tests.Fixtures
     public sealed class LevelSpec
     {
         public int? Id;
+        /// <summary>GDD §14 `schemaVersion` (default 1; 2 = K-55 fixed yard, D-099).</summary>
+        public int? SchemaVersion;
         /// <summary>K-49 yard size Wy × Hy (default 6 × 8).</summary>
         public SizeSpec? Yard;
         /// <summary>K-49 site size Ws × Hs (default 2 × 8).</summary>
@@ -132,7 +134,7 @@ namespace MinikUsta.Core.Tests.Fixtures
             int id = spec.Id ?? 1;
             string[][] segments = spec.Plans ?? new[] { spec.Plan ?? new[] { "WW" } };
             var json = JsonValue.Object()
-                .Set("schemaVersion", JsonValue.Of(1))
+                .Set("schemaVersion", JsonValue.Of(spec.SchemaVersion ?? 1))
                 .Set("id", JsonValue.Of(id))
                 .Set("chapter", JsonValue.Of(spec.Chapter ?? (int)Math.Ceiling(id / 10.0)))
                 .Set("name", J.O("tr", "Test", "en", "Test"))

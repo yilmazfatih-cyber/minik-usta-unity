@@ -1,0 +1,61 @@
+{
+  "schemaVersion": 1,
+  "id": 6,
+  "chapter": 1,
+  "name": { "tr": "Uzun Gövde", "en": "Tall Trunk" },
+  "difficulty": "normal",
+  "moves": 13,
+  "teaches": "W2",
+  "goals": [{ "type": "build" }],
+  "gravity": { "build": "normal", "yard": false },
+  "wall": { "height": 7, "gaps": [] },
+  "site": { "cols": 2, "rows": 7 },
+  "build": {
+    "mode": "segments",
+    "segments": [
+      {
+        "name": { "tr": "Uzun Gövde", "en": "Tall Trunk" },
+        "rows": ["YY", "YY", "YY", "WY", "WW", "GG", "GG"]
+      }
+    ]
+  },
+  "yard": {
+    "cols": 4,
+    "rows": 5,
+    "batches": [
+      {
+        "forSegment": 0,
+        "pieces": [
+          { "shape": "O4_0", "color": "G", "x": 0, "y": 0 },
+          { "shape": "C3_0", "color": "W", "x": 0, "y": 2 },
+          { "shape": "C3_180", "color": "Y", "x": 0, "y": 3 },
+          { "shape": "D2_90", "color": "Y", "x": 2, "y": 0 },
+          { "shape": "D2_90", "color": "Y", "x": 2, "y": 1 }
+        ]
+      }
+    ]
+  },
+  "obstacles": [],
+  "tutorial": [
+    {
+      "step": 1,
+      "highlight": ["piece:2", "cell:2,4", "cell:3,4"],
+      "hand": {
+        "kind": "drag",
+        "path": [
+          [1, 4],
+          [3, 4]
+        ]
+      },
+      "textKey": "tut.m.park",
+      "done": { "event": "yardMove", "count": 1, "at": [2, 3] }
+    },
+    {
+      "step": 2,
+      "highlight": ["crane", "wall"],
+      "textKey": "tut.m.highwall",
+      "done": { "event": "overWall", "count": 1 }
+    }
+  ],
+  "targets": { "minShifts": [2, 3], "firstNeedDepth": [2, 2], "deadRate": [0, 0] }
+}

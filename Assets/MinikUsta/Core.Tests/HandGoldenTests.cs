@@ -1,6 +1,7 @@
 #nullable enable
-// Port of tests/golden/hand.test.ts (web repo): golden replays of the Faz 2R levels 1–10 (docs/TECH_DESIGN.md §2R.10, §9.5;
-// WP-M). `level_NNN.hand.json` is the solver's canonical solution (GDD K-50 item 4, LEVELS §2 "Kanonik çözüm") described
+// Port of tests/golden/hand.test.ts (web repo): golden replays of the shipped levels 1–10 (D-099: schemaVersion 2, fixed
+// yard, K-55) and of the Faz 2R archive levels 1–10 (schemaVersion 1, truck batches; Core.Tests/Archive2R, K-55 item 9)
+// (docs/TECH_DESIGN.md §2R.10, §9.5; WP-M). `level_NNN.hand.json` is the solver's canonical solution (GDD K-50 item 4, LEVELS §2 "Kanonik çözüm") described
 // move by move — block, start anchor, kind (over the wall, rail through a gap, yard shift), landing anchor, completed
 // segment, truck blocks, queue — with the board geometry, the final ASCII board and the `eventLogHash`;
 // `level_NNN.solver.json` is the solver's own golden (canonical log + hash). Both are written only by the web repo's
@@ -26,8 +27,18 @@ namespace MinikUsta.Core.Tests
     [TestFixture]
     public class HandGoldenTests
     {
-        /// <summary>Faz 2R vertical slice (EN-2R-17): levels 1–10.</summary>
-        public static readonly int[] GoldenLevels = { 1, 2, 3, 4, 5, 6, 7, 8, 9, 10 };
+        /// <summary>Level numbers 1–10 (EN-2R-17).</summary>
+        public static readonly int[] GoldenLevelIds = { 1, 2, 3, 4, 5, 6, 7, 8, 9, 10 };
+
+        /// <summary>Levels 1–10 (EN-2R-17), twice: the shipped levels (D-099, `archive` false) and the Faz 2R archive (`archive` true).</summary>
+        public static IEnumerable<TestCaseData> GoldenLevels()
+        {
+            for (int n = 1; n <= 10; n++) yield return new TestCaseData(n, false).SetName("{m}(" + n + ", shipped)");
+            for (int n = 1; n <= 10; n++) yield return new TestCaseData(n, true).SetName("{m}(" + n + ", archive)");
+        }
+
+        private static CompiledLevel LevelOf(int n, bool archive) => archive ? LevelFile(n) : CurrentLevelFile(n);
+        private static JsonValue LevelJsonOf(int n, bool archive) => archive ? TestPaths.LoadLevelJson(n) : TestPaths.LoadCurrentLevelJson(n);
         /// <summary>K-46: at least 60 % of the solution's correct site placements come over the wall.</summary>
         private const double YaoMin = 0.6;
         private static readonly Regex Hex16 = new Regex("^[0-9a-f]{16}$");
@@ -85,10 +96,10 @@ namespace MinikUsta.Core.Tests
             return new[] { v[0].AsInt, v[1].AsInt };
         }
 
-        private static Golden LoadGolden(int n)
+        private static Golden LoadGolden(int n, bool archive)
         {
             string file = "level_" + Pad(n) + ".hand.json";
-            var j = TestPaths.LoadGolden(file);
+            var j = archive ? TestPaths.LoadGolden(file) : TestPaths.LoadCurrentGolden(file);
             var g = new Golden
             {
                 Level = j["level"]!.AsInt,
@@ -149,9 +160,10 @@ namespace MinikUsta.Core.Tests
             public string EventLogHash = "";
         }
 
-        private static SolverGolden LoadSolver(int n)
+        private static SolverGolden LoadSolver(int n, bool archive)
         {
-            var j = TestPaths.LoadGolden("level_" + Pad(n) + ".solver.json");
+            string file = "level_" + Pad(n) + ".solver.json";
+            var j = archive ? TestPaths.LoadGolden(file) : TestPaths.LoadCurrentGolden(file);
             return new SolverGolden
             {
                 Level = j["level"]!.AsInt,
@@ -247,11 +259,11 @@ namespace MinikUsta.Core.Tests
 
         [Test(Description = "golden level n transcription: piece refs, shapes, colours, geometry, budget and level hash match the level data")]
         [TestCaseSource(nameof(GoldenLevels))]
-        public void Golden_level_transcription_matches_the_level_data(int n)
+        public void Golden_level_transcription_matches_the_level_data(int n, bool archive)
         {
-            var lvl = LevelFile(n);
-            var golden = LoadGolden(n);
-            var json = TestPaths.LoadLevelJson(n);
+            var lvl = LevelOf(n, archive);
+            var golden = LoadGolden(n, archive);
+            var json = LevelJsonOf(n, archive);
             Assert.AreEqual(n, golden.Level);
             Assert.AreEqual(GameSession.LevelHash(LevelJson.ParseOrThrow(json)), golden.LevelHash, "levelHash of levels/level_NNN.json (K-43/4)");
             Assert.AreEqual(GameSession.RulesVersion, golden.RulesVersion);
@@ -285,10 +297,10 @@ namespace MinikUsta.Core.Tests
 
         [Test(Description = "K-50 K-46 level n: the hand golden is the solver golden (canonical log, min, YAO, eventLogHash)")]
         [TestCaseSource(nameof(GoldenLevels))]
-        public void K50_K46_the_hand_golden_is_the_solver_golden(int n)
+        public void K50_K46_the_hand_golden_is_the_solver_golden(int n, bool archive)
         {
-            var golden = LoadGolden(n);
-            var solver = LoadSolver(n);
+            var golden = LoadGolden(n, archive);
+            var solver = LoadSolver(n, archive);
             Assert.AreEqual(n, solver.Level);
             Assert.AreEqual(golden.LevelHash, solver.LevelHash);
             Assert.AreEqual(GameSession.RulesVersion, solver.RulesVersion);
@@ -300,10 +312,10 @@ namespace MinikUsta.Core.Tests
 
         [Test(Description = "K-28 K-46 K-48 level n: the canonical solution wins in the minimum with the documented YAO, no wrong placement; eventLogHash and finalAscii equal the TypeScript golden")]
         [TestCaseSource(nameof(GoldenLevels))]
-        public void K28_K46_K48_the_canonical_solution_wins_with_the_golden_event_log_hash(int n)
+        public void K28_K46_K48_the_canonical_solution_wins_with_the_golden_event_log_hash(int n, bool archive)
         {
-            var lvl = LevelFile(n);
-            var golden = LoadGolden(n);
+            var lvl = LevelOf(n, archive);
+            var golden = LoadGolden(n, archive);
             var played = PlayGolden(lvl, golden);
             var session = played.Session;
             Assert.AreEqual(BoosterOutcomes.Won, session.Outcome);
@@ -324,10 +336,10 @@ namespace MinikUsta.Core.Tests
 
         [Test(Description = "K-43 level n: the golden log replays bit for bit (replay = live state, same log)")]
         [TestCaseSource(nameof(GoldenLevels))]
-        public void K43_the_golden_log_replays_bit_for_bit(int n)
+        public void K43_the_golden_log_replays_bit_for_bit(int n, bool archive)
         {
-            var lvl = LevelFile(n);
-            var golden = LoadGolden(n);
+            var lvl = LevelOf(n, archive);
+            var golden = LoadGolden(n, archive);
             var played = PlayGolden(lvl, golden);
             var replayed = GameSession.Replay(lvl, golden.Log);
             Assert.IsTrue(replayed.Resumed);

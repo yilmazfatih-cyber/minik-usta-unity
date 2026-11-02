@@ -349,7 +349,7 @@ namespace MinikUsta.Core.Level
                 return new[] { x.Value, y.Value };
             }
 
-            private double[]? RateTuple(JsonValue? v, object[] path)
+            private double[]? RateTuple(JsonValue? v, object[] path, double max = 1)
             {
                 var a = Arr(v, path);
                 if (a == null) return null;
@@ -358,8 +358,8 @@ namespace MinikUsta.Core.Level
                     Issue(path, a.Count < 2 ? "too_small" : "too_big", "Invalid input: expected a tuple of 2 items");
                     return null;
                 }
-                var x = Num(a[0], At(path, 0), 0, 1);
-                var y = Num(a[1], At(path, 1), 0, 1);
+                var x = Num(a[0], At(path, 0), 0, max);
+                var y = Num(a[1], At(path, 1), 0, max);
                 if (x == null || y == null) return null;
                 return new[] { x.Value, y.Value };
             }
@@ -380,8 +380,10 @@ namespace MinikUsta.Core.Level
                 var sv = v["schemaVersion"];
                 if (sv != null)
                 {
+                    // GDD §14 (D-099): 1 = Faz 2R archive, 2 = fixed yard (K-55); missing = 1
                     if (sv.IsNumber && sv.AsDouble == 1) schemaVersion = 1;
-                    else Issue(At(path, "schemaVersion"), "invalid_value", "Invalid input: expected 1");
+                    else if (sv.IsNumber && sv.AsDouble == 2) schemaVersion = 2;
+                    else Issue(At(path, "schemaVersion"), "invalid_union", "Invalid input: expected 1 or 2");
                 }
                 var id = Int(v["id"], At(path, "id"), 1, 999);
                 var chapter = Int(v["chapter"], At(path, "chapter"), 1, 5);
@@ -1025,38 +1027,50 @@ namespace MinikUsta.Core.Level
                 return ok ? new TutCondition(e, count, minMs, at, piece, hidden, painted, flag, wind, type) : null;
             }
 
-            private static readonly string[] TargetsKeys = { "minShifts", "firstNeedDepth", "choices0", "deadRate" };
+            private static readonly string[] TargetsKeys =
+            {
+                "minShifts", "firstNeedDepth", "choices0", "deadRate",
+                "min", "maxCover", "depLater", "crossDeps", "parkSlack", "forced", "greedyExcess", "greedyWin", "ahaMin", "branch3",
+            };
 
             private TargetsData? Targets(JsonValue? v, object[] path)
             {
                 if (v == null) return null;
                 if (!Strict(v, path, TargetsKeys)) return null;
                 bool ok = true;
-                int[]? minShifts = null;
-                int[]? firstNeedDepth = null;
-                int[]? choices0 = null;
-                double[]? deadRate = null;
-                if (v.Has("minShifts"))
+                int[]? IntBand(string key)
                 {
-                    minShifts = Tuple(v["minShifts"], At(path, "minShifts"), 0, 99, 0, 99);
-                    if (minShifts == null) ok = false;
+                    if (!v.Has(key)) return null;
+                    var band = Tuple(v[key], At(path, key), 0, 99, 0, 99);
+                    if (band == null) ok = false;
+                    return band;
                 }
-                if (v.Has("firstNeedDepth"))
+                double[]? RateBand(string key, double max)
                 {
-                    firstNeedDepth = Tuple(v["firstNeedDepth"], At(path, "firstNeedDepth"), 0, 99, 0, 99);
-                    if (firstNeedDepth == null) ok = false;
+                    if (!v.Has(key)) return null;
+                    var band = RateTuple(v[key], At(path, key), max);
+                    if (band == null) ok = false;
+                    return band;
                 }
-                if (v.Has("choices0"))
-                {
-                    choices0 = Tuple(v["choices0"], At(path, "choices0"), 0, 99, 0, 99);
-                    if (choices0 == null) ok = false;
-                }
-                if (v.Has("deadRate"))
-                {
-                    deadRate = RateTuple(v["deadRate"], At(path, "deadRate"));
-                    if (deadRate == null) ok = false;
-                }
-                return ok ? new TargetsData(minShifts, firstNeedDepth, choices0, deadRate) : null;
+                var minShifts = IntBand("minShifts");
+                var firstNeedDepth = IntBand("firstNeedDepth");
+                var choices0 = IntBand("choices0");
+                var deadRate = RateBand("deadRate", 1);
+                // D-099 (LEVELS §7 U-1): K-50 items 11–18; `parkSlack` is a band of two decimals, at most 9.99
+                var min = IntBand("min");
+                var maxCover = IntBand("maxCover");
+                var depLater = IntBand("depLater");
+                var crossDeps = IntBand("crossDeps");
+                var parkSlack = RateBand("parkSlack", 9.99);
+                var forced = IntBand("forced");
+                var greedyExcess = IntBand("greedyExcess");
+                var greedyWin = RateBand("greedyWin", 1);
+                var ahaMin = IntBand("ahaMin");
+                var branch3 = RateBand("branch3", 1);
+                return ok
+                    ? new TargetsData(minShifts, firstNeedDepth, choices0, deadRate, min, maxCover, depLater, crossDeps, parkSlack,
+                        forced, greedyExcess, greedyWin, ahaMin, branch3)
+                    : null;
             }
         }
     }

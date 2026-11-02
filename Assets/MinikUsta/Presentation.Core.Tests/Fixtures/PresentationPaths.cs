@@ -62,12 +62,25 @@ namespace MinikUsta.Presentation.Tests.Fixtures
         /// <summary>The core's golden replays (`level_NNN.hand.json`, `level_NNN.solver.json`), copied from the web repo.</summary>
         public static string CoreGoldenDir => Path.Combine(RepoRoot, "Assets", "MinikUsta", "Core.Tests", "Golden");
 
+        /// <summary>
+        /// The Faz 2R archive (`schemaVersion` 1, truck batches K-25…K-27) in Core.Tests: levels 1–10 and their golden replays as
+        /// of web c1facf4. D-099 content (K-55, fixed yard) is what the game ships; the tests of the retired truck presentation
+        /// (K-25 ride, delivery drops) and of Faz 2R examples play on the archive.
+        /// </summary>
+        public static string Archive2RDir => Path.Combine(RepoRoot, "Assets", "MinikUsta", "Core.Tests", "Archive2R");
+
         /// <summary>Presentation test data (tokens.json copy, tools/sync-from-web.sh).</summary>
         public static string GoldenDir => Path.Combine(RepoRoot, "Assets", "MinikUsta", "Presentation.Core.Tests", "Golden");
 
         public static JsonValue ReadJson(string path) => JsonReader.Parse(File.ReadAllText(path));
 
         public static JsonValue LoadLevelJson(int n) => ReadJson(Path.Combine(LevelsDir, "level_" + n.ToString("000") + ".json"));
+
+        /// <summary>A Faz 2R archive level (`schemaVersion` 1).</summary>
+        public static JsonValue LoadArchiveLevelJson(int n) => ReadJson(Path.Combine(Archive2RDir, "level_" + n.ToString("000") + ".json"));
+
+        /// <summary>A golden replay of the Faz 2R archive (`level_NNN.hand.json`, `level_NNN.solver.json`).</summary>
+        public static JsonValue LoadArchiveGolden(string fileName) => ReadJson(Path.Combine(Archive2RDir, fileName));
 
         public static JsonValue LoadCoreGolden(string fileName) => ReadJson(Path.Combine(CoreGoldenDir, fileName));
 

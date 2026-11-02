@@ -46,6 +46,12 @@ namespace MinikUsta.Presentation.Tests.Fixtures
 
         public void Load(int n) => Assert.IsTrue(Player.Load(n), "level " + n + " loads: " + Player.LoadError);
 
+        /// <summary>
+        /// Plays the Faz 2R archive level `n` (`schemaVersion` 1, truck batches K-25…K-27) as level number `n`: the tests of the truck
+        /// ride, the wrong-placement bounce on the Faz 2R level 1 and the Faz 2R golden schedules run on it (D-099, K-55 item 9).
+        /// </summary>
+        public void LoadArchive(int n) => Player.Start(Play.LevelFile(n, archive: true), n);
+
         /// <summary>Frames of `FrameMs` until `ms` passed.</summary>
         public void Tick(float ms)
         {

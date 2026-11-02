@@ -49,9 +49,9 @@ namespace MinikUsta.Presentation.Tests
         private static int Count(Rig rig, SparkKind kind) => rig.View.SparkLog.Count(s => s.Kind == kind);
 
         /// <summary>Plays the golden solution of `level` by finger, up to and including drag `upTo`; each drag settles first.</summary>
-        private static void PlayTo(Rig rig, int level, int upTo)
+        private static void PlayTo(Rig rig, int level, int upTo, bool archive = false)
         {
-            var drags = Play.SolverGolden(level).Drags;
+            var drags = Play.SolverGolden(level, archive).Drags;
             for (int i = 0; i <= upTo; i++)
             {
                 rig.DragTo(drags[i]);
@@ -79,10 +79,10 @@ namespace MinikUsta.Presentation.Tests
             rig.Tick(200);
         }
 
-        /// <summary>Level 1: releases a block of the wrong colour over the first golden spot (a K-17 wrong placement).</summary>
+        /// <summary>Faz 2R level 1 (the archive, D-099): releases a block of the wrong colour over the first golden spot (a K-17 wrong placement).</summary>
         private static int ReleaseWrong(Rig rig)
         {
-            var moves = Play.CraneMoves(1);
+            var moves = Play.CraneMoves(1, archive: true);
             var m = moves[0];
             var s = rig.Session.State;
             var wrong = moves.First(x => x.PieceId != m.PieceId && State.PieceColor(s, x.PieceId) != State.PieceColor(s, m.PieceId));
@@ -384,7 +384,7 @@ namespace MinikUsta.Presentation.Tests
         public void K17_a_wrong_placement_goes_to_its_spot_shakes_8_px_bounces_back_and_puffs_grey_dust()
         {
             var rig = new Rig(390, 844);
-            rig.Load(1);
+            rig.LoadArchive(1);
             int id = ReleaseWrong(rig);
             var v = rig.View.Live[id];
             var f = rig.Player.Feel;
@@ -416,8 +416,8 @@ namespace MinikUsta.Presentation.Tests
         {
             var sink = new RecordingHaptics();
             var rig = new Rig(1080, 1920, null, sink);
-            rig.Load(1);
-            PlayTo(rig, 1, 0);
+            rig.LoadArchive(1);
+            PlayTo(rig, 1, 0, archive: true);
             rig.Settle();
             Assert.AreEqual(1, rig.View.StreakBeads, "one bead after one correct placement");
             ReleaseWrong(rig);
@@ -473,22 +473,34 @@ namespace MinikUsta.Presentation.Tests
 
         // --- segment slide, truck, confetti, shake (JUICE #18, #19, Q2 item 6, 12) ----------------------------------------------
 
-        private static Rig PlayToSegmentSlide(RecordingHaptics? sink = null, bool reduced = false)
+        /// <summary>
+        /// Plays the golden solution of level 5 up to the first move that completes a segment and returns the rig right after
+        /// it was committed (the package with the segment slide, and with `archive` — Faz 2R schemaVersion 1 — the truck). The
+        /// shipped level 5 (D-099, fixed yard) slides on move 7; the Faz 2R level 5 on move 5 and delivers batch 1.
+        /// </summary>
+        private static Rig PlayToSegmentSlide(RecordingHaptics? sink = null, bool reduced = false, bool archive = false)
         {
             var rig = new Rig(1080, 1920, null, sink);
             rig.Player.Reduced = reduced;
-            rig.Load(5);
-            var drags = Play.SolverGolden(5).Drags;
-            for (int i = 0; i < 4; i++) rig.DragTo(drags[i]);
-            rig.DragTo(drags[4], settleFirst: true); // the package with the segment slide and the truck
+            if (archive) rig.LoadArchive(5);
+            else rig.Load(5);
+            var drags = Play.SolverGolden(5, archive).Drags;
+            var probe = GameSession.Start(Play.LevelFile(5, archive));
+            int slide = -1;
+            for (int i = 0; i < drags.Length && slide < 0; i++)
+                if (probe.Apply(drags[i]).Events.Any(e => e is SiteShiftedEvent)) slide = i;
+            Assert.GreaterOrEqual(slide, 1, "the golden solution of level 5 completes a segment before its last move");
+            for (int i = 0; i < slide; i++) rig.DragTo(drags[i]);
+            rig.DragTo(drags[slide], settleFirst: true); // the package with the segment slide (and the truck of a Faz 2R level)
             return rig;
         }
 
-        [Test]
-        public void K22_the_next_segment_slides_in_from_the_right_edge_with_confetti_a_camera_shake_and_a_strong_buzz()
+        [TestCase(false)]
+        [TestCase(true)]
+        public void K22_the_next_segment_slides_in_from_the_right_edge_with_confetti_a_camera_shake_and_a_strong_buzz(bool archive)
         {
             var sink = new RecordingHaptics();
-            var rig = PlayToSegmentSlide(sink);
+            var rig = PlayToSegmentSlide(sink, archive: archive);
             var f = rig.Player.Feel;
             float slideMax = 0, camMax = 0;
             Run(rig, () =>
@@ -511,7 +523,7 @@ namespace MinikUsta.Presentation.Tests
         [Test]
         public void K25_the_truck_drives_in_from_the_right_tips_its_bed_drops_the_blocks_in_dust_and_leaves_to_the_left()
         {
-            var rig = PlayToSegmentSlide();
+            var rig = PlayToSegmentSlide(archive: true); // Faz 2R level 5 (schemaVersion 1): batch 1 arrives by truck
             var f = rig.Player.Feel;
             float? shownAt = null, hiddenAt = null, t = 0;
             int dust0 = Count(rig, SparkKind.Dust);
@@ -538,13 +550,37 @@ namespace MinikUsta.Presentation.Tests
         [Test]
         public void K25_reduced_motion_truck_appears_and_disappears_without_a_ride_or_a_shake()
         {
-            var rig = PlayToSegmentSlide(null, true);
+            var rig = PlayToSegmentSlide(null, true, archive: true);
             Run(rig);
             Assert.AreEqual(1, rig.View.Truck.Appearances);
             Assert.AreEqual(0, rig.Player.Shakes, "JUICE §0 rule 8: no screen shake");
             Assert.AreEqual(0, Count(rig, SparkKind.Confetti), "no confetti");
             Assert.AreEqual(0f, rig.View.SiteLayer.Position.X, "no slide");
             rig.AssertBoardMatchesState("reduced");
+        }
+
+        [Test]
+        public void K55_E62_a_fixed_yard_segment_change_slides_the_site_with_no_truck_no_delivery_and_no_truck_chip()
+        {
+            var rig = PlayToSegmentSlide(); // the shipped level 5 (schemaVersion 2): segment 1 done on move 7, the yard stays as it is
+            Run(rig);
+            Assert.AreEqual(0, rig.View.Truck.Appearances, "no batch, no truck (K-55 item 2)");
+            var events = rig.Player.LastResult!.Events;
+            Assert.IsTrue(events.Any(e => e is SiteShiftedEvent), "the site still slides in (K-22)");
+            Assert.IsFalse(events.Any(e => e is DeliveryArrivedEvent || e is DeliveryQueuedEvent), "step 9 delivers nothing");
+            Assert.IsFalse(events.Any(e => e is PieceFellEvent f && f.Cause == FallCauses.Delivery), "no delivery fall");
+            Assert.IsFalse(rig.View.HudState!.Truck, "the Kamyonda: N chip stays hidden at N = 0 (E-62)");
+            Assert.AreEqual(0, rig.View.HudState!.Queue);
+            rig.AssertBoardMatchesState("after the fixed-yard slide");
+        }
+
+        [Test]
+        public void K55_a_Faz_2R_level_still_shows_its_truck_chip_while_a_block_waits_in_the_queue()
+        {
+            var rig = PlayToSegmentSlide(archive: true); // Faz 2R level 5 (schemaVersion 1): batch 1 arrives by truck
+            Run(rig);
+            Assert.AreEqual(1, rig.View.Truck.Appearances);
+            Assert.AreEqual(rig.View.HudState!.Queue > 0, rig.View.HudState!.Truck, "the chip follows the queue (N > 0)");
         }
 
         // --- Söküm dust (JUICE #107) -------------------------------------------------------------------------------------
@@ -637,9 +673,11 @@ namespace MinikUsta.Presentation.Tests
             Assert.AreEqual(0, coinsWhenOpened, "the window opens after the last coin landed");
             Assert.AreEqual(f.GoldChipPeak, chipPeak, 0.03f, "the chip pops with each coin");
             Assert.AreEqual(0, rig.View.Moves, "the plate counted down to 0");
-            Assert.GreaterOrEqual(Count(rig, SparkKind.Confetti), f.ParticleSegment + f.ParticleWin, "JUICE #55 confetti");
-            Assert.LessOrEqual(Count(rig, SparkKind.Confetti), f.ParticleSegment + f.ParticleWin * f.ParticleWinWaves);
-            Assert.AreEqual(2, rig.Player.Shakes, "the last segment's 3 px and the win's");
+            // D-099 level 1 has two floors: the first segment's slide (confetti + 3 px shake), then the last segment's and the win's
+            int segments = rig.Session.Lvl.Segments.Length;
+            Assert.GreaterOrEqual(Count(rig, SparkKind.Confetti), f.ParticleSegment * segments + f.ParticleWin, "JUICE #55 confetti");
+            Assert.LessOrEqual(Count(rig, SparkKind.Confetti), f.ParticleSegment * segments + f.ParticleWin * f.ParticleWinWaves);
+            Assert.AreEqual(segments + 1, rig.Player.Shakes, "every segment's 3 px (the last one included) and the win's");
             Assert.IsTrue(sink.Kinds.Contains(HapticKind.Win) && sink.Kinds.Contains(HapticKind.Success), "victory pattern and the star's success buzz");
             Assert.IsTrue(rig.View.Panel!.Star, "META §1: a first win gives its star");
             Assert.AreEqual(f.WinStarPeak, starPeak, 0.03f, "JUICE #96: the star 0 → 1,2");

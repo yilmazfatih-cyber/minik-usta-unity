@@ -156,15 +156,16 @@ namespace MinikUsta.Core.Level
         public static readonly string[] CheckIds =
         {
             "L-01", "L-02", "L-03", "L-04", "L-05", "L-06", "L-07", "L-08", "L-09", "L-10", "L-11", "L-12", "L-13", "L-14",
-            "L-15", "L-16", "L-17", "L-18", "L-21", "L-22", "L-23", "L-24", "L-25", "L-26", "L-28", "L-29", "L-30", "L-31",
+            "L-15", "L-16", "L-17", "L-18", "L-21", "L-22", "L-23", "L-24", "L-25", "L-26", "L-28", "L-29", "L-30", "L-31", "L-36",
         };
 
         /// <summary>
         /// Checks the game runs when it loads a level (TECH §8.3, &lt; 1 ms): what the engine needs to build a sane board. The
         /// schema always runs. L-28 is first: `Compile` cannot build a geometry outside the frame. L-05 (`plan_size`,
-        /// `plan_has_window`, `elevator_overflow`) is back in the runtime set since WP-M (TECH §2R.3 note 2).
+        /// `plan_has_window`, `elevator_overflow`) is back in the runtime set since WP-M (TECH §2R.3 note 2). L-36 (K-55,
+        /// `fixed_yard_batches`, D-099): a `schemaVersion` 2 level with truck batches is not loaded.
         /// </summary>
-        public static readonly string[] RuntimeChecks = { "L-02", "L-04", "L-05", "L-08", "L-09", "L-24", "L-25", "L-26", "L-28" };
+        public static readonly string[] RuntimeChecks = { "L-02", "L-04", "L-05", "L-08", "L-09", "L-24", "L-25", "L-26", "L-28", "L-36" };
 
         /// <summary>First level of each colour (BRIEF §6, GDD K-31; LEVELS §0: R "en erken" 4, first used in Faz 2R level 5).</summary>
         public static readonly IReadOnlyDictionary<string, int> ColorFirstLevel = new Dictionary<string, int>
@@ -214,6 +215,7 @@ namespace MinikUsta.Core.Level
             { "L-13", "K-45/7" }, { "L-14", "K-45/6" }, { "L-15", "K-45/6" }, { "L-16", "K-45/10" }, { "L-17", "GDD 14.1" }, { "L-18", "LEVELS 0" },
             { "L-21", "K-45/5" }, { "L-22", "K-45/10" }, { "L-23", "K-45/6" }, { "L-24", "K-24" }, { "L-25", "K-23" }, { "L-26", "Y4" },
             { "L-28", "K-45/2" }, { "L-29", "K-45/7" }, { "L-30", "K-45/8" }, { "L-31", "K-45/10" },
+            { "L-36", "K-45/11" },
         };
 
         /// <summary>`CHECK_RULE[check]`.</summary>
@@ -500,6 +502,7 @@ namespace MinikUsta.Core.Level
             if (enabled.Contains("L-09")) CheckWall(level, geo, push);
             if (enabled.Contains("L-11") && coverOk && shapesOk) CheckTiling(level, plans, geo, ctx.TileBudget ?? TileBudget, push);
             if (enabled.Contains("L-12")) CheckBatches(level, geo, push);
+            if (enabled.Contains("L-36")) CheckFixedYard(level, push);
             if (enabled.Contains("L-13") || enabled.Contains("L-29")) CheckDebris(level, plans, geo, plansUsable, push);
             if (enabled.Contains("L-14") || enabled.Contains("L-23")) CheckHiddenItems(level, push);
             if (enabled.Contains("L-15")) CheckGoals(level, push);
@@ -525,17 +528,32 @@ namespace MinikUsta.Core.Level
             var t = level.Targets;
             if (t != null)
             {
+                // TS `Object.entries(level.targets)`: the schema's key order
                 void Band(string name, int[]? band)
                 {
                     if (band != null && band[0] > band[1])
                         push("L-01", "schema_invalid", "targets." + name, "band [" + band[0] + ", " + band[1] + "] needs low ≤ high");
                 }
+                void RateBand(string name, double[]? band)
+                {
+                    if (band != null && band[0] > band[1])
+                        push("L-01", "schema_invalid", "targets." + name,
+                            "band [" + JsNumber.Format(band[0]) + ", " + JsNumber.Format(band[1]) + "] needs low ≤ high");
+                }
                 Band("minShifts", t.MinShifts);
                 Band("firstNeedDepth", t.FirstNeedDepth);
                 Band("choices0", t.Choices0);
-                if (t.DeadRate != null && t.DeadRate[0] > t.DeadRate[1])
-                    push("L-01", "schema_invalid", "targets.deadRate",
-                        "band [" + JsNumber.Format(t.DeadRate[0]) + ", " + JsNumber.Format(t.DeadRate[1]) + "] needs low ≤ high");
+                RateBand("deadRate", t.DeadRate);
+                Band("min", t.Min);
+                Band("maxCover", t.MaxCover);
+                Band("depLater", t.DepLater);
+                Band("crossDeps", t.CrossDeps);
+                RateBand("parkSlack", t.ParkSlack);
+                Band("forced", t.Forced);
+                Band("greedyExcess", t.GreedyExcess);
+                RateBand("greedyWin", t.GreedyWin);
+                Band("ahaMin", t.AhaMin);
+                RateBand("branch3", t.Branch3);
             }
         }
 
@@ -1043,6 +1061,25 @@ namespace MinikUsta.Core.Level
                     }
                 }
             }
+        }
+
+        /// <summary>
+        /// L-36 `fixed_yard_batches` (K-45/11, K-55 item 1; D-099): a `schemaVersion` 2 level has exactly one batch, with
+        /// `forSegment` 0 and no `dropColumns` — every block is in the yard from the start and no batch or truck refill comes
+        /// when a segment completes. A `schemaVersion` 1 file (Faz 2R archive, golden) keeps the K-25 batches (E-65).
+        /// </summary>
+        private static void CheckFixedYard(LevelData level, Push push)
+        {
+            if (!LevelSchema.IsFixedYardLevel(level)) return;
+            var batches = level.Yard.Batches;
+            if (batches.Length != 1)
+                push("L-36", "fixed_yard_batches", "yard.batches",
+                    "schemaVersion 2 (K-55): exactly one batch, got " + batches.Length + " (truck batches are schemaVersion 1 only)");
+            if (batches.Length > 0 && batches[0].ForSegment != 0)
+                push("L-36", "fixed_yard_batches", "yard.batches[0].forSegment",
+                    "schemaVersion 2 (K-55): the single batch has forSegment 0 (got " + batches[0].ForSegment + ")");
+            if (batches.Length > 0 && batches[0].DropColumns != null)
+                push("L-36", "fixed_yard_batches", "yard.batches[0].dropColumns", "schemaVersion 2 (K-55): dropColumns is not written (no truck delivery)");
         }
 
         private sealed class PlacedDebris

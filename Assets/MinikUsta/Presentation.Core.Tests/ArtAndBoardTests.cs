@@ -240,7 +240,7 @@ namespace MinikUsta.Presentation.Tests
         /// <summary>Level 1: piece 0 = D2_0 Y, piece 1 = D2_0 W; released over column 4 in the crane area (web shadowLook.test.ts).</summary>
         private static (FallResult ok, FallResult color, GameState s) Level1Falls()
         {
-            var session = GameSession.Start(Play.LevelFile(1));
+            var session = GameSession.Start(Play.LevelFile(1, archive: true)); // the Faz 2R level 1 (D-099: the archive)
             var s = session.State;
             var node = new DragNode(4, 5, Movement.Free);
             return (Gravity.ComputeFall(s, 0, node), Gravity.ComputeFall(s, 1, node), s);

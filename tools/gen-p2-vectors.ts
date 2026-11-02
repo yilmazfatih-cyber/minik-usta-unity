@@ -1,16 +1,16 @@
 /**
  * Generates Assets/MinikUsta/Core.Tests/Golden/p2_vectors.json from the TypeScript core (the source of truth, D-091) for the
- * P2 modules: level/logic (K-45 validator), goals, combo helpers, boosters, deadlock (D1/D2/D3a, Söküm, reshuffle), summary
+ * P2 modules: level/logic (K-45 validator), goals, combo helpers, boosters, deadlock (D1/D2/D3a, Söküm), summary
  * and the obstacle registry.
  *
- * - `fixtures`: every tests/level/fixtures/{valid,invalid} file and levels 1–10 run through `validateLevelJson` under two
+ * - `fixtures`: every tests/level/fixtures/{valid,invalid,v2} file and levels 1–10 run through `validateLevelJson` under two
  *   contexts (default; "full" = empty mechanic history + fixed i18n keys + economy.json booster unlocks + fileId for levels);
  *   every issue (code, rule, check, severity, path, message), `tileLevel` and `levelColorSet` when the schema passes.
  * - `levels`: levels 1–10 played with the canonical solution (tests/golden hand.json) through `applyMove` (the full K-35
  *   pipeline, available here but not yet in C#); every state is stored as `encodeState` so the C# test decodes the same
  *   buffer and evaluates the P2 queries on it: D3a / D2 / detection, D1 predicates, correct spots, booster targets and
- *   effects per piece, goals, summary, registry; plus step 12 (`runStep12` with the previous state as Söküm target), a
- *   direct `teardown` and a `reshuffleYard` with an external seeded RNG, each on a clone (events compacted, hash after).
+ *   effects per piece, goals, summary, registry; plus step 12 (`runStep12` with the previous state as Söküm target, also the
+ *   accepted +5 offer form `afterOffer`, RULES_VERSION 3) and a direct `teardown`, each on a clone (events compacted, hash after).
  * - `cover`: tests/fixtures/cover.ts `coverLevel(1…40)` level hashes and start-state queries (pins the C# Cover port).
  * Per state the query lines are hashed (FNV-1a 64); the first state of level 1 keeps the full lines as the format anchor.
  *
@@ -53,7 +53,12 @@ const { loadBoosterUnlock } = await web('tools/lib/levels.ts');
 const I18N = { tr: new Set(['tut.m.dig', 'tut.m.free']), en: new Set(['tut.m.dig', 'tut.m.free']) };
 const boosterUnlock = loadBoosterUnlock(WEB) ?? undefined;
 const readJson = (p: string): unknown => JSON.parse(readFileSync(p, 'utf8'));
-const levelPath = (n: number): string => join(WEB, 'levels', `level_${String(n).padStart(3, '0')}.json`);
+/** Faz 2R archive (D-099 / K-55 item 9): levels 1–10 as `schemaVersion` 1 with their truck batches and golden replays. */
+const ARCHIVE = resolve(args.find((a) => a.startsWith('--archive='))?.slice('--archive='.length) ?? join(ROOT, 'Assets', 'MinikUsta', 'Core.Tests', 'Archive2R'));
+const levelPath = (n: number, archive = false): string =>
+  join(archive ? ARCHIVE : join(WEB, 'levels'), `level_${String(n).padStart(3, '0')}.json`);
+const handPath = (n: number, archive = false): string =>
+  join(archive ? ARCHIVE : join(WEB, 'tests', 'golden'), `level_${String(n).padStart(3, '0')}.hand.json`);
 
 // --- fixtures ------------------------------------------------------------------------------------------------------------
 
@@ -80,7 +85,7 @@ function fixtureVector(group: string, name: string, json: unknown, ctxName: stri
 }
 
 const fixtures: any[] = [];
-for (const group of ['valid', 'invalid']) {
+for (const group of ['valid', 'invalid', 'v2']) {
   const dir = join(WEB, 'tests', 'level', 'fixtures', group);
   for (const f of readdirSync(dir).sort()) {
     if (!f.endsWith('.json')) continue;
@@ -90,13 +95,16 @@ for (const group of ['valid', 'invalid']) {
     fixtures.push(fixtureVector(group, name, json, 'full', { previousMechanics: new Set(), i18nKeys: I18N, boosterUnlock }));
   }
 }
-// levels 1–10 with the mechanic history (drafts.test.ts `validateDraft`)
-const history = new Set<string>();
-for (let n = 1; n <= 10; n++) {
-  const json = readJson(levelPath(n));
-  fixtures.push(fixtureVector('levels', `level_${String(n).padStart(3, '0')}`, json, 'default', {}));
-  fixtures.push(fixtureVector('levels', `level_${String(n).padStart(3, '0')}`, json, 'full', { fileId: n, previousMechanics: new Set(history), boosterUnlock, i18nKeys: I18N }));
-  for (const m of deriveMechanics(LevelSchema.parse(json))) history.add(m);
+// levels 1–10 with the mechanic history (drafts.test.ts `validateDraft`): group `levels` = the shipped levels (D-099,
+// schemaVersion 2), group `archive` = the Faz 2R archive (schemaVersion 1)
+for (const [group, archive] of [['levels', false], ['archive', true]] as const) {
+  const history = new Set<string>();
+  for (let n = 1; n <= 10; n++) {
+    const json = readJson(levelPath(n, archive));
+    fixtures.push(fixtureVector(group, `level_${String(n).padStart(3, '0')}`, json, 'default', {}));
+    fixtures.push(fixtureVector(group, `level_${String(n).padStart(3, '0')}`, json, 'full', { fileId: n, previousMechanics: new Set(history), boosterUnlock, i18nKeys: I18N }));
+    for (const m of deriveMechanics(LevelSchema.parse(json))) history.add(m);
+  }
 }
 
 // --- state queries ---------------------------------------------------------------------------------------------------------
@@ -142,7 +150,7 @@ function stateLines(s: any, prevBuf: Int32Array | null, seed: number): string[] 
   const tile = deadlock.tileRemaining(s);
   lines.push(`tile:${tile}:${deadlock.D3A_STATS.expansions}`);
   lines.push(`full:${bool(deadlock.isFullCover(lvl))}:imb:${deadlock.colorImbalance(s)}:detect:${deadlock.detectDeadlock(s, { table: null }) ?? '-'}:precheck:${bool(deadlock.precheckOk(s))}`);
-  lines.push(`nomoves:${bool(deadlock.noMoves(s, hooks.drag))}:any:${bool(deadlock.anyOneMoveCorrect(s, hooks.drag, hooks.fall))}`);
+  lines.push(`nomoves:${bool(deadlock.noMoves(s, hooks.drag))}`);
   lines.push(`holdable:${list(summary.holdableIds(s, hooks))}`);
   lines.push(`needed:${list(deadlock.neededNow(s))}`);
   lines.push(`blocksLeft:${goals.blocksLeft(s)}:supply:${list(goals.remainingSupplyByColor(s))}:demand:${list(goals.remainingDemandByColor(s))}`);
@@ -191,11 +199,18 @@ function stateLines(s: any, prevBuf: Int32Array | null, seed: number): string[] 
     const ev = deadlock.teardown(copy, Int32Array.from(prevBuf), 'tiling');
     lines.push(`teardown:${eventLine(ev)}:${hashHex(copy)}`);
   }
-  // D1 reshuffle with an external seeded RNG (fresh randomness for attempts ≥ 1)
+  // K-29 (RULES_VERSION 3): step 12 after an accepted +5 offer: D1 only, the Söküm target is the start of the last action
   {
     const copy = cloneState(s);
-    const moves = deadlock.reshuffleYard(copy, mulberry32(seed), deadlock.neededNow(copy), hooks.drag, hooks.fall);
-    lines.push(`reshuffle:${moves.map((m: any) => `${m.pieceId}@${m.from.x},${m.from.y}>${m.to.x},${m.to.y}`).join(';')}:${hashHex(copy)}`);
+    const events: any[] = [];
+    const cause = deadlock.runStep12(ctxOf(copy, events), hooks, {
+      preAction: prevBuf ? Int32Array.from(prevBuf) : null,
+      tiling: false,
+      counterZero: hdr(copy, H.movesLeft) <= 0,
+      table: null,
+      afterOffer: true,
+    });
+    lines.push(`step12offer:${cause ?? '-'}:${events.map(eventLine).join('|')}:${hashHex(copy)}`);
   }
   return lines;
 }
@@ -210,15 +225,15 @@ function stateVector(name: string, s: any, prevBuf: Int32Array | null, seed: num
 // --- levels 1–10 along the canonical solution ------------------------------------------------------------------------------
 
 const levels: any[] = [];
-for (let n = 1; n <= 10; n++) {
-  const json = readJson(levelPath(n));
+for (const archive of [false, true]) for (let n = 1; n <= 10; n++) {
+  const json = readJson(levelPath(n, archive));
   const loaded = loadLevel(json);
   if (!loaded.ok) throw new Error(`level ${n} does not load`);
   const lvl = loaded.level;
-  const hand = JSON.parse(readFileSync(join(WEB, 'tests', 'golden', `level_${String(n).padStart(3, '0')}.hand.json`), 'utf8'));
+  const hand = JSON.parse(readFileSync(handPath(n, archive), 'utf8'));
   const moves = hand.log.filter((a: any) => a.kind !== 'start' && a.kind !== 'undo');
   const s = createInitialState(lvl);
-  const states: any[] = [stateVector(`level ${n} start`, s, null, 1000 * n, n === 1 && !verbose ? true : verbose)];
+  const states: any[] = [stateVector(`level ${n} start`, s, null, 1000 * n, n === 1 && !archive && !verbose ? true : verbose)];
   let prev: Int32Array = s.buf.slice();
   moves.forEach((m: any, i: number) => {
     const res = applyMove(s, m);
@@ -226,7 +241,7 @@ for (let n = 1; n <= 10; n++) {
     states.push(stateVector(`level ${n} after move ${i + 1}`, s, prev, 1000 * n + i + 1, verbose));
     prev = s.buf.slice();
   });
-  levels.push({ level: n, levelHash: hand.levelHash, states });
+  levels.push({ level: n, archive, levelHash: hand.levelHash, states });
 }
 
 // --- cover levels ----------------------------------------------------------------------------------------------------------

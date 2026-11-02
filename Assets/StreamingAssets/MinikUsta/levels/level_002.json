@@ -1,28 +1,34 @@
 {
-  "schemaVersion": 1,
+  "schemaVersion": 2,
   "id": 2,
   "chapter": 1,
   "name": { "tr": "Platform", "en": "Platform" },
   "difficulty": "easy",
-  "moves": 9,
+  "moves": 10,
   "goals": [{ "type": "build" }],
   "gravity": { "build": "normal", "yard": false },
-  "wall": { "height": 4, "gaps": [] },
-  "site": { "cols": 2, "rows": 5 },
+  "wall": { "height": 3, "gaps": [] },
+  "site": { "cols": 2, "rows": 4 },
   "build": {
     "mode": "segments",
-    "segments": [{ "name": { "tr": "Platform", "en": "Platform" }, "rows": ["YY", "WY", "WW", "GG", "GG"] }]
+    "segments": [
+      { "name": { "tr": "Platform Tabanı", "en": "Platform Base" }, "rows": ["WW", "GG", "YG", "YY"] },
+      { "name": { "tr": "Platform Korkuluğu", "en": "Platform Rail" }, "rows": ["GG", "YY", "WY", "WW"] }
+    ]
   },
   "yard": {
-    "cols": 4,
+    "cols": 5,
     "rows": 4,
     "batches": [
       {
         "forSegment": 0,
         "pieces": [
-          { "shape": "O4_0", "color": "G", "x": 2, "y": 2 },
-          { "shape": "C3_0", "color": "W", "x": 0, "y": 0 },
-          { "shape": "C3_180", "color": "Y", "x": 0, "y": 2 }
+          { "shape": "C3_0", "color": "Y", "x": 0, "y": 2 },
+          { "shape": "D2_90", "color": "W", "x": 2, "y": 2 },
+          { "shape": "C3_180", "color": "G", "x": 3, "y": 2 },
+          { "shape": "D2_90", "color": "G", "x": 0, "y": 0 },
+          { "shape": "C3_180", "color": "Y", "x": 1, "y": 0 },
+          { "shape": "C3_0", "color": "W", "x": 3, "y": 0 }
         ]
       }
     ]
@@ -37,18 +43,31 @@
     },
     {
       "step": 2,
-      "highlight": ["piece:2", "build"],
+      "highlight": ["piece:2"],
       "hand": {
         "kind": "hold",
         "path": [
-          [1, 3],
-          [1, 5],
-          [5, 5]
+          [3, 3],
+          [3, 4],
+          [5, 4]
         ]
       },
       "textKey": "tut.m.shadow",
       "done": { "event": "placementCorrect", "count": 1 }
     }
   ],
-  "targets": { "minShifts": [0, 0], "firstNeedDepth": [0, 0], "deadRate": [0, 0] }
+  "targets": {
+    "min": [6, 7],
+    "minShifts": [0, 1],
+    "firstNeedDepth": [0, 1],
+    "maxCover": [0, 3],
+    "depLater": [0, 1],
+    "crossDeps": [1, 99],
+    "forced": [0, 6],
+    "greedyExcess": [0, 0],
+    "greedyWin": [0.9, 1],
+    "ahaMin": [0, 0],
+    "branch3": [0.3, 1],
+    "deadRate": [0, 0]
+  }
 }

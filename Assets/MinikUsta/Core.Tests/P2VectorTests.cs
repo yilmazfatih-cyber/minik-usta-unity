@@ -3,7 +3,7 @@
 // lines written by tools/gen-p2-vectors.ts (TypeScript core = source of truth, D-091) are rebuilt here from the C# core and
 // compared hash for hash (FNV-1a 64) on levels 1–10 along their canonical solutions (states decoded from the TS buffers, so
 // the K-35 pipeline is not needed yet) and on 40 seeded full-cover boards. Covers K-45 (every fixture's issue list, message
-// for message), K-30 D1/D2/D3a/Söküm/reshuffle (expansion counts included), K-33/K-36/K-37/K-38 target sets and pre-checks,
+// for message), K-30 D1/D2/D3a/Söküm (expansion counts included), K-33/K-36/K-37/K-38 target sets and pre-checks,
 // K-34 hook 5, K-41/K-47/K-48 goals, K-09/K-26 summary, K-35 §7 registry activation.
 // Regenerate: `node tools/gen-p2-vectors.ts /path/to/minik-usta` (and `--verbose` for every line of every state).
 using System;
@@ -54,7 +54,7 @@ namespace MinikUsta.Core.Tests
             string tile = Deadlock.TileRemaining(s);
             lines.Add("tile:" + tile + ":" + D3aStats.Expansions);
             lines.Add("full:" + B(Deadlock.IsFullCover(lvl)) + ":imb:" + Deadlock.ColorImbalance(s) + ":detect:" + (Deadlock.DetectDeadlock(s, null) ?? "-") + ":precheck:" + B(Deadlock.PrecheckOk(s)));
-            lines.Add("nomoves:" + B(Deadlock.NoMoves(s, hooks.Drag)) + ":any:" + B(Deadlock.AnyOneMoveCorrect(s, hooks.Drag, hooks.Fall)));
+            lines.Add("nomoves:" + B(Deadlock.NoMoves(s, hooks.Drag)));
             lines.Add("holdable:" + List(Summary.HoldableIds(s, hooks)));
             lines.Add("needed:" + List(Deadlock.NeededNow(s)));
             lines.Add("blocksLeft:" + Goals.BlocksLeft(s) + ":supply:" + List(Goals.RemainingSupplyByColor(s)) + ":demand:" + List(Goals.RemainingDemandByColor(s)));
@@ -100,11 +100,13 @@ namespace MinikUsta.Core.Tests
                 var ev = Deadlock.Teardown(copy, (int[])prevBuf.Clone(), TeardownCauses.Tiling);
                 lines.Add("teardown:" + EventLine(ev) + ":" + Hash.HashHex(copy));
             }
-            // D1 reshuffle with an external seeded RNG (fresh randomness for attempts ≥ 1)
+            // K-29 (RulesVersion 3): step 12 after an accepted +5 offer: D1 only, the Söküm target is the start of the last action
             {
                 var copy = CloneState(s);
-                var moves = Deadlock.ReshuffleYard(copy, new Mulberry32(seed), Deadlock.NeededNow(copy), hooks.Drag, hooks.Fall);
-                lines.Add("reshuffle:" + string.Join(";", moves.Select(m => m.PieceId + "@" + m.From.X + "," + m.From.Y + ">" + m.To.X + "," + m.To.Y)) + ":" + Hash.HashHex(copy));
+                var events = new List<GameEvent>();
+                string? cause = Deadlock.RunStep12(RuleContext.Of(copy, e => events.Add(e)), hooks,
+                    new Step12Options(prevBuf != null ? (int[])prevBuf.Clone() : null, false, Hdr(copy, H.MovesLeft) <= 0, null, true));
+                lines.Add("step12offer:" + (cause ?? "-") + ":" + string.Join("|", events.Select(EventLine)) + ":" + Hash.HashHex(copy));
             }
             return lines;
         }
@@ -122,8 +124,13 @@ namespace MinikUsta.Core.Tests
 
         // --- fixtures ---------------------------------------------------------------------------------------------------------
 
+        /// <summary>Groups `levels` (the shipped levels, D-099) and `archive` (Faz 2R archive, schemaVersion 1) are levels 1–10; the rest are fixture folders.</summary>
+        private static bool IsLevelGroup(string group) => group == "levels" || group == "archive";
+
         private static JsonValue FixtureJson(string group, string name) =>
-            group == "levels" ? TestPaths.LoadLevelJson(int.Parse(name.Substring("level_".Length))) : TestPaths.LoadFixture(group, name);
+            group == "levels" ? TestPaths.LoadCurrentLevelJson(int.Parse(name.Substring("level_".Length)))
+            : group == "archive" ? TestPaths.LoadLevelJson(int.Parse(name.Substring("level_".Length)))
+            : TestPaths.LoadFixture(group, name);
 
         private static string IssueLine(Issue i, bool schemaStage) =>
             i.Code + "|" + i.Rule + "|" + i.Check + "|" + i.Severity + "|" + i.Path + (schemaStage ? "" : "|" + i.Message);
@@ -137,17 +144,18 @@ namespace MinikUsta.Core.Tests
         {
             var i18n = new HashSet<string>(Strings(Vectors["i18nKeys"]));
             var unlock = TestPaths.LoadBoosterUnlock();
-            var history = new HashSet<string>();
+            var histories = new Dictionary<string, HashSet<string>>();
             int checkedRuns = 0;
             foreach (var f in Vectors["fixtures"]!.Items)
             {
                 string group = f["group"]!.AsString;
+                if (!histories.TryGetValue(group, out var history)) histories[group] = history = new HashSet<string>();
                 string name = f["name"]!.AsString;
                 string ctxName = f["ctx"]!.AsString;
                 var json = FixtureJson(group, name);
                 LogicContext ctx;
                 if (ctxName == "default") ctx = new LogicContext();
-                else if (group == "levels")
+                else if (IsLevelGroup(group))
                     ctx = new LogicContext(fileId: int.Parse(name.Substring("level_".Length)), previousMechanics: new HashSet<string>(history), boosterUnlock: unlock, i18nKeys: new I18nKeySets(i18n, i18n));
                 else ctx = new LogicContext(previousMechanics: new HashSet<string>(), i18nKeys: new I18nKeySets(i18n, i18n), boosterUnlock: unlock);
                 var r = Logic.ValidateLevelJson(json, ctx);
@@ -162,7 +170,7 @@ namespace MinikUsta.Core.Tests
                     Assert.AreEqual(f["tile"]!.AsString, Logic.TileLevel(r.Level, plans), where + " tileLevel");
                     CollectionAssert.AreEqual(Strings(f["colors"]), Logic.LevelColorSet(r.Level, plans), where + " colour set");
                 }
-                if (group == "levels" && ctxName == "full") foreach (var m in Mechanics.DeriveMechanics(LevelJson.ParseOrThrow(json))) history.Add(m);
+                if (IsLevelGroup(group) && ctxName == "full") foreach (var m in Mechanics.DeriveMechanics(LevelJson.ParseOrThrow(json))) history.Add(m);
                 checkedRuns++;
             }
             Assert.AreEqual(Vectors["fixtures"]!.Count, checkedRuns);
@@ -172,16 +180,18 @@ namespace MinikUsta.Core.Tests
 
         public static IEnumerable<TestCaseData> LevelCases()
         {
-            for (int n = 1; n <= 10; n++) yield return new TestCaseData(n).SetName("K30_K33_K36_K37_K38_K41_K47_K48_level_" + n.ToString("000") + "_states_equal_the_TS_core");
+            for (int n = 1; n <= 10; n++) yield return new TestCaseData(n, false).SetName("K30_K33_K36_K37_K38_K41_K47_K48_level_" + n.ToString("000") + "_states_equal_the_TS_core");
+            // D-099 / K-55 item 9: the Faz 2R archive (schemaVersion 1, truck batches) keeps its TS<->C# equivalence
+            for (int n = 1; n <= 10; n++) yield return new TestCaseData(n, true).SetName("K25_K55_archive_level_" + n.ToString("000") + "_states_equal_the_TS_core");
         }
 
         [TestCaseSource(nameof(LevelCases))]
-        public void Level_states_along_the_canonical_solution_equal_the_TS_core(int n)
+        public void Level_states_along_the_canonical_solution_equal_the_TS_core(int n, bool archive)
         {
             JsonValue? lv = null;
-            foreach (var l in Vectors["levels"]!.Items) if (l["level"]!.AsInt == n) lv = l;
+            foreach (var l in Vectors["levels"]!.Items) if (l["level"]!.AsInt == n && l["archive"]!.AsBool == archive) lv = l;
             Assert.IsNotNull(lv, "vector of level " + n);
-            var lvl = Compiler.LoadLevel(TestPaths.LoadLevelJson(n)).LevelOrThrow();
+            var lvl = Compiler.LoadLevel(archive ? TestPaths.LoadLevelJson(n) : TestPaths.LoadCurrentLevelJson(n)).LevelOrThrow();
             Assert.AreEqual(lv!["levelHash"]!.AsString, LevelJson.LevelHash(lvl.Data), "level " + n + " levelHash (K-43)");
             var states = lv["states"]!.Items.ToArray();
             int[]? prev = null;

@@ -121,6 +121,30 @@ namespace MinikUsta.Presentation.Tests
             Assert.IsNull(voided.App.Save.InLevel);
         }
 
+        [Test]
+        public void E67_K43_K55_an_attempt_saved_with_rulesVersion_2_is_closed_without_penalty_under_RULES_VERSION_3()
+        {
+            var store = new MemorySaveStore();
+            var rig = Booted(store);
+            rig.Tap(HomeView.PlayId);
+            rig.PlayGolden(1, 1);
+            Assert.AreEqual(4, rig.App.Save.Lives, "the attempt holds a reserved life");
+            // the record as the Faz 2R app wrote it: rulesVersion 2 and a +5 paid with 90 coins
+            var m = SaveCodec.Load(store, SaveModel.Default(500, 5)).Data;
+            int coins = m.Coins;
+            m.InLevel!.RulesVersion = 2;
+            m.InLevel.OfferSpendCoins = 90;
+            SaveCodec.Write(store, m);
+            Assert.AreEqual(3, GameSession.RulesVersion, "D-099 (K-55 item 8) bumped the rules version");
+            var voided = Booted(store);
+            Assert.AreEqual(AppScreen.Home, voided.Screen, "the attempt is not replayed; the player is back on the home screen");
+            StringAssert.Contains("voided", voided.App.BootNote);
+            StringAssert.Contains("rules version 2", voided.App.BootNote);
+            Assert.AreEqual(5, voided.App.Save.Lives, "the reserved life comes back");
+            Assert.AreEqual(coins + 90, voided.App.Save.Coins, "the +5 coins come back");
+            Assert.IsNull(voided.App.Save.InLevel);
+        }
+
         /// <summary>Makes the next committed move the last one (moves left 1), then commits golden move `i` of level `n`.</summary>
         private static void LastMove(AppRig rig, int n, int i)
         {

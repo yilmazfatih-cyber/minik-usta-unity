@@ -1,32 +1,36 @@
 {
-  "schemaVersion": 1,
+  "schemaVersion": 2,
   "id": 9,
   "chapter": 1,
   "name": { "tr": "İp Merdiven", "en": "Rope Ladder" },
   "difficulty": "normal",
-  "moves": 13,
+  "moves": 16,
   "teaches": "W3",
   "goals": [{ "type": "build" }],
   "gravity": { "build": "normal", "yard": false },
-  "wall": { "height": 4, "gaps": [{ "type": "static", "y": 0, "size": 1 }] },
-  "site": { "cols": 2, "rows": 6 },
+  "wall": { "height": 5, "gaps": [{ "type": "static", "y": 0, "size": 1 }] },
+  "site": { "cols": 2, "rows": 4 },
   "build": {
     "mode": "segments",
     "segments": [
-      { "name": { "tr": "Basamaklar", "en": "Rungs" }, "rows": ["RR", "RR", "WW", "WW", "GG", "RR"] }
+      { "name": { "tr": "Alt Basamaklar", "en": "Lower Rungs" }, "rows": ["GG", "RR", "WW", "WW"] },
+      { "name": { "tr": "Üst Basamaklar", "en": "Upper Rungs" }, "rows": ["RR", "RR", "GG", "WW"] }
     ]
   },
   "yard": {
     "cols": 4,
-    "rows": 4,
+    "rows": 5,
     "batches": [
       {
         "forSegment": 0,
         "pieces": [
-          { "shape": "D2_90", "color": "R", "x": 0, "y": 0 },
-          { "shape": "D2_90", "color": "G", "x": 2, "y": 0 },
-          { "shape": "O4_0", "color": "R", "x": 0, "y": 1 },
-          { "shape": "O4_0", "color": "W", "x": 2, "y": 2 }
+          { "shape": "D2_90", "color": "G", "x": 1, "y": 4 },
+          { "shape": "D2_90", "color": "G", "x": 0, "y": 3 },
+          { "shape": "D2_90", "color": "W", "x": 0, "y": 2 },
+          { "shape": "O4_0", "color": "R", "x": 2, "y": 2 },
+          { "shape": "D2_90", "color": "W", "x": 1, "y": 1 },
+          { "shape": "D2_90", "color": "W", "x": 0, "y": 0 },
+          { "shape": "D2_90", "color": "R", "x": 2, "y": 0 }
         ]
       }
     ]
@@ -35,30 +39,38 @@
   "tutorial": [
     {
       "step": 1,
-      "highlight": ["piece:1"],
+      "highlight": ["piece:0"],
       "hand": {
         "kind": "drag",
         "path": [
-          [2, 0],
-          [2, 1]
+          [1, 4],
+          [0, 4]
         ]
       },
       "textKey": "tut.m.dig",
-      "done": { "event": "yardMove", "count": 1, "piece": "piece:1" }
+      "done": { "event": "yardMove", "count": 1, "piece": "piece:0" }
     },
     {
       "step": 2,
-      "highlight": ["piece:0", "gap:0"],
-      "hand": {
-        "kind": "drag",
-        "path": [
-          [1, 0],
-          [5, 0]
-        ]
-      },
+      "startOn": { "event": "yardMove", "piece": "piece:6" },
+      "highlight": ["piece:4", "gap:0"],
       "textKey": "tut.m.narrow",
       "done": { "event": "gapPass", "count": 1 }
     }
   ],
-  "targets": { "minShifts": [3, 4], "firstNeedDepth": [1, 2], "deadRate": [0, 0] }
+  "targets": {
+    "min": [11, 13],
+    "minShifts": [3, 5],
+    "firstNeedDepth": [1, 2],
+    "maxCover": [2, 4],
+    "depLater": [2, 6],
+    "crossDeps": [2, 99],
+    "parkSlack": [0.4, 1],
+    "forced": [8, 12],
+    "greedyExcess": [1, 3],
+    "greedyWin": [0.5, 1],
+    "ahaMin": [1, 2],
+    "branch3": [0.2, 0.5],
+    "deadRate": [0, 0]
+  }
 }

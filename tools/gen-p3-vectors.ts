@@ -31,6 +31,8 @@ const args = process.argv.slice(2);
 const verbose = args.includes('--verbose');
 const WEB = resolve(args.find((a) => !a.startsWith('--')) ?? join(ROOT, '..', 'minik-usta'));
 const web = (p: string): Promise<any> => import(pathToFileURL(join(WEB, p)).href);
+/** Faz 2R archive (D-099 / K-55 item 9): levels 1–10 as `schemaVersion` 1 with their truck batches and golden replays. */
+const ARCHIVE = resolve(args.find((a) => a.startsWith('--archive='))?.slice('--archive='.length) ?? join(ROOT, 'Assets', 'MinikUsta', 'Core.Tests', 'Archive2R'));
 
 const { compile, loadLevel } = await web('src/core/level/compile.ts');
 const { H, hdr, pieceZone, pieceShape } = await web('src/core/state.ts');
@@ -175,7 +177,7 @@ function applyLine(i: number, input: Input, r: any): string {
 
 interface Sequence {
   readonly name: string;
-  readonly source: { kind: 'level' | 'cover'; n: number };
+  readonly source: { kind: 'level' | 'archive' | 'cover'; n: number };
   readonly seed: number;
   readonly preBoosters: readonly string[];
   readonly streakTier: number;
@@ -270,15 +272,18 @@ const BURN_SEEDS = 3;
 const COVER_LEVELS = 20;
 const COVER_SEEDS = 3;
 const sequences: Sequence[] = [];
-for (let n = 1; n <= 10; n++) {
-  const loaded = loadLevel(readJson(join(WEB, 'levels', `level_${pad(n)}.json`)));
-  if (!loaded.ok) throw new Error(`level ${n} does not load`);
-  const hand = readJson(join(WEB, 'tests', 'golden', `level_${pad(n)}.hand.json`));
-  const moves = hand.log.filter((a: any) => a.kind === 'drag');
-  for (let seed = 1; seed <= LEVEL_SEEDS; seed++)
-    sequences.push(playSequence(`level ${n} seed ${seed}`, { kind: 'level', n }, loaded.level, seed, moves, sequences.length === 0 || verbose));
-  for (let seed = LEVEL_SEEDS + 1; seed <= LEVEL_SEEDS + BURN_SEEDS; seed++)
-    sequences.push(playSequence(`level ${n} burn ${seed}`, { kind: 'level', n }, loaded.level, seed, [], verbose, true));
+// `level` = the shipped levels (D-099, schemaVersion 2: one batch, fixed yard); `archive` = the Faz 2R levels (schemaVersion 1)
+for (const kind of ['level', 'archive'] as const) {
+  for (let n = 1; n <= 10; n++) {
+    const loaded = loadLevel(readJson(kind === 'level' ? join(WEB, 'levels', `level_${pad(n)}.json`) : join(ARCHIVE, `level_${pad(n)}.json`)));
+    if (!loaded.ok) throw new Error(`${kind} ${n} does not load`);
+    const hand = readJson(kind === 'level' ? join(WEB, 'tests', 'golden', `level_${pad(n)}.hand.json`) : join(ARCHIVE, `level_${pad(n)}.hand.json`));
+    const moves = hand.log.filter((a: any) => a.kind === 'drag');
+    for (let seed = 1; seed <= LEVEL_SEEDS; seed++)
+      sequences.push(playSequence(`${kind} ${n} seed ${seed}`, { kind, n }, loaded.level, seed, moves, sequences.length === 0 || verbose));
+    for (let seed = LEVEL_SEEDS + 1; seed <= LEVEL_SEEDS + BURN_SEEDS; seed++)
+      sequences.push(playSequence(`${kind} ${n} burn ${seed}`, { kind, n }, loaded.level, seed, [], verbose, true));
+  }
 }
 for (let n = 1; n <= COVER_LEVELS; n++) {
   const lvl = compile(level(coverLevel(n)));

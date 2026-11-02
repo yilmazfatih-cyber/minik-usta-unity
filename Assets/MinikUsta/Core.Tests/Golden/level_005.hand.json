@@ -1,115 +1,109 @@
 {
   "level": 5,
   "source": "docs/LEVELS.md §2 Bölüm 5 — Kanonik çözüm (solver, GDD K-50 madde 4)",
-  "levelHash": "ef0d7b249aad654a",
-  "rulesVersion": 2,
-  "geo": { "yard": [4, 4], "site": [2, 5], "H": 5, "wall": 4 },
-  "budget": 17,
+  "levelHash": "5dc8a83c9ae23ed4",
+  "rulesVersion": 3,
+  "geo": { "yard": [5, 4], "site": [2, 4], "H": 4, "wall": 3 },
+  "budget": 13,
   "minMoves": 11,
-  "movesLeft": 6,
+  "movesLeft": 2,
   "yao": { "overWall": 8, "rail": 0 },
   "steps": [
     {
-      "piece": "d",
-      "ref": "piece:3",
-      "shape": "D2_90",
+      "piece": "b",
+      "ref": "piece:1",
+      "shape": "D2_0",
       "color": "W",
-      "from": [0, 2],
+      "from": [1, 2],
       "kind": "shift",
       "to": [2, 2]
     },
     {
       "piece": "a",
       "ref": "piece:0",
-      "shape": "O4_0",
+      "shape": "D2_90",
+      "color": "Y",
+      "from": [3, 3],
+      "kind": "shift",
+      "to": [0, 3]
+    },
+    {
+      "piece": "c",
+      "ref": "piece:2",
+      "shape": "D2_90",
       "color": "R",
-      "from": [0, 0],
+      "from": [3, 2],
       "kind": "overWall",
-      "to": [4, 0]
+      "to": [5, 0]
     },
     {
       "piece": "b",
       "ref": "piece:1",
       "shape": "D2_0",
       "color": "W",
-      "from": [2, 0],
-      "kind": "overWall",
+      "from": [2, 2],
+      "kind": "shift",
       "to": [4, 2]
     },
     {
-      "piece": "c",
-      "ref": "piece:2",
-      "shape": "D2_0",
-      "color": "Y",
-      "from": [3, 0],
+      "piece": "e",
+      "ref": "piece:4",
+      "shape": "D2_90",
+      "color": "W",
+      "from": [1, 1],
+      "kind": "overWall",
+      "to": [5, 1]
+    },
+    {
+      "piece": "g",
+      "ref": "piece:6",
+      "shape": "D2_90",
+      "color": "W",
+      "from": [0, 0],
       "kind": "overWall",
       "to": [5, 2]
     },
     {
+      "piece": "a",
+      "ref": "piece:0",
+      "shape": "D2_90",
+      "color": "Y",
+      "from": [0, 3],
+      "kind": "overWall",
+      "to": [5, 3],
+      "segmentCompleted": 0
+    },
+    {
+      "piece": "h",
+      "ref": "piece:7",
+      "shape": "D2_90",
+      "color": "Y",
+      "from": [3, 0],
+      "kind": "overWall",
+      "to": [5, 0]
+    },
+    {
       "piece": "d",
       "ref": "piece:3",
-      "shape": "D2_90",
+      "shape": "D2_0",
       "color": "W",
-      "from": [2, 2],
+      "from": [0, 1],
       "kind": "overWall",
-      "to": [4, 4],
-      "segmentCompleted": 0,
-      "delivered": [
-        ["piece:k1_0", 0, 0],
-        ["piece:k1_1", 0, 2],
-        ["piece:k1_2", 1, 2],
-        ["piece:k1_3", 2, 0]
-      ]
+      "to": [5, 1]
     },
     {
-      "piece": "k1_1",
-      "ref": "piece:k1_1",
+      "piece": "b",
+      "ref": "piece:1",
       "shape": "D2_0",
-      "color": "R",
-      "from": [0, 2],
-      "kind": "shift",
-      "to": [2, 1]
-    },
-    {
-      "piece": "k1_2",
-      "ref": "piece:k1_2",
-      "shape": "D2_0",
-      "color": "R",
-      "from": [1, 2],
-      "kind": "shift",
-      "to": [3, 1]
-    },
-    {
-      "piece": "k1_0",
-      "ref": "piece:k1_0",
-      "shape": "O4_0",
-      "color": "Y",
-      "from": [0, 0],
-      "kind": "overWall",
-      "to": [4, 0]
-    },
-    {
-      "piece": "k1_3",
-      "ref": "piece:k1_3",
-      "shape": "D2_90",
       "color": "W",
-      "from": [2, 0],
+      "from": [4, 2],
       "kind": "overWall",
-      "to": [4, 2]
+      "to": [6, 1]
     },
     {
-      "piece": "k1_1",
-      "ref": "piece:k1_1",
-      "shape": "D2_0",
-      "color": "R",
-      "from": [2, 1],
-      "kind": "overWall",
-      "to": [4, 3]
-    },
-    {
-      "piece": "k1_2",
-      "ref": "piece:k1_2",
-      "shape": "D2_0",
+      "piece": "f",
+      "ref": "piece:5",
+      "shape": "D2_90",
       "color": "R",
       "from": [3, 1],
       "kind": "overWall",
@@ -119,30 +113,29 @@
   ],
   "log": [
     { "kind": "start", "preBoosters": [], "streakTier": 0 },
-    { "kind": "drag", "pieceId": 3, "to": { "ix": 2, "iy": 2, "mode": 0 } },
-    { "kind": "drag", "pieceId": 0, "to": { "ix": 4, "iy": 0, "mode": 0 } },
+    { "kind": "drag", "pieceId": 1, "to": { "ix": 2, "iy": 2, "mode": 0 } },
+    { "kind": "drag", "pieceId": 0, "to": { "ix": 0, "iy": 3, "mode": 0 } },
+    { "kind": "drag", "pieceId": 2, "to": { "ix": 5, "iy": 0, "mode": 0 } },
     { "kind": "drag", "pieceId": 1, "to": { "ix": 4, "iy": 2, "mode": 0 } },
-    { "kind": "drag", "pieceId": 2, "to": { "ix": 5, "iy": 2, "mode": 0 } },
-    { "kind": "drag", "pieceId": 3, "to": { "ix": 4, "iy": 4, "mode": 0 } },
-    { "kind": "drag", "pieceId": 5, "to": { "ix": 2, "iy": 1, "mode": 0 } },
-    { "kind": "drag", "pieceId": 6, "to": { "ix": 3, "iy": 1, "mode": 0 } },
-    { "kind": "drag", "pieceId": 4, "to": { "ix": 4, "iy": 0, "mode": 0 } },
-    { "kind": "drag", "pieceId": 7, "to": { "ix": 4, "iy": 2, "mode": 0 } },
-    { "kind": "drag", "pieceId": 5, "to": { "ix": 4, "iy": 3, "mode": 0 } },
-    { "kind": "drag", "pieceId": 6, "to": { "ix": 5, "iy": 3, "mode": 0 } }
+    { "kind": "drag", "pieceId": 4, "to": { "ix": 5, "iy": 1, "mode": 0 } },
+    { "kind": "drag", "pieceId": 6, "to": { "ix": 5, "iy": 2, "mode": 0 } },
+    { "kind": "drag", "pieceId": 0, "to": { "ix": 5, "iy": 3, "mode": 0 } },
+    { "kind": "drag", "pieceId": 7, "to": { "ix": 5, "iy": 0, "mode": 0 } },
+    { "kind": "drag", "pieceId": 3, "to": { "ix": 5, "iy": 1, "mode": 0 } },
+    { "kind": "drag", "pieceId": 1, "to": { "ix": 6, "iy": 1, "mode": 0 } },
+    { "kind": "drag", "pieceId": 5, "to": { "ix": 5, "iy": 3, "mode": 0 } }
   ],
-  "eventLogHash": "e483d4d3e2880a99",
+  "eventLogHash": "5043d5c9c71ab770",
   "finalAscii": [
-    "L5 turn 11 moves 6 seg 2/2 elev 0",
-    "size 4x4|2x5 H5",
-    " y  0 1 2 3 | W | 4 5",
-    " 6  . . . . | : | . .",
-    " 5  . . . . | : | . .",
-    " 4  · · · · | : | R R",
-    " 3  . . . . | # | R R",
-    " 2  . . . . | # | W W",
-    " 1  . . . . | # | Y Y",
-    " 0  . . . . | # | Y Y",
-    "plan seg1 (top→bottom): RR RR WW YY YY"
+    "L5 turn 11 moves 2 seg 2/2 elev 0",
+    "size 5x4|2x4 H4",
+    " y  0 1 2 3 4 | W | 5 6",
+    " 5  . . . . . | : | . .",
+    " 4  . . . . . | : | . .",
+    " 3  . . . . . | : | R R",
+    " 2  . . . . . | # | W W",
+    " 1  . . . . . | # | W W",
+    " 0  . . . . . | # | Y Y",
+    "plan seg1 (top→bottom): RR WW WW YY"
   ]
 }

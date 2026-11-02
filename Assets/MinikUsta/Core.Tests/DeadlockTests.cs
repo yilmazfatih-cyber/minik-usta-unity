@@ -358,25 +358,34 @@ namespace MinikUsta.Core.Tests
             return (cause, ctx);
         }
 
-        [Test(Description = "K-30 D1 reshuffles a jammed yard (crates stay, shapes, colours and count kept) so one drag move places a block correctly")]
-        public void K30_D1_reshuffles_a_jammed_yard()
+        /// <summary>Piece ids 0 … 6 of <see cref="JAM"/>: zone, x, y.</summary>
+        private static int[][] JamPlaces(GameState s) => Enumerable.Range(0, 7).Select(id => PlaceOf(s, id)).ToArray();
+
+        [Test(Description = "K-30 D1 (RULES_VERSION 3, K-55 item 8): a jammed yard is torn down with cause access — never re-laid")]
+        public void K30_K55_D1_a_jammed_yard_is_torn_down_with_cause_access_never_relaid()
         {
             var s = Init(JAM());
             Assert.IsTrue(Deadlock.IsFullCover(s.Lvl));
             Run(s, DragTo(5, 5, 4));
             Assert.IsFalse(Deadlock.NoMoves(s));
-            var before = Enumerable.Range(0, 5).Select(id => PieceShape(s, id) * 100 + PieceColor(s, id)).ToArray();
+            var before = CloneState(s);
+            int left = Hdr(s, H.MovesLeft);
             var r = Run(s, DragTo(6, 5, 4));
+            var types = Types(r.Ev);
+            CollectionAssert.AreEqual(new[] { "deadlockDetected", "teardown" }, types.Skip(types.Length - 2).ToArray());
             var detected = Find<DeadlockDetectedEvent>(r.Ev);
             Assert.AreEqual(DeadlockReasons.NoMoves, detected.Reason);
             Assert.AreEqual(12, detected.Step);
-            var help = Find<TruckHelpEvent>(r.Ev);
-            Assert.AreEqual(TruckHelpKinds.Reshuffle, help.HelpKind);
-            Assert.Greater((help.Moves ?? new PieceShift[0]).Length, 0);
+            CollectionAssert.DoesNotContain(types, "truckHelp");
+            var td = Find<TeardownEvent>(r.Ev);
+            Assert.AreEqual(TeardownCauses.Access, td.Cause);
+            Assert.AreEqual(12, td.Step);
+            Assert.AreEqual(TeardownCauses.Access, r.Res.TeardownCause);
+            // the yard is exactly the state before the move: no block was moved by the help
+            CollectionAssert.AreEqual(JamPlaces(before), JamPlaces(s));
             Assert.IsFalse(Deadlock.NoMoves(s));
-            Assert.IsTrue(Deadlock.AnyOneMoveCorrect(s));
-            CollectionAssert.AreEqual(before, Enumerable.Range(0, 5).Select(id => PieceShape(s, id) * 100 + PieceColor(s, id)).ToArray());
-            Assert.IsTrue(Enumerable.Range(0, 5).All(id => PieceZone(s, id) == Zone.Yard));
+            CollectionAssert.AreEqual(new[] { left - 1, Hdr(before, H.Turn) }, new[] { Hdr(s, H.MovesLeft), Hdr(s, H.Turn) });
+            Assert.AreEqual(Hdr(before, H.MovesSpent) + 1, Hdr(s, H.MovesSpent));
             CollectionAssert.IsEmpty(Grid.StateInvariantErrors(s));
         }
 
@@ -395,7 +404,7 @@ namespace MinikUsta.Core.Tests
             CollectionAssert.AreEqual(new[] { false, false }, new[] { HasFlag(s, 0, FlagBit.Chained), HasFlag(s, 1, FlagBit.Chained) });
         }
 
-        [Test(Description = "K-30 D1 not run at zero moves; K-29 after +5 only D1 runs once (E-42)")]
+        [Test(Description = "K-30 D1 not run at zero moves; K-29 after +5 only D1 runs once (E-42): its Söküm takes the last drag back")]
         public void K30_K29_E42_D1_is_not_run_at_zero_moves_after_plus_5_only_D1_runs_once()
         {
             var spec = JAM();
@@ -403,15 +412,40 @@ namespace MinikUsta.Core.Tests
             var lvl = Builders.Compiled(spec);
             var game = GameSession.Start(lvl);
             game.Commit(DragTo(5, 5, 4));
-            var last = game.Apply(DragTo(6, 5, 4)); // counter 0 → no D1 help
+            var before = CloneState(game.State);
+            var last = game.Apply(DragTo(6, 5, 4)); // counter 0 → no D1
             Assert.IsTrue(last.OutOfMoves);
-            CollectionAssert.DoesNotContain(Types(last.Events), "truckHelp");
+            CollectionAssert.DoesNotContain(Types(last.Events), "deadlockDetected");
+            CollectionAssert.DoesNotContain(Types(last.Events), "teardown");
             Assert.IsTrue(Deadlock.NoMoves(game.State, game.Hooks.Drag));
             CollectionAssert.IsEmpty(last.Summary.Holdable);
             var offer = game.Apply(new AddMovesMove(5, AddMovesSource.OfferCoins));
-            CollectionAssert.AreEqual(new[] { "movesChanged:1", "deadlockDetected:12", "truckHelp:12" }, offer.Events.Select(e => e.TypeName + ":" + e.Step).ToArray());
+            CollectionAssert.AreEqual(new[] { "movesChanged:1", "deadlockDetected:12", "teardown:12" }, offer.Events.Select(e => e.TypeName + ":" + e.Step).ToArray());
+            Assert.IsNotNull(offer.Teardown);
+            Assert.AreEqual(TeardownCauses.Access, offer.Teardown!.Cause);
             Assert.Greater(offer.Summary.Holdable.Length, 0);
-            CollectionAssert.AreEqual(new[] { 5, 2, 2 }, new[] { game.MovesLeft, game.MovesMade, game.MovesSpent });
+            CollectionAssert.AreEqual(JamPlaces(before), JamPlaces(game.State));
+            // the counter keeps the +5, `m` goes back to the drag's start, movesSpent never drops (K-30)
+            CollectionAssert.AreEqual(new[] { 5, 1, 2 }, new[] { game.MovesLeft, game.MovesMade, game.MovesSpent });
+            // replay (K-43) rebuilds the same state, Söküm included
+            var again = GameSession.Replay(lvl, game.Log);
+            Assert.AreEqual(Hash.HashHex(game.State), Hash.HashHex(again.State));
+        }
+
+        [Test(Description = "E-64 K-55 D1 with a chained block: the chain is lifted first, the game goes on; no reshuffle")]
+        public void E64_K55_D1_with_a_chained_block_lifts_the_chain_first_and_the_game_goes_on()
+        {
+            var s = Init(new LevelSpec
+            {
+                Wall = Wall(2), Site = new SizeSpec(2, 2), Plan = new[] { "WW", "WW" },
+                Pieces = Ps(Pc("B1_0", "W", 0, 0, new[] { "chained" }), Pc("B1_0", "W", 1, 0, new[] { "chained" }), Pc("D2_0", "W", 4, 0)),
+            });
+            var r = Run(s, DragTo(2, 6, 8));
+            CollectionAssert.DoesNotContain(Types(r.Ev), "teardown");
+            Assert.AreEqual(TruckHelpKinds.Unchain, Find<TruckHelpEvent>(r.Ev).HelpKind);
+            Assert.IsFalse(Deadlock.NoMoves(s));
+            CollectionAssert.AreEqual(new[] { Zone.Yard, 0, 0 }, PlaceOf(s, 0));
+            CollectionAssert.AreEqual(new[] { Zone.Yard, 1, 0 }, PlaceOf(s, 1));
         }
 
         // --- helpers ----------------------------------------------------------------------------------------------------------------

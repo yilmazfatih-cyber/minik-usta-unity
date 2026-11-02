@@ -1,0 +1,107 @@
+{
+  "schemaVersion": 2,
+  "id": 5,
+  "chapter": 1,
+  "name": {
+    "tr": "İki Kat",
+    "en": "Two Floors"
+  },
+  "difficulty": "normal",
+  "moves": 11,
+  "goals": [
+    {
+      "type": "build"
+    }
+  ],
+  "gravity": {
+    "build": "normal",
+    "yard": false
+  },
+  "wall": {
+    "height": 4,
+    "gaps": []
+  },
+  "site": {
+    "cols": 2,
+    "rows": 5
+  },
+  "build": {
+    "mode": "segments",
+    "segments": [
+      {
+        "name": {
+          "tr": "Alt Kat",
+          "en": "Ground Floor"
+        },
+        "rows": ["WW", "WY", "WY", "RR", "RR"]
+      },
+      {
+        "name": {
+          "tr": "Üst Kat",
+          "en": "Upper Floor"
+        },
+        "rows": ["RR", "RR", "WW", "YY", "YY"]
+      }
+    ]
+  },
+  "yard": {
+    "cols": 6,
+    "rows": 4,
+    "batches": [
+      {
+        "forSegment": 0,
+        "pieces": [
+          {
+            "shape": "O4_0",
+            "color": "R",
+            "x": 0,
+            "y": 0
+          },
+          {
+            "shape": "D2_0",
+            "color": "W",
+            "x": 2,
+            "y": 1
+          },
+          {
+            "shape": "D2_0",
+            "color": "Y",
+            "x": 3,
+            "y": 1
+          },
+          {
+            "shape": "D2_90",
+            "color": "W",
+            "x": 2,
+            "y": 3
+          },
+          {
+            "shape": "O4_0",
+            "color": "Y",
+            "x": 4,
+            "y": 0
+          },
+          {
+            "shape": "D2_0",
+            "color": "R",
+            "x": 0,
+            "y": 2
+          },
+          {
+            "shape": "D2_0",
+            "color": "R",
+            "x": 1,
+            "y": 2
+          },
+          {
+            "shape": "D2_90",
+            "color": "W",
+            "x": 2,
+            "y": 0
+          }
+        ]
+      }
+    ]
+  },
+  "obstacles": []
+}

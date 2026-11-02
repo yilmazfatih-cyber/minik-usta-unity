@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # Copies the source-of-truth data from the web repo (docs/UNITY_PORT_FAZ1.md, D-094): levels, golden replays, the K-45
-# validator fixtures (tests/level/fixtures/{valid,invalid}), config/economy.json (L-17 booster unlock levels) and
+# validator fixtures (tests/level/fixtures/{valid,invalid,v2}), config/economy.json (L-17 booster unlock levels) and
 # src/theme/tokens.json (design-lead's tokens; FeelSettingsTests check the Presentation.Core defaults against it).
 # Faz 3 Q1 (D-096): the game reads its data through Resources.Load<TextAsset> (works in WebGL without a web request), so
 # levels, economy.json, src/i18n/{tr,en}.json and the canonical solver logs (dev "play the solution") are ALSO copied to
@@ -20,13 +20,15 @@ GOLDEN="$HERE/Assets/MinikUsta/Core.Tests/Golden"
 FIXTURES="$HERE/Assets/MinikUsta/Core.Tests/Fixtures/Levels"
 PGOLDEN="$HERE/Assets/MinikUsta/Presentation.Core.Tests/Golden"
 RES="$HERE/Assets/MinikUsta/Resources"
-mkdir -p "$LEVELS" "$CONFIG" "$GOLDEN" "$FIXTURES/valid" "$FIXTURES/invalid" "$PGOLDEN" "$RES/levels" "$RES/config" "$RES/i18n"
+mkdir -p "$LEVELS" "$CONFIG" "$GOLDEN" "$FIXTURES/valid" "$FIXTURES/invalid" "$FIXTURES/v2" "$PGOLDEN" "$RES/levels" "$RES/config" "$RES/i18n"
 cp "$WEB"/levels/*.json "$LEVELS/"
 cp "$WEB"/config/economy.json "$CONFIG/economy.json"
 cp "$WEB"/tests/golden/*.json "$GOLDEN/"
-rm -f "$FIXTURES"/valid/*.json "$FIXTURES"/invalid/*.json
+rm -f "$FIXTURES"/valid/*.json "$FIXTURES"/invalid/*.json "$FIXTURES"/v2/*.json
 cp "$WEB"/tests/level/fixtures/valid/*.json "$FIXTURES/valid/"
 cp "$WEB"/tests/level/fixtures/invalid/*.json "$FIXTURES/invalid/"
+# D-099 (K-55) schemaVersion 2 fixtures (GDD K-55 example P1)
+if ls "$WEB"/tests/level/fixtures/v2/*.json >/dev/null 2>&1; then cp "$WEB"/tests/level/fixtures/v2/*.json "$FIXTURES/v2/"; fi
 cp "$WEB"/src/theme/tokens.json "$PGOLDEN/tokens.json"
 rm -f "$RES"/levels/*.json
 cp "$WEB"/levels/*.json "$RES/levels/"
@@ -39,7 +41,7 @@ cp "$WEB"/tests/golden/level_*.solver.json "$RES/solutions/"
 echo "levels: $(ls "$LEVELS"/*.json | wc -l) files -> $LEVELS"
 echo "config: economy.json -> $CONFIG"
 echo "golden: $(ls "$GOLDEN"/*.json | wc -l) files -> $GOLDEN"
-echo "fixtures: $(ls "$FIXTURES"/valid/*.json | wc -l) valid, $(ls "$FIXTURES"/invalid/*.json | wc -l) invalid -> $FIXTURES"
+echo "fixtures: $(ls "$FIXTURES"/valid/*.json | wc -l) valid, $(ls "$FIXTURES"/invalid/*.json | wc -l) invalid, $(ls "$FIXTURES"/v2/*.json | wc -l) v2 -> $FIXTURES"
 echo "tokens: tokens.json -> $PGOLDEN"
 echo "resources: $(ls "$RES"/levels/*.json | wc -l) levels, $(ls "$RES"/solutions/*.json | wc -l) solutions, economy.json, tr.json + en.json -> $RES"
 echo "web commit: $(git -C "$WEB" rev-parse --short HEAD 2>/dev/null || echo '?')"

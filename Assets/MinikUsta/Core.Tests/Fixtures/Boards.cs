@@ -74,9 +74,16 @@ namespace MinikUsta.Core.Tests.Fixtures
 
         public static GameState Init(LevelSpec spec) => Builders.InitialState(spec);
 
-        /// <summary>`levels/level_NNN.json` loaded like the game does (TS `levelFile`: schema + runtime checks, then compile).</summary>
+        /// <summary>
+        /// Faz 2R archive level `Archive2R/level_NNN.json` (`schemaVersion` 1) loaded like the game does (TS `levelFile`: schema +
+        /// runtime checks, then compile). The tests of the K-25…K-27 truck rules and of the Faz 2R examples play on it (D-099).
+        /// </summary>
         public static CompiledLevel LevelFile(int id) => Compiler.LoadLevel(TestPaths.LoadLevelJson(id)).LevelOrThrow();
         public static GameState LevelState(int id) => CreateInitialState(LevelFile(id));
+
+        /// <summary>The shipped level (D-099, `schemaVersion` 2, K-55) loaded like the game does.</summary>
+        public static CompiledLevel CurrentLevelFile(int id) => Compiler.LoadLevel(TestPaths.LoadCurrentLevelJson(id)).LevelOrThrow();
+        public static GameState CurrentLevelState(int id) => CreateInitialState(CurrentLevelFile(id));
 
         // --- the move pipeline (TS tests/core/moves.fixtures.ts) ---------------------------------------------------------------
 

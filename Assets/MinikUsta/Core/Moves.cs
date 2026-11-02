@@ -14,12 +14,15 @@
 //   wall boundary) + hidden item check #1 · 6 yard gravity (`SettleYard`) + check #2 · 7 goal counters · 8 segment
 //   completion (site strategy) + next batch queued · 9 FIFO delivery · 10 timers (`lvl.Step10` order) · 11 win (K-48),
 //   else out of moves · 12 deadlock check and truck help (Deadlock.RunStep12; Faz 2R: also at 0 moves, before the
-//   out-of-moves window; skipped by `NoTruckHelp`). A Söküm (K-30) restores the action's start buffer
+//   out-of-moves window; skipped by `NoTruckHelp`). K-55 (D-099, `schemaVersion` 2): a level has one batch, so
+//   step 8 queues nothing, step 9 only retries K-17 / K-36 queue blocks and a segment change never touches the yard.
+//   A Söküm (K-30) restores the action's start buffer
 //   (`ApplyOptions.PreAction`) except the counter and `movesSpent`; its `teardown` event is the action's last event.
 // Boosters run the mini pipeline (GDD §10): the direct effect as step 1, then steps 5 (hidden items only), 6, 7, 8, 9,
 // 11, 12: hammer (K-36), crane (K-37), paint brush (K-38) and the Golden Trowel (K-33, `goldTrowel`); preconditions,
 // effects and the D3a pre-check live in Boosters.cs. The Faz 2 cell trowel (`trowel`) is rejected.
-// `addMoves` from an accepted +5 offer sets no timer and no streak and runs step 12 once: D1 only (K-29, E-42).
+// `addMoves` from an accepted +5 offer sets no timer and no streak and runs step 12 once: D1 only (K-29, E-42); a D1
+// that the rules cannot lift is a Söküm of the last action before the window (`RulesVersion` 3, K-55 item 8).
 //
 // Obstacles: core has no obstacle-specific `if`. Every rule effect comes through `MoveHooks`; by default the level's
 // hooks from the obstacle registry (Obstacles/Registry.cs `LevelHooks`, TECH §7). Step 10 calls one timer hook per
@@ -90,7 +93,9 @@ namespace MinikUsta.Core
         public readonly bool Strict;
         /// <summary>
         /// K-30 Söküm target: the buffer before this action. `GameSession` passes the copy it keeps for Undo; without it
-        /// `ApplyMove` takes its own copy whenever step 12 may run.
+        /// `ApplyMove` takes its own copy whenever step 12 may run. For an accepted +5 offer (`addMoves` from
+        /// `offerCoins` / `offerAd`) it is the start buffer of the last action before the window: the target of a D1 Söküm
+        /// (K-29, `RulesVersion` 3); absent = no Söküm after the offer.
         /// </summary>
         public readonly int[]? PreAction;
         /// <summary>K-30 D3b dead-state table of the level; null in Faz 2R (cut 1).</summary>
@@ -479,7 +484,11 @@ namespace MinikUsta.Core
                 var ctx = MakeContext(s, em, new MoveScratch(false, false, new HashSet<int>()));
                 if (hooks.Deadlock != null) hooks.Deadlock(ctx);
                 else
-                    Deadlock.RunStep12(ctx, hooks, new Step12Options(null, false, movesLeft <= 0, opts.DeadTable, true));
+                {
+                    // K-29 (RulesVersion 3): a D1 Söküm goes back to the start of the last action before the window
+                    var cause = Deadlock.RunStep12(ctx, hooks, new Step12Options(opts.PreAction, false, movesLeft <= 0, opts.DeadTable, true));
+                    if (cause != null) return new MoveResult(MoveStatuses.Applied, null, false, false, cause);
+                }
             }
             return MoveResult.AppliedResult;
         }

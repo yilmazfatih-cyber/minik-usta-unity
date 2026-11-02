@@ -24,7 +24,8 @@ namespace MinikUsta.Core.Tests
     {
         // --- helpers ----------------------------------------------------------------------------------------------------
 
-        private static string Level1Text() => System.IO.File.ReadAllText(System.IO.Path.Combine(TestPaths.LevelsDir, "level_001.json"));
+        /// <summary>The Faz 2R archive level 1 (`schemaVersion` 1): the schema probes below edit its text (D-099 moved the shipped level 1 to `schemaVersion` 2).</summary>
+        private static string Level1Text() => System.IO.File.ReadAllText(System.IO.Path.Combine(TestPaths.Archive2RDir, "level_001.json"));
 
         /// <summary>level_001.json with the first occurrence of `from` replaced (the TS probe applied the same edit to the parsed object).</summary>
         private static JsonValue Level1With(string from, string to)
@@ -251,7 +252,7 @@ namespace MinikUsta.Core.Tests
         private static List<string> CoreOutputs()
         {
             var o = new List<string>();
-            foreach (int id in HandGoldenTests.GoldenLevels)
+            foreach (int id in HandGoldenTests.GoldenLevelIds)
             {
                 var lvl = Boards.LevelFile(id);
                 var log = SessionActionJson.LogFromJson(TestPaths.LoadGolden("level_" + id.ToString("000", CultureInfo.InvariantCulture) + ".hand.json")["log"]!);
@@ -318,7 +319,7 @@ namespace MinikUsta.Core.Tests
         private static List<GameState> D3aStates()
         {
             var o = new List<GameState>();
-            foreach (int id in HandGoldenTests.GoldenLevels)
+            foreach (int id in HandGoldenTests.GoldenLevelIds)
             {
                 var lvl = Boards.LevelFile(id);
                 var s0 = State.CreateInitialState(lvl);
@@ -441,59 +442,9 @@ namespace MinikUsta.Core.Tests
             Assert.AreEqual(120, n);
         }
 
-        // --- T-01: D1 reshuffle attempts repeat the same shuffle (a TS bug the C# port keeps, D-091) ------------------------
-
-        /// <summary>Wraps the buffer RNG and records (state before the draw, n, value) of every `NextInt`.</summary>
-        private sealed class RecordingRng : IRng
-        {
-            private readonly IRng inner;
-            private readonly Func<int> state;
-            public readonly List<string> Draws = new List<string>();
-
-            public RecordingRng(IRng inner, Func<int> state)
-            {
-                this.inner = inner;
-                this.state = state;
-            }
-
-            public uint NextU32() => inner.NextU32();
-
-            public double Next() => inner.Next();
-
-            public int NextInt(int n)
-            {
-                int before = state();
-                int v = inner.NextInt(n);
-                Draws.Add(before.ToString(CultureInfo.InvariantCulture) + "," + n.ToString(CultureInfo.InvariantCulture) + "," + v.ToString(CultureInfo.InvariantCulture));
-                return v;
-            }
-        }
-
-        // TS probe (web b31c4e8, node 22): createInitialState(level n); reshuffleYard(s, recording bufferRng(s.buf, H.rng), [1]) →
-        // attempts 1..7 each draw the same (state, n, value) list because `s.buf.set(start)` also restores the rng header (T-01).
-        [TestCase(4, 7, "4004,4,3;1831569817,3,1;-631831666,2,0")]
-        [TestCase(6, 7, "6006,4,1;1831571819,3,2;-631829664,2,0")]
-        [TestCase(8, 7, "8008,5,3;1831573821,4,1;-631827662,3,2;1199738151,2,0")]
-        [Test(Description = "K-30 D1 reshuffle with the buffer RNG: attempts 1-7 repeat one shuffle (TS bug T-01, kept bit for bit; fix in the web repo first, then RULES_VERSION and the vectors)")]
-        public void K30_D1_reshuffle_buffer_RNG_attempts_repeat_the_same_draws_like_TS_T01(int levelId, int attempts, string firstAttempt)
-        {
-            var lvl = Compiler.LoadLevel(TestPaths.LoadLevelJson(levelId)).LevelOrThrow();
-            var s = State.CreateInitialState(lvl);
-            var rec = new RecordingRng(new BufferRng(s.Buf, H.Rng), () => s.Buf[H.Rng]);
-            Deadlock.ReshuffleYard(s, rec, new[] { 1 });
-            Assert.Greater(rec.Draws.Count, 0);
-            // an attempt starts whenever the rng state is the first one again (the restore of `start`)
-            string startState = rec.Draws[0].Substring(0, rec.Draws[0].IndexOf(','));
-            var runs = new List<List<string>>();
-            foreach (var d in rec.Draws)
-            {
-                if (d.StartsWith(startState + ",", StringComparison.Ordinal) && (runs.Count == 0 || runs[runs.Count - 1].Count > 0)) runs.Add(new List<string>());
-                runs[runs.Count - 1].Add(d);
-            }
-            Assert.AreEqual(attempts, runs.Count, "attempts that drew random numbers");
-            Assert.AreEqual(firstAttempt, string.Join(";", runs[0]));
-            foreach (var r in runs) CollectionAssert.AreEqual(runs[0], r, "every attempt repeats the first one");
-        }
+        // --- T-01: the D1 reshuffle (and its repeated-draws bug) is gone ----------------------------------------------------
+        // D-099 / K-55 item 8 (`RulesVersion` 3) removed `Deadlock.ReshuffleYard` together with the TS bug T-01 (attempts 1–7 repeated one
+        // shuffle). A D1 the rules cannot lift is a Söküm now (DeadlockTests `K30_K55_D1_...`); every `RulesVersion` ≤ 2 attempt is voided.
 
         // --- R-08: K-08 sticky follow under a continuous pointer -----------------------------------------------------------
 
@@ -517,8 +468,9 @@ namespace MinikUsta.Core.Tests
                 int level = d["level"]!.AsInt;
                 if (!levels.ContainsKey(level))
                 {
-                    levels[level] = Boards.LevelFile(level);
-                    logs[level] = SessionActionJson.LogFromJson(TestPaths.LoadGolden("level_" + level.ToString("000", CultureInfo.InvariantCulture) + ".hand.json")["log"]!);
+                    // the vectors come from the shipped levels (tools/review/gen-follow-vectors.ts reads web levels/ and tests/golden/)
+                    levels[level] = Boards.CurrentLevelFile(level);
+                    logs[level] = SessionActionJson.LogFromJson(TestPaths.LoadCurrentGolden("level_" + level.ToString("000", CultureInfo.InvariantCulture) + ".hand.json")["log"]!);
                 }
                 var log = logs[level];
                 var start = (StartAction)log[0];

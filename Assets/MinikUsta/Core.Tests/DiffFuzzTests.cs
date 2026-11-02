@@ -47,14 +47,18 @@ namespace MinikUsta.Core.Tests
             return j;
         }
 
-        /// <summary>The level of a source file: levels 1–10 from StreamingAssets (`Compiler.LoadLevel`), the others from the stored level data.</summary>
+        /// <summary>
+        /// The level of a source file: the shipped levels 1–10 (`level`, D-099 schemaVersion 2) from StreamingAssets and the Faz 2R
+        /// archive levels (`archive`, schemaVersion 1) from Core.Tests/Archive2R (both `Compiler.LoadLevel`), the others from the stored level data.
+        /// </summary>
         private static CompiledLevel LevelOf(string file)
         {
             if (Levels.TryGetValue(file, out var lvl)) return lvl;
             var src = SourceFile(file);
             var source = src["source"]!;
-            lvl = source["kind"]!.AsString == "level"
-                ? Boards.LevelFile(source["n"]!.AsInt)
+            string kind = source["kind"]!.AsString;
+            lvl = kind == "level" ? Boards.CurrentLevelFile(source["n"]!.AsInt)
+                : kind == "archive" ? Boards.LevelFile(source["n"]!.AsInt)
                 : Compiler.Compile(LevelJson.ParseOrThrow(src["level"]!));
             Levels[file] = lvl;
             return lvl;
@@ -224,9 +228,9 @@ namespace MinikUsta.Core.Tests
             Assert.AreEqual(m["sequences"]!.AsInt, listed, "manifest file list");
             foreach (string k in new[] { "drag", "hammer", "crane", "paint", "goldTrowel", "undo", "addMoves", "decline", "exit" })
                 Assert.IsTrue(m["actions"]![k] != null && m["actions"]![k]!.AsInt > 0, "the fuzz contains a " + k + " action");
-            // every source kind: real levels, cover boards, K-49 geometries, truck-queue boards, scripted scenarios (P4 item 3)
+            // every source kind: shipped levels, Faz 2R archive levels, cover boards, K-49 geometries, truck-queue boards, scripted scenarios (P4 item 3)
             var kinds = m["files"]!.Items.Select(f => f["source"]!["kind"]!.AsString).Distinct().OrderBy(k => k, StringComparer.Ordinal).ToArray();
-            CollectionAssert.AreEqual(new[] { "cover", "geo", "level", "scenario", "truck" }, kinds);
+            CollectionAssert.AreEqual(new[] { "archive", "cover", "geo", "level", "scenario", "truck" }, kinds);
             foreach (string t in new[] { "teardown", "levelWon", "outOfMoves", "deliveryArrived", "deliveryQueued", "siteShifted", "placementWrong", "trowelEarned", "deadlockDetected", "truckHelp", "chainReleased", "cargoSmashed", "colorsSwapped" })
                 Assert.IsTrue(m["events"]![t] != null && m["events"]![t]!.AsInt > 0, "the fuzz contains a " + t + " event");
         }

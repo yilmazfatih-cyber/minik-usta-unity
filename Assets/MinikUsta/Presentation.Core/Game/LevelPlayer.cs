@@ -589,7 +589,9 @@ namespace MinikUsta.Presentation.Game
                 slots[i] = Core.Summary.SlotState(LevelNumber >= unlock[i], playing && summary.BoosterTargets[order[i]], counts[i]);
             }
             int queue = summary.Queue.Length + summary.PendingBlocks;
-            bool truck = session.Lvl.Batches.Length > 0;
+            // K-55 (D-099): a fixed-yard level has no batches and no truck; the "Kamyonda: N" chip appears only while a K-17 / K-36
+            // block waits in the queue (N = 0 → hidden, E-62). A Faz 2R (schemaVersion 1) level shows it the same way.
+            bool truck = queue > 0;
             bool won = LevelWon?.Invoke(LevelNumber) ?? wonLevels.Contains(LevelNumber);
             return new HudState(LevelNumber, slots, counts, unlock, PlanThumb.Visible(session.State), queue, truck, won, session.Lvl.Segments.Length);
         }

@@ -47,10 +47,13 @@ namespace MinikUsta.Core
         }
     }
 
-    /// <summary>A yard block moved by the D1 reshuffle (`truckHelp.moves`). TS `ReshuffleMove` has the shape of `PieceShift`.</summary>
+    /// <summary>Options of one step 12 run (TS `Step12Options`).</summary>
     public sealed class Step12Options
     {
-        /// <summary>The buffer before the action (Söküm target); null = no Söküm (accepted +5 offer).</summary>
+        /// <summary>
+        /// The buffer before the action (Söküm target). For an accepted +5 offer: the start buffer of the last action before
+        /// the window (K-29, D1 Söküm); null = no Söküm possible (step 12 off, or no earlier action).
+        /// </summary>
         public readonly int[]? PreAction;
         /// <summary>Run D3a: the action placed correctly, delivered, used a booster or the Golden Trowel.</summary>
         public readonly bool Tiling;
@@ -89,12 +92,12 @@ namespace MinikUsta.Core
     }
 
     /// <summary>
-    /// Deadlock check and truck help — K-35 step 12 (docs/GDD.md K-30, K-29, K-35; TECH_DESIGN §2R.4). Pure: no clock, no
-    /// DOM; the only randomness is the state's seeded RNG (D1 reshuffle).
+    /// Deadlock check and truck help — K-35 step 12 (docs/GDD.md K-30, K-29, K-35, K-55 item 8; TECH_DESIGN §2R.4, §D99).
+    /// Pure: no clock, no DOM, no randomness.
     ///
     /// - D1 `noMoves`: no block can be held by K-09 (a)–(d) (the counter condition (e) is ignored). Help: rules lift chains
-    ///   and wetness (`OnTruckHelp`); still D1 → the yard is re-laid by a constructive, seeded reshuffle (shapes, colours and
-    ///   count kept) checked by D3a and by "one drag move gives a correct placement". D1 is never a Söküm.
+    ///   and wetness (`OnTruckHelp`); still D1 → Söküm with cause `access` (`RulesVersion` 3, D-099: the yard is never
+    ///   re-laid; the Faz 2R seeded reshuffle was removed — every `RulesVersion` ≤ 2 attempt is voided on load, K-43 item 4).
     /// - D2 `color`: per colour, remaining supply ≠ remaining demand (K-47). Skipped on W6 levels (CL-2R-04).
     /// - D3a `tiling` (`TileRemaining`): exact cover of the remaining plan cells by the remaining material blocks, bottom-up
     ///   per column (K-34), segments in order, batch availability, W6 joker; access ignored. Budget = expansions
@@ -105,7 +108,8 @@ namespace MinikUsta.Core
     ///   keep their post-action values, the streak `c = 0`; `teardown` is the action's last event.
     ///
     /// Levels whose data is not a full cover (K-47 broken: old Faz 2 data, hand-made test boards) get D1 only: D2 / D3 are
-    /// defined for full-cover data, the validator never loads anything else (L-30 `cover_mismatch`).
+    /// defined for full-cover data, the validator never loads anything else (L-30 `cover_mismatch`). D1's Söküm runs on
+    /// every level (it only needs the action's start buffer).
     ///
     /// D3a algorithm note (TECH §2R.4 item 2, implementation): §2R.4 picks the lowest column and only tries blocks covering
     /// its next cell. That misses tilings where the block over that cell must wait for a neighbour column (C3 overhang over
@@ -120,9 +124,6 @@ namespace MinikUsta.Core
 
         /// <summary>GDD K-30 D3a: the expansion budget (the single policy number, TECH §2R.0 item 6).</summary>
         public const int D3aMaxExpansions = 20_000;
-
-        /// <summary>D1 reshuffle attempts (seeded orders) before the fallback; a count, not a time budget (§1.3).</summary>
-        public const int ReshuffleAttempts = 8;
 
         // --- level-level facts ---------------------------------------------------------------------------------------------
 
@@ -219,7 +220,7 @@ namespace MinikUsta.Core
         }
 
         /// <summary>
-        /// One drag move gives a correct placement now (K-30 D1 check; K-34 hook 5 reach): some holdable yard block has a
+        /// One drag move gives a correct placement now (K-34 hook 5 reach, TECH §2R.15 summary): some holdable yard block has a
         /// reachable site release whose landing is correct (K-16 + K-34) and does not break (S3). The counter must be &gt; 0.
         /// </summary>
         public static bool HasReachableCorrect(GameState s, int id, DragRules? drag = null, FallRules? fall = null)
@@ -263,17 +264,6 @@ namespace MinikUsta.Core
             {
                 var f = Gravity.ComputeFall(s, id, new DragNode(kv.Key, kv.Value, DragMode.Free));
                 if (f.Verdict.Ok) return true;
-            }
-            return false;
-        }
-
-        /// <summary>Some yard block can be placed correctly with one drag move (D1 reshuffle guarantee).</summary>
-        public static bool AnyOneMoveCorrect(GameState s, DragRules? drag = null, FallRules? fall = null)
-        {
-            int P = s.Lvl.Layout.Counts.Pieces;
-            for (int id = 0; id < P; id++)
-            {
-                if (PieceZone(s, id) == Zone.Yard && HasReachableCorrect(s, id, drag, fall)) return true;
             }
             return false;
         }
@@ -817,177 +807,30 @@ namespace MinikUsta.Core
         /// <summary>K-33 / K-37 / K-38 pre-check (CL-2R-05): the result state of a booster target is not a D3a dead end.</summary>
         public static bool PrecheckOk(GameState s) => !IsFullCover(s.Lvl) || TileRemaining(s) != TileResults.Dead;
 
-        // --- D1 help: constructive reshuffle -------------------------------------------------------------------------------
-
-        /// <summary>
-        /// D1 help, stage 2 (TECH §9.7 constructive algorithm, Faz 2R: no decoy, no reshape branch): every yard block leaves
-        /// the yard (crates and bags stay) and the yard fills again from the bottom — the others in a seeded order (attempt 0:
-        /// big blocks first, cargo included), each on the lowest free spot (row, then x); the first needed block (the first of
-        /// `neededFirst`) goes last, on the free spot nearest the wall (highest first) from which one drag move places it
-        /// correctly. An attempt is kept when one drag move then gives a correct placement; else the first attempt with a
-        /// holdable block; else nothing changes. Shapes, colours and count are kept. Returns the moves (empty = unchanged).
-        /// </summary>
-        public static PieceShift[] ReshuffleYard(GameState s, IRng rng, int[] neededFirst, DragRules? drag = null, FallRules? fall = null)
-        {
-            int P = s.Lvl.Layout.Counts.Pieces;
-            var yard = new List<int>();
-            for (int id = 0; id < P; id++) if (PieceZone(s, id) == Zone.Yard) yard.Add(id);
-            if (yard.Count == 0) return new PieceShift[0];
-            var start = (int[])s.Buf.Clone();
-            var beforeIds = new List<int>(yard);
-            var beforeX = new int[P];
-            var beforeY = new int[P];
-            foreach (int id in yard)
-            {
-                beforeX[id] = PieceX(s, id);
-                beforeY[id] = PieceY(s, id);
-            }
-            int first = -1;
-            foreach (int id in neededFirst)
-            {
-                if (yard.Contains(id))
-                {
-                    first = id;
-                    break;
-                }
-            }
-            int[]? fallback = null;
-
-            for (int attempt = 0; attempt < ReshuffleAttempts; attempt++)
-            {
-                Array.Copy(start, s.Buf, start.Length);
-                var others = new List<int>();
-                foreach (int id in yard) if (id != first) others.Add(id);
-                if (attempt == 0)
-                {
-                    others.Sort((a, b) =>
-                    {
-                        int d = Shapes.ShapeByIndex(PieceShape(s, b)).CellCount - Shapes.ShapeByIndex(PieceShape(s, a)).CellCount;
-                        return d != 0 ? d : a - b;
-                    });
-                }
-                else
-                {
-                    for (int i = others.Count - 1; i > 0; i--)
-                    {
-                        int j = rng.NextInt(i + 1);
-                        int t = others[i];
-                        others[i] = others[j];
-                        others[j] = t;
-                    }
-                }
-                foreach (int id in yard) Grid.VacatePiece(s, id);
-                bool fits = true;
-                foreach (int id in others)
-                {
-                    if (!PlaceLowest(s, id))
-                    {
-                        fits = false;
-                        break;
-                    }
-                }
-                if (!fits) continue;
-                if (first >= 0 && !PlaceNearWall(s, first, drag, fall)) continue;
-                if (AnyOneMoveCorrect(s, drag, fall)) return MovesSince(s, beforeIds, beforeX, beforeY);
-                if (fallback == null && !NoMoves(s, drag)) fallback = (int[])s.Buf.Clone();
-            }
-            if (fallback != null)
-            {
-                Array.Copy(fallback, s.Buf, fallback.Length);
-                return MovesSince(s, beforeIds, beforeX, beforeY);
-            }
-            Array.Copy(start, s.Buf, start.Length);
-            return new PieceShift[0];
-        }
-
-        /// <summary>Puts a vacated yard block on the lowest free spot (row, then x): the yard fills from the bottom (TECH §9.7).</summary>
-        private static bool PlaceLowest(GameState s, int id)
-        {
-            var shape = Shapes.ShapeByIndex(PieceShape(s, id));
-            int wy = s.Lvl.Geo.Wy;
-            int hy = s.Lvl.Geo.Hy;
-            for (int y = 0; y + shape.H <= hy; y++)
-            {
-                for (int x = 0; x + shape.W <= wy; x++)
-                {
-                    if (YardFree(s, shape, x, y))
-                    {
-                        PlaceYard(s, id, x, y);
-                        return true;
-                    }
-                }
-            }
-            return false;
-        }
-
-        /// <summary>
-        /// Puts the first needed block on the free spot nearest the wall, highest first, where one drag move then places it
-        /// correctly; when no spot gives that, the first free spot of that order.
-        /// </summary>
-        private static bool PlaceNearWall(GameState s, int id, DragRules? drag, FallRules? fall)
-        {
-            var shape = Shapes.ShapeByIndex(PieceShape(s, id));
-            int wy = s.Lvl.Geo.Wy;
-            int hy = s.Lvl.Geo.Hy;
-            int firstX = -1;
-            int firstY = -1;
-            for (int x = wy - shape.W; x >= 0; x--)
-            {
-                for (int y = hy - shape.H; y >= 0; y--)
-                {
-                    if (!YardFree(s, shape, x, y)) continue;
-                    PlaceYard(s, id, x, y);
-                    if (HasReachableCorrect(s, id, drag, fall)) return true;
-                    Grid.VacatePiece(s, id);
-                    if (firstX < 0)
-                    {
-                        firstX = x;
-                        firstY = y;
-                    }
-                }
-            }
-            if (firstX < 0) return false;
-            PlaceYard(s, id, firstX, firstY);
-            return true;
-        }
-
-        private static bool YardFree(GameState s, ShapeDef shape, int x, int y)
-        {
-            foreach (var c in shape.Cells) if (YardOcc(s, x + c.X, y + c.Y) != 0) return false;
-            return true;
-        }
-
-        private static void PlaceYard(GameState s, int id, int x, int y)
-        {
-            int b = s.Lvl.Layout.Pieces + id * PieceStride;
-            s.Buf[b + PF.X] = x;
-            s.Buf[b + PF.Y] = y;
-            Grid.OccupyPiece(s, id);
-        }
-
-        private static PieceShift[] MovesSince(GameState s, List<int> ids, int[] beforeX, int[] beforeY)
-        {
-            var o = new List<PieceShift>();
-            foreach (int id in ids)
-            {
-                int x = PieceX(s, id);
-                int y = PieceY(s, id);
-                if (x != beforeX[id] || y != beforeY[id]) o.Add(new PieceShift(id, At.Yard(beforeX[id], beforeY[id]), At.Yard(x, y)));
-            }
-            return o.ToArray();
-        }
-
         // --- K-35 step 12 ------------------------------------------------------------------------------------------------
 
         /// <summary>
-        /// K-35 step 12 (GDD K-30): counter &gt; 0 → D1 (help) → D2 → D3a → D3b; counter 0 → D2 → D3; after a +5 offer → D1
-        /// once. D2 / D3 → Söküm (`teardown`, the action's last event). Returns the Söküm cause or null.
+        /// K-35 step 12 (GDD K-30): counter &gt; 0 → D1 (lift chains / wetness, still D1 → Söküm `access`) → D2 → D3a → D3b;
+        /// counter 0 → D2 → D3; after a +5 offer → D1 once (its Söküm goes back to the start of the last action, K-29). D1 / D2
+        /// / D3 → Söküm (`teardown`, the action's last event); after a Söküm nothing else runs (the restored state passed its
+        /// own step 12). Returns the Söküm cause or null.
         /// </summary>
         public static string? RunStep12(RuleContext ctx, MoveHooks hooks, Step12Options o)
         {
             var s = ctx.S;
-            bool helped = o.CounterZero ? false : D1Help(ctx, hooks);
-            // after an offer there is no action to take back; a reshuffle never changes D3a and D3b has no table yet
+            bool helped = false;
+            if (!o.CounterZero)
+            {
+                var d1 = D1Help(ctx, hooks);
+                if (d1 == D1Result.Stuck)
+                {
+                    if (o.PreAction == null) return null;
+                    ctx.Emit(Teardown(s, o.PreAction, TeardownCauses.Access));
+                    return TeardownCauses.Access;
+                }
+                helped = d1 == D1Result.Freed;
+            }
+            // after an offer there is no new action: the state passed D2 / D3 at the end of the action before the window
             if (o.AfterOffer) return null;
             string? cause = DetectDeadlock(s, o.Table, o.Tiling || helped);
             if (cause == null || o.PreAction == null) return null;
@@ -995,33 +838,36 @@ namespace MinikUsta.Core
             return cause;
         }
 
-        /// <summary>D1 (K-30): no holdable block → rules lift chains / wetness; still D1 → reshuffle. True when the board changed.</summary>
-        private static bool D1Help(RuleContext ctx, MoveHooks hooks)
+        private enum D1Result
+        {
+            None,
+            Freed,
+            Stuck,
+        }
+
+        /// <summary>
+        /// D1 (K-30, `RulesVersion` 3): `None` = some block is holdable; otherwise `deadlockDetected{noMoves}` and the rules
+        /// lift chains / wetness (`truckHelp{unchain}`): `Freed` when a block became holdable, `Stuck` when the state is still
+        /// D1 (the caller tears the action down, cause `access`; no reshuffle, K-55 item 8).
+        /// </summary>
+        private static D1Result D1Help(RuleContext ctx, MoveHooks hooks)
         {
             var s = ctx.S;
-            if (!NoMoves(s, hooks.Drag)) return false;
-            var pre = (int[])s.Buf.Clone();
-            var events = new List<GameEvent>();
-            var sub = ctx.WithEmit(e => events.Add(e));
-            bool changed = hooks.OnTruckHelp != null && hooks.OnTruckHelp(sub);
-            if (changed) events.Add(new TruckHelpEvent(TruckHelpKinds.Unchain));
-            if (NoMoves(s, hooks.Drag))
-            {
-                var moves = ReshuffleYard(s, ctx.Rng, NeededNow(s), hooks.Drag, hooks.Fall);
-                if (moves.Length > 0)
-                {
-                    changed = true;
-                    events.Add(new TruckHelpEvent(TruckHelpKinds.Reshuffle, moves));
-                }
-            }
-            if (!changed)
-            {
-                Array.Copy(pre, s.Buf, pre.Length);
-                return false;
-            }
+            if (!NoMoves(s, hooks.Drag)) return D1Result.None;
             ctx.Emit(new DeadlockDetectedEvent(DeadlockReasons.NoMoves));
-            foreach (var e in events) ctx.Emit(e);
-            return true;
+            if (hooks.OnTruckHelp != null)
+            {
+                var pre = (int[])s.Buf.Clone();
+                var events = new List<GameEvent>();
+                var sub = ctx.WithEmit(e => events.Add(e));
+                if (hooks.OnTruckHelp(sub))
+                {
+                    foreach (var e in events) ctx.Emit(e);
+                    ctx.Emit(new TruckHelpEvent(TruckHelpKinds.Unchain));
+                }
+                else Array.Copy(pre, s.Buf, pre.Length);
+            }
+            return NoMoves(s, hooks.Drag) ? D1Result.Stuck : D1Result.Freed;
         }
 
         // --- Söküm ---------------------------------------------------------------------------------------------------------

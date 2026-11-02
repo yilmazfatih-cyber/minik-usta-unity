@@ -76,7 +76,7 @@ namespace MinikUsta.Presentation.Tests
                 Place + " | TrowelEarned@160+500 | MovesTick@200+180 | End@660+0",
                 Place + " | MovesTick@200+180 | SegmentDone@380+600 L | GoalDone@380+300 | YardClear@980+600 L | Win@1580+2500 L | BonusBuild@4080+720 L | End@4800+0",
             };
-            var plans = PlayMoves(LevelFile(1), SolverGolden(1).Drags);
+            var plans = PlayMoves(LevelFile(1, archive: true), SolverGolden(1, archive: true).Drags); // the Faz 2R level 1 (D-099: the archive)
             CollectionAssert.AreEqual(want, plans.Select(p => Line(p.Plan)).ToArray());
             // K-35 event order of the same moves (the plan's input): drag → fall → validation → counter (→ 8 → 11)
             CollectionAssert.AreEqual(
@@ -89,7 +89,7 @@ namespace MinikUsta.Presentation.Tests
         [Test]
         public void K12_W1_level_4_rail_park_23_precedes_the_validation()
         {
-            var third = PlayCrane(4)[2].Plan;
+            var third = PlayCrane(4, archive: true)[2].Plan;
             CollectionAssert.AreEqual(new[] { "RailClamp", "PlaceCorrect" }, KindsWithoutInstant(third).Take(2).ToArray());
             Assert.AreEqual(F.RailClampMs, StartOf(third, StepKind.PlaceCorrect), 1e-3);
             Assert.AreEqual(((PieceMovedEvent)third.Find(StepKind.RailClamp)!.Event!).Entry, EntryKinds.Gap);
@@ -98,7 +98,7 @@ namespace MinikUsta.Presentation.Tests
         [Test]
         public void K22_K28_K48_last_move_segment_slide_then_all_blocks_in_place_then_win_and_bonus_all_locked_and_last()
         {
-            var last = PlayCrane(1).Last().Plan;
+            var last = PlayCrane(1, archive: true).Last().Plan;
             var k = Board(last).ToList();
             Assert.Greater(k.IndexOf("SegmentDone"), k.IndexOf("MovesTick"));
             Assert.AreEqual(k.IndexOf("SegmentDone") + 1, k.IndexOf("YardClear"), "#18 → #94");
@@ -123,7 +123,7 @@ namespace MinikUsta.Presentation.Tests
         [Test]
         public void K25_level_5_the_truck_19_locked_comes_after_the_slide_18_and_drops_every_block_staggered_no_queue_chip()
         {
-            var fifth = PlayCrane(5)[4].Plan; // Sol Oda complete (LEVELS §2 Bölüm 5 move 5)
+            var fifth = PlayCrane(5, archive: true)[4].Plan; // Faz 2R Bölüm 5 (schemaVersion 1): Sol Oda complete (move 5), the truck brings batch 1
             var k = KindsWithoutInstant(fifth).ToList();
             Assert.Greater(k.IndexOf("TruckDelivery"), k.IndexOf("SegmentDone"));
             CollectionAssert.DoesNotContain(k, "QueueChip");
@@ -235,7 +235,7 @@ namespace MinikUsta.Presentation.Tests
         [Test]
         public void K07_a_cancelled_release_plays_the_cancel_return_8_and_spends_nothing()
         {
-            var lvl = LevelFile(1);
+            var lvl = LevelFile(1, archive: true);
             var session = GameSession.Start(lvl);
             var ctx = PlanContext.Capture(session);
             var res = session.Apply(new DragMove(0, new DragNode(0, 2, Movement.Free))); // its own start: sameSpot

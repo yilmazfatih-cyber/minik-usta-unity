@@ -62,14 +62,17 @@ namespace MinikUsta.Presentation.Tests.Fixtures
         /// <summary>Faz 2R vertical slice: levels 1–10 (EN-2R-17).</summary>
         public static readonly int[] Levels = { 1, 2, 3, 4, 5, 6, 7, 8, 9, 10 };
 
-        public static CompiledLevel LevelFile(int n) => Compiler.LoadLevel(PresentationPaths.LoadLevelJson(n)).LevelOrThrow();
+        /// <summary>A shipped level (D-099: `schemaVersion` 2, fixed yard) loaded like the game does; `archive` = the Faz 2R level (`schemaVersion` 1, truck batches).</summary>
+        public static CompiledLevel LevelFile(int n, bool archive = false) =>
+            Compiler.LoadLevel(archive ? PresentationPaths.LoadArchiveLevelJson(n) : PresentationPaths.LoadLevelJson(n)).LevelOrThrow();
 
         /// <summary>A level from JSON text without the K-45 logic checks (test boards, like the web `compiledLevel` builder).</summary>
         public static CompiledLevel FromJson(string json) => Compiler.Compile(LevelJson.ParseOrThrow(JsonReader.Parse(json)));
 
-        public static Golden SolverGolden(int n)
+        public static Golden SolverGolden(int n, bool archive = false)
         {
-            var j = PresentationPaths.LoadCoreGolden("level_" + n.ToString("000") + ".solver.json");
+            string file = "level_" + n.ToString("000") + ".solver.json";
+            var j = archive ? PresentationPaths.LoadArchiveGolden(file) : PresentationPaths.LoadCoreGolden(file);
             return new Golden(n, SessionActionJson.LogFromJson(j["log"]!), j["eventLogHash"]!.AsString);
         }
 
@@ -77,12 +80,12 @@ namespace MinikUsta.Presentation.Tests.Fixtures
         /// The canonical solution with every over-the-wall release moved up into the crane area (web `craneMoves`): the
         /// blocks fall (#10, #11) instead of being released on their landing node. The same landings and verdicts.
         /// </summary>
-        public static DragMove[] CraneMoves(int n)
+        public static DragMove[] CraneMoves(int n, bool archive = false)
         {
-            var lvl = LevelFile(n);
+            var lvl = LevelFile(n, archive);
             var session = GameSession.Start(lvl, null, 0, new SessionOptions(strict: true));
             var o = new List<DragMove>();
-            foreach (var m in SolverGolden(n).Drags)
+            foreach (var m in SolverGolden(n, archive).Drags)
             {
                 var drag = Movement.BeginDrag(session.State, m.PieceId, session.Hooks.Drag)!;
                 var high = new DragNode(m.To.Ix, lvl.Geo.H, Movement.Free);
@@ -110,7 +113,8 @@ namespace MinikUsta.Presentation.Tests.Fixtures
             return o;
         }
 
-        public static List<Planned> PlayCrane(int level, bool reduced = false) => PlayMoves(LevelFile(level), CraneMoves(level), reduced);
+        public static List<Planned> PlayCrane(int level, bool reduced = false, bool archive = false) =>
+            PlayMoves(LevelFile(level, archive), CraneMoves(level, archive), reduced);
 
         public static string[] Kinds(AnimationPlan plan) => plan.Steps.Select(s => s.Kind.ToString()).ToArray();
 

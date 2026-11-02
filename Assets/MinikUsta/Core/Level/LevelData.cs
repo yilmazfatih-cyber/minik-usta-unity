@@ -36,6 +36,16 @@ namespace MinikUsta.Core.Level
         };
     }
 
+    /// <summary>GDD §14 `schemaVersion` (D-099): 1 = Faz 2R archive (batches, truck, K-25…K-27); 2 = fixed yard (K-55). TS `SCHEMA_VERSIONS`, `schemaVersionOf`, `isFixedYardLevel`.</summary>
+    public static class LevelSchema
+    {
+        /// <summary>The level's schema version (GDD §14; missing = 1).</summary>
+        public static int SchemaVersionOf(LevelData level) => level.SchemaVersion == 2 ? 2 : 1;
+
+        /// <summary>K-55 (D-099): a `schemaVersion` 2 level — every block in the yard from the start, no batch or truck refill.</summary>
+        public static bool IsFixedYardLevel(LevelData level) => SchemaVersionOf(level) == 2;
+    }
+
     /// <summary>Schema regular expressions (schema.ts).</summary>
     public static class LevelSchemaPatterns
     {
@@ -608,29 +618,75 @@ namespace MinikUsta.Core.Level
         }
     }
 
-    /// <summary>`targets` (TECH §2R.2, LEVELS §0): K-50 target bands; the game never reads it, `levels:solve` does.</summary>
+    /// <summary>
+    /// `targets` (TECH §2R.2, LEVELS §0; D-099 additions LEVELS §7 U-1, GDD §14): target bands of the K-50 metrics; the game
+    /// never reads it, `levels:solve` does. Integer bands `[low, high]` (0–99), rate bands 0–1, `ParkSlack` 0–9.99.
+    /// </summary>
     public sealed class TargetsData
     {
         public readonly int[]? MinShifts;
         public readonly int[]? FirstNeedDepth;
         public readonly int[]? Choices0;
         public readonly double[]? DeadRate;
+        // D-099 (K-50 items 11–18)
+        public readonly int[]? Min;
+        public readonly int[]? MaxCover;
+        public readonly int[]? DepLater;
+        public readonly int[]? CrossDeps;
+        public readonly double[]? ParkSlack;
+        public readonly int[]? Forced;
+        public readonly int[]? GreedyExcess;
+        public readonly double[]? GreedyWin;
+        public readonly int[]? AhaMin;
+        public readonly double[]? Branch3;
 
-        public TargetsData(int[]? minShifts, int[]? firstNeedDepth, int[]? choices0, double[]? deadRate)
+        public TargetsData(int[]? minShifts, int[]? firstNeedDepth, int[]? choices0, double[]? deadRate,
+            int[]? min = null, int[]? maxCover = null, int[]? depLater = null, int[]? crossDeps = null, double[]? parkSlack = null,
+            int[]? forced = null, int[]? greedyExcess = null, double[]? greedyWin = null, int[]? ahaMin = null, double[]? branch3 = null)
         {
             MinShifts = minShifts;
             FirstNeedDepth = firstNeedDepth;
             Choices0 = choices0;
             DeadRate = deadRate;
+            Min = min;
+            MaxCover = maxCover;
+            DepLater = depLater;
+            CrossDeps = crossDeps;
+            ParkSlack = parkSlack;
+            Forced = forced;
+            GreedyExcess = greedyExcess;
+            GreedyWin = greedyWin;
+            AhaMin = ahaMin;
+            Branch3 = branch3;
+        }
+
+        private static void SetBand(JsonValue o, string key, int[]? band)
+        {
+            if (band != null) o.Set(key, JsonValue.Array().Add(JsonValue.Of(band[0])).Add(JsonValue.Of(band[1])));
+        }
+
+        private static void SetBand(JsonValue o, string key, double[]? band)
+        {
+            if (band != null) o.Set(key, JsonValue.Array().Add(JsonValue.Of(band[0])).Add(JsonValue.Of(band[1])));
         }
 
         public JsonValue ToJson()
         {
             var o = JsonValue.Object();
-            if (MinShifts != null) o.Set("minShifts", JsonValue.Array().Add(JsonValue.Of(MinShifts[0])).Add(JsonValue.Of(MinShifts[1])));
-            if (FirstNeedDepth != null) o.Set("firstNeedDepth", JsonValue.Array().Add(JsonValue.Of(FirstNeedDepth[0])).Add(JsonValue.Of(FirstNeedDepth[1])));
-            if (Choices0 != null) o.Set("choices0", JsonValue.Array().Add(JsonValue.Of(Choices0[0])).Add(JsonValue.Of(Choices0[1])));
-            if (DeadRate != null) o.Set("deadRate", JsonValue.Array().Add(JsonValue.Of(DeadRate[0])).Add(JsonValue.Of(DeadRate[1])));
+            SetBand(o, "minShifts", MinShifts);
+            SetBand(o, "firstNeedDepth", FirstNeedDepth);
+            SetBand(o, "choices0", Choices0);
+            SetBand(o, "deadRate", DeadRate);
+            SetBand(o, "min", Min);
+            SetBand(o, "maxCover", MaxCover);
+            SetBand(o, "depLater", DepLater);
+            SetBand(o, "crossDeps", CrossDeps);
+            SetBand(o, "parkSlack", ParkSlack);
+            SetBand(o, "forced", Forced);
+            SetBand(o, "greedyExcess", GreedyExcess);
+            SetBand(o, "greedyWin", GreedyWin);
+            SetBand(o, "ahaMin", AhaMin);
+            SetBand(o, "branch3", Branch3);
             return o;
         }
     }

@@ -603,7 +603,9 @@ namespace MinikUsta.Presentation.Animation
                 float start = t;
                 bool any = false;
                 foreach (var e in events) if (e.Step == 12) any = true;
-                // K-30 D1 truck help (#21a unchain, #21c reshuffle; together: #21a over #21c's start, ≤ 900 ms, JUICE #21a)
+                // K-30 D1 truck help (#21a unchain, #21c reshuffle; together: #21a over #21c's start, ≤ 900 ms, JUICE #21a).
+                // D-099 / K-55 item 8 (RULES_VERSION 3): the core no longer emits `truckHelp{reshuffle}` — a D1 the rules cannot lift is a
+                // Söküm (`teardown{access}`, planned below). The reshuffle branch stays only because the event type is still in the union.
                 float help = 0;
                 foreach (var e in Of<TruckHelpEvent>(12))
                 {

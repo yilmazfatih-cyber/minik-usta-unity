@@ -2,7 +2,7 @@
 
 Minik Usta'nın (dikey ekranlı blok yerleştirme bulmacası) Unity 6 sürümü. Kaynak gerçek **web reposudur**
 (`yilmazfatih-cyber/minik-usta`, yerelde `../minik-usta`): `src/core/**` (11 400 satır saf TypeScript), `docs/GDD.md`
-(K-01…K-54), `docs/TECH_DESIGN.md` §2–§6 ve §2R, `levels/*.json`, `tests/golden/*.json`. Bu repo o davranışı C#'a
+(K-01…K-55), `docs/TECH_DESIGN.md` §2–§6 ve §2R, `levels/*.json`, `tests/golden/*.json`. Bu repo o davranışı C#'a
 **satır satır** taşır; yeni mekanik icat edilmez, belirsizlikte TS kodu esastır.
 
 ## Bağlayıcı kararlar (web reposu `docs/DECISIONS.md`)
@@ -15,6 +15,7 @@ Minik Usta'nın (dikey ekranlı blok yerleştirme bulmacası) Unity 6 sürümü.
 | D-094 | Unity projesi bu ayrı repoda yaşar; web (Phaser) sürümü `main` = de6f16c olarak yayında kalır, görsel v3 web'de dondurulur. |
 | D-097 | Faz 3 kabul (2026-11-01): Q0–Q5 tamam; şüpheci inceleme 1 Engel + 4 Önemli kapattı (`docs/REVIEW_PHASE3.md`). |
 | D-098 | Program otonom: faz sonunda onay beklenmez; durma yalnız proje sahibine bağlı girdilerde. Kalite çıtası ART_REFERENCE §10 (her boyut ≥ 4/5). Üretim Opus / Sonnet / Haiku, orkestratör Fable (D-095). |
+| D-099 | **Sabit saha ve bulmaca zekâsı (K-55, paket A3 ile C#'a taşındı):** `schemaVersion` 2 bölümünde bütün bloklar baştan sahadadır, dilim geçişinde sahaya yeni parti ya da kamyon dolumu gelmez; D1 yeniden dizme kalktı (D1 → zincir/ıslaklık, hâlâ D1 ise Söküm `access`); `RULES_VERSION` 3. `schemaVersion` 1 (Faz 2R arşivi) verisi K-25…K-27 ile oynanmaya devam eder. |
 
 Faz 1 raporu: web reposunda `docs/UNITY_PORT_FAZ1.md`. TS → C# dosya eşlemesi: [`docs/PORT_MAP.md`](docs/PORT_MAP.md).
 
@@ -30,7 +31,7 @@ Faz 1 raporu: web reposunda `docs/UNITY_PORT_FAZ1.md`. TS → C# dosya eşlemesi
 │  │  │  ├─ Hooks.cs Goals.cs Combo.cs Boosters.cs Deadlock.cs Summary.cs              (P2: kurallar, çıkmaz, güçlendiriciler)
 │  │  │  ├─ Events.cs Moves.cs Session.cs SessionActionJson.cs                         (P3: K-35 hamle hattı, GameSession, olay günlüğü)
 │  │  │  ├─ Json/                  bağımlılıksız JSON okuyucu/yazıcı (JsonValue, JsonReader, JsonWriter + canonicalJson)
-│  │  │  ├─ Level/                 LevelData, LevelJson (zod şemasının elle yazılmış karşılığı), Logic (K-45 doğrulayıcı), Load (loadLevel), Compile, Plan, Mechanics
+│  │  │  ├─ Level/                 LevelData (`schemaVersion` 1 | 2, D-099 `targets` bantları, `LevelSchema.IsFixedYardLevel`), LevelJson (zod şemasının elle yazılmış karşılığı), Logic (K-45 doğrulayıcı, L-36 `fixed_yard_batches`), Load (loadLevel), Compile, Plan, Mechanics
 │  │  │  └─ Obstacles/             engel eklenti arayüzü (Types), kayıt + kanca birleştirme (Registry), W1_StaticGap, Y3_Chain, S1_SlidingSite
 │  │  ├─ Presentation.Core/        motor-bağımsız sunum (Faz 3 Q0; asmdef noEngineReferences): Tween/ (Easing, Tween, Sequence, TweenClock),
 │  │  │                            Feel/ (FeelSettings, FallMotion, StuckPulse), Layout/ (LayoutSettings, BoardLayout, ScreenFit, HitTest),
@@ -56,11 +57,12 @@ Faz 1 raporu: web reposunda `docs/UNITY_PORT_FAZ1.md`. TS → C# dosya eşlemesi
 │  │  ├─ Presentation.Core.Tests/  NUnit 3 testleri (Editor; Golden/tokens.json = web tokens kopyası)
 │  │  └─ Core.Tests/               NUnit 3 testleri (Editor platformu; Unity EditMode ile aynı dosyalar)
 │  │     ├─ Fixtures/              Builders (tests/fixtures/builders.ts), Boards (ortak tahta yardımcıları, Drop/Play), Cover (cover.ts), ObstacleFixtures, J (JSON literal), TestPaths, RuleCoverage (P4 kapsam kapısı)
-│  │     │  └─ Levels/{valid,invalid}/  K-45 doğrulayıcı fikstürleri (web tests/level/fixtures kopyası)
+│  │     │  └─ Levels/{valid,invalid,v2}/  K-45 doğrulayıcı fikstürleri (web tests/level/fixtures kopyası; `v2/` = K-55 örneği P1)
 │  │     ├─ Obstacles/             RegistryTests, W1StaticGapTests, S1SlidingSiteTests, Y3ChainTests, S2PlanVoidTests
-│  │     └─ Golden/                web reposundan kopya: level_NNN.hand.json, level_NNN.solver.json; TS vektörleri p0…p3_vectors.json; rule_ids.json (kural kimlikleri)
+│  │     ├─ Archive2R/             **Faz 2R arşivi (`schemaVersion` 1, kamyon partili):** level_001…010.json + hand/solver altın kayıtları (web `c1facf4`). K-25…K-27 ve TS↔C# eşdeğerlik testleri bu veriye dayanır (K-55 madde 9); `TestPaths.LoadLevelJson`, `Boards.LevelFile`, `TestPaths.LoadGolden("level_NNN.…")` bunu okur
+│  │     └─ Golden/                web reposundan kopya: level_NNN.hand.json, level_NNN.solver.json (yayın bölümleri, `schemaVersion` 2; `TestPaths.LoadCurrentGolden`); TS vektörleri p0…p3_vectors.json; rule_ids.json (kural kimlikleri)
 │  └─ StreamingAssets/MinikUsta/
-│     ├─ levels/                   level_001…010.json (web reposundan birebir kopya)
+│     ├─ levels/                   level_001…010.json (yayın bölümleri, D-099 `schemaVersion` 2; web reposundan birebir kopya)
 │     └─ config/economy.json       güçlendirici açılış seviyeleri (L-17 `booster:` / `pre:` vurguları)
 ├─ dotnet/                         Unity dışı derleme ve test (D-093)
 │  ├─ MinikUsta.sln
@@ -105,13 +107,19 @@ ayarları ve `.meta` dosyalarını Unity ilk koşuda üretir, iş akışı bunla
 | `tools/unity-refcheck.sh` | nuget.org'da `UnityEngine.Modules` 6000.0.x var mı bakar; yoksa SKIPPED (bkz. `docs/CI.md` §6) |
 | `tools/font/build-font.sh` | `Resources/fonts/Baloo2-ExtraBold.ttf`'yi google/fonts değişken Baloo 2'den (wght 800 örneği + Latin alt kümesi) yeniden üretir; fontTools gerekir |
 | `cd dotnet && dotnet test` | Tüm NUnit testlerini koşturur (testler repo kökünü `Assets/MinikUsta/Core/MinikUsta.Core.asmdef` ile bulur ve bölüm / altın / fikstür JSON'larını oradan okur) |
-| `tools/sync-from-web.sh [/yol/minik-usta]` | Bölüm, altın, fikstür, economy.json ve tokens.json dosyalarını web reposundan yeniler (varsayılan `../minik-usta`); Faz 3 Q1'den beri bölümleri, economy.json'u, `src/i18n/{tr,en}.json`'u ve kanonik çözüm günlüklerini `Assets/MinikUsta/Resources/` altına da kopyalar (oyun `Resources.Load<TextAsset>` ile okur; StreamingAssets kopyası çekirdek testleri içindir) |
+| `tools/sync-from-web.sh [/yol/minik-usta]` | Bölüm, altın, fikstür (`valid`, `invalid`, `v2`), economy.json ve tokens.json dosyalarını web reposundan yeniler (varsayılan `../minik-usta`); `Archive2R/` elle yönetilir, bu betik ona dokunmaz; Faz 3 Q1'den beri bölümleri, economy.json'u, `src/i18n/{tr,en}.json`'u ve kanonik çözüm günlüklerini `Assets/MinikUsta/Resources/` altına da kopyalar (oyun `Resources.Load<TextAsset>` ile okur; StreamingAssets kopyası çekirdek testleri içindir) |
 | `node tools/gen-p0-vectors.ts [/yol/minik-usta]` | `Core.Tests/Golden/p0_vectors.json` dosyasını TS çekirdeğinden yeniden üretir |
 | `node tools/gen-p1-vectors.ts [/yol/minik-usta] [--verbose]` | `Core.Tests/Golden/p1_vectors.json` dosyasını (P1 modülleri: R, K-07 sınıfları, düşüşler, kararlar, K-08 takip taraması, K-17 dönüş hedefleri, settleYard) yeniden üretir; `--verbose` her satırı `p1_vectors.verbose.json` dosyasına yazar (git dışı, uyuşmazlık teşhisi için) |
 | `node tools/gen-p3-vectors.ts [/yol/minik-usta] [--verbose]` | `Core.Tests/Golden/p3_vectors.json` dosyasını yeniden üretir: TS `GameSession.apply` ile 170 tohumlu deneme (sürükleme, çekiç, vinç, boya fırçası, Altın Mala, eski mala, geri al, +5 jeton/reklam, ret, çıkış) oynanır; girdiler saklanır, C# aynı girdileri oynatıp her paketin sonucunu, `eventLogHash`'ini, durum karmasını, oturum alanlarını ve `TurnSummary`'yi karşılaştırır; `--verbose` her satırı ve her paketin kanonik olay JSON'unu `p3_vectors.verbose.json` dosyasına yazar (git dışı). Uyuşmayan dizinin C# satırları `Golden/p3_csharp.<dizi>.txt` dosyasına yazılır (git dışı) |
 | `node tools/gen-rule-ids.ts [/yol/minik-usta]` | `Core.Tests/Golden/rule_ids.json` dosyasını web reposunun kapsam aracıyla (`tools/rule-coverage.ts` `ruleIds`: GDD başlıkları, TECH §12.4 F sütunu, OBSTACLES imza tablosu ve matrisi) yeniden üretir; `RuleCoverageTests` Faz 2R'ye kadar her kimliğin (76) en az bir C# test adında geçtiğini denetler |
 | `node tools/diff/ts-oracle.mjs [/yol/minik-usta] [--seeds N] [--moves M] [--out DIR]` | Diferansiyel fuzz kehaneti: web `src/core`'u içe aktarıp tohumlu **geçerli** eylem dizileri (DragSession R'sinden iptal etmeyen sürüklemeler, geçerli hedefli güçlendiriciler, Undo, +5, ret, çıkış) ve betikli senaryolar (Söküm, D1 karıştırma, kuyruk, teklif, Undo) oynar; her adımın Zobrist / tampon / olay karmasını, olay JSON'larını, ASCII'sini ve oturum alanlarını `tools/diff/out/*.json`'a yazar (git dışı). `DiffFuzzTests` aynı eylemleri C#'ta oynatıp her adımda karşılaştırır; ilk sapmada adım, eylem, ilk farklı olay ve iki tahta yan yana. Çıktı yoksa bu testler `Ignore` olur — `dotnet test`'ten önce koşturun |
 | `node tools/gen-p2-vectors.ts [/yol/minik-usta] [--verbose]` | `Core.Tests/Golden/p2_vectors.json` dosyasını (K-45 doğrulayıcı sonuç listeleri, D1/D2/D3a/Söküm/reshuffle, K-33/36/37/38 hedef kümeleri, K-34 kanca 5, hedef sayaçları, özet, kayıt) yeniden üretir; durumlar TS `applyMove` ile kanonik çözüm boyunca üretilip `encodeState` ile saklanır, C# aynı tamponu çözer; `--verbose` her satırı `p2_vectors.verbose.json` dosyasına yazar (git dışı) |
+
+**Faz 2R arşivi ve vektörler (paket A3):** `gen-p1/p2/p3-vectors.ts` ve `diff/ts-oracle.mjs` yayın bölümlerinin (web `levels/`) yanında
+`Assets/MinikUsta/Core.Tests/Archive2R` arşivini de oynatır (`--archive=<klasör>` ile değişir): P1 `archive_level_NNN` tahtaları, P2 `archive` grubu
+(doğrulayıcı) ve `levels[].archive` durumları, P3 `archive N seed S` dizileri, oracle `archive_NNN.json` kaynakları. `tools/review/gen-follow-vectors.ts` yalnız yayın
+bölümlerini kullanır (K-08 izleme sürümden bağımsızdır). Çıkmaz D1 artık yeniden dizilmediği için P2 satırlarında `any:` ve `reshuffle:` yok; yerine
+`step12offer:` (kabul edilen +5 sonrası D1 Söküm'ü) var.
 
 Unity içinde: Window → General → Test Runner → EditMode; `MinikUsta.Core.Tests` asmdef'i `UNITY_INCLUDE_TESTS` tanımı ve
 `nunit.framework.dll` referansıyla aynı dosyaları koşturur.
@@ -172,8 +180,8 @@ Unity içinde: Window → General → Test Runner → EditMode; `MinikUsta.Core.
 3. İlk açılış birkaç dakika sürer. Unity eksik `.meta` dosyalarını üretir; `git status` ile değişenleri gözden geçir.
 4. `Assets/MinikUsta/Scenes/Level.unity` dosyasını aç ve **Play**'e bas.
 5. Testler: **Window → General → Test Runner → EditMode → Run All**. Koşan assembly'ler: `MinikUsta.Core.Tests`
-   ve `MinikUsta.Presentation.Core.Tests`. Beklenen sayılar dotnet koşusuna göre (paket C1): Presentation 465 geçer. Core, `tools/diff/out`
-   (git dışı, `ts-oracle.mjs` çıktısı) varsa 1455 geçer ve 5 atlar; yoksa 1049 geçer ve 7 atlar (DiffFuzz durumları üretilmez).
+   ve `MinikUsta.Presentation.Core.Tests`. Beklenen sayılar dotnet koşusuna göre (paket A3, K-55): Presentation 471 geçer. Core, `tools/diff/out`
+   (git dışı, `ts-oracle.mjs` çıktısı) varsa 1882 geçer ve 5 atlar (655 DiffFuzz dizisi, 0 sapma); yoksa 1226 geçer ve 7 atlar (DiffFuzz durumları üretilmez).
    Unity içinde bu koşu henüz yapılmadı.
 
 Dotnet tarafı (Unity gerekmez):

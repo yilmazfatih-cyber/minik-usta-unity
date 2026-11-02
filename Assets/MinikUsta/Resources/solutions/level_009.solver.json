@@ -1,19 +1,24 @@
 {
   "level": 9,
-  "levelHash": "31e21c053c2225a5",
-  "rulesVersion": 2,
-  "solverVersion": 2,
-  "min": 7,
-  "yao": { "overWall": 3, "rail": 1 },
+  "levelHash": "bda97cca974be7ab",
+  "rulesVersion": 3,
+  "solverVersion": 3,
+  "min": 12,
+  "yao": { "overWall": 6, "rail": 1 },
   "log": [
     { "kind": "start", "preBoosters": [], "streakTier": 0 },
-    { "kind": "drag", "pieceId": 1, "to": { "ix": 2, "iy": 1, "mode": 0 } },
-    { "kind": "drag", "pieceId": 0, "to": { "ix": 4, "iy": 0, "mode": 1 } },
-    { "kind": "drag", "pieceId": 2, "to": { "ix": 0, "iy": 0, "mode": 0 } },
-    { "kind": "drag", "pieceId": 3, "to": { "ix": 0, "iy": 2, "mode": 0 } },
-    { "kind": "drag", "pieceId": 1, "to": { "ix": 4, "iy": 1, "mode": 0 } },
-    { "kind": "drag", "pieceId": 3, "to": { "ix": 4, "iy": 2, "mode": 0 } },
-    { "kind": "drag", "pieceId": 2, "to": { "ix": 4, "iy": 4, "mode": 0 } }
+    { "kind": "drag", "pieceId": 0, "to": { "ix": 0, "iy": 4, "mode": 0 } },
+    { "kind": "drag", "pieceId": 3, "to": { "ix": 2, "iy": 3, "mode": 0 } },
+    { "kind": "drag", "pieceId": 4, "to": { "ix": 2, "iy": 2, "mode": 0 } },
+    { "kind": "drag", "pieceId": 6, "to": { "ix": 0, "iy": 1, "mode": 0 } },
+    { "kind": "drag", "pieceId": 4, "to": { "ix": 4, "iy": 0, "mode": 1 } },
+    { "kind": "drag", "pieceId": 3, "to": { "ix": 2, "iy": 0, "mode": 0 } },
+    { "kind": "drag", "pieceId": 2, "to": { "ix": 4, "iy": 1, "mode": 0 } },
+    { "kind": "drag", "pieceId": 6, "to": { "ix": 4, "iy": 2, "mode": 0 } },
+    { "kind": "drag", "pieceId": 1, "to": { "ix": 4, "iy": 3, "mode": 0 } },
+    { "kind": "drag", "pieceId": 5, "to": { "ix": 4, "iy": 0, "mode": 0 } },
+    { "kind": "drag", "pieceId": 0, "to": { "ix": 4, "iy": 1, "mode": 0 } },
+    { "kind": "drag", "pieceId": 3, "to": { "ix": 4, "iy": 2, "mode": 0 } }
   ],
-  "eventLogHash": "24e449d7f2eb77c9"
+  "eventLogHash": "14bd02106e37240d"
 }

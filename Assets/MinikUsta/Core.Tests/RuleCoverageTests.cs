@@ -22,7 +22,7 @@ namespace MinikUsta.Core.Tests
             var req = Required();
             Assert.AreEqual(76, req.Count, "phase ≤ 2R ids");
             CollectionAssert.AreEqual(new[] { 46, 5, 22, 3 }, new[] { "K", "obstacle", "E", "N" }.Select(k => req.Count(r => r.Kind == k)).ToArray(), "K, obstacle, E, N");
-            Assert.AreEqual(54, all.Count(r => r.Kind == "K"), "every GDD K-xx has an id (K-54 is the newest)");
+            Assert.AreEqual(55, all.Count(r => r.Kind == "K"), "every GDD K-xx has an id (K-55 is the newest; its phase is 3, TECH 12.4)");
             CollectionAssert.AreEqual(new[] { "S1", "W1", "W2", "W3", "Y5" }, req.Where(r => r.Kind == "obstacle").Select(r => r.Id).OrderBy(x => x, System.StringComparer.Ordinal).ToArray(), "obstacles of levels 1–10");
             // later phases are not required yet (TS: K-20 and the bridge / league rows are phase 3–4)
             Assert.IsFalse(req.Any(r => r.Id == "K-20" || r.Id == "E-22" || r.Id == "E-45"), "phase 3–4 ids stay out of the 2R set");

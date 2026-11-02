@@ -1,30 +1,35 @@
 {
-  "schemaVersion": 1,
+  "schemaVersion": 2,
   "id": 1,
   "chapter": 1,
   "name": { "tr": "Ağaç Basamakları", "en": "Tree Steps" },
   "difficulty": "easy",
-  "moves": 11,
+  "moves": 10,
+  "teaches": "S1",
   "goals": [{ "type": "build" }],
   "gravity": { "build": "normal", "yard": false },
-  "wall": { "height": 4, "gaps": [] },
-  "site": { "cols": 2, "rows": 5 },
+  "wall": { "height": 3, "gaps": [] },
+  "site": { "cols": 2, "rows": 4 },
   "build": {
     "mode": "segments",
-    "segments": [{ "name": { "tr": "Basamaklar", "en": "Steps" }, "rows": ["WW", "YY", "WW", "YW", "YW"] }]
+    "segments": [
+      { "name": { "tr": "Alt Basamak", "en": "Lower Step" }, "rows": ["YY", "YY", "WW", "WW"] },
+      { "name": { "tr": "Üst Basamak", "en": "Upper Step" }, "rows": ["WW", "WW", "YY", "YY"] }
+    ]
   },
   "yard": {
-    "cols": 4,
+    "cols": 5,
     "rows": 4,
     "batches": [
       {
         "forSegment": 0,
         "pieces": [
-          { "shape": "D2_0", "color": "Y", "x": 0, "y": 2 },
-          { "shape": "D2_0", "color": "W", "x": 1, "y": 2 },
-          { "shape": "D2_90", "color": "W", "x": 0, "y": 1 },
-          { "shape": "D2_90", "color": "Y", "x": 2, "y": 1 },
-          { "shape": "D2_90", "color": "W", "x": 0, "y": 0 }
+          { "shape": "O4_0", "color": "W", "x": 0, "y": 2 },
+          { "shape": "D2_90", "color": "Y", "x": 2, "y": 3 },
+          { "shape": "D2_90", "color": "Y", "x": 2, "y": 2 },
+          { "shape": "O4_0", "color": "Y", "x": 0, "y": 0 },
+          { "shape": "D2_90", "color": "W", "x": 2, "y": 1 },
+          { "shape": "D2_90", "color": "W", "x": 2, "y": 0 }
         ]
       }
     ]
@@ -39,7 +44,7 @@
         "path": [
           [0, 3],
           [0, 5],
-          [4, 5]
+          [5, 5]
         ]
       },
       "textKey": "tut.m.lift",
@@ -47,10 +52,24 @@
     },
     {
       "step": 2,
+      "startOn": { "event": "segmentDone" },
       "highlight": ["goals"],
       "textKey": "tut.m.useall",
       "done": { "event": "placementCorrect", "count": 1 }
     }
   ],
-  "targets": { "minShifts": [0, 0], "firstNeedDepth": [0, 0], "deadRate": [0, 0] }
+  "targets": {
+    "min": [6, 6],
+    "minShifts": [0, 0],
+    "firstNeedDepth": [0, 0],
+    "maxCover": [0, 3],
+    "depLater": [0, 0],
+    "crossDeps": [1, 99],
+    "forced": [0, 6],
+    "greedyExcess": [0, 0],
+    "greedyWin": [0.95, 1],
+    "ahaMin": [0, 0],
+    "branch3": [0.3, 1],
+    "deadRate": [0, 0]
+  }
 }

@@ -47,7 +47,8 @@ namespace MinikUsta.Core.Tests
                 Wall = Wall(2),
                 Plan = new[] { "??", "WY" },
                 Hidden = Repeat1,
-                Pieces = Ps(Pc("B1_0", "W", 0, 0), Pc("B1_0", "Y", 1, 0), Pc("B1_0", "W", 2, 0)),
+                // a fourth block stays in the yard: a holdable block keeps K-30 D1 (RulesVersion 3: Söküm) away
+                Pieces = Ps(Pc("B1_0", "W", 0, 0), Pc("B1_0", "Y", 1, 0), Pc("B1_0", "W", 2, 0), Pc("B1_0", "Y", 3, 0)),
             });
             var before = Panorama.PanoramaView(s)[0].Rows;
             CollectionAssert.AreEqual(new[] { "?", "?" }, before[0]);

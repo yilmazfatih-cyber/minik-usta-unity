@@ -1,7 +1,8 @@
 /**
  * Generates Assets/MinikUsta/Core.Tests/Golden/p1_vectors.json from the TypeScript core (the source of truth, D-091):
- * the P1 modules (movement, gravity, placement, delivery) evaluated on the 10 shipped levels and on 45 seeded random
- * boards of the 9 geometries of TECH §2R.1. Per board: settleYard motions (yard gravity boards), state hash after the
+ * the P1 modules (movement, gravity, placement, delivery) evaluated on the 10 shipped levels (D-099, schemaVersion 2), on
+ * 45 seeded random boards of the 9 geometries of TECH §2R.1 and on the 10 Faz 2R archive levels (schemaVersion 1, truck
+ * batches; Assets/MinikUsta/Core.Tests/Archive2R, `archive_level_NNN`). Per board: settleYard motions (yard gravity boards), state hash after the
  * settle, build front, site column masks. Per piece: tryBeginDrag outcome, R with BFS distances, K-07 class of every
  * node, computeFall + shadowInfo of every site node, a K-08 sticky-follow sweep over the board (0.5-cell grid), the
  * yard drop rows (K-17 step 2 / K-25) and returnTarget. Everything is serialised to one text line per item and hashed
@@ -26,6 +27,9 @@ const args = process.argv.slice(2);
 const verbose = args.includes('--verbose');
 const WEB = resolve(args.find((a) => !a.startsWith('--')) ?? join(ROOT, '..', 'minik-usta'));
 const web = (p: string): Promise<any> => import(pathToFileURL(join(WEB, p)).href);
+/** Faz 2R archive (D-099 / K-55 item 9): levels 1–10 as `schemaVersion` 1 with their truck batches. */
+const ARCHIVE = resolve(args.find((a) => a.startsWith('--archive='))?.slice('--archive='.length) ?? join(ROOT, 'Assets', 'MinikUsta', 'Core.Tests', 'Archive2R'));
+const archiveLevel = (n: number): any => JSON.parse(readFileSync(join(ARCHIVE, `level_${String(n).padStart(3, '0')}.json`), 'utf8'));
 
 const { LevelSchema } = await web('src/core/level/schema.ts');
 const { compile } = await web('src/core/level/compile.ts');
@@ -231,6 +235,7 @@ const rng = mulberry32(RANDOM_SEED);
 for (const c of G) {
   for (let k = 0; k < RANDOM_PER_GEO; k++) boards.push(boardVector(`random ${label(c)} #${k}`, randomLevel(c, rng, 2), false));
 }
+for (let n = 1; n <= 10; n++) boards.push(boardVector(`archive_level_${String(n).padStart(3, '0')}`, compile(LevelSchema.parse(archiveLevel(n))), false));
 
 let webCommit = '?';
 try {
@@ -259,6 +264,7 @@ if (verbose) {
   }
   const rng2 = mulberry32(RANDOM_SEED);
   for (const c of G) for (let k = 0; k < RANDOM_PER_GEO; k++) all.push(boardVector(boards[i++].name, randomLevel(c, rng2, 2), true));
+  for (let n = 1; n <= 10; n++) all.push(boardVector(boards[i++].name, compile(LevelSchema.parse(archiveLevel(n))), true));
   full.boards = all.map((b) => ({ name: b.name, pieces: b.pieces.map((p: PieceVector) => ({ id: p.id, pick: p.pick, lines: p.lines, follow: p.follow })) }));
   const vtarget = join(ROOT, 'Assets', 'MinikUsta', 'Core.Tests', 'Golden', 'p1_vectors.verbose.json');
   writeFileSync(vtarget, JSON.stringify(full, null, 1) + '\n');

@@ -1,0 +1,61 @@
+{
+  "level": 2,
+  "source": "docs/LEVELS.md §2 Bölüm 2 — Kanonik çözüm (solver, GDD K-50 madde 4)",
+  "levelHash": "3c75442bb18a4e41",
+  "rulesVersion": 3,
+  "geo": { "yard": [4, 4], "site": [2, 5], "H": 5, "wall": 4 },
+  "budget": 9,
+  "minMoves": 3,
+  "movesLeft": 6,
+  "yao": { "overWall": 3, "rail": 0 },
+  "steps": [
+    {
+      "piece": "a",
+      "ref": "piece:0",
+      "shape": "O4_0",
+      "color": "G",
+      "from": [2, 2],
+      "kind": "overWall",
+      "to": [4, 0]
+    },
+    {
+      "piece": "b",
+      "ref": "piece:1",
+      "shape": "C3_0",
+      "color": "W",
+      "from": [0, 0],
+      "kind": "overWall",
+      "to": [4, 2]
+    },
+    {
+      "piece": "c",
+      "ref": "piece:2",
+      "shape": "C3_180",
+      "color": "Y",
+      "from": [0, 2],
+      "kind": "overWall",
+      "to": [4, 3],
+      "segmentCompleted": 0
+    }
+  ],
+  "log": [
+    { "kind": "start", "preBoosters": [], "streakTier": 0 },
+    { "kind": "drag", "pieceId": 0, "to": { "ix": 4, "iy": 0, "mode": 0 } },
+    { "kind": "drag", "pieceId": 1, "to": { "ix": 4, "iy": 2, "mode": 0 } },
+    { "kind": "drag", "pieceId": 2, "to": { "ix": 4, "iy": 3, "mode": 0 } }
+  ],
+  "eventLogHash": "d4a5aa044b8efd28",
+  "finalAscii": [
+    "L2 turn 3 moves 6 seg 1/1 elev 0",
+    "size 4x4|2x5 H5",
+    " y  0 1 2 3 | W | 4 5",
+    " 6  . . . . | : | . .",
+    " 5  . . . . | : | . .",
+    " 4  · · · · | : | Y Y",
+    " 3  . . . . | # | W Y",
+    " 2  . . . . | # | W W",
+    " 1  . . . . | # | G G",
+    " 0  . . . . | # | G G",
+    "plan seg0 (top→bottom): YY WY WW GG GG"
+  ]
+}

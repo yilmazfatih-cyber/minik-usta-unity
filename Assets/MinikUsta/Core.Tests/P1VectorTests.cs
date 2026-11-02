@@ -142,12 +142,12 @@ namespace MinikUsta.Core.Tests
             }
         }
 
-        [Test(Description = "P1 vectors: the file comes from the same web commit as the P0 vectors and covers 10 levels + 9 geometries × 5 random boards")]
+        [Test(Description = "P1 vectors: the file comes from the same web commit as the P0 vectors and covers 10 shipped levels + 9 geometries × 5 random boards + 10 Faz 2R archive levels")]
         public void P1_vectors_file_is_consistent()
         {
             Assert.AreEqual(TestPaths.Vectors["generatedFrom"]!["webCommit"]!.AsString, Vectors["generatedFrom"]!["webCommit"]!.AsString, "p0 and p1 vectors from different web commits");
             Assert.AreEqual("tools/gen-p1-vectors.ts", Vectors["generatedFrom"]!["generator"]!.AsString);
-            Assert.AreEqual(10 + GeometryTests.G.Length * Vectors["random"]!["perGeometry"]!.AsInt, Vectors["boards"]!.Items.Count());
+            Assert.AreEqual(10 + GeometryTests.G.Length * Vectors["random"]!["perGeometry"]!.AsInt + 10, Vectors["boards"]!.Items.Count());
             Assert.IsNotNull(Vectors["boards"]![0]["pieces"]![0]["lines"], "level 1 keeps the full lines as the format anchor");
         }
 
@@ -157,6 +157,16 @@ namespace MinikUsta.Core.Tests
         {
             var b = Vectors["boards"]!.Items.ElementAt(n - 1);
             Assert.AreEqual("level_" + n.ToString("000"), b["name"]!.AsString);
+            CheckBoard(b, Compiler.Compile(LevelJson.ParseOrThrow(TestPaths.LoadCurrentLevelJson(n))));
+        }
+
+        [TestCase(1), TestCase(2), TestCase(3), TestCase(4), TestCase(5), TestCase(6), TestCase(7), TestCase(8), TestCase(9), TestCase(10)]
+        [Test(Description = "K-25 K-26 K-55 item 9 the same on the Faz 2R archive level N (schemaVersion 1, truck batches): every pick, node, class, fall, verdict, shadow, follow step, drop row and return target equals the TypeScript core")]
+        public void K25_K55_archive_level_N_movement_gravity_placement_results_equal_the_TypeScript_core(int n)
+        {
+            int index = 10 + GeometryTests.G.Length * Vectors["random"]!["perGeometry"]!.AsInt + (n - 1);
+            var b = Vectors["boards"]!.Items.ElementAt(index);
+            Assert.AreEqual("archive_level_" + n.ToString("000"), b["name"]!.AsString);
             CheckBoard(b, Compiler.Compile(LevelJson.ParseOrThrow(TestPaths.LoadLevelJson(n))));
         }
 
@@ -167,7 +177,7 @@ namespace MinikUsta.Core.Tests
             var rng = new Mulberry32(random["seed"]!.AsInt);
             int per = random["perGeometry"]!.AsInt;
             int levelId = random["levelId"]!.AsInt;
-            var boards = Vectors["boards"]!.Items.Skip(10).ToArray();
+            var boards = Vectors["boards"]!.Items.Skip(10).Take(GeometryTests.G.Length * per).ToArray();
             int i = 0;
             foreach (var c in GeometryTests.G)
             {

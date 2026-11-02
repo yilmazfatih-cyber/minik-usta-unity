@@ -275,7 +275,7 @@ namespace MinikUsta.Presentation.Tests
         [Test]
         public void K29_out_of_moves_opens_the_window_with_only_retry_and_retry_restarts_the_attempt()
         {
-            string text = Rig.ReadLevel(1)!.Replace("\"moves\": 11", "\"moves\": 1");
+            string text = Rig.ReadLevel(1)!.Replace("\"moves\": 10", "\"moves\": 1"); // D-099 level 1: 10 moves
             var rig = new Rig(read: n => n == 1 ? text : Rig.ReadLevel(n));
             rig.Load(1);
             Assert.AreEqual(1, rig.Session.MovesLeft);
@@ -299,6 +299,42 @@ namespace MinikUsta.Presentation.Tests
             Assert.AreEqual(1, rig.Session.MovesLeft, "a new attempt");
             Assert.AreEqual(BoosterOutcomes.Playing, rig.Session.Outcome);
             rig.AssertBoardMatchesState("after retry");
+        }
+
+        /// <summary>GDD K-30 D1 board (web deadlock.test.ts JAM; yard 5 × 4, four blocks under an I5 Ağır Yük, crates on top), 2 moves.</summary>
+        private const string JamJson = @"{""schemaVersion"":1,""id"":1,""chapter"":1,""name"":{""tr"":""Test"",""en"":""Test""},""difficulty"":""easy"",""moves"":2,
+          ""goals"":[{""type"":""build""}],""gravity"":{""build"":""normal"",""yard"":false},""wall"":{""height"":2,""gaps"":[]},""site"":{""cols"":2,""rows"":4},
+          ""build"":{""mode"":""segments"",""segments"":[{""name"":{""tr"":""D0"",""en"":""S0""},""rows"":[""WW"",""WW"",""WW"",""WW""]}]},
+          ""yard"":{""cols"":5,""rows"":4,""batches"":[{""forSegment"":0,""pieces"":[{""shape"":""D2_90"",""color"":""W"",""x"":0,""y"":0},{""shape"":""B1_0"",""color"":""W"",""x"":2,""y"":0},
+            {""shape"":""B1_0"",""color"":""W"",""x"":3,""y"":0},{""shape"":""B1_0"",""color"":""W"",""x"":4,""y"":0},{""shape"":""I5_0"",""color"":""W"",""x"":0,""y"":1},
+            {""shape"":""D2_90"",""color"":""W"",""x"":0,""y"":3},{""shape"":""B1_0"",""color"":""W"",""x"":2,""y"":3}]}]},
+          ""obstacles"":[{""type"":""crate"",""x"":0,""y"":2,""hp"":1},{""type"":""crate"",""x"":1,""y"":2,""hp"":1},{""type"":""crate"",""x"":2,""y"":2,""hp"":1},{""type"":""crate"",""x"":3,""y"":2,""hp"":1},{""type"":""crate"",""x"":4,""y"":2,""hp"":1}]}";
+
+        [Test]
+        public void K30_K55_E64_a_D1_after_the_plus_5_offer_tears_the_last_drag_down_on_screen_and_the_board_matches_the_state()
+        {
+            // the last drag leaves no holdable block (the counter is 0, so D1 does not run); the accepted +5 offer runs D1 once: a Söküm
+            var rig = new Rig();
+            rig.Player.Start(Play.FromJson(JamJson), 99);
+            Assert.AreEqual(MoveStatuses.Applied, rig.Player.Commit(new DragMove(5, new DragNode(5, 4, Movement.Free))).Status);
+            rig.Settle();
+            var last = rig.Player.Commit(new DragMove(6, new DragNode(5, 4, Movement.Free)));
+            rig.Settle();
+            Assert.AreEqual(BoosterOutcomes.OutOfMoves, rig.Session.Outcome);
+            Assert.IsFalse(last.Events.Any(e => e is DeadlockDetectedEvent), "K-30: D1 does not run at 0 moves");
+            var before = (int[])rig.Session.State.Buf.Clone();
+            var offer = rig.Player.Commit(new AddMovesMove(5, AddMovesSource.OfferCoins));
+            Assert.AreEqual(MoveStatuses.Applied, offer.Status);
+            CollectionAssert.AreEqual(new[] { "movesChanged", "deadlockDetected", "teardown" }, offer.Events.Select(e => e.TypeName).ToArray());
+            Assert.AreEqual(TeardownCauses.Access, offer.Teardown!.Cause, "RULES_VERSION 3: a D1 the rules cannot lift is a Söküm, never a reshuffle");
+            var plan = AnimationPlanner.Plan(offer, PlanContext.Capture(GameSession.Replay(rig.Session.Lvl, rig.Session.Log.Take(rig.Session.Log.Count - 1).ToArray())), rig.Player.Feel);
+            Assert.IsTrue(plan.Steps.Any(st => st.Kind == StepKind.Teardown), "the Söküm is a planned step of the package");
+            rig.Settle();
+            Assert.AreEqual(BoosterOutcomes.Playing, rig.Session.Outcome);
+            Assert.AreEqual(5, rig.Session.MovesLeft, "the counter keeps the +5; the drag is taken back");
+            Assert.IsFalse(State.PieceZone(rig.Session.State, 6) != Zone.Yard);
+            rig.AssertBoardMatchesState("after the D1 Söküm");
+            CollectionAssert.AreNotEqual(before, rig.Session.State.Buf);
         }
 
         [Test]
@@ -443,9 +479,9 @@ namespace MinikUsta.Presentation.Tests
             Assert.AreEqual("Hamle", rig.View.MovesLabel);
             Assert.AreEqual("blok", rig.View.BlocksLabel);
             Assert.AreEqual("Bölüm 1", rig.View.LevelLabel);
-            Assert.AreEqual("0/1", rig.View.Segments);
+            Assert.AreEqual("0/2", rig.View.Segments, "D-099 level 1: two floors");
             Assert.AreEqual(rig.Session.Summary().BlocksLeft, rig.View.Blocks);
-            Assert.AreEqual(11, rig.View.Moves);
+            Assert.AreEqual(10, rig.View.Moves);
         }
     }
 }

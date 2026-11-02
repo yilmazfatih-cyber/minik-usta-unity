@@ -40,7 +40,8 @@ namespace MinikUsta.Core.Tests
             string key = kind + n;
             if (!LevelCache.TryGetValue(key, out var lvl))
             {
-                lvl = kind == "level" ? Boards.LevelFile(n) : Builders.Compiled(Cover.CoverLevel(n));
+                // `level` = the shipped levels (D-099, schemaVersion 2), `archive` = the Faz 2R levels (schemaVersion 1), else a cover board
+                lvl = kind == "level" ? Boards.CurrentLevelFile(n) : kind == "archive" ? Boards.LevelFile(n) : Builders.Compiled(Cover.CoverLevel(n));
                 LevelCache[key] = lvl;
             }
             return lvl;

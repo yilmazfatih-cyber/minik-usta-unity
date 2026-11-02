@@ -15,12 +15,13 @@
  *   allowed; K-29), decline (ends the attempt), exit (rare, K-43);
  * - start: pre-level boosters (K-40) and the streak tier from the seed.
  * Real levels 1–10 first play a seed-dependent prefix of the canonical solution (tests/golden hand.json) so late phases
- * (truck deliveries, segment shifts, wins) are reached; a third of the seeds is "burn"-biased (yard shifts) so the
+ * (segment shifts, wins) are reached; the Faz 2R archive levels (`archive`, schemaVersion 1) also reach truck deliveries; a third of the seeds is "burn"-biased (yard shifts) so the
  * out-of-moves window, offers, K-29 losses and Söküm (K-30) show up within the move cap.
- * Sources: levels 1–10, tests/fixtures/cover.ts full-cover boards, random levels in the 9 K-49 geometries (static gap,
+ * Sources: the shipped levels 1–10 (D-099, schemaVersion 2, fixed yard), the Faz 2R archive levels 1–10 (Core.Tests/Archive2R,
+ * schemaVersion 1), tests/fixtures/cover.ts full-cover boards, random levels in the 9 K-49 geometries (static gap,
  * yard gravity on/off), crowded "truck" boards whose batches queue (K-25, K-26, E-03), and scripted scenarios (P4 item
- * 3: Söküm / K-30 with Undo, offers and exits; D1 truck help — reshuffle incl. the RNG attempts ≥ 1, unchain, after an
- * offer; +5 offers; Undo; truck queue), some followed by random valid play. Every source file carries the level data
+ * 3: Söküm / K-30 with Undo, offers and exits; D1 — unchain, Söküm `access` (RULES_VERSION 3), after an offer; +5 offers;
+ * Undo; truck queue; K-55 fixed yard: tests/level/fixtures/v2/p1_two_floors.json), some followed by random valid play. Every source file carries the level data
  * (`level`) so C# compiles the very same level (`levelHash` is compared).
  *
  * Per step (`steps[i]`): `a` action, `st` status (applied / cancelled / rejected, or exit / decline), `rs` reason,
@@ -56,6 +57,8 @@ const OUT = resolve(opt('--out', join(HERE, 'out')));
 if (!(SEEDS >= 1) || !(MOVES >= 1)) throw new Error('--seeds and --moves need positive integers');
 
 const web = (p) => import(pathToFileURL(join(WEB, p)).href);
+/** Faz 2R archive (D-099 / K-55 item 9): levels 1–10 as `schemaVersion` 1 with their truck batches and golden replays. */
+const ARCHIVE = resolve(opt('--archive', join(ROOT, 'Assets', 'MinikUsta', 'Core.Tests', 'Archive2R')));
 const { compile, loadLevel } = await web('src/core/level/compile.ts');
 const { LevelSchema } = await web('src/core/level/schema.ts');
 const { Zone } = await web('src/core/types.ts');
@@ -403,19 +406,22 @@ function writeSource(file, source, data, sequences) {
   files.push({ file, source, sequences: sequences.map((q) => q.name), steps: sequences.reduce((n, q) => n + q.steps.length - 1, 0) });
 }
 
-for (let n = 1; n <= 10; n++) {
-  const json = readJson(join(WEB, 'levels', `level_${pad(n)}.json`));
-  const loaded = loadLevel(json);
-  if (!loaded.ok) throw new Error(`level ${n} does not load`);
-  const lvl = loaded.level;
-  const hand = readJson(join(WEB, 'tests', 'golden', `level_${pad(n)}.hand.json`));
-  const canonical = hand.log.filter((a) => a.kind === 'drag');
-  const seqs = [];
-  for (let seed = 1; seed <= SEEDS; seed++) {
-    const burn = seed % 3 === 0;
-    seqs.push(playSequence(`level ${pad(n)} seed ${pad(seed, 2)}${burn ? ' burn' : ''}`, lvl, seed, burn ? [] : canonical, burn));
+// `level` = the shipped levels (D-099, schemaVersion 2: one batch, fixed yard); `archive` = the Faz 2R levels (schemaVersion 1)
+for (const kind of ['level', 'archive']) {
+  for (let n = 1; n <= 10; n++) {
+    const json = readJson(kind === 'level' ? join(WEB, 'levels', `level_${pad(n)}.json`) : join(ARCHIVE, `level_${pad(n)}.json`));
+    const loaded = loadLevel(json);
+    if (!loaded.ok) throw new Error(`${kind} ${n} does not load`);
+    const lvl = loaded.level;
+    const hand = readJson(kind === 'level' ? join(WEB, 'tests', 'golden', `level_${pad(n)}.hand.json`) : join(ARCHIVE, `level_${pad(n)}.hand.json`));
+    const canonical = hand.log.filter((a) => a.kind === 'drag');
+    const seqs = [];
+    for (let seed = 1; seed <= SEEDS; seed++) {
+      const burn = seed % 3 === 0;
+      seqs.push(playSequence(`${kind} ${pad(n)} seed ${pad(seed, 2)}${burn ? ' burn' : ''}`, lvl, seed, burn ? [] : canonical, burn));
+    }
+    writeSource(kind === 'level' ? `level_${pad(n)}.json` : `archive_${pad(n)}.json`, { kind, n }, lvl.data, seqs);
   }
-  writeSource(`level_${pad(n)}.json`, { kind: 'level', n }, lvl.data, seqs);
 }
 
 const COVER = 20;
@@ -535,9 +541,9 @@ const CHAINED = {
   pieces: [['B1_0', 'W', 0, 0, ['chained']], ['B1_0', 'W', 1, 0, ['chained']], ['D2_0', 'W', 4, 0]],
 };
 /**
- * K-30 D1 reshuffles whose first constructive attempt fails, so attempts ≥ 1 shuffle with the state's RNG (deadlock.ts
- * `reshuffleYard`): found by a seeded search (random crate-jammed yards, random valid drags; kept when a reshuffle
- * changed H.rng). The log leads to that move; random valid play follows.
+ * K-30 D1 boards found by a seeded search in the Faz 2R time (random crate-jammed yards, random valid drags; the TS
+ * reshuffle then changed H.rng). RULES_VERSION 3 has no reshuffle: the log still leads to a D1 move, and the D1 Söküm
+ * (`access`) or the lifted chain follows; random valid play after it.
  */
 const D1_RNG = [
   { spec: {"id":12,"yard":{"cols":5,"rows":5},"site":{"cols":2,"rows":4},"wall":{"height":2},"plan":["WW","WY","YW","YY"],"pieces":[["O4_0","W",3,0],["I3_90","Y",0,1],["B1_0","Y",1,0],["B1_0","W",0,0],["B1_0","W",2,0],["B1_0","W",4,4],["B1_0","Y",2,3],["B1_0","W",3,3],["B1_0","Y",3,4],["B1_0","W",2,4],["B1_0","W",1,3],["B1_0","Y",0,3],["B1_0","Y",4,3]],"obstacles":[{"type":"crate","x":0,"y":2,"hp":1},{"type":"crate","x":1,"y":2,"hp":1},{"type":"crate","x":2,"y":2,"hp":1},{"type":"crate","x":3,"y":2,"hp":1},{"type":"crate","x":4,"y":2,"hp":1}],"moves":30}, log: [{"kind":"drag","pieceId":12,"to":{"ix":5,"iy":1,"mode":0}},{"kind":"drag","pieceId":11,"to":{"ix":6,"iy":6,"mode":0}},{"kind":"drag","pieceId":9,"to":{"ix":5,"iy":5,"mode":0}},{"kind":"drag","pieceId":7,"to":{"ix":5,"iy":2,"mode":0}},{"kind":"drag","pieceId":5,"to":{"ix":6,"iy":3,"mode":0}},{"kind":"drag","pieceId":7,"to":{"ix":5,"iy":6,"mode":0}},{"kind":"drag","pieceId":8,"to":{"ix":5,"iy":5,"mode":0}},{"kind":"drag","pieceId":9,"to":{"ix":6,"iy":2,"mode":0}},{"kind":"drag","pieceId":7,"to":{"ix":6,"iy":5,"mode":0}},{"kind":"drag","pieceId":7,"to":{"ix":5,"iy":5,"mode":0}},{"kind":"drag","pieceId":6,"to":{"ix":4,"iy":3,"mode":0}},{"kind":"drag","pieceId":6,"to":{"ix":5,"iy":6,"mode":0}},{"kind":"drag","pieceId":10,"to":{"ix":6,"iy":4,"mode":0}},{"kind":"drag","pieceId":9,"to":{"ix":6,"iy":4,"mode":0}},{"kind":"drag","pieceId":10,"to":{"ix":5,"iy":4,"mode":0}},{"kind":"drag","pieceId":6,"to":{"ix":6,"iy":5,"mode":0}},{"kind":"drag","pieceId":9,"to":{"ix":6,"iy":6,"mode":0}}] },
@@ -547,6 +553,10 @@ const D1_RNG = [
   { spec: {"id":12,"yard":{"cols":6,"rows":4},"site":{"cols":2,"rows":3},"wall":{"height":2},"plan":["WW","YY","WY"],"pieces":[["C3_0","Y",2,1],["I3_90","W",2,0],["B1_0","Y",5,2],["C3_0","Y",0,1],["B1_0","Y",5,0],["C3_0","W",4,1],["B1_0","Y",1,2],["D2_90","W",0,0],["B1_0","W",3,2]],"obstacles":[{"type":"crate","x":0,"y":3,"hp":1},{"type":"crate","x":1,"y":3,"hp":1},{"type":"crate","x":2,"y":3,"hp":1},{"type":"crate","x":3,"y":3,"hp":1},{"type":"crate","x":4,"y":3,"hp":1},{"type":"crate","x":5,"y":3,"hp":1}],"moves":30}, log: [{"kind":"drag","pieceId":2,"to":{"ix":7,"iy":1,"mode":0}}] },
   { spec: {"id":12,"yard":{"cols":5,"rows":4},"site":{"cols":2,"rows":2},"wall":{"height":2},"plan":["YY","YY"],"pieces":[["C3_0","Y",3,1],["C3_0","Y",2,0],["C3_0","Y",1,2],["D2_90","W",0,0],["B1_0","W",4,0],["B1_0","Y",4,2],["D2_90","Y",0,1],["B1_0","W",0,2]],"obstacles":[{"type":"crate","x":0,"y":3,"hp":1},{"type":"crate","x":2,"y":3,"hp":1},{"type":"crate","x":3,"y":3,"hp":1},{"type":"crate","x":4,"y":3,"hp":1}],"moves":30}, log: [{"kind":"drag","pieceId":5,"to":{"ix":6,"iy":1,"mode":0}}] },
 ];
+/** K-55 GDD example P1 (tests/level/fixtures/v2/p1_two_floors.json, schemaVersion 2): yard 6×4, two 2×5 floors, 8 blocks. */
+const P1_JSON = readJson(join(WEB, 'tests', 'level', 'fixtures', 'v2', 'p1_two_floors.json'));
+/** The P1 solution of tests/core/fixedYard.test.ts: 9 moves, the segment change on move 6. */
+const P1_SOLUTION = [D(5, 6, 5), D(6, 7, 5), D(3, 4, 3), D(1, 6, 5), D(2, 7, 5), D(3, 6, 5), D(4, 6, 5), D(7, 6, 5), D(0, 6, 5)];
 const shuttle = (n, from = 1) => Array.from({ length: n }, (_, i) => D(5, 5, (from + i) % 2));
 
 const SCENARIOS = [
@@ -569,19 +579,27 @@ const SCENARIOS = [
   { name: 'undo around the offer window then decline', spec: { ...STREAK, moves: 2 }, actions: [D(0, 6, 8), D(5, 5, 1), UNDO, COINS, D(1, 7, 8), UNDO, D(1, 7, 8), ...shuttle(4, 0), UNDO, DECLINE] },
   // K-39 Undo of the 4th correct placement (trowel taken back), depth 1, K-43 exit after Undo of the only move
   { name: 'undo streak trowel and depth', spec: STREAK, actions: [D(0, 6, 8), D(1, 7, 8), D(2, 6, 8), D(3, 7, 8), UNDO, UNDO, D(3, 7, 8), { kind: 'goldTrowel', pieceId: 5, x: 6, y: 4 }, D(4, 7, 8), UNDO, EXIT] },
-  // K-30 D1: a jammed yard is reshuffled at step 12 (truck help, RNG in the state), then random valid play (hammer on crates …)
-  ...[1, 2, 3, 4].map((k) => ({ name: `D1 jam reshuffle then random ${k}`, spec: JAM, actions: [D(5, 5, 4), D(6, 5, 4)], randomAfter: true, seed: k })),
-  // K-30 D1 not at zero moves; K-29 after +5 only D1 runs once (E-42), then random valid play
+  // K-30 / K-55 item 8 D1: a jammed yard is torn down at step 12 (Söküm `access`, never re-laid), then random valid play (hammer on crates …)
+  ...[1, 2, 3, 4].map((k) => ({ name: `D1 jam teardown then random ${k}`, spec: JAM, actions: [D(5, 5, 4), D(6, 5, 4)], randomAfter: true, seed: k })),
+  // K-30 D1 not at zero moves; K-29 after +5 only D1 runs once (E-42): its Söküm takes the last drag back, then random valid play
   ...[1, 2].map((k) => ({ name: `D1 after the offer then random ${k}`, spec: { ...JAM, moves: 2 }, actions: [D(5, 5, 4), D(6, 5, 4), COINS], randomAfter: true, seed: k })),
   // K-30 D1 removes chains first (Y3 truck help), then random valid play
   ...[1, 2].map((k) => ({ name: `D1 unchain then random ${k}`, spec: CHAINED, actions: [D(2, 6, 8)], randomAfter: true, seed: k })),
-  // K-30 D1 reshuffle attempts ≥ 1 (RNG shuffle of the other blocks), then random valid play
-  ...D1_RNG.map((x, k) => ({ name: `D1 reshuffle with RNG attempts ${k + 1}`, spec: x.spec, actions: x.log, randomAfter: true, seed: k + 1 })),
+  // K-30 D1 on seeded crate-jammed boards (the Faz 2R reshuffle search), then random valid play
+  ...D1_RNG.map((x, k) => ({ name: `D1 seeded jam ${k + 1}`, spec: x.spec, actions: x.log, randomAfter: true, seed: k + 1 })),
+  // K-55 fixed yard (E-62): the P1 solution — the segment change on move 6 leaves the yard bit for bit, no delivery — and a win
+  { name: 'K-55 P1 two floors win', json: P1_JSON, actions: P1_SOLUTION },
+  // K-55 + K-39: Undo of the move that completes floor 1, then the same move again, then random valid play
+  { name: 'K-55 P1 undo across the segment change', json: P1_JSON, actions: [...P1_SOLUTION.slice(0, 6), UNDO, P1_SOLUTION[5], P1_SOLUTION[6]], randomAfter: true, seed: 1 },
+  // K-55 item 4 / E-63: random valid play on the two-floor yard (blocks are not bound to a floor: swaps, D3a Söküm)
+  ...[1, 2, 3, 4, 5, 6].map((k) => ({ name: `K-55 P1 random play ${k}`, json: P1_JSON, actions: [], randomAfter: true, seed: k + 10 })),
+  // K-55 + K-29: few moves, the window opens and +5 offers follow, then random valid play
+  ...[1, 2].map((k) => ({ name: `K-55 P1 offers ${k}`, json: { ...P1_JSON, moves: 3 }, actions: [P1_SOLUTION[0], P1_SOLUTION[1], P1_SOLUTION[2], COINS], randomAfter: true, seed: k + 20 })),
 ];
 
 const scenarioFiles = [];
 SCENARIOS.forEach((sc, i) => {
-  const data = level(sc.spec);
+  const data = sc.json ? LevelSchema.parse(JSON.parse(JSON.stringify(sc.json))) : level(sc.spec);
   if (!roundTrips(data)) throw new Error(`scenario ${sc.name} does not round-trip through JSON`);
   const lvl = compile(data);
   const seq = playSequence(`scenario ${pad(i + 1, 2)} ${sc.name}`, lvl, sc.seed ?? 0, [], false, sc);

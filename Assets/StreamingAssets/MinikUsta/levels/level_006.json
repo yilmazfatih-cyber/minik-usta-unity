@@ -1,5 +1,5 @@
 {
-  "schemaVersion": 1,
+  "schemaVersion": 2,
   "id": 6,
   "chapter": 1,
   "name": { "tr": "Uzun Gövde", "en": "Tall Trunk" },
@@ -8,15 +8,13 @@
   "teaches": "W2",
   "goals": [{ "type": "build" }],
   "gravity": { "build": "normal", "yard": false },
-  "wall": { "height": 7, "gaps": [] },
-  "site": { "cols": 2, "rows": 7 },
+  "wall": { "height": 5, "gaps": [] },
+  "site": { "cols": 2, "rows": 4 },
   "build": {
     "mode": "segments",
     "segments": [
-      {
-        "name": { "tr": "Uzun Gövde", "en": "Tall Trunk" },
-        "rows": ["YY", "YY", "YY", "WY", "WW", "GG", "GG"]
-      }
+      { "name": { "tr": "Gövde Altı", "en": "Trunk Base" }, "rows": ["WW", "GW", "GG", "YY"] },
+      { "name": { "tr": "Gövde Üstü", "en": "Trunk Top" }, "rows": ["YY", "WW", "WW", "YY"] }
     ]
   },
   "yard": {
@@ -26,11 +24,13 @@
       {
         "forSegment": 0,
         "pieces": [
-          { "shape": "O4_0", "color": "G", "x": 0, "y": 0 },
-          { "shape": "C3_0", "color": "W", "x": 0, "y": 2 },
-          { "shape": "C3_180", "color": "Y", "x": 0, "y": 3 },
-          { "shape": "D2_90", "color": "Y", "x": 2, "y": 0 },
-          { "shape": "D2_90", "color": "Y", "x": 2, "y": 1 }
+          { "shape": "D2_90", "color": "W", "x": 0, "y": 4 },
+          { "shape": "D2_90", "color": "Y", "x": 0, "y": 3 },
+          { "shape": "C3_0", "color": "G", "x": 2, "y": 2 },
+          { "shape": "C3_180", "color": "W", "x": 0, "y": 1 },
+          { "shape": "D2_90", "color": "Y", "x": 2, "y": 1 },
+          { "shape": "D2_90", "color": "Y", "x": 0, "y": 0 },
+          { "shape": "D2_90", "color": "W", "x": 2, "y": 0 }
         ]
       }
     ]
@@ -39,23 +39,38 @@
   "tutorial": [
     {
       "step": 1,
-      "highlight": ["piece:2", "cell:2,4", "cell:3,4"],
+      "highlight": ["piece:0"],
       "hand": {
         "kind": "drag",
         "path": [
-          [1, 4],
-          [3, 4]
+          [0, 4],
+          [2, 4]
         ]
       },
       "textKey": "tut.m.park",
-      "done": { "event": "yardMove", "count": 1, "at": [2, 3] }
+      "done": { "event": "yardMove", "count": 1, "piece": "piece:0" }
     },
     {
       "step": 2,
+      "startOn": { "event": "yardMove", "piece": "piece:0" },
       "highlight": ["crane", "wall"],
       "textKey": "tut.m.highwall",
       "done": { "event": "overWall", "count": 1 }
     }
   ],
-  "targets": { "minShifts": [2, 3], "firstNeedDepth": [2, 2], "deadRate": [0, 0] }
+  "targets": {
+    "min": [9, 10],
+    "minShifts": [2, 3],
+    "firstNeedDepth": [1, 2],
+    "maxCover": [2, 3],
+    "depLater": [1, 3],
+    "crossDeps": [2, 99],
+    "parkSlack": [1, 2],
+    "forced": [4, 8],
+    "greedyExcess": [0, 1],
+    "greedyWin": [0.5, 1],
+    "ahaMin": [0, 1],
+    "branch3": [0.2, 0.6],
+    "deadRate": [0, 0]
+  }
 }

@@ -33,9 +33,10 @@ namespace MinikUsta.Presentation.Tests
             public void Progressed(int step, float now) => Progress.Add(step);
         }
 
-        private static (TutorialController tut, Host host, CompiledLevel lvl) Make(int level)
+        /// <summary>The tutorial of a shipped level (D-099, `schemaVersion` 2) or, with `archive`, of the Faz 2R level (the controller tests that were written against its steps).</summary>
+        private static (TutorialController tut, Host host, CompiledLevel lvl) Make(int level, bool archive = false)
         {
-            var lvl = Play.LevelFile(level);
+            var lvl = Play.LevelFile(level, archive);
             var host = new Host { State = State.CreateInitialState(lvl) };
             var tut = TutorialFactory.Create(lvl, host, false)!;
             tut.Start(0);
@@ -84,7 +85,7 @@ namespace MinikUsta.Presentation.Tests
         [Test]
         public void K53_step_done_ignores_other_piece_and_ends_on_the_named_piece()
         {
-            var (tut, host, lvl) = Make(3);
+            var (tut, host, lvl) = Make(3, archive: true); // Faz 2R level 3: step 1 = yardMove piece:2
             int named = lvl.TutorialPieceIds["piece:2"];
             int other = named == 0 ? 1 : 0;
             tut.MoveEnded(new GameEvent[] { Ev(new PieceMovedEvent(other, At.Yard(0, 0), At.Yard(1, 0), EntryKinds.Yard), 1) }, 100);
@@ -108,10 +109,11 @@ namespace MinikUsta.Presentation.Tests
             Assert.AreEqual(new[] { 1 }, host.Ended.ToArray());
         }
 
-        [Test]
-        public void K53_a_move_end_counts_at_most_once_per_move()
+        [TestCase(true)]
+        [TestCase(false)]
+        public void K53_a_move_end_counts_at_most_once_per_move(bool archive)
         {
-            var (tut, host, _) = Make(1);
+            var (tut, host, _) = Make(1, archive);
             var two = new GameEvent[]
             {
                 Ev(new PlacementCorrectEvent(0, new[] { At.Site(0, 0, 0) }, true), 3),
@@ -119,13 +121,19 @@ namespace MinikUsta.Presentation.Tests
             };
             tut.MoveEnded(two, 1);
             Assert.AreEqual(new[] { 1 }, host.Ended.ToArray(), "two placements in one move are one count: step 1 (count 1) ended, step 2 (count 1) did not");
-            Assert.AreEqual(2, tut.Current!.Data.Step);
+            if (archive) Assert.AreEqual(2, tut.Current!.Data.Step);
+            else
+            {
+                // D-099 level 1: step 2 starts on segmentDone — the second placement of the same move does not start it
+                Assert.IsNull(tut.Current, "step 2 waits for segmentDone");
+                Assert.AreEqual(2, tut.Waiting!.Step);
+            }
         }
 
         [Test]
         public void K53_a_drag_signal_counts_once_per_drag_even_when_the_drag_is_cancelled_later()
         {
-            var (tut, host, _) = Make(6); // step 2: overWall; step 1 first
+            var (tut, host, _) = Make(6, archive: true); // Faz 2R level 6: step 2: overWall; step 1 first
             tut.MoveEnded(new GameEvent[] { Ev(new PieceMovedEvent(2, At.Yard(1, 4), At.Yard(2, 3), EntryKinds.Yard), 1) }, 1);
             Assert.AreEqual(2, tut.Current?.Data.Step, "step 1 ended on the yard move to (2,3)");
             tut.DragStarted();
@@ -137,7 +145,7 @@ namespace MinikUsta.Presentation.Tests
         [Test]
         public void K53_a_startOn_that_never_happens_hides_its_step_and_Stop_ends_the_tutorial()
         {
-            var (tut, host, _) = Make(7); // step 1 placementCorrect, step 2 startOn segmentDone
+            var (tut, host, _) = Make(7, archive: true); // Faz 2R level 7: step 1 placementCorrect, step 2 startOn segmentDone
             Assert.AreEqual(1, tut.Current!.Data.Step);
             tut.MoveEnded(new GameEvent[] { Ev(new PlacementCorrectEvent(4, new[] { At.Site(0, 0, 0) }, true), 3) }, 5);
             Assert.IsNull(tut.Current, "step 2 waits for segmentDone: nothing is active");
@@ -335,9 +343,10 @@ namespace MinikUsta.Presentation.Tests
         // --- glove -----------------------------------------------------------------------------------------------------------------
 
         [Test]
-        public void K53_the_glove_plays_for_the_first_step_of_levels_1_3_4_6_8_9_and_a_tap_glove_always()
+        public void K53_the_glove_plays_for_the_first_step_of_levels_1_3_4_5_6_9_and_a_tap_glove_always()
         {
-            foreach (int n in new[] { 1, 3, 4, 6, 8, 9 })
+            // D-099 levels: step 1 of 1, 3, 4, 5, 6 and 9 carries a drag glove; 2 and 8 have none, 7 and 10 wait for segmentDone
+            foreach (int n in new[] { 1, 3, 4, 5, 6, 9 })
             {
                 var (tut, _, lvl) = Make(n);
                 var s = State.CreateInitialState(lvl);
@@ -580,7 +589,8 @@ namespace MinikUsta.Presentation.Tests
             var r = rig.Player.Commit(first);
             Assert.AreEqual(MoveStatuses.Applied, r.Status, "the board takes the move with the tutorial shown");
             rig.Settle();
-            Assert.AreEqual(2, tp.Controller!.Current?.Data.Step, "placementCorrect ended step 1 once the move finished playing");
+            Assert.IsNull(tp.Controller!.Current, "placementCorrect ended step 1 once the move finished playing; step 2 waits for segmentDone (D-099 level 1)");
+            Assert.AreEqual(2, tp.Controller.Waiting!.Step);
         }
 
         [Test]
@@ -598,7 +608,8 @@ namespace MinikUsta.Presentation.Tests
             Assert.IsNotNull(tp.Controller!.Current, "hiding is not ending");
             rig.Player.Commit(Play.SolverGolden(1).Drags[0]);
             rig.Settle();
-            Assert.AreEqual(2, tp.Controller.Current?.Data.Step);
+            Assert.IsNull(tp.Controller.Current, "step 1 ended on its done event while hidden; step 2 waits for segmentDone (D-099 level 1)");
+            Assert.AreEqual(2, tp.Controller.Waiting!.Step);
         }
 
         [Test]
@@ -652,11 +663,12 @@ namespace MinikUsta.Presentation.Tests
             var rig = Booted(store);
             rig.Tap(HomeView.PlayId);
             rig.PlayGolden(1, 1); // step 1 (placementCorrect) is done by the first golden move
-            Assert.AreEqual(2, rig.Player.Tutorial!.Controller!.Current?.Data.Step);
+            Assert.AreEqual(2, rig.Player.Tutorial!.Controller!.Waiting?.Step, "D-099 level 1: step 2 waits for segmentDone");
             var again = Booted(store);
             Assert.AreEqual(AppScreen.Level, again.Screen, "K-43: the attempt resumes");
             var c = again.Player.Tutorial!.Controller!;
-            Assert.AreEqual(2, c.Current?.Data.Step, "the log was replayed through the tutorial: step 2 is the active one");
+            Assert.IsNull(c.Current);
+            Assert.AreEqual(2, c.Waiting?.Step, "the log was replayed through the tutorial: step 1 is over, step 2 is the waiting one");
         }
 
         [Test]

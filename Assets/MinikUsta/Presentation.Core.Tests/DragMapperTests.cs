@@ -114,9 +114,9 @@ namespace MinikUsta.Presentation.Tests
             public readonly DragMapper Mapper = new DragMapper(F);
             public float Now;
 
-            public Board(int level, double designH = 1920)
+            public Board(int level, double designH = 1920, bool archive = false)
             {
-                var lvl = Play.LevelFile(level);
+                var lvl = Play.LevelFile(level, archive);
                 Session = GameSession.Start(lvl, null, 0, new SessionOptions(strict: true));
                 Layout = ScreenLayout.Create(S, designH, lvl.Geo);
             }
@@ -223,7 +223,7 @@ namespace MinikUsta.Presentation.Tests
         public void K08_a_finger_path_over_the_wall_brings_level_1_piece_a_to_its_tutorial_release_node_4_4()
         {
             // web dragMath.test.ts: tutorial step 1 glove, up above the yard, then over the wall ((0,2) → (0,4) → (4,4)); EXPAND 2337
-            var b = new Board(1, ScreenFit.DesignHeight(ScaleMode.Expand, 390, 844, S));
+            var b = new Board(1, ScreenFit.DesignHeight(ScaleMode.Expand, 390, 844, S), archive: true); // the Faz 2R level 1
             var (x, y) = b.CellCentre(0);
             Assert.AreEqual(PressOutcome.Pressed, b.Down(x, y).Outcome);
             var session = b.Mapper.Session!;

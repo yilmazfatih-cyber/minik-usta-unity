@@ -37,7 +37,14 @@ namespace MinikUsta.Core.Tests.Fixtures
             }
         }
 
+        /// <summary>The shipped levels (D-099: `schemaVersion` 2, fixed yard, K-55): `Assets/StreamingAssets/MinikUsta/levels`.</summary>
         public static string LevelsDir => Path.Combine(RepoRoot, "Assets", "StreamingAssets", "MinikUsta", "levels");
+        /// <summary>
+        /// The Faz 2R archive (`schemaVersion` 1: batches, truck, K-25…K-27): levels 1–10 and their golden replays as of web
+        /// c1facf4. D-099 / K-55 item 9 keeps the v1 code paths and their tests; the tests written against Faz 2R data (every
+        /// `LoadLevelJson`, `Boards.LevelFile`, `LoadGolden("level_NNN.…")` call) read this folder.
+        /// </summary>
+        public static string Archive2RDir => Path.Combine(RepoRoot, "Assets", "MinikUsta", "Core.Tests", "Archive2R");
         public static string ConfigDir => Path.Combine(RepoRoot, "Assets", "StreamingAssets", "MinikUsta", "config");
         public static string GoldenDir => Path.Combine(RepoRoot, "Assets", "MinikUsta", "Core.Tests", "Golden");
         public static string CoreSourceDir => Path.Combine(RepoRoot, "Assets", "MinikUsta", "Core");
@@ -46,10 +53,21 @@ namespace MinikUsta.Core.Tests.Fixtures
 
         public static JsonValue ReadJson(string path) => JsonReader.Parse(File.ReadAllText(path));
 
-        /// <summary>A fresh parse of `levels/level_NNN.json`.</summary>
-        public static JsonValue LoadLevelJson(int n) => ReadJson(Path.Combine(LevelsDir, "level_" + n.ToString("000") + ".json"));
+        /// <summary>A fresh parse of the Faz 2R archive level `Archive2R/level_NNN.json` (`schemaVersion` 1).</summary>
+        public static JsonValue LoadLevelJson(int n) => ReadJson(Path.Combine(Archive2RDir, "level_" + n.ToString("000") + ".json"));
 
-        public static JsonValue LoadGolden(string fileName) => ReadJson(Path.Combine(GoldenDir, fileName));
+        /// <summary>A fresh parse of the shipped `levels/level_NNN.json` (`schemaVersion` 2, K-55).</summary>
+        public static JsonValue LoadCurrentLevelJson(int n) => ReadJson(Path.Combine(LevelsDir, "level_" + n.ToString("000") + ".json"));
+
+        /// <summary>
+        /// A golden file: `level_NNN.hand.json` / `level_NNN.solver.json` come from the Faz 2R archive (the tests that load them
+        /// were written against it), everything else (vectors, rule ids) from `Golden/`.
+        /// </summary>
+        public static JsonValue LoadGolden(string fileName) =>
+            ReadJson(Path.Combine(fileName.StartsWith("level_", StringComparison.Ordinal) ? Archive2RDir : GoldenDir, fileName));
+
+        /// <summary>A golden file of the shipped levels (`Golden/level_NNN.hand.json`, `…solver.json`, D-099 content).</summary>
+        public static JsonValue LoadCurrentGolden(string fileName) => ReadJson(Path.Combine(GoldenDir, fileName));
 
         /// <summary>TS `fixturePath(group)`: the fixture directory of a group (`valid`, `invalid`).</summary>
         public static string FixturePath(string group) => Path.Combine(FixturesDir, group);
