@@ -22,6 +22,9 @@
   "booster": {
     "lockedAt": "Level {n}"
   },
+  "hud": {
+    "streak": "Streak"
+  },
   "tut": {
     "ctx": {
       "resume": "Just as you left it.",

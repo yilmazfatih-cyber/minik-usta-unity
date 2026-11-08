@@ -22,6 +22,9 @@
   "booster": {
     "lockedAt": "Bölüm {n}"
   },
+  "hud": {
+    "streak": "Usta Serisi"
+  },
   "tut": {
     "ctx": {
       "resume": "Tahta bıraktığın gibi duruyor.",

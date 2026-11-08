@@ -545,7 +545,7 @@ namespace MinikUsta.Presentation.Flow
             foreach (var id in new[] { "thermos", "trowelStart", "openShutter" })
             {
                 int u = Economy.UnlockLevel(id);
-                if (level < u) o.Add(T.Format(Strings.Keys.LevelLabel, u));
+                if (level < u && BoosterSlotRules.Visible(level, u, 0)) o.Add(T.Format(Strings.Keys.LevelLabel, u)); // U4 R-05: K3, a slot shows 2 levels before it unlocks
             }
             return o.ToArray();
         }
@@ -751,7 +751,7 @@ namespace MinikUsta.Presentation.Flow
             Player.OpenPanel(new PanelModel(PanelKind.ExitConfirm, T.Get("exit.title"), "", new[]
             {
                 new PanelButton(T.Get("exit.stay"), Game.PanelAction.Stay, ButtonKind.Primary),
-                new PanelButton(T.Get("exit.leave"), Game.PanelAction.Leave, ButtonKind.Danger),
+                new PanelButton(T.Get("exit.leave"), Game.PanelAction.Leave, ButtonKind.Secondary),
             }, false, new PanelDetail { Lines = lines.ToArray(), King = KingCue.Think }));
         }
 
@@ -826,7 +826,7 @@ namespace MinikUsta.Presentation.Flow
             {
                 King = KingCue.Encourage,
                 Thumb = PlanThumb.Visible(session.State),
-                Counter = T.Format(offer.CounterKey, ("n", offer.N), ("max", offer.Max)),
+                Counter = offer.N >= 2 ? T.Format(offer.CounterKey, ("n", offer.N), ("max", offer.Max)) : null, // U4 R-03: "Teklif 1/3" is noise; shown from the 2nd offer
                 CloseAction = Game.PanelAction.Decline,
             };
             Player.OpenPanel(new PanelModel(PanelKind.Lose, T.Get(Strings.Keys.LoseTitle), T.Format(Strings.Keys.LoseBlocksLeft, Player.BlocksLeft), buttons.ToArray(), false, d));

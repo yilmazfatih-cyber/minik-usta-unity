@@ -151,8 +151,8 @@ namespace MinikUsta.Presentation.Ui
                     // U2 (UX_UNITY K4, P0-8): a locked tab shows its icon at 55 %, a 48 px lock and its name (faded, 34 px); a tap → "Yakında"
                     r.Add(UiKit.Icon("home.tab" + i, tabs[i], cx, 1784 + bot, 108, 108, 0.55f));
                     r.Add(UiKit.Icon("home.tab" + i + ".lock", "icon_lock", cx + 38, 1810 + bot, 48, 56));
-                    var name = UiKit.Label("home.tab" + i + ".text", t.Get(TabKeys[i]), new PxRect(cx - 100, 1842 + bot, 200, 52), TextStyle.Label, 34);
-                    name.Alpha = 0.8f;
+                    var name = UiKit.Label("home.tab" + i + ".text", t.Get(TabKeys[i]), new PxRect(cx - 100, 1842 + bot, 200, 52), TextStyle.Label, 34, TextAlign.Center, Rgba.White, Rgba.Hex("#2A1D8B"));
+                    // U4 R-02: the name stays at full opacity (white on #6858F8 = 4.8:1); only the icon fades, the lock badge says "locked"
                     r.Add(name);
                     r.Add(new UiNode("home.tab" + i + ".hit", TabHit(i, W, bot)) { Action = TabHintPrefix + i, BlocksInput = true });
                 }
@@ -203,7 +203,7 @@ namespace MinikUsta.Presentation.Ui
             Row(group, "motion", "icon_motion", t.Get("settings.reduceMotion"), m.ReduceMotion, Motion, panel, y + 312);
             // language row: two flags, the selected one on a slot frame
             double ly = y + 468;
-            group.Add(UiKit.Image("set.lang.bg", "panel_plate", new PxRect(panel.X + 60, ly, 880, 140), true));
+            group.Add(UiKit.Plate("set.lang.bg", new PxRect(panel.X + 60, ly, 880, 140)));
             group.Add(UiKit.Label("set.lang.label", t.Get("settings.language"), new PxRect(panel.X + 100, ly, 330, 140), TextStyle.Label, 48, TextAlign.Left));
             // U2 (UX_UNITY §5.4, P0-9): each pill ≥ text + 2 × 16 + the 60 px flag, so "Türkçe" never clips; the pair ends 10 px inside the row
             double pw = PillWidth(t.Get("lang.tr"), t.Get("lang.en"));
@@ -218,6 +218,7 @@ namespace MinikUsta.Presentation.Ui
         private static void Row(UiNode group, string id, string icon, string label, bool on, string action, PxRect panel, double y)
         {
             var row = group.Add(UiKit.Button("set." + id, "panel_plate", new PxRect(panel.X + 60, y, 880, 140), action));
+            row.Tint = UiKit.PlateTint; // U4 R-04
             row.Pressable = false;
             row.Add(UiKit.Icon("set." + id + ".icon", icon, panel.X + 130, y + 70, 96, 96));
             row.Add(UiKit.Label("set." + id + ".label", label, new PxRect(panel.X + 200, y, 480, 140), TextStyle.Label, 46, TextAlign.Left));

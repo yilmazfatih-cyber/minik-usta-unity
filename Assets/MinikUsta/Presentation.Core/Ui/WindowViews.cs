@@ -185,7 +185,7 @@ namespace MinikUsta.Presentation.Ui
                 group.Add(UiKit.Label("win.body", m.Body, body, TextStyle.Label, 48));
             }
             if (d?.Counter != null)
-                group.Add(UiKit.Label("win.counter", d.Counter, new PxRect(panel.X + 40, optsTop - counterH, panel.W - 80, counterH - 8), TextStyle.Lavender, 38));
+                group.Add(UiKit.Label("win.counter", d.Counter, new PxRect(panel.X + 40, optsTop - counterH, panel.W - 80, counterH - 8), TextStyle.Label, 38, TextAlign.Center, Rgba.Hex("#FFF6D2"), Rgba.Hex("#2A1D8B"))); // U4 R-03
             for (int i = 0; i < n; i++)
             {
                 double y = bottom - s.PopupOptionsBottomInsetPx - optH - i * (optH + gap);
@@ -290,16 +290,31 @@ namespace MinikUsta.Presentation.Ui
 
         // --- level start (UX §4.1 v3) ------------------------------------------------------------------------------------
 
-        public static PxRect LevelStartPanel(double W, double H, LayoutSettings s)
+        /// <summary>U4 R-05: a level start window with no booster slot to show is 240 px shorter.</summary>
+        public const double NoSlotsShorterPx = 240;
+        /// <summary>U4 R-05: the pre-level slot is 150 px, its "Bölüm N" label (34 px) sits under it.</summary>
+        public const double PreSlotPx = 150;
+
+        public static PxRect LevelStartPanel(double W, double H, LayoutSettings s, bool hasSlots = true)
         {
             double bottom = PanelBottom(H, s);
-            return new PxRect((W - PanelW) / 2, bottom - 1040, PanelW, 1040);
+            double h = hasSlots ? 1040 : 1040 - NoSlotsShorterPx;
+            return new PxRect((W - PanelW) / 2, bottom - h, PanelW, h);
+        }
+
+        /// <summary>The rectangle of pre-level slot `i` of `n` (centred as a row on the panel).</summary>
+        public static PxRect PreSlot(PxRect panel, PxRect plate, int i, int n)
+        {
+            const double gap = 82;
+            double span = n * PreSlotPx + (n - 1) * gap;
+            return new PxRect(panel.CenterX - span / 2 + i * (PreSlotPx + gap), plate.Y + 350, PreSlotPx, PreSlotPx);
         }
 
         private static UiNode LevelStart(PanelModel m, double W, double H, LayoutSettings s, string lang)
         {
             var d = m.Detail ?? new PanelDetail();
-            var panel = LevelStartPanel(W, H, s);
+            bool hasSlots = d.LockedSlots.Length > 0;
+            var panel = LevelStartPanel(W, H, s, hasSlots);
             var (root, group) = Shell("LevelStart", W, H, panel, "", DimStrong);
             double y0 = panel.Y;
             // title: titleTwoRing 112 on the panel's top edge, the difficulty pill beside it (hard / superhard only)
@@ -310,14 +325,16 @@ namespace MinikUsta.Presentation.Ui
                 group.Add(UiKit.Image("win.pill", "btn_danger", pill, true));
                 group.Add(UiKit.Label("win.pill.text", d.DifficultyText, new PxRect(pill.X + 10, pill.Y + 4, pill.W - 20, pill.H - 16), TextStyle.Button, 36, TextAlign.Center, null, Rgba.Hex("#7A0A05")));
             }
-            var plate = new PxRect(panel.X + 60, y0 + 100, 880, 560);
-            group.Add(UiKit.Image("win.plate", "panel_plate", plate, true));
+            var plate = new PxRect(panel.X + 60, y0 + 100, 880, hasSlots ? 560 : 560 - NoSlotsShorterPx);
+            group.Add(UiKit.Plate("win.plate", plate));
+            // U4 R-05 / UX-21: with no slot the picture and the text block sit in the middle of the shorter plate
+            double dy = hasSlots ? 0 : 34;
             if (d.Thumb != null)
-                foreach (var c in d.Thumb.Nodes("win.thumb", new PxRect(plate.X + 30, plate.Y + 30, 220, 220), 44)) group.Add(c);
-            group.Add(UiKit.Label("win.name", d.LevelName ?? "", new PxRect(plate.X + 280, plate.Y + 40, 560, 70), TextStyle.Label, 52, TextAlign.Left));
+                foreach (var c in d.Thumb.Nodes("win.thumb", new PxRect(plate.X + 30, plate.Y + 30, 220, hasSlots ? 220 : 260), 44)) group.Add(c);
+            group.Add(UiKit.Label("win.name", d.LevelName ?? "", new PxRect(plate.X + 280, plate.Y + 40 + dy, 560, 70), TextStyle.Label, 52, TextAlign.Left));
             if (d.Blocks >= 0)
             {
-                var chip = new PxRect(plate.X + 320, plate.Y + 140, 230, 72);
+                var chip = new PxRect(plate.X + 320, plate.Y + 140 + dy, 230, 72);
                 group.Add(UiKit.Image("win.blocks", "capsule_hud", chip, true));
                 group.Add(UiKit.Icon("win.blocks.icon", "icon_blocks", chip.X + 6, chip.CenterY, 90, 90));
                 group.Add(UiKit.Label("win.blocks.text", "×" + d.Blocks.ToString(System.Globalization.CultureInfo.InvariantCulture), new PxRect(chip.X + 60, chip.Y, chip.W - 70, chip.H),
@@ -325,18 +342,19 @@ namespace MinikUsta.Presentation.Ui
             }
             if (d.MovesText != null)
             {
-                var chip = new PxRect(plate.X + 580, plate.Y + 140, 260, 72);
+                var chip = new PxRect(plate.X + 580, plate.Y + 140 + dy, 260, 72);
                 group.Add(UiKit.Image("win.moves", "capsule_hud", chip, true));
                 group.Add(UiKit.Label("win.moves.text", d.MovesText, new PxRect(chip.X + 10, chip.Y, chip.W - 20, chip.H), TextStyle.Cream, 42));
             }
-            if (d.SlotsTitle != null)
+            if (hasSlots && d.SlotsTitle != null)
                 group.Add(UiKit.Label("win.slots", d.SlotsTitle, new PxRect(plate.X + 20, plate.Y + 280, plate.W - 40, 70), TextStyle.Label, 50));
             for (int i = 0; i < d.LockedSlots.Length; i++)
             {
-                var r = new PxRect(panel.X + 212 + i * 232, plate.Y + 360, 184, 184);
+                var r = PreSlot(panel, plate, i, d.LockedSlots.Length);
                 group.Add(UiKit.Image("win.slot" + i, "btn_slot", r, true, null, 0.85f));
-                group.Add(UiKit.Icon("win.slot" + i + ".lock", "icon_lock", r.CenterX, r.Y + 74, 64, 74));
-                group.Add(UiKit.Label("win.slot" + i + ".text", d.LockedSlots[i], new PxRect(r.X + 6, r.Y + 120, r.W - 12, 48), TextStyle.Lavender, 30));
+                group.Add(UiKit.Icon("win.slot" + i + ".lock", "icon_lock", r.CenterX, r.CenterY, 64, 74));
+                // R-05: 34 px, under the slot (never on its bevel)
+                group.Add(UiKit.Label("win.slot" + i + ".text", d.LockedSlots[i], new PxRect(r.CenterX - 110, r.Bottom + 8, 220, 44), TextStyle.Label, HudLayout.MinTextPx, TextAlign.Center, Rgba.White, Rgba.Hex("#2A1D8B")));
             }
             if (m.Buttons.Length > 0) group.Add(Option("win.opt0", m.Buttons[0], new PxRect(W / 2 - 280, panel.Bottom - 80 - 212, 560, 212), lang));
             // B2 (D-101): the king stands left of the play button and points at it (king_point faces screen right)

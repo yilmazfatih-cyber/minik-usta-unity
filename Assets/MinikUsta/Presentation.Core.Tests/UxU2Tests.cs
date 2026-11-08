@@ -402,7 +402,8 @@ namespace MinikUsta.Presentation.Tests
                     Assert.AreEqual(300, L.Moves.W);
                     Assert.AreEqual(136, L.Moves.H);
                     Assert.AreEqual(L.Panorama.CenterY, L.Moves.CenterY, 1e-6, "the moves plate sits on the card's middle");
-                    Assert.AreEqual(896, L.Pause.X);
+                    Assert.AreEqual(888, L.Pause.X, "U4 R-07: the pause tool is 144 px, its right edge stays at 1032");
+                    Assert.AreEqual(144, L.Pause.W);
                     var cells = Hud(rig).Get("hud.pano.plan").Children;
                     Assert.Greater(cells.Count, 0);
                     double cell = cells[0].Rect.W;
@@ -534,7 +535,7 @@ namespace MinikUsta.Presentation.Tests
                 Assert.AreEqual(rig.I18n.Text.Get(HomeView.TabKeys[i]), name.Text);
                 Assert.GreaterOrEqual(TextFit.SizeOf(name), 34, name.ToString());
                 if (i == 2) continue;
-                Assert.Less(name.Alpha, 1f, "a locked tab's name is faded");
+                Assert.AreEqual(1f, name.Alpha, "U4 R-02: a locked tab's name is NOT faded (AC-4)");
                 Assert.AreEqual(0.55f, home.Get("home.tab" + i).Alpha, 1e-6, "icon at 55 %");
                 Assert.AreEqual(48, home.Get("home.tab" + i + ".lock").Rect.W, "48 px lock");
                 var hit = home.Get("home.tab" + i + ".hit");

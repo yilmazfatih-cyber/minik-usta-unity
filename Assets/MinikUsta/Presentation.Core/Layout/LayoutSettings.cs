@@ -88,6 +88,14 @@ namespace MinikUsta.Presentation.Layout
         /// <summary>kit.v3.screen.hud row 2 (panorama well, moves plate, pause tool).</summary>
         public double HudRow2Y = 112;
         public double ToolPx = 136;
+        /// <summary>UX_UNITY R-07 (paket U4): the pause tool is a frequent target, so it is 144 px (the right edge stays at ToolRightX + ToolPx).</summary>
+        public double PauseToolPx = 144;
+        /// <summary>UX_UNITY R-06: the right inner padding of HUD row 1 (was the 24 px margin), so rounded screen corners never cut the streak capsule.</summary>
+        public double HudRow1RightPadPx = 40;
+        /// <summary>UX_UNITY R-01: the scene band keeps 24 px above the crane area, its height is min(gap - 48, 420), and it is dropped under 96 px.</summary>
+        public double SceneBandGapPx = 24;
+        public double SceneBandMaxPx = 420;
+        public double SceneBandMinPx = 96;
         public double ToolLeftX = 48;
         public double ToolRightX = 896;
         public double MovesW = 300;

@@ -231,6 +231,12 @@ namespace MinikUsta.Presentation.Layout
         public readonly PxRect Moves;
         public readonly PxRect LevelCapsule;
         public readonly double TopGroupBottomY;
+        /// <summary>
+        /// UX_UNITY R-01 (paket U4): the free band between the HUD and the crane area of an EXPAND screen (H &gt; 1920) that shows this level's
+        /// structure rising. Bottom edge `SceneBandGapPx` above the crane area, height min(gap − 2 × 24, 420); zero height (W 0, H 0) at
+        /// H ≤ 1920 or when under `SceneBandMinPx`. Spans the board width.
+        /// </summary>
+        public readonly PxRect SceneBand;
 
         // bottom group
         public readonly PxRect Character;
@@ -274,11 +280,14 @@ namespace MinikUsta.Presentation.Layout
             TopGroupBottomY = Math.Max(s.TopGroupBottomY, Math.Min(s.HudBottomY, room));
             double cardH = TopGroupBottomY - s.GoalCardBottomPadPx - s.HudRow2Y;
             double row2Y = s.HudRow2Y + (cardH - s.MovesH) / 2;
-            Pause = new PxRect(s.ToolRightX, row2Y, s.ToolPx, s.ToolPx);
+            Pause = new PxRect(s.ToolRightX + s.ToolPx - s.PauseToolPx, row2Y + (s.MovesH - s.PauseToolPx) / 2, s.PauseToolPx, s.PauseToolPx);
             Panorama = new PxRect(s.HudMarginX, s.HudRow2Y, s.GoalCardW, cardH);
-            Goals = new PxRect(s.HudMarginX + s.LevelCapsuleW + s.HudRowGap, s.HudRow1Y, W - 2 * s.HudMarginX - s.LevelCapsuleW - s.HudRowGap, s.HudRow1H);
+            Goals = new PxRect(s.HudMarginX + s.LevelCapsuleW + s.HudRowGap, s.HudRow1Y, W - s.HudMarginX - s.HudRow1RightPadPx - s.LevelCapsuleW - s.HudRowGap, s.HudRow1H);
             Moves = new PxRect((W - s.MovesW) / 2, row2Y, s.MovesW, s.MovesH);
             LevelCapsule = new PxRect(s.HudMarginX, s.HudRow1Y, s.LevelCapsuleW, s.HudRow1H);
+            double bandBottom = Board.Grid.CraneTopY - s.SceneBandGapPx;
+            double bandH = h <= s.DesignHeight ? 0 : Math.Min(s.SceneBandMaxPx, bandBottom - TopGroupBottomY - s.SceneBandGapPx);
+            SceneBand = bandH >= s.SceneBandMinPx ? new PxRect(Board.Board.X, bandBottom - bandH, Board.Board.W, bandH) : new PxRect(Board.Board.X, bandBottom, 0, 0);
             Character = new PxRect(s.CharacterX, h - s.CharacterBottomPx - s.CharacterH, s.CharacterW, s.CharacterH);
             Boosters = new PxRect[s.BoosterSlots];
             for (int i = 0; i < s.BoosterSlots; i++)

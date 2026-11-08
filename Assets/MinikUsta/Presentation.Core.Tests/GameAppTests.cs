@@ -171,7 +171,7 @@ namespace MinikUsta.Presentation.Tests
             var gift = rig.Option(PanelAction.BuyMoves);
             Assert.AreEqual("+5 hamle · Usta Kral'dan hediye", gift.Get(gift.Id + ".label").Text, "META §3.2: the lifetime-first offer is a gift (B2, D-101: from Usta Kral)");
             Assert.IsNull(rig.Ui.Root(UiLayer.Window)!.All().FirstOrDefault(x => x.Action == WindowViews.ActionOf(PanelAction.AdMoves)), "no ad option on the gift");
-            Assert.AreEqual("Teklif 1/3", rig.Ui.Root(UiLayer.Window)!.Get("win.counter").Text);
+            Assert.IsNull(rig.Ui.Root(UiLayer.Window)!.Find("win.counter"), "U4 R-03: no \"Teklif 1/3\" on the first offer");
             rig.TapOption(PanelAction.BuyMoves);
             Assert.AreEqual(AppScreen.Level, rig.Screen);
             rig.Settle();
@@ -247,7 +247,7 @@ namespace MinikUsta.Presentation.Tests
             again.App.Boot();
             Assert.AreEqual(AppScreen.LoseOffer, again.Screen, "K-43/3: the window that was open comes back");
             Assert.AreEqual(0, again.Session.MovesLeft);
-            Assert.AreEqual("Teklif 1/3", again.Ui.Root(UiLayer.Window)!.Get("win.counter").Text);
+            Assert.IsNull(again.Ui.Root(UiLayer.Window)!.Find("win.counter"), "U4 R-03");
             again.TapOption(PanelAction.BuyMoves);
             Assert.AreEqual(AppScreen.Level, again.Screen);
             again.Settle();

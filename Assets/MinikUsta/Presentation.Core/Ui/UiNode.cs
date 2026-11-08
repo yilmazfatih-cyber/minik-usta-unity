@@ -142,6 +142,15 @@ namespace MinikUsta.Presentation.Ui
             return n;
         }
 
+        /// <summary>
+        /// UX_UNITY R-04 (paket U4): the tint that darkens the `panel_plate` frame (about #A090F8) to about #5B48F7, so white text on it is
+        /// ~5:1 (AC-4). The multiplicative tint is #9180FF (0x5B / 0xA0 = 0.57, 0x48 / 0x90 = 0.5, 0xF7 / 0xF8 = 1).
+        /// </summary>
+        public static readonly Rgba PlateTint = Rgba.Hex("#9180FF");
+
+        /// <summary>A `panel_plate` (settings rows, the level start plate) in the AC-4 tint.</summary>
+        public static UiNode Plate(string id, PxRect r) => Image(id, "panel_plate", r, true, PlateTint);
+
         /// <summary>A frame at its own design size × `scale`, centred on (cx, cy).</summary>
         public static UiNode Icon(string id, string frame, double cx, double cy, double w, double h, float alpha = 1f) =>
             Image(id, frame, new PxRect(cx - w / 2, cy - h / 2, w, h), false, null, alpha);

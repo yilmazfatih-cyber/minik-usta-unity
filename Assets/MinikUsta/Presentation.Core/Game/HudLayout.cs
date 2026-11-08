@@ -88,14 +88,14 @@ namespace MinikUsta.Presentation.Game
         public static PxRect TrowelIcon(ScreenLayout L)
         {
             var s = Streak(L);
-            return new PxRect(s.Right - 60, s.Y + 5, 50, 50);
+            return new PxRect(s.Right - 86, s.Y + 5, 50, 50);
         }
 
         /// <summary>The "×n" of the trowels held: a badge over the trowel's lower right (34 px; it may overhang the capsule end).</summary>
         public static PxRect TrowelCount(ScreenLayout L)
         {
             var t = TrowelIcon(L);
-            return new PxRect(t.X + 22, t.Y + 20, 62, 44);
+            return new PxRect(t.X + 10, t.Y + 20, 66, 44);
         }
 
         /// <summary>V1: the truck chip riding the tray's bottom edge at the right of the status strip (ART_UNITY §4.4 `Status`).</summary>
@@ -105,8 +105,11 @@ namespace MinikUsta.Presentation.Game
             return new PxRect(st.Right - 250, st.Y - 8, 240, 64);
         }
 
+        /// <summary>U4 R-06: the gold chip keeps at least this far from the moves plate and the pause tool.</summary>
+        public const double GoldChipGapPx = 24;
+
         /// <summary>The gold chip between the moves plate and the pause tool (JUICE #56: the coins fly there).</summary>
-        public static PxRect GoldChip(ScreenLayout L) => new PxRect(L.Moves.Right + 16, L.Moves.Y + 40, L.Pause.X - L.Moves.Right - 32, 60);
+        public static PxRect GoldChip(ScreenLayout L) => new PxRect(L.Moves.Right + GoldChipGapPx, L.Moves.Y + 40, L.Pause.X - L.Moves.Right - 2 * GoldChipGapPx, 60);
 
         /// <summary>The level star over the top edge of a window with `options` buttons (JUICE #96).</summary>
         public static PxRect WindowStar(ScreenLayout L, LayoutSettings s, int options)

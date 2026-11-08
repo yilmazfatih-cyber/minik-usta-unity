@@ -103,6 +103,8 @@ namespace MinikUsta.Presentation.Ui
             canvasW = L.W;
             canvasH = L.H;
             var r = UiKit.Group("hud", new PxRect(0, 0, L.W, L.H));
+            // U4 R-01: the scene band (behind everything else of the HUD; empty at H <= 1920)
+            r.Add(SceneBand.Build(L));
             // row 1: level capsule
             var cap = r.Add(UiKit.Image("hud.level", "capsule_hud", HudLayout.Capsule(L), true));
             cap.Add(UiKit.Label("hud.level.text", "", HudLayout.Capsule(L), TextStyle.Lavender, 38));
@@ -327,8 +329,19 @@ namespace MinikUsta.Presentation.Ui
             SetVisible("hud.truck", st.Truck);
             Set("hud.truck.n", text.Format(Strings.Keys.Times, ("n", st.Queue)));
             // the plan picture: rebuilt in place (cells change frame as the build grows)
-            var plan = N("hud.pano.plan");
-            var cells = st.Thumb.Nodes("hud.pano.cell", plan.Rect, settings.GoalPlanCellPx);
+            bool rebuilt = SyncCells(N("hud.pano.plan"), st.Thumb.Nodes("hud.pano.cell", N("hud.pano.plan").Rect, settings.GoalPlanCellPx));
+            var band = N(SceneBand.GroupId);
+            if (band.Visible) rebuilt |= SyncCells(N(SceneBand.PlanId), SceneBand.Cells(st.Thumb, band.Rect));
+            if (rebuilt)
+            {
+                surface.Show(UiLayer.Hud, root, OnTap);
+                RebindTargets();
+            }
+        }
+
+        /// <summary>Updates `plan`'s cells in place when the ids match (frame, tint, alpha), else replaces them; true when replaced.</summary>
+        private bool SyncCells(UiNode plan, List<UiNode> cells)
+        {
             bool same = plan.Children.Count == cells.Count;
             for (int i = 0; same && i < cells.Count; i++) same = plan.Children[i].Id == cells[i].Id;
             if (same)
@@ -336,18 +349,17 @@ namespace MinikUsta.Presentation.Ui
                 for (int i = 0; i < cells.Count; i++)
                 {
                     var have = plan.Children[i];
-                    if (have.Frame == cells[i].Frame) continue;
+                    if (have.Frame == cells[i].Frame && have.Tint.Equals(cells[i].Tint) && have.Alpha == cells[i].Alpha) continue;
                     have.Frame = cells[i].Frame;
+                    have.Tint = cells[i].Tint;
+                    have.Alpha = cells[i].Alpha;
                     surface.Refresh(have);
                 }
+                return false;
             }
-            else
-            {
-                plan.Children.Clear();
-                foreach (var c in cells) plan.Add(c);
-                surface.Show(UiLayer.Hud, root, OnTap);
-                RebindTargets();
-            }
+            plan.Children.Clear();
+            foreach (var c in cells) plan.Add(c);
+            return true;
         }
 
         private void RebindTargets()
