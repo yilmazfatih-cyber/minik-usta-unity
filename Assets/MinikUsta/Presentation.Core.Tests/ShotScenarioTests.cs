@@ -78,6 +78,25 @@ namespace MinikUsta.Presentation.Tests
         }
 
         [Test]
+        public void U2_P0_11_after_the_win_motion_window_the_win_window_stays_long_enough_for_the_picture()
+        {
+            // CI run 42530435774: the script analysed the king_big_cheer pictures before photographing "win", and the 2,5 s hold had already
+            // gone to the home screen; with a motion scale the scenario now holds AfterMotionHoldMs on the win window
+            var (rig, sc, lines) = Start(new ShotOptions { MotionScale = 0.0125f });
+            float t = 0, winAt = -1, leftAt = -1;
+            while (!sc.Done && t < ShotScenario.TimeoutMs * 4)
+            {
+                rig.App.Tick(Fixtures.Rig.FrameMs * sc.TimeScale);
+                sc.Tick(Fixtures.Rig.FrameMs);
+                t += Fixtures.Rig.FrameMs;
+                if (winAt < 0 && sc.Signalled.Contains("win")) winAt = t;
+                if (winAt >= 0 && leftAt < 0 && rig.Screen != AppScreen.Win) leftAt = t;
+            }
+            Assert.IsFalse(sc.Failed, string.Join(" | ", lines));
+            Assert.GreaterOrEqual(leftAt - winAt, ShotScenario.AfterMotionHoldMs - 50, "the win window stays on screen after its shot");
+        }
+
+        [Test]
         public void C1_shots_scenario_signals_the_tutorial_shot_while_the_step_is_on_screen()
         {
             var (rig, sc, _) = Start();

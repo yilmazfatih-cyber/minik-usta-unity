@@ -95,6 +95,9 @@ namespace MinikUsta.Presentation.Shots
         /// <summary>The motion windows (`seq:&lt;name&gt;`) and the shot each one comes right before; tools/ci-shots/shots.json lists the same.</summary>
         public static readonly (string Name, string Before)[] SequenceNames = { ("king_wave", "home"), ("king_big_cheer", "win") };
 
+        /// <summary>U2: game ms the scenario holds after a shot that follows a motion window (the script's picture analysis comes first).</summary>
+        public const float AfterMotionHoldMs = 45000f;
+
         /// <summary>Game milliseconds from the start after which the scenario gives up (`error:timeout`).</summary>
         public const float TimeoutMs = 420000f;
 
@@ -197,7 +200,9 @@ namespace MinikUsta.Presentation.Shots
             Add("win_motion", 0f, Motion("king_big_cheer", () => app.Player.Panel == PanelKind.Win));
             Add("win", 0f, WaitWin);
             // U2 (P0-11): the windows the audit could not see — pause, exit confirmation, the Bölüm 3 level start window, the +5 offer
-            Add("win_continue", hold, Once(() => Panel(AppScreen.Win, PanelAction.Continue)));
+            // the Playwright script analyses the king_big_cheer pictures (tens of seconds on software GL) BEFORE it photographs "win", while
+            // the game keeps running: after a motion window the scenario stands still much longer, or "win" would show the home screen
+            Add("win_continue", options.MotionScale > 0f ? Math.Max(hold, AfterMotionHoldMs) : hold, Once(() => Panel(AppScreen.Win, PanelAction.Continue)));
             Add("play_2", 900f, Once(() => TapHome(HomeView.PlayAction)));
             Add("pause_open", 1500f, WaitIdleThen(300f, () =>
             {
