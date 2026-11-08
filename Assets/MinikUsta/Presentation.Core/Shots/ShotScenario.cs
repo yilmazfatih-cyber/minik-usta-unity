@@ -11,7 +11,10 @@
 //   home → settings → (close) → play → level_start (0,5 s after the start, before the tutorial appears) → tutorial (3 s after the start: glow,
 //   bubble and the glove on its path) → [golden moves up to the first one that goes to the site] → drag_mid (a real pointer drag of that
 //   block to its golden release node, held and then cancelled: the lifted block and its green K-18 shadow) → landed (that move committed and settled) → … golden solution …
-//   → win (the win window and its rewards settled) → done
+//   → win (the win window and its rewards settled)
+//   U2 (UX_UNITY P0-11): → Devam → home → Bölüm 2 (direct) → pause (the pause window) → exit_confirm (Ana sayfa → the exit confirmation)
+//   → Kal → Devam → the golden solution of Bölüm 2 → Devam → home → level_start_window (Bölüm 3: the first level start window) → Oyna →
+//   yard moves only until the moves run out → lose_offer (the +5 offer window) → done
 //
 // Motion windows (P4B-08; only with `?shots=1&motion=<scale>`, CI uses 0.0125): two stretches of game time are played in slow motion so that a software-GL
 // browser, which draws a few frames per second, can still photograph every frame of the animation: `seq:king_wave` (the home king's
@@ -84,13 +87,16 @@ namespace MinikUsta.Presentation.Shots
         public const string Tag = "[minikShot]";
 
         /// <summary>The shots in the order they are signalled (`shot:&lt;name&gt;`); the CI manifest lists the same names.</summary>
-        public static readonly string[] ShotNames = { "home", "settings", "level_start", "tutorial", "drag_mid", "landed", "win" };
+        public static readonly string[] ShotNames =
+        {
+            "home", "settings", "level_start", "tutorial", "drag_mid", "landed", "win", "pause", "exit_confirm", "level_start_window", "lose_offer",
+        };
 
         /// <summary>The motion windows (`seq:&lt;name&gt;`) and the shot each one comes right before; tools/ci-shots/shots.json lists the same.</summary>
         public static readonly (string Name, string Before)[] SequenceNames = { ("king_wave", "home"), ("king_big_cheer", "win") };
 
         /// <summary>Game milliseconds from the start after which the scenario gives up (`error:timeout`).</summary>
-        public const float TimeoutMs = 240000f;
+        public const float TimeoutMs = 420000f;
 
         private readonly GameApp app;
         private readonly Func<int, SessionAction[]?> solutions;
@@ -109,7 +115,20 @@ namespace MinikUsta.Presentation.Shots
 
         // golden play
         private SessionAction[]? solution;
+        private int solutionLevel;
         private float sinceCommit;
+
+        /// <summary>The golden solution of the level being played (reloaded when the level changes).</summary>
+        private SessionAction[]? Sol()
+        {
+            int n = app.Player.LevelNumber;
+            if (solution == null || solutionLevel != n)
+            {
+                solution = solutions(n);
+                solutionLevel = n;
+            }
+            return solution;
+        }
 
         private delegate bool Run(float dtMs);
 
@@ -177,6 +196,26 @@ namespace MinikUsta.Presentation.Shots
             Add("solve", hold, Solve);
             Add("win_motion", 0f, Motion("king_big_cheer", () => app.Player.Panel == PanelKind.Win));
             Add("win", 0f, WaitWin);
+            // U2 (P0-11): the windows the audit could not see — pause, exit confirmation, the Bölüm 3 level start window, the +5 offer
+            Add("win_continue", hold, Once(() => Panel(AppScreen.Win, PanelAction.Continue)));
+            Add("play_2", 900f, Once(() => TapHome(HomeView.PlayAction)));
+            Add("pause_open", 1500f, WaitIdleThen(300f, () =>
+            {
+                app.Player.PausePressed();
+                return RequireScreen(AppScreen.Paused);
+            }));
+            Add("pause", 700f, Once(() => Shot("pause")));
+            Add("exit_open", hold, Once(() => Panel(AppScreen.Paused, PanelAction.Exit)));
+            Add("exit_confirm", 700f, Once(() => Shot("exit_confirm")));
+            Add("exit_stay", hold, Once(() => Panel(AppScreen.ExitConfirm, PanelAction.Stay) && Panel(AppScreen.Paused, PanelAction.Resume)));
+            Add("solve_2", 600f, Solve);
+            Add("win_2", 0f, WaitWin2);
+            Add("win_2_continue", 300f, Once(() => Panel(AppScreen.Win, PanelAction.Continue)));
+            Add("play_3", 900f, Once(() => TapHome(HomeView.PlayAction) && RequireScreen(AppScreen.LevelStart)));
+            Add("level_start_window", 900f, Once(() => Shot("level_start_window")));
+            Add("start_3", hold, Once(() => Panel(AppScreen.LevelStart, PanelAction.Play)));
+            Add("burn", 1200f, BurnMoves);
+            Add("lose_offer", 0f, WaitIdleThen(900f, () => RequireScreen(AppScreen.LoseOffer) && Shot("lose_offer")));
             Add("done", hold, Once(() =>
             {
                 Say("done");
@@ -305,6 +344,56 @@ namespace MinikUsta.Presentation.Shots
             return false;
         }
 
+        /// <summary>A window button of the open window when the app is on `screen` (false otherwise: the scenario fails).</summary>
+        private bool Panel(AppScreen screen, PanelAction action)
+        {
+            if (!RequireScreen(screen)) return false;
+            app.PanelAction(app.Player, action);
+            return true;
+        }
+
+        /// <summary>The second win window (Bölüm 2): no shot, only settled.</summary>
+        private bool WaitWin2(float dtMs)
+        {
+            var p = app.Player;
+            if (p.Session != null && p.Session.Outcome != BoosterOutcomes.Won)
+                return p.Session.Outcome == BoosterOutcomes.Playing ? Fail2("level 2 still playing") : Fail2("level 2 outcome " + p.Session.Outcome);
+            if (p.Panel != PanelKind.Win || !Idle())
+            {
+                sinceCommit = 0f;
+                return false;
+            }
+            return sinceCommit >= 600f;
+        }
+
+        /// <summary>
+        /// U2: spends the moves of the level with drags that stay in the yard (each costs one move, K-07 step 4) until the +5 offer opens
+        /// (K-29). Deterministic: the first holdable block (id order) and its first reachable yard node that the core accepts.
+        /// </summary>
+        private bool BurnMoves(float dtMs)
+        {
+            var p = app.Player;
+            var session = p.Session;
+            if (app.Flow.Current == AppScreen.LoseOffer) return true;
+            if (session == null) return Fail2("no session");
+            if (session.Outcome != BoosterOutcomes.Playing) return session.Outcome == BoosterOutcomes.OutOfMoves || Fail2("outcome " + session.Outcome);
+            if (!Idle() || sinceCommit < 250f || p.Panel != PanelKind.None) return false;
+            var s = session.State;
+            foreach (int id in Summary.HoldableIds(s, session.Hooks))
+            {
+                var drag = Movement.BeginDrag(s, id, session.Hooks.Drag);
+                if (drag == null) continue;
+                foreach (var node in drag.ReachableNodes())
+                {
+                    if (drag.Classify(node).Kind != DropKinds.Yard) continue;
+                    if (p.Commit(new DragMove(id, node)).Status != MoveStatuses.Applied) continue;
+                    sinceCommit = 0f;
+                    return false;
+                }
+            }
+            return Fail2("no yard move left");
+        }
+
         /// <summary>Level 3 and later open the level-start window first (UX §4); levels 1 and 2 start at once.</summary>
         private bool AcceptLevelStart()
         {
@@ -319,8 +408,7 @@ namespace MinikUsta.Presentation.Shots
             var session = p.Session;
             if (session == null) return Fail2("no session");
             if (!Idle() || sinceCommit < 450f || p.Panel != PanelKind.None) return false;
-            solution ??= solutions(p.LevelNumber);
-            var next = DebugSolver.NextSolutionMove(session, solution);
+            var next = DebugSolver.NextSolutionMove(session, Sol());
             if (next == null) return true; // off the solution: preview whatever comes
             if (next is DragMove dm && GoesToSite(session, dm)) return true;
             p.Commit(next);
@@ -342,8 +430,7 @@ namespace MinikUsta.Presentation.Shots
             var session = p.Session;
             var L = p.Layout;
             if (session == null || L == null) return false;
-            solution = solutions(p.LevelNumber);
-            preview = DebugSolver.NextSolutionMove(session, solution) as DragMove;
+            preview = DebugSolver.NextSolutionMove(session, Sol()) as DragMove;
             if (preview == null)
             {
                 Say("note:no golden drag to preview");
@@ -385,8 +472,7 @@ namespace MinikUsta.Presentation.Shots
             var p = app.Player;
             var session = p.Session;
             if (session == null) return false;
-            solution ??= solutions(p.LevelNumber);
-            var move = DebugSolver.Next(session, solution);
+            var move = DebugSolver.Next(session, Sol());
             if (move == null) return false;
             p.Commit(move);
             sinceCommit = 0f;
@@ -416,7 +502,7 @@ namespace MinikUsta.Presentation.Shots
             if (session == null) return Fail2("no session");
             if (session.Outcome != BoosterOutcomes.Playing) return true;
             if (!Idle() || sinceCommit < 350f || p.Panel != PanelKind.None) return false;
-            var move = DebugSolver.Next(session, solution);
+            var move = DebugSolver.Next(session, Sol());
             if (move == null) return Fail2("no move left");
             p.Commit(move);
             sinceCommit = 0f;

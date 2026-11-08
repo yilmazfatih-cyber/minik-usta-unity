@@ -274,7 +274,13 @@ namespace MinikUsta.Presentation.Tutorial
             Add(group, UiKit.Image("tut.portrait.back", Frames.FxConfettiRound, new PxRect(d.X, portraitY, s.PortraitPx, s.PortraitPx), false, PortraitBack));
             Add(group, UiKit.Image("tut.portrait", s.PortraitFrame, new PxRect(d.X + 6, portraitY + 4, s.PortraitPx - 12, s.PortraitPx - 8)) .WithAspect());
             // tail: the atlas tail points down; turned to point at the portrait (left) or at the HUD (up)
-            if (c.Dock.TailUp)
+            if (c.Dock.TailDown)
+            {
+                // U2 (K2-B): the board dock's tail points down at the glove (the atlas tail points down), kept on the box's bottom edge
+                double tx = Math.Max(boxX + 24, Math.Min(boxX + boxW - 88, c.Dock.TailX - 32));
+                Add(group, UiKit.Image("tut.tail", "bubble_tail", new PxRect(tx, boxY + boxH - 16, 64, 56)));
+            }
+            else if (c.Dock.TailUp)
             {
                 var tail = UiKit.Image("tut.tail", "bubble_tail", new PxRect(boxX + 40, boxY - 40, 64, 56));
                 tail.Rotation = 180f;

@@ -13,6 +13,11 @@
 //   Level ──Pause──▶ Paused ──Resume──▶ Level ; ──Exit──▶ ExitConfirm ──Stay──▶ Paused
 //   ExitConfirm ──LeaveFree (movesSpent 0, K-43/2)──▶ Home ; ──LeaveLoss (movesSpent ≥ 1)──▶ LoseFinal
 //   ExitConfirm ──Restart (the pause "restart" intent: a new attempt at once)──▶ Level
+//   Home ──Back (U2, UX_UNITY K5: Android back / Esc)──▶ QuitConfirm ──Stay / Back──▶ Home ; ──Quit──▶ Home (the app is asked to close;
+//   WebGL cannot close a tab, so the home screen stays)
+//
+// Back stack (U2, UX_UNITY §3, P0-2): `BackEvent(screen)` is the event the Android back key / Esc fires on each screen — the top window
+// closes with its "no / stay" choice; it never spends a resource (life, coins) and never skips a reward (Win: Back = Continue).
 using System;
 using System.Collections.Generic;
 
@@ -29,6 +34,8 @@ namespace MinikUsta.Presentation.Flow
         Win,
         LoseOffer,
         LoseFinal,
+        /// <summary>U2 (UX_UNITY K5): "Oyundan çıkılsın mı?" over the home screen (Back on Home).</summary>
+        QuitConfirm,
     }
 
     public enum FlowEvent
@@ -55,6 +62,10 @@ namespace MinikUsta.Presentation.Flow
         RetryDirect,
         RetryWindow,
         Home,
+        /// <summary>U2: the back key on the home screen (opens the quit confirmation).</summary>
+        Back,
+        /// <summary>U2: "Çık" in the quit confirmation.</summary>
+        Quit,
     }
 
     public sealed class ScreenFlow
@@ -84,7 +95,31 @@ namespace MinikUsta.Presentation.Flow
             { (AppScreen.LoseFinal, FlowEvent.RetryDirect), AppScreen.Level },
             { (AppScreen.LoseFinal, FlowEvent.RetryWindow), AppScreen.LevelStart },
             { (AppScreen.LoseFinal, FlowEvent.Home), AppScreen.Home },
+            { (AppScreen.Home, FlowEvent.Back), AppScreen.QuitConfirm },
+            { (AppScreen.QuitConfirm, FlowEvent.Stay), AppScreen.Home },
+            { (AppScreen.QuitConfirm, FlowEvent.Quit), AppScreen.Home },
         };
+
+        /// <summary>
+        /// U2 (UX_UNITY §3 back stack, AC-7): the event the back key fires on `screen` — always the "no / stay / close" answer of the top
+        /// window; null on Boot (nothing to go back to). The settings overlay closes before any of these (`GameApp.Back`).
+        /// </summary>
+        public static FlowEvent? BackEvent(AppScreen screen)
+        {
+            switch (screen)
+            {
+                case AppScreen.Home: return FlowEvent.Back;
+                case AppScreen.QuitConfirm: return FlowEvent.Stay;
+                case AppScreen.LevelStart: return FlowEvent.Close;
+                case AppScreen.Level: return FlowEvent.Pause;
+                case AppScreen.Paused: return FlowEvent.Continue;
+                case AppScreen.ExitConfirm: return FlowEvent.Stay;
+                case AppScreen.Win: return FlowEvent.Continue;
+                case AppScreen.LoseOffer: return FlowEvent.Decline;
+                case AppScreen.LoseFinal: return FlowEvent.Home;
+                default: return null;
+            }
+        }
 
         public AppScreen Current { get; private set; } = AppScreen.Boot;
 
@@ -118,6 +153,12 @@ namespace MinikUsta.Presentation.Flow
             || Current == AppScreen.LoseOffer || Current == AppScreen.LoseFinal;
 
         public bool CanOpenSettings => Current == AppScreen.Home || Current == AppScreen.Paused;
+
+        /// <summary>All screens with the events leaving them (tests: AC-7 back coverage).</summary>
+        public static IEnumerable<(AppScreen From, FlowEvent Event, AppScreen To)> Moves()
+        {
+            foreach (var kv in Table) yield return (kv.Key.Item1, kv.Key.Item2, kv.Value);
+        }
 
         public void OpenSettings()
         {

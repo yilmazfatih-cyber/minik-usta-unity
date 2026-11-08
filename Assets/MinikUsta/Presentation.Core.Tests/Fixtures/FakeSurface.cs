@@ -46,7 +46,7 @@ namespace MinikUsta.Presentation.Tests.Fixtures
         /// <summary>The top-most visible layer holding `id` (Overlay → Fx → Window → Hud → Home).</summary>
         public (UiLayer, UiNode)? Locate(string id)
         {
-            for (int l = (int)UiLayer.Overlay; l >= 0; l--)
+            for (int l = (int)UiLayer.Hint; l >= 0; l--)
             {
                 var layer = (UiLayer)l;
                 if (!Visible(layer)) continue;

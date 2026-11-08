@@ -286,11 +286,13 @@ namespace MinikUsta.Presentation.Tutorial
                 }
             }
             var size = View.BubbleSize(text);
-            var place = TutorialLayout.PlaceBubble(L, size.X, size.Y, data.Highlight, lit, handBox, Settings.MarginPx, Settings.DockGapPx);
+            // U2 (UX_UNITY K2-B): the tail of the board dock points at the glove's start (else at the first highlighted target)
+            double anchorX = path.Length > 0 ? path[0].X : lit.Count > 0 ? lit[0].CenterX : double.NaN;
+            var place = TutorialLayout.PlaceBubble(L, size.X, size.Y, data.Highlight, lit, handBox, Settings.MarginPx, Settings.DockGapPx, anchorX);
             return new TutorialContent
             {
                 Text = text,
-                Dock = new DockPlace(place.Dock, new PxRect(place.Rect.X, place.Rect.Y, size.X, size.Y), place.TailUp),
+                Dock = new DockPlace(place.Dock, new PxRect(place.Rect.X, place.Rect.Y, size.X, size.Y), place.TailUp, place.TailX),
                 Lit = lit,
                 HandKind = kind,
                 Path = path,
@@ -305,7 +307,7 @@ namespace MinikUsta.Presentation.Tutorial
             if (a.CanvasW != b.CanvasW || a.CanvasH != b.CanvasH) return false;
             for (int i = 0; i < a.Lit.Count; i++) if (!a.Lit[i].Equals(b.Lit[i])) return false;
             for (int i = 0; i < a.Path.Length; i++) if (!a.Path[i].Equals(b.Path[i])) return false;
-            return a.Dock.Rect.Equals(b.Dock.Rect) && a.Dock.TailUp == b.Dock.TailUp;
+            return a.Dock.Rect.Equals(b.Dock.Rect) && a.Dock.TailUp == b.Dock.TailUp && a.Dock.TailX.Equals(b.Dock.TailX);
         }
 
         // --- rectangles --------------------------------------------------------------------------------------------------------------

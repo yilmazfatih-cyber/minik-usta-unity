@@ -28,8 +28,10 @@ namespace MinikUsta.Presentation.Ui
         Window = 3,
         /// <summary>Particles above the open window (the win star burst).</summary>
         Fx = 4,
-        /// <summary>The settings panel (over the home screen or the pause window).</summary>
+        /// <summary>The settings panel and the quit confirmation (over the home screen or the pause window).</summary>
         Overlay = 5,
+        /// <summary>U2 (UX_UNITY §5.9): the `LockedHint` balloon above everything; it takes no tap.</summary>
+        Hint = 6,
     }
 
     public sealed class UiNode

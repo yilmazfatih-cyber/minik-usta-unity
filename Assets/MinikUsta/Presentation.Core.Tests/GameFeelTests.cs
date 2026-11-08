@@ -960,8 +960,13 @@ namespace MinikUsta.Presentation.Tests
                 Assert.LessOrEqual(s.Right, L.Goals.Right + 0.5, "B" + level + ": inside the goals row");
                 Assert.GreaterOrEqual(s.Y, L.Goals.Y);
                 Assert.LessOrEqual(s.Bottom, L.TopGroupBottomY);
-                var parts = new List<PxRect> { HudLayout.StreakLabel(L), HudLayout.TrowelIcon(L), HudLayout.TrowelCount(L) };
+                var parts = new List<PxRect> { HudLayout.StreakLabel(L), HudLayout.TrowelIcon(L) };
                 for (int i = 0; i < 4; i++) parts.Add(HudLayout.Bead(L, i));
+                // U2 (UX_UNITY P0-4): the "×n" count is a 34 px badge on the trowel's lower right (it may overhang the capsule end, not the canvas)
+                var count = HudLayout.TrowelCount(L);
+                Assert.IsTrue(count.Overlaps(HudLayout.TrowelIcon(L)), "the count badge sits on the trowel");
+                Assert.LessOrEqual(count.Right, L.W, "the count badge stays on the canvas");
+                foreach (var p in parts) if (!p.Equals(HudLayout.TrowelIcon(L))) Assert.IsFalse(count.Overlaps(p), "the count badge covers only the trowel");
                 for (int i = 0; i < parts.Count; i++)
                 {
                     Assert.GreaterOrEqual(parts[i].X, s.X, "part " + i);

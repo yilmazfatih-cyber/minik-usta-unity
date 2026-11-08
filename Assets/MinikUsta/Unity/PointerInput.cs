@@ -5,6 +5,7 @@
 // (TECH §4.6 one-frame response). One finger drives the board (TECH §4.6:
 // a second finger is ignored by DragMapper); `Canceled` (incoming call, edge gesture) aborts the drag.
 using MinikUsta.Presentation.Flow;
+// U2: points are read relative to the safe area (`SafeFrame`), the rectangle the design canvas is drawn into.
 using MinikUsta.Presentation.Layout;
 using UnityEngine;
 
@@ -23,7 +24,7 @@ namespace MinikUsta.Unity
             Input.simulateMouseWithTouches = false;
         }
 
-        public void Poll(GameApp player, DesignViewport vp)
+        public void Poll(GameApp player, DesignViewport vp, SafeFrame safe)
         {
             int n = Input.touchCount;
             if (n > 0)
@@ -31,7 +32,7 @@ namespace MinikUsta.Unity
                 for (int i = 0; i < n; i++)
                 {
                     var t = Input.GetTouch(i);
-                    vp.ScreenToDesign(t.position.x, t.position.y, out double x, out double y);
+                    safe.ScreenToDesign(vp, t.position.x, t.position.y, out double x, out double y);
                     switch (t.phase)
                     {
                         case TouchPhase.Began:
@@ -53,7 +54,7 @@ namespace MinikUsta.Unity
                 return;
             }
             var m = Input.mousePosition;
-            vp.ScreenToDesign(m.x, m.y, out double mx, out double my);
+            safe.ScreenToDesign(vp, m.x, m.y, out double mx, out double my);
             if (Input.GetMouseButtonDown(0))
             {
                 mouseDown = true;

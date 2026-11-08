@@ -19,6 +19,9 @@
 //   confirmation (movesSpent 0: free, the reserved life comes back; ≥ 1: a loss).
 // - B2 (D-100, D-101): Usta Kral (`KingDirector`) on the home screen, in the level corner and in the windows; the home background
 //   as drifting parallax layers (`HomeParallax`); the 3D FX clips (`LevelPlayer.Fx`). Without king.json / fx.json the v4 stills stay.
+// - U2 (UX_UNITY P0-2, P0-3): the back key (`Back`, Android back / Esc) follows `ScreenFlow.BackEvent`; on Home it opens the quit
+//   confirmation ("Oyundan çıkılsın mı?" Kal / Çık; `QuitRequested`). Every tap on something locked (nav tabs, lives, coins "+", booster
+//   slots) answers at once with the `LockedHint` balloon (K6: no dead tap).
 using System;
 using System.Collections.Generic;
 using MinikUsta.Core;
@@ -58,6 +61,7 @@ namespace MinikUsta.Presentation.Flow
         private double canvasW = 1080;
         private double canvasH = 1920;
         private bool homeShown;
+        private bool pendingBack;
 
         public GameApp(ILevelView view, IUiSurface ui, LevelCatalog catalog, Localizer i18n, EconomyConfig economy, ISaveStore store,
             FeelSettings? feel = null, LayoutSettings? layout = null, IHapticSink? haptics = null, EconomyInfo? economyInfo = null, Action<string>? log = null,
@@ -87,7 +91,23 @@ namespace MinikUsta.Presentation.Flow
             Player.Art = Art;
             King = new KingDirector(Art) { ThinkAfterMs = Player.Feel.KingThinkAfterMs, OnEvent = KingEvent };
             Player.King = King;
+            Hint = new LockedHint(ui) { Sound = () => Player.Sound(Sounds.Locked) };
+            if (view is ILevelHudHost host && host.HudOrNull != null)
+            {
+                var hud = host.HudOrNull;
+                hud.Hint = Hint;
+                hud.BoosterTapped = id => hud.HintSlot(id);
+            }
         }
+
+        /// <summary>U2 (UX_UNITY §5.9): the one hint balloon of the app (home and level screen).</summary>
+        public LockedHint Hint { get; }
+
+        /// <summary>U2 (UX_UNITY K5): "Çık" in the quit confirmation — the Unity layer closes the app (`Application.Quit`).</summary>
+        public Action? QuitRequested { get; set; }
+
+        /// <summary>U2: the quit confirmation tree on screen (tests, shots); null when closed.</summary>
+        public UiNode? QuitWindow { get; private set; }
 
         /// <summary>B2: the 3D clip libraries (king.json, fx.json); `ArtSet.Empty` = the v4 look.</summary>
         public ArtSet Art { get; }
@@ -159,6 +179,7 @@ namespace MinikUsta.Presentation.Flow
             Player.Reduced = s.ReduceMotion;
             Parallax.Reduced = s.ReduceMotion;
             Player.Haptics.Enabled = s.Haptics;
+            Hint.Reduced = s.ReduceMotion;
             if (Audio != null)
             {
                 Audio.SoundOn = s.Sound;
@@ -224,6 +245,11 @@ namespace MinikUsta.Presentation.Flow
             canvasH = Player.Viewport.H;
             if (Flow.Current == AppScreen.Home) ShowHome();
             if (Flow.SettingsOpen) ShowSettings();
+            if (Flow.Current == AppScreen.QuitConfirm)
+            {
+                ShowHome();
+                BuildQuitWindow();
+            }
         }
 
         public void Tick(float dtMs)
@@ -231,7 +257,128 @@ namespace MinikUsta.Presentation.Flow
             Audio?.Tick(dtMs);
             Player.Tick(dtMs);
             King.Advance(dtMs);
-            if (Flow.Current == AppScreen.Home || Flow.Current == AppScreen.LevelStart) Parallax.Advance(dtMs);
+            if (Flow.Current == AppScreen.Home || Flow.Current == AppScreen.LevelStart || Flow.Current == AppScreen.QuitConfirm) Parallax.Advance(dtMs);
+            Hint.Tick(dtMs);
+            if (pendingBack && !BackWaits())
+            {
+                pendingBack = false;
+                Back();
+            }
+        }
+
+        // --- back key (U2, UX_UNITY §3, P0-2) ---------------------------------------------------------------------------------
+
+        /// <summary>UX_UNITY §3: during a locked animation (a slice, the truck, a teardown) the back key waits until it ends.</summary>
+        private bool BackWaits() => Flow.Current == AppScreen.Level && !Flow.SettingsOpen && Player.Session != null && Player.Queue.Locked(Player.Clock.Now);
+
+        /// <summary>Back presses handled since boot (tests).</summary>
+        public int Backs { get; private set; }
+
+        /// <summary>
+        /// The Android back key / Esc: the settings overlay closes first; then the top window gives its "no / stay / close" answer
+        /// (`ScreenFlow.BackEvent`); on the level screen the pause window opens; on Home the quit confirmation. Never spends a resource.
+        /// False when nothing happened (Boot, or the level is decided and its window is about to open).
+        /// </summary>
+        public bool Back()
+        {
+            Hint.Hide();
+            if (Flow.SettingsOpen)
+            {
+                Backs++;
+                SettingsTap(SettingsView.Close);
+                return true;
+            }
+            if (BackWaits())
+            {
+                pendingBack = true;
+                return true;
+            }
+            switch (Flow.Current)
+            {
+                case AppScreen.Home:
+                    Backs++;
+                    OpenQuitConfirm();
+                    return true;
+                case AppScreen.QuitConfirm:
+                    Backs++;
+                    CloseQuitConfirm(false);
+                    return true;
+                case AppScreen.Level:
+                    if (Player.Panel != PanelKind.None || Player.Session == null || Player.Session.Outcome != BoosterOutcomes.Playing) return false;
+                    Backs++;
+                    Player.PausePressed();
+                    return Flow.Current == AppScreen.Paused;
+                case AppScreen.Paused:
+                    return BackPanel(Game.PanelAction.Resume);
+                case AppScreen.ExitConfirm:
+                    return BackPanel(Game.PanelAction.Stay);
+                case AppScreen.LevelStart:
+                    return BackPanel(Game.PanelAction.Close);
+                case AppScreen.Win:
+                    return BackPanel(Game.PanelAction.Continue);
+                case AppScreen.LoseOffer:
+                    return BackPanel(Game.PanelAction.Decline);
+                case AppScreen.LoseFinal:
+                    return BackPanel(Game.PanelAction.Home);
+                default:
+                    return false;
+            }
+        }
+
+        private bool BackPanel(PanelAction action)
+        {
+            Backs++;
+            HandlePanel(action);
+            return true;
+        }
+
+        private void OpenQuitConfirm()
+        {
+            Flow.Fire(FlowEvent.Back);
+            BuildQuitWindow();
+            Player.Sound(Sounds.Popup);
+        }
+
+        private void BuildQuitWindow()
+        {
+            var model = new PanelModel(PanelKind.ExitConfirm, T.Get(QuitTitleKey), "", new[]
+            {
+                new PanelButton(T.Get("exit.stay"), Game.PanelAction.Stay, ButtonKind.Primary),
+                new PanelButton(T.Get("exit.leave"), Game.PanelAction.Leave, ButtonKind.Secondary),
+            }, false, new PanelDetail { King = KingCue.Think, CloseAction = Game.PanelAction.Stay });
+            QuitWindow = WindowViews.Build(model, canvasW, canvasH, Player.LayoutSettings, T);
+            ui.Show(UiLayer.Overlay, QuitWindow, OnQuitTap);
+        }
+
+        /// <summary>UX_UNITY §11 new key: "Oyundan çıkılsın mı?" / "Quit the game?".</summary>
+        public const string QuitTitleKey = "app.quit.title";
+
+        private void OnQuitTap(UiNode n)
+        {
+            if (!n.Enabled || !WindowViews.TryParse(n.Action, out var a)) return;
+            Taps++;
+            CloseQuitConfirm(a == Game.PanelAction.Leave);
+        }
+
+        private void CloseQuitConfirm(bool quit)
+        {
+            if (Flow.Current != AppScreen.QuitConfirm) return;
+            Flow.Fire(quit ? FlowEvent.Quit : FlowEvent.Stay);
+            QuitWindow = null;
+            ui.Show(UiLayer.Overlay, null, null);
+            if (quit) QuitRequested?.Invoke();
+        }
+
+        /// <summary>U2 (K6): a tap on a locked home element — the hint balloon over it ("Yakında"), its lock shakes.</summary>
+        private void HomeHint(UiNode n)
+        {
+            if (Home == null) return;
+            string action = n.Action!;
+            UiNode? lockIcon = null;
+            if (action.StartsWith(HomeView.TabHintPrefix, StringComparison.Ordinal)) lockIcon = Home.Find("home.tab" + action.Substring(HomeView.TabHintPrefix.Length) + ".lock");
+            else if (action == HomeView.CoinsHintAction) lockIcon = Home.Find("home.coins.plus");
+            else if (action == HomeView.LivesHintAction) lockIcon = Home.Find("home.lives.icon");
+            Hint.Show(n.Rect, T.Get("common.comingSoon"), lockIcon, canvasW, canvasH);
         }
 
         /// <summary>
@@ -295,6 +442,7 @@ namespace MinikUsta.Presentation.Flow
 
         private void ShowHome()
         {
+            Hint.Hide();
             view.WorldVisible = false;
             Player.ClosePanel();
             ui.SetLayerVisible(UiLayer.Hud, false);
@@ -314,6 +462,7 @@ namespace MinikUsta.Presentation.Flow
 
         private void ShowBoard()
         {
+            Hint.Hide();
             ui.SetLayerVisible(UiLayer.Home, false);
             ui.SetLayerVisible(UiLayer.Hud, true);
             view.WorldVisible = true;
@@ -327,7 +476,14 @@ namespace MinikUsta.Presentation.Flow
         public void OnUiTap(UiNode n)
         {
             if (!n.Enabled || n.Action == null) return;
+            if (Flow.Current == AppScreen.QuitConfirm) return; // the quit window's dim covers the home screen
             Taps++;
+            if (n.Action.StartsWith(HomeView.LockedPrefix, StringComparison.Ordinal))
+            {
+                Audio?.Unlock();
+                HomeHint(n);
+                return;
+            }
             switch (n.Action)
             {
                 case HomeView.PlayAction:
@@ -504,6 +660,11 @@ namespace MinikUsta.Presentation.Flow
         public void PanelAction(LevelPlayer player, PanelAction action)
         {
             Taps++;
+            HandlePanel(action);
+        }
+
+        private void HandlePanel(PanelAction action)
+        {
             switch (Flow.Current)
             {
                 case AppScreen.LevelStart:
@@ -769,6 +930,7 @@ namespace MinikUsta.Presentation.Flow
                 case SettingsView.Motion:
                     s.ReduceMotion = !s.ReduceMotion;
                     Player.Reduced = s.ReduceMotion;
+                    Hint.Reduced = s.ReduceMotion;
                     Parallax.Reduced = s.ReduceMotion;
                     break;
                 case SettingsView.LangTr:

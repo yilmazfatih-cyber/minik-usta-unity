@@ -47,9 +47,34 @@ namespace MinikUsta.Presentation.Tests
             CollectionAssert.AreEqual(ShotScenario.ShotNames, sc.Signalled.ToArray());
             foreach (var name in ShotScenario.ShotNames) CollectionAssert.Contains(lines, ShotScenario.Tag + " shot:" + name);
             Assert.AreEqual(ShotScenario.Tag + " done", lines[lines.Count - 1]);
-            Assert.AreEqual(BoosterOutcomes.Won, rig.Session.Outcome, "the golden solution wins Bölüm 1");
-            Assert.AreEqual(PanelKind.Win, rig.Player.Panel, "the scenario ends with the win window open");
-            Assert.IsTrue(rig.App.Save.Won(1));
+            Assert.IsTrue(rig.App.Save.Won(1), "the golden solution wins Bölüm 1");
+            Assert.IsTrue(rig.App.Save.Won(2), "U2: …and Bölüm 2, so Bölüm 3 opens its level start window");
+            Assert.AreEqual(3, rig.Player.LevelNumber);
+            Assert.AreEqual(BoosterOutcomes.OutOfMoves, rig.Session.Outcome, "U2: Bölüm 3 ends out of moves");
+            Assert.AreEqual(PanelKind.Lose, rig.Player.Panel, "the scenario ends with the +5 offer window open");
+            Assert.AreEqual(AppScreen.LoseOffer, rig.Screen);
+        }
+
+        [Test]
+        public void U2_P0_11_shots_scenario_shows_pause_exit_confirm_level_3_start_window_and_the_offer()
+        {
+            var (rig, sc, lines) = Start();
+            var seen = new Dictionary<string, (AppScreen Screen, PanelKind Panel, int Level)>();
+            float t = 0;
+            while (!sc.Done && t < ShotScenario.TimeoutMs)
+            {
+                int before = sc.Signalled.Count;
+                rig.App.Tick(Fixtures.Rig.FrameMs);
+                sc.Tick(Fixtures.Rig.FrameMs);
+                t += Fixtures.Rig.FrameMs;
+                if (sc.Signalled.Count > before) seen[sc.Signalled[sc.Signalled.Count - 1]] = (rig.Screen, rig.Player.Panel, rig.Player.LevelNumber);
+            }
+            Assert.IsFalse(sc.Failed, string.Join(" | ", lines));
+            Assert.AreEqual((AppScreen.Paused, PanelKind.Pause, 2), seen["pause"]);
+            Assert.AreEqual((AppScreen.ExitConfirm, PanelKind.ExitConfirm, 2), seen["exit_confirm"]);
+            Assert.AreEqual((AppScreen.LevelStart, PanelKind.LevelStart, 2), seen["level_start_window"], "Bölüm 3's window opens over the last board (Bölüm 2)");
+            Assert.AreEqual((AppScreen.LoseOffer, PanelKind.Lose, 3), seen["lose_offer"]);
+            Assert.Less(t, ShotScenario.TimeoutMs * 0.6f, "the longer scenario keeps a wide margin under its own timeout");
         }
 
         [Test]

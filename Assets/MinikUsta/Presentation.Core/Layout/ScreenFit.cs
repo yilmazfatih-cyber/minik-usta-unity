@@ -111,3 +111,61 @@ namespace MinikUsta.Presentation.Layout
         }
     }
 }
+
+namespace MinikUsta.Presentation.Layout
+{
+    /// <summary>
+    /// U2 (UX_UNITY P0-2 "Screen.safeArea içe çekme"): the part of the screen the game draws its design canvas into — Unity's
+    /// `Screen.safeArea` (screen px, origin bottom-left; the notch / status bar and the gesture bar left out). The viewport is built
+    /// from the safe size; pointers are shifted by the safe origin; the camera and the UI canvas move by the safe centre's offset, and
+    /// the camera still covers the whole screen (the bands outside the safe area show the camera background). An empty or outside
+    /// rectangle (desktop, the WebGL page) is the whole screen: nothing moves.
+    /// </summary>
+    public readonly struct SafeFrame
+    {
+        public readonly double ScreenW;
+        public readonly double ScreenH;
+        /// <summary>The safe rectangle (screen px, origin bottom-left).</summary>
+        public readonly double X;
+        public readonly double Y;
+        public readonly double W;
+        public readonly double H;
+
+        private SafeFrame(double screenW, double screenH, double x, double y, double w, double h)
+        {
+            ScreenW = screenW;
+            ScreenH = screenH;
+            X = x;
+            Y = y;
+            W = w;
+            H = h;
+        }
+
+        public static SafeFrame Of(double screenW, double screenH, double x, double y, double w, double h)
+        {
+            double x0 = Math.Max(0, x), y0 = Math.Max(0, y);
+            double x1 = Math.Min(screenW, x + w), y1 = Math.Min(screenH, y + h);
+            if (!(x1 - x0 >= 1) || !(y1 - y0 >= 1)) return new SafeFrame(screenW, screenH, 0, 0, screenW, screenH);
+            return new SafeFrame(screenW, screenH, x0, y0, x1 - x0, y1 - y0);
+        }
+
+        /// <summary>Safe centre − screen centre (screen px; x right, y up).</summary>
+        public double CenterOffsetX => X + W / 2 - ScreenW / 2;
+        public double CenterOffsetY => Y + H / 2 - ScreenH / 2;
+
+        public bool Inset => X > 0 || Y > 0 || W < ScreenW || H < ScreenH;
+
+        /// <summary>A screen point (origin bottom-left) → design px of `vp` (a viewport built from `W` × `H`).</summary>
+        public void ScreenToDesign(DesignViewport vp, double sx, double sy, out double dx, out double dy) => vp.ScreenToDesign(sx - X, sy - Y, out dx, out dy);
+
+        /// <summary>World position of the camera (relative to its home) that puts the canvas centre on the safe centre.</summary>
+        public void CameraOffset(DesignViewport vp, double pixelsPerUnit, out double wx, out double wy)
+        {
+            wx = -CenterOffsetX / vp.Scale / pixelsPerUnit;
+            wy = -CenterOffsetY / vp.Scale / pixelsPerUnit;
+        }
+
+        /// <summary>Orthographic size that fills the WHOLE screen height at the viewport's scale.</summary>
+        public double OrthographicSize(DesignViewport vp, double pixelsPerUnit) => ScreenH / vp.Scale / 2 / pixelsPerUnit;
+    }
+}

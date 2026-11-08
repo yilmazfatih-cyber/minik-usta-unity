@@ -8,7 +8,11 @@
     "tutorial",
     "drag_mid",
     "landed",
-    "win"
+    "win",
+    "pause",
+    "exit_confirm",
+    "level_start_window",
+    "lose_offer"
   ],
   "sequences": [
     {

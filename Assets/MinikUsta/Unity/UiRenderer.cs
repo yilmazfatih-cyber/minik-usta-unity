@@ -80,9 +80,9 @@ namespace MinikUsta.Unity
         private readonly FeelSettings feel;
         private readonly CanvasScaler scaler;
         private readonly RectTransform design;
-        private readonly RectTransform[] layers = new RectTransform[(int)UiLayer.Overlay + 1];
+        private readonly RectTransform[] layers = new RectTransform[(int)UiLayer.Hint + 1];
         private readonly Dictionary<UiNode, Bound> bound = new Dictionary<UiNode, Bound>();
-        private readonly Action<UiNode>?[] handlers = new Action<UiNode>?[(int)UiLayer.Overlay + 1];
+        private readonly Action<UiNode>?[] handlers = new Action<UiNode>?[(int)UiLayer.Hint + 1];
 
         public Font Font { get; }
 
@@ -131,14 +131,24 @@ namespace MinikUsta.Unity
             }
         }
 
-        /// <summary>The design canvas of the current viewport (FIT 1080 × 1920; EXPAND taller).</summary>
+        /// <summary>U2 (UX_UNITY P0-2): the safe area of the screen; the design canvas is centred on it (set before `SetCanvas`).</summary>
+        public MinikUsta.Presentation.Layout.SafeFrame Safe { get; set; }
+
+        /// <summary>The design canvas of the current viewport (FIT 1080 × 1920; EXPAND taller), centred on the safe area.</summary>
         public void SetCanvas(double w, double h)
         {
             DesignW = (float)w;
             DesignH = (float)h;
             design.sizeDelta = new Vector2(DesignW, DesignH);
-            if (Screen.width > 0 && Screen.height > 0)
-                scaler.scaleFactor = (float)new MinikUsta.Presentation.Layout.DesignViewport(Screen.width, Screen.height, DesignW, DesignH).Scale;
+            var safe = Safe;
+            bool inset = safe.ScreenW > 0 && safe.Inset;
+            double sw = inset ? safe.W : Screen.width, sh = inset ? safe.H : Screen.height;
+            if (sw > 0 && sh > 0)
+            {
+                float k = (float)new MinikUsta.Presentation.Layout.DesignViewport(sw, sh, DesignW, DesignH).Scale;
+                scaler.scaleFactor = k;
+                design.anchoredPosition = inset ? new Vector2((float)(safe.CenterOffsetX / k), (float)(safe.CenterOffsetY / k)) : Vector2.zero;
+            }
         }
 
         /// <summary>The RectTransform of a layer (the Fx layer holds the uGUI particles of `UnityUiSpark`).</summary>

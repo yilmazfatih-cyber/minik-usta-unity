@@ -39,11 +39,34 @@ namespace MinikUsta.Presentation.Ui
         public const string KingAction = "home:king";
         public const string KingId = "home.king";
         public const string LayerPrefix = "home.bg.";
+        /// <summary>U2 (UX_UNITY K4, K6): taps on things that cannot act yet answer with the `LockedHint` ("home:locked:&lt;what&gt;").</summary>
+        public const string LockedPrefix = "home:locked:";
+        public const string LivesHintAction = LockedPrefix + "lives";
+        public const string CoinsHintAction = LockedPrefix + "coins";
+        public const string TabHintPrefix = LockedPrefix + "tab";
+        /// <summary>The bottom navigation tab names (i18n), left to right; index 2 is the selected home tab.</summary>
+        public static readonly string[] TabKeys = { "nav.shop", "nav.league", "nav.home", "nav.team", "nav.album" };
+        /// <summary>U2 (UX_UNITY §10 rule 3): adjacent tap targets keep ≥ 16 px between them.</summary>
+        public const double TabHitInsetPx = 8;
         /// <summary>B2: the parallax drift amplitude (design px at parallax 1); every layer is drawn this much wider on each side × its factor.</summary>
         public const double ParallaxAmpPx = 22;
 
         /// <summary>The home king's box on a canvas `H` tall (feet at its bottom centre; B2).</summary>
         public static PxRect KingBox(double H) => new PxRect(468 - 190, 1342 + (H - 1920) * 0.5 - 600, 380, 600);
+
+        /// <summary>
+        /// The tap rectangle of locked tab `i`: the tab's column of the nav bar, inset 8 px on each side; the two tabs beside the raised home
+        /// tab stop at its edge (its 300 px plate is not theirs).
+        /// </summary>
+        public static PxRect TabHit(int i, double W, double bot)
+        {
+            double tabW = W / 5;
+            double x0 = tabW * i + TabHitInsetPx, x1 = tabW * (i + 1) - TabHitInsetPx;
+            double homeL = tabW * 2.5 - 150, homeR = tabW * 2.5 + 150;
+            if (i == 1) x1 = Math.Min(x1, homeL - TabHitInsetPx);
+            if (i == 3) x0 = Math.Max(x0, homeR + TabHitInsetPx);
+            return new PxRect(x0, 1704 + bot, x1 - x0, 216);
+        }
 
         public static UiNode Build(HomeModel m, double W, double H, Strings t)
         {
@@ -86,6 +109,10 @@ namespace MinikUsta.Presentation.Ui
             coins.Add(UiKit.Icon("home.coins.icon", "icon_coin", 522, 148, 112, 112));
             coins.Add(UiKit.Label("home.coins.n", Price.Grouped(m.Coins, m.Lang), new PxRect(580, 104, 170, 88), TextStyle.Cream, 44));
             coins.Add(UiKit.Icon("home.coins.plus", "btn_plus", 790, 148, 64, 64));
+            // U2 (K6): the lives capsule and the coin capsule with its "+" answer a tap with "Yakında" (no shop, no refill yet); the hit
+            // rectangles are invisible and ≥ 128 px high
+            r.Add(new UiNode("home.lives.hit", new PxRect(160, 84, 300, 128)) { Action = LivesHintAction, BlocksInput = true });
+            r.Add(new UiNode("home.coins.hit", new PxRect(500, 84, 354, 128)) { Action = CoinsHintAction, BlocksInput = true });
             var gear = r.Add(UiKit.Button("home.settings", "btn_tool", new PxRect(908, 84, 128, 128), SettingsAction));
             gear.Add(UiKit.Icon("home.settings.icon", "icon_settings", 972, 144, 84, 84));
             // logo (replaceable frame) + area ribbon + progress
@@ -121,8 +148,13 @@ namespace MinikUsta.Presentation.Ui
                 }
                 else
                 {
-                    r.Add(UiKit.Icon("home.tab" + i, tabs[i], cx, 1810 + bot, 115, 115, 0.55f));
-                    r.Add(UiKit.Icon("home.tab" + i + ".lock", "icon_lock", cx + 40, 1838 + bot, 52, 60));
+                    // U2 (UX_UNITY K4, P0-8): a locked tab shows its icon at 55 %, a 48 px lock and its name (faded, 34 px); a tap → "Yakında"
+                    r.Add(UiKit.Icon("home.tab" + i, tabs[i], cx, 1784 + bot, 108, 108, 0.55f));
+                    r.Add(UiKit.Icon("home.tab" + i + ".lock", "icon_lock", cx + 38, 1810 + bot, 48, 56));
+                    var name = UiKit.Label("home.tab" + i + ".text", t.Get(TabKeys[i]), new PxRect(cx - 100, 1842 + bot, 200, 52), TextStyle.Label, 34);
+                    name.Alpha = 0.8f;
+                    r.Add(name);
+                    r.Add(new UiNode("home.tab" + i + ".hit", TabHit(i, W, bot)) { Action = TabHintPrefix + i, BlocksInput = true });
                 }
                 if (i == 1 || i == 4)
                     r.Add(UiKit.Image("home.tab.div" + i, Frames.White, new PxRect(tabW * (i == 1 ? 1 : 4) - 1.5, 1772 + bot, 3, 88), false, Rgba.Hex("#3624AA")));
@@ -173,8 +205,11 @@ namespace MinikUsta.Presentation.Ui
             double ly = y + 468;
             group.Add(UiKit.Image("set.lang.bg", "panel_plate", new PxRect(panel.X + 60, ly, 880, 140), true));
             group.Add(UiKit.Label("set.lang.label", t.Get("settings.language"), new PxRect(panel.X + 100, ly, 330, 140), TextStyle.Label, 48, TextAlign.Left));
-            Flag(group, "tr", "flag_tr", t.Get("lang.tr"), m.Lang == "tr", LangTr, new PxRect(panel.X + 450, ly + 6, 230, 128));
-            Flag(group, "en", "flag_en", t.Get("lang.en"), m.Lang == "en", LangEn, new PxRect(panel.X + 700, ly + 6, 230, 128));
+            // U2 (UX_UNITY §5.4, P0-9): each pill ≥ text + 2 × 16 + the 60 px flag, so "Türkçe" never clips; the pair ends 10 px inside the row
+            double pw = PillWidth(t.Get("lang.tr"), t.Get("lang.en"));
+            double rowRight = panel.X + 60 + 880;
+            Flag(group, "tr", "flag_tr", t.Get("lang.tr"), m.Lang == "tr", LangTr, new PxRect(rowRight - 10 - 2 * pw - PillGapPx, ly + 6, pw, 128));
+            Flag(group, "en", "flag_en", t.Get("lang.en"), m.Lang == "en", LangEn, new PxRect(rowRight - 10 - pw, ly + 6, pw, 128));
             var ok = group.Add(UiKit.Button("set.ok", "btn_primary", new PxRect(W / 2 - 240, panel.Bottom - 64 - 176, 480, 176), Close));
             ok.Add(UiKit.Label("set.ok.text", t.Get("common.ok"), new PxRect(W / 2 - 220, panel.Bottom - 64 - 168, 440, 140), TextStyle.Button, 76));
             return root;
@@ -189,12 +224,29 @@ namespace MinikUsta.Presentation.Ui
             row.Add(UiKit.Icon("set." + id + ".toggle", on ? "toggle_on" : "toggle_off", panel.X + 830, y + 70, 176, 88));
         }
 
+        /// <summary>UX_UNITY §5.4 SegmentedPill: side padding, flag width, gap between the two pills, label size.</summary>
+        public const double PillPadPx = 16;
+        public const double PillFlagPx = 60;
+        public const double PillGapPx = 16;
+        public const double PillTextPx = 36;
+        public const double PillMinW = 230;
+
+        /// <summary>One width for both pills: the wider label + 2 × 16 + the 60 px flag (+ the text fit margin), at least 230.</summary>
+        public static double PillWidth(string a, string b)
+        {
+            double tw = Math.Max(FontMetrics.Width(a, PillTextPx), FontMetrics.Width(b, PillTextPx)) + TextFit.Margin + 4;
+            return Math.Max(PillMinW, Math.Ceiling(tw + 2 * PillPadPx + PillFlagPx));
+        }
+
+        /// <summary>The text box of a pill: right of the flag, 16 px inside the right edge.</summary>
+        public static PxRect PillTextBox(PxRect r) => new PxRect(r.X + PillPadPx + PillFlagPx, r.Y, r.W - 2 * PillPadPx - PillFlagPx, r.H);
+
         private static void Flag(UiNode group, string id, string flag, string label, bool on, string action, PxRect r)
         {
             var b = group.Add(UiKit.Button("set.lang." + id, on ? "btn_slot" : "panel_card", r, action));
             b.Alpha = on ? 1f : 0.7f;
-            b.Add(UiKit.Icon("set.lang." + id + ".flag", flag, r.X + 52, r.CenterY, 76, 76));
-            b.Add(UiKit.Label("set.lang." + id + ".text", label, new PxRect(r.X + 92, r.Y, r.W - 100, r.H), on ? TextStyle.Label : TextStyle.Card, 34, TextAlign.Center));
+            b.Add(UiKit.Icon("set.lang." + id + ".flag", flag, r.X + PillPadPx + PillFlagPx / 2 - 4, r.CenterY, 64, 64));
+            b.Add(UiKit.Label("set.lang." + id + ".text", label, PillTextBox(r), on ? TextStyle.Label : TextStyle.Card, PillTextPx, TextAlign.Center));
         }
     }
 }

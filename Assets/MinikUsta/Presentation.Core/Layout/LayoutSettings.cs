@@ -27,8 +27,12 @@ namespace MinikUsta.Presentation.Layout
         public double DesignHeight = 1920;
         /// <summary>meta.scale.expandMaxHeight.</summary>
         public double ExpandMaxHeight = 2400;
-        /// <summary>Faz 3 orchestrator brief: FIT (the camera keeps the 1080 × 1920 canvas inside the screen).</summary>
-        public ScaleMode Mode = ScaleMode.Fit;
+        /// <summary>
+        /// UX_UNITY K1 / P0-1 (paket U2): EXPAND by default — the design height follows the screen aspect (1920 … 2400), the top group stays
+        /// at the top, the bottom group at the bottom and the board group moves by (H − 1920) × 0,5, so a phone taller than 9:16 has no dead
+        /// bands. `?scale=fit` in the page URL still picks FIT for one visit (comparison shots).
+        /// </summary>
+        public ScaleMode Mode = ScaleMode.Expand;
 
         // board group (UX §5.1, §5.8; layout.grid / layout.board / layout.adaptive)
         /// <summary>layout.grid.cellPx — the base cell (k = c / 120).</summary>
@@ -61,8 +65,18 @@ namespace MinikUsta.Presentation.Layout
         public double MinSideMarginPx = 30;
 
         // top group (HUD v3, ART_REFERENCE §9.4; kit.v3.screen.hud)
-        /// <summary>layout.top.groupBottomY — bottom of the HUD group.</summary>
+        /// <summary>
+        /// layout.top.groupBottomY — the COMPACT bottom of the HUD group (264). It stays the cell-size budget of DL-2R-14 (the board cells do
+        /// not change) and the floor of the HUD bottom when a tall board leaves no room for the roomy goal card (H 1920, FIT).
+        /// </summary>
         public double TopGroupBottomY = 264;
+        /// <summary>UX_UNITY P0-5: the ROOMY bottom of the HUD group (304) whenever the crane area leaves room (every EXPAND phone).</summary>
+        public double HudBottomY = 304;
+        /// <summary>UX_UNITY §5.12 GoalCard: 340 wide, its bottom 16 px above the HUD bottom (so 176 high at 304), left at the HUD margin.</summary>
+        public double GoalCardW = 340;
+        public double GoalCardBottomPadPx = 16;
+        /// <summary>UX_UNITY P0-5: the plan picture cell of the goal card (upper bound; a tall plan fits smaller cells).</summary>
+        public double GoalPlanCellPx = 36;
         /// <summary>web layout.ts HUD_MARGIN_X / HUD_ROW_GAP / PANORAMA_WELL_W.</summary>
         public double HudMarginX = 24;
         public double HudRowGap = 24;

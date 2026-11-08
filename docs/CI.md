@@ -379,10 +379,15 @@ saniyede birkaç karelik hızında bile istenen kare ekrandadır.
 Sonra `done` yazılır. Hata olursa `error:<neden>` yazılır (zaman aşımı 240 sn oyun süresi) ve Playwright ilgili görünümde durur. Sıra ve adlar
 `tools/ci-shots/shots.json` ile `ShotScenario.ShotNames` arasında ortaktır; `C1_ci_shots_json_lists_the_same_shots_and_tag_as_the_scenario` testi ikisini eşitler.
 
-**FIT / EXPAND kanıtı (`expand/`).** Sayfa adresine `?scale=expand` (ya da `?scale=fit`) eklenince o ziyaret için ölçek kipi seçilir (`ScreenFit.ModeFromUrl`; varsayılan
-`LayoutSettings.Mode` = FIT, Faz 3 brifi). `screenshots` işi aynı oyuncuyu bir kez de `?scale=expand` ile açar ve `level_start`, `tutorial`, `win` karelerini
-`latest/expand/` (ve `<kısa-sha>/expand/`) altına yazar (kendi `manifest.json`'u var, `query: "scale=expand"`). Neden: FIT, 9:16'dan uzun her telefonda (390×844'te %18, 360×800'de %20)
-üst ve altta ölü koyu bant bırakır; web D-015 EXPAND'i kabul etmişti. Karar orkestratörün; geçiş tek satır (`LayoutSettings.Mode`).
+**FIT / EXPAND kanıtı (`fit/`).** Sayfa adresine `?scale=expand` ya da `?scale=fit` eklenince o ziyaret için ölçek kipi seçilir (`ScreenFit.ModeFromUrl`).
+Paket U2'den beri (UX_UNITY K1, P0-1) varsayılan `LayoutSettings.Mode` = **EXPAND**: tasarım yüksekliği ekran oranını izler (390×844'te 1080 × 2337,
+360×800'de 1080 × 2400), üst grup üstte, alt grup altta, tahta `(H − 1920) × 0,5` iner; ölü bant kalmaz. `screenshots` işi aynı oyuncuyu bir kez de eski
+`?scale=fit` ile açar ve `level_start`, `tutorial`, `win` karelerini `latest/fit/` (ve `<kısa-sha>/fit/`) altına yazar (kendi `manifest.json`'u var,
+`query: "scale=fit"`). U2'den önceki koşularda bu klasörün adı `expand/` idi (o zaman varsayılan FIT'ti).
+
+**U2 kareleri.** Ana senaryo Bölüm 1 kazanıldıktan sonra sürer: Devam → Bölüm 2 → `pause` (Duraklat penceresi) → `exit_confirm` (Ana sayfa → çıkış
+onayı) → Kal → Devam → Bölüm 2'nin altın çözümü → Devam → `level_start_window` (Bölüm 3, ilk bölüm başı penceresi) → Oyna → yalnız saha içi hamlelerle
+hamleler biter → `lose_offer` (+5 teklif penceresi). Toplam 11 kare × 2 görünüm.
 
 **Görünümler ve hâl.** 390×844 ve 360×800 CSS px, `deviceScaleFactor` 2 (PNG 780×1688 ve 720×1600), Android kullanıcı aracısı + `isMobile` (varsayılan Unity
 şablonu bu durumda tüm pencereyi dolduran `unity-mobile` düzenine geçer), `tr-TR`, `--use-angle=swiftshader --enable-unsafe-swiftshader`. Her PNG, Playwright'ın

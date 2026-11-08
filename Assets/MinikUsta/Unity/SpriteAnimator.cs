@@ -236,7 +236,7 @@ namespace MinikUsta.Unity
     public sealed class CameraTarget : ITweenTarget
     {
         private readonly Camera camera;
-        private readonly Vector3 home;
+        private Vector3 home;
         private Vec2 position;
         private Vec2 scale = Vec2.One;
         private float baseSize = 9.6f;
@@ -245,6 +245,13 @@ namespace MinikUsta.Unity
         {
             this.camera = camera;
             home = camera.transform.localPosition;
+        }
+
+        /// <summary>U2 (safe area): the camera's rest position moves so the design canvas sits on the safe area's centre (world units).</summary>
+        public void SetHome(float x, float y)
+        {
+            home = new Vector3(x, y, home.z);
+            Position = position;
         }
 
         /// <summary>The orthographic size of the viewport at zoom 1 (`UnityLevelView.SetViewport`).</summary>

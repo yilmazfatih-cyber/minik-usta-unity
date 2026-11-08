@@ -9,8 +9,14 @@ namespace MinikUsta.Presentation.Game
 {
     public static class HudLayout
     {
-        /// <summary>Width of the blocks-left chip (V1: row 1 left of the streak capsule, the v4 mock).</summary>
-        public const double BlocksChipW = 250;
+        /// <summary>Width of the blocks-left chip (V1: row 1 left of the streak capsule, the v4 mock; U2: 254 so "blocks" fits at 34 px).</summary>
+        public const double BlocksChipW = 254;
+        /// <summary>U2 (UX_UNITY P0-4): gap between the blocks chip and the streak capsule (was 50) so the streak label fits at 34 px.</summary>
+        public const double StreakGapPx = 12;
+        /// <summary>UX_UNITY §10 rule 1 / P0-4: the smallest HUD text (design px).</summary>
+        public const double MinTextPx = 34;
+        /// <summary>UX_UNITY P0-5: the goal card's level name (one line; two lines at 34 px when it does not fit).</summary>
+        public const double GoalNamePx = 36;
         /// <summary>Gap between the "Bölüm N" capsule and the blocks chip (the chip icon overflows left into it).</summary>
         public const double BlocksChipInset = 32;
 
@@ -19,14 +25,29 @@ namespace MinikUsta.Presentation.Game
         /// <summary>V1: the blocks-left chip at the left of the goals row (icon_blocks overflows its left end).</summary>
         public static PxRect BlocksChip(ScreenLayout L) => new PxRect(L.Goals.X + BlocksChipInset, L.Goals.Y, BlocksChipW, L.Goals.H);
 
-        /// <summary>V1: the level name sits in the panorama well (left part; the plan picture is on the right).</summary>
-        public static PxRect LevelName(ScreenLayout L) => new PxRect(L.Panorama.X + 12, L.Panorama.Y + 12, 150, 56);
+        /// <summary>U2 (UX_UNITY §5.12 GoalCard): the level name runs across the top of the card (36 px, one line).</summary>
+        public static PxRect LevelName(ScreenLayout L) => new PxRect(L.Panorama.X + 8, L.Panorama.Y + 6, L.Panorama.W - 16, 50);
+
+        /// <summary>U2: the level star of the card, under the name at the left.</summary>
+        public static PxRect GoalStar(ScreenLayout L) => new PxRect(L.Panorama.X + 14, LevelName(L).Bottom + 8, 48, 48);
+
+        /// <summary>U2: the "n/max" segment counter right of the star (34 px).</summary>
+        public static PxRect GoalSegments(ScreenLayout L)
+        {
+            var st = GoalStar(L);
+            return new PxRect(st.Right + 2, st.Y, 72, 48);
+        }
 
         /// <summary>The panorama well: the level name, the plan picture of the visible segment and the segment counter.</summary>
         public static PxRect Segments(ScreenLayout L) => L.Panorama;
 
-        /// <summary>V1: the plan picture area inside the panorama well.</summary>
-        public static PxRect PanoramaPlan(ScreenLayout L) => new PxRect(L.Panorama.X + 170, L.Panorama.Y + 12, L.Panorama.W - 182, L.Panorama.H - 24);
+        /// <summary>U2: the plan picture area of the goal card — under the name, right of the star and the counter (cells ≤ 36 px).</summary>
+        public static PxRect PanoramaPlan(ScreenLayout L)
+        {
+            var seg = GoalSegments(L);
+            double y = LevelName(L).Bottom + 2;
+            return new PxRect(seg.Right + 4, y, L.Panorama.Right - 12 - seg.Right - 4, L.Panorama.Bottom - 10 - y);
+        }
 
         public static PxRect Moves(ScreenLayout L) => L.Moves;
 
@@ -41,34 +62,40 @@ namespace MinikUsta.Presentation.Game
         public static PxRect Streak(ScreenLayout L)
         {
             var b = BlocksChip(L);
-            double x = b.Right + 50;
+            double x = b.Right + StreakGapPx;
             return new PxRect(x, L.Goals.Y, L.Goals.Right - x, L.Goals.H);
         }
 
+        /// <summary>U2: the beads, the trowel and its count are packed from the capsule's right end; the label takes the rest (34 px).</summary>
         public static PxRect StreakLabel(ScreenLayout L)
         {
             var s = Streak(L);
-            return new PxRect(s.X + 8, s.Y, 178, s.H);
+            double x1 = Bead(L, 0).X - 4;
+            return new PxRect(s.X + 8, s.Y, x1 - s.X - 8, s.H);
         }
+
+        /// <summary>Distance between two bead centres.</summary>
+        public const double BeadStepPx = 42;
 
         /// <summary>Bead `i` (0 … 3), left to right.</summary>
         public static PxRect Bead(ScreenLayout L, int i)
         {
-            var s = Streak(L);
-            return new PxRect(s.X + 188 + i * 44, s.CenterY - BeadPx / 2, BeadPx, BeadPx);
+            var t = TrowelIcon(L);
+            double x0 = t.X - 6 - 3 * BeadStepPx - BeadPx;
+            return new PxRect(x0 + i * BeadStepPx, Streak(L).CenterY - BeadPx / 2, BeadPx, BeadPx);
         }
 
         public static PxRect TrowelIcon(ScreenLayout L)
         {
             var s = Streak(L);
-            return new PxRect(s.X + 366, s.Y + 5, 50, 50);
+            return new PxRect(s.Right - 60, s.Y + 5, 50, 50);
         }
 
-        /// <summary>The "×n" of the trowels held.</summary>
+        /// <summary>The "×n" of the trowels held: a badge over the trowel's lower right (34 px; it may overhang the capsule end).</summary>
         public static PxRect TrowelCount(ScreenLayout L)
         {
-            var s = Streak(L);
-            return new PxRect(s.X + 416, s.Y, s.W - 418, s.H);
+            var t = TrowelIcon(L);
+            return new PxRect(t.X + 22, t.Y + 20, 62, 44);
         }
 
         /// <summary>V1: the truck chip riding the tray's bottom edge at the right of the status strip (ART_UNITY §4.4 `Status`).</summary>

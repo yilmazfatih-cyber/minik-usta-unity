@@ -46,13 +46,13 @@ namespace MinikUsta.Presentation.Tests
 
         public static readonly Row[] Table =
         {
-            new Row { Name = "B1, B2, B3, B5", Geo = Geo(4, 4, 2, 5), Wall = 4, C = 144, X = new double[] { 936, 72, 648, 720 }, YardTop = 912, BoardTop = 768, CraneTop = 480, Air = 1, Notch = 3, Scene = 192, Gap390 = 424 },
-            new Row { Name = "B4, B9", Geo = Geo(4, 4, 2, 6), Wall = 4, C = 144, X = new double[] { 936, 72, 648, 720 }, YardTop = 912, BoardTop = 624, CraneTop = 336, Air = 2, Notch = 4, Scene = 48, Gap390 = 280 },
-            new Row { Name = "B6", Geo = Geo(4, 5, 2, 7), Wall = 7, C = 132, X = new double[] { 858, 111, 639, 705 }, YardTop = 828, BoardTop = 564, CraneTop = 300, Air = 2, Notch = 2, Scene = 12, Gap390 = 244 },
-            new Row { Name = "B7", Geo = Geo(4, 5, 2, 5), Wall = 5, C = 144, X = new double[] { 936, 72, 648, 720 }, YardTop = 768, BoardTop = 768, CraneTop = 480, Air = 0, Notch = 2, Scene = 192, Gap390 = 424 },
-            new Row { Name = "B8", Geo = Geo(6, 5, 2, 6), Wall = 5, C = 120, X = new double[] { 1020, 30, 750, 810 }, YardTop = 888, BoardTop = 768, CraneTop = 528, Air = 1, Notch = 3, Scene = 240, Gap390 = 472 },
-            new Row { Name = "B10", Geo = Geo(6, 5, 2, 6), Wall = 6, C = 120, X = new double[] { 1020, 30, 750, 810 }, YardTop = 888, BoardTop = 768, CraneTop = 528, Air = 1, Notch = 2, Scene = 240, Gap390 = 472 },
-            new Row { Name = "default (Faz 3)", Geo = Geometry.DefaultGeo, Wall = 8, C = 120, X = new double[] { 1020, 30, 750, 810 }, YardTop = 528, BoardTop = 528, CraneTop = 288, Air = 0, Notch = 2, Scene = 0, Gap390 = 232 },
+            new Row { Name = "B1, B2, B3, B5", Geo = Geo(4, 4, 2, 5), Wall = 4, C = 144, X = new double[] { 936, 72, 648, 720 }, YardTop = 912, BoardTop = 768, CraneTop = 480, Air = 1, Notch = 3, Scene = 192, Gap390 = 384 },
+            new Row { Name = "B4, B9", Geo = Geo(4, 4, 2, 6), Wall = 4, C = 144, X = new double[] { 936, 72, 648, 720 }, YardTop = 912, BoardTop = 624, CraneTop = 336, Air = 2, Notch = 4, Scene = 48, Gap390 = 240 },
+            new Row { Name = "B6", Geo = Geo(4, 5, 2, 7), Wall = 7, C = 132, X = new double[] { 858, 111, 639, 705 }, YardTop = 828, BoardTop = 564, CraneTop = 300, Air = 2, Notch = 2, Scene = 12, Gap390 = 204 },
+            new Row { Name = "B7", Geo = Geo(4, 5, 2, 5), Wall = 5, C = 144, X = new double[] { 936, 72, 648, 720 }, YardTop = 768, BoardTop = 768, CraneTop = 480, Air = 0, Notch = 2, Scene = 192, Gap390 = 384 },
+            new Row { Name = "B8", Geo = Geo(6, 5, 2, 6), Wall = 5, C = 120, X = new double[] { 1020, 30, 750, 810 }, YardTop = 888, BoardTop = 768, CraneTop = 528, Air = 1, Notch = 3, Scene = 240, Gap390 = 432 },
+            new Row { Name = "B10", Geo = Geo(6, 5, 2, 6), Wall = 6, C = 120, X = new double[] { 1020, 30, 750, 810 }, YardTop = 888, BoardTop = 768, CraneTop = 528, Air = 1, Notch = 2, Scene = 240, Gap390 = 432 },
+            new Row { Name = "default (Faz 3)", Geo = Geometry.DefaultGeo, Wall = 8, C = 120, X = new double[] { 1020, 30, 750, 810 }, YardTop = 528, BoardTop = 528, CraneTop = 288, Air = 0, Notch = 2, Scene = 0, Gap390 = 192 },
         };
 
         [Test]
@@ -176,7 +176,10 @@ namespace MinikUsta.Presentation.Tests
                     foreach (var r in L.Boosters)
                         Assert.IsTrue(r.X >= 0 && r.Right <= L.W && r.Y >= L.BottomGroupTopY && r.Bottom <= L.H, at + ": booster " + r);
                     Assert.GreaterOrEqual(L.Boosters[0].W, s.MinTargetPx, at + ": booster tap target");
-                    Assert.AreEqual(new PxRect(0, 0, L.W, s.TopGroupBottomY), L.HudBand, at);
+                    Assert.AreEqual(new PxRect(0, 0, L.W, L.TopGroupBottomY), L.HudBand, at);
+                    // U2 (UX_UNITY P0-5): the roomy HUD (304) when the crane area leaves room, never under the compact 264
+                    Assert.That(L.TopGroupBottomY, Is.InRange(s.TopGroupBottomY, s.HudBottomY), at + ": HUD bottom");
+                    if (g.CraneTopY - s.MinGapTopPx >= s.HudBottomY) Assert.AreEqual(s.HudBottomY, L.TopGroupBottomY, at + ": roomy HUD");
                     Assert.IsFalse(L.HudBand.Overlaps(L.Board.Crane), at + ": HUD band above the crane area");
                     Assert.IsFalse(L.BoosterBar.Overlaps(L.Board.Status), at + ": booster bar under the status strip");
                     Assert.AreEqual(L.Boosters[0].X, L.BoosterBar.X);

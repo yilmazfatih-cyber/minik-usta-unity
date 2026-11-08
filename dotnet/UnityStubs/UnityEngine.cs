@@ -253,6 +253,8 @@ namespace UnityEngine
     {
         public static int width => 0;
         public static int height => 0;
+        /// <summary>UnityCsReference 6000.0 Runtime/Export/Screen/Screen.bindings.cs: `public static Rect safeArea { get; }` (screen px, origin bottom-left; U2 safe area).</summary>
+        public static Rect safeArea => default;
     }
 
     public enum RuntimePlatform
@@ -275,6 +277,9 @@ namespace UnityEngine
         public static bool isEditor => false;
         /// <summary>UnityCsReference 6000.0 Runtime/Export/Application/Application.bindings.cs: `extern public static string absoluteURL { get; }` (the page URL on WebGL, empty elsewhere).</summary>
         public static string absoluteURL => "";
+        /// <summary>UnityCsReference 6000.0 Runtime/Export/Application/Application.bindings.cs: `public static void Quit(int exitCode)` and `public static void Quit()` (U2 quit confirmation).</summary>
+        public static void Quit() { }
+        public static void Quit(int exitCode) { }
     }
 
 #if UNITY_ANDROID || UNITY_IOS
@@ -318,6 +323,8 @@ namespace UnityEngine
     public enum KeyCode
     {
         None = 0,
+        /// <summary>UnityCsReference Runtime/Export/Input/KeyCode.cs: `Escape = 27` (the Android back key in the legacy Input Manager; U2).</summary>
+        Escape = 27,
         A = 97,
         N = 110,
         R = 114,

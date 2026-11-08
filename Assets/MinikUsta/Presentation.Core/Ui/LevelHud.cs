@@ -19,6 +19,24 @@ using MinikUsta.Presentation.Tweening;
 
 namespace MinikUsta.Presentation.Ui
 {
+    /// <summary>U2: a level view that draws its HUD with a `LevelHud` (the Unity view, the test fake): the app wires the hints to it.</summary>
+    public interface ILevelHudHost
+    {
+        LevelHud? HudOrNull { get; }
+    }
+
+    /// <summary>
+    /// UX_UNITY K3 / P0-7 (paket U2): which booster slots the HUD shows. A slot appears 2 levels before its unlock level (Hammer 8 → from
+    /// Bölüm 6; no slot at all in Bölüm 1–5) and always when the inventory holds the booster; a hidden slot keeps its place (the others do
+    /// not move). A locked slot carries "Bölüm N" under it.
+    /// </summary>
+    public static class BoosterSlotRules
+    {
+        public const int ShowLevelsBefore = 2;
+
+        public static bool Visible(int level, int unlockLevel, int count) => count > 0 || level >= unlockLevel - ShowLevelsBefore;
+    }
+
     public sealed class LevelHud
     {
         public const string PauseAction = "hud:pause";
@@ -93,26 +111,29 @@ namespace MinikUsta.Presentation.Ui
             var chip = r.Add(UiKit.Image("hud.blocks", "capsule_hud", bc, true));
             chip.Add(UiKit.Icon("hud.blocks.icon", "icon_blocks", bc.X - 2, bc.CenterY - 2, 82, 82));
             chip.Add(UiKit.Label("hud.blocks.n", "", new PxRect(bc.X + 52, bc.Y, 84, bc.H), TextStyle.Cream, 44));
-            chip.Add(UiKit.Label("hud.blocks.label", "", new PxRect(bc.X + 132, bc.Y + 2, bc.W - 140, bc.H), TextStyle.Lavender, 32, TextAlign.Left));
+            chip.Add(UiKit.Label("hud.blocks.label", "", new PxRect(bc.X + 132, bc.Y + 2, bc.W - 140, bc.H), TextStyle.Lavender, HudLayout.MinTextPx, TextAlign.Left));
             // streak capsule
             var sc = HudLayout.Streak(L);
             var streak = r.Add(UiKit.Image("hud.streak", "capsule_hud", sc, true));
-            streak.Add(UiKit.Label("hud.streak.label", "", HudLayout.StreakLabel(L), TextStyle.Lavender, 30));
+            streak.Add(UiKit.Label("hud.streak.label", "", HudLayout.StreakLabel(L), TextStyle.Lavender, HudLayout.MinTextPx));
             for (int i = 0; i < Beads; i++) streak.Add(UiKit.Image("hud.bead" + i, "bead_off", HudLayout.Bead(L, i)));
             streak.Add(UiKit.Image("hud.trowel", "icon_gold_trowel", HudLayout.TrowelIcon(L)));
-            streak.Add(UiKit.Label("hud.trowel.n", "", HudLayout.TrowelCount(L), TextStyle.Cream, 28));
-            // row 2: panorama well
+            streak.Add(UiKit.Label("hud.trowel.n", "", HudLayout.TrowelCount(L), TextStyle.Cream, HudLayout.MinTextPx));
+            // row 2: the goal card (U2, UX_UNITY §5.12: 340 × 176, name 36 px, star + segment counter, plan picture with cells ≤ 36 px)
             var pw = r.Add(UiKit.Image("hud.pano", "hud_well", L.Panorama, true));
             var nameR = HudLayout.LevelName(L);
-            pw.Add(UiKit.Label("hud.pano.name", "", nameR, TextStyle.Lavender, 28));
-            pw.Add(UiKit.Icon("hud.pano.star", "icon_star_empty", nameR.CenterX - 26, nameR.Bottom + 28, 48, 48));
-            var seg = pw.Add(UiKit.Label("hud.pano.seg", "", new PxRect(nameR.CenterX - 6, nameR.Bottom + 6, 70, 46), TextStyle.Cream, 30, TextAlign.Left));
+            pw.Add(UiKit.Label("hud.pano.name", "", nameR, TextStyle.Lavender, HudLayout.GoalNamePx));
+            var name2 = pw.Add(UiKit.Label("hud.pano.name2", "", new PxRect(nameR.X, nameR.Bottom - 8, nameR.W, nameR.H - 8), TextStyle.Lavender, HudLayout.MinTextPx));
+            name2.Visible = false;
+            var st = HudLayout.GoalStar(L);
+            pw.Add(UiKit.Icon("hud.pano.star", "icon_star_empty", st.CenterX, st.CenterY, st.W, st.H));
+            var seg = pw.Add(UiKit.Label("hud.pano.seg", "", HudLayout.GoalSegments(L), TextStyle.Cream, HudLayout.MinTextPx, TextAlign.Left));
             seg.Visible = false;
             pw.Add(UiKit.Group("hud.pano.plan", HudLayout.PanoramaPlan(L)));
             // moves plate
             var mr = HudLayout.Moves(L);
             var mp = r.Add(UiKit.Image("hud.moves", "hud_moves_plate", mr, true));
-            mp.Add(UiKit.Label("hud.moves.label", "", new PxRect(mr.X, mr.Y + 4, mr.W, settings.MovesBandH - 4), TextStyle.Card, 30, TextAlign.Center, Rgba.Hex(Palette.MovesCream)));
+            mp.Add(UiKit.Label("hud.moves.label", "", new PxRect(mr.X, mr.Y + 2, mr.W, settings.MovesBandH - 2), TextStyle.Card, HudLayout.MinTextPx, TextAlign.Center, Rgba.Hex(Palette.MovesCream)));
             mp.Add(UiKit.Label("hud.moves.n", "", new PxRect(mr.X, mr.Y + settings.MovesBandH - 2, mr.W, mr.H - settings.MovesBandH - 6), TextStyle.Big, 80));
             // gold chip (JUICE #56): hidden until a win counts gold
             var gc = HudLayout.GoldChip(L);
@@ -141,6 +162,10 @@ namespace MinikUsta.Presentation.Ui
                 badge.Add(UiKit.Label("hud.boost" + i + ".n", "", new PxRect(b.X + 112, b.Y + 112, 68, 60), TextStyle.Button, 42, TextAlign.Center, null, Rgba.Hex("#7A0A05")));
                 slot.Add(UiKit.Image("hud.boost" + i + ".plus", "btn_plus", new PxRect(b.X + 114, b.Y + 114, 64, 64)));
                 slot.Add(UiKit.Image("hud.boost" + i + ".lock", "icon_lock", new PxRect(b.X + 106, b.Y + 100, 56, 64)));
+                // U2 (UX_UNITY K3): "Bölüm N" under a locked slot (34 px); the slot itself starts hidden until the HUD state says so
+                var at = slot.Add(UiKit.Label("hud.boost" + i + ".at", "", new PxRect(b.X - 14, b.Bottom + 4, b.W + 28, 46), TextStyle.Label, HudLayout.MinTextPx));
+                at.Visible = false;
+                slot.Visible = false;
             }
             var tc = HudLayout.TruckChip(L);
             var truck = r.Add(UiKit.Image("hud.truck", "capsule_hud", tc, true));
@@ -194,7 +219,47 @@ namespace MinikUsta.Presentation.Ui
         public void SetLevel(string label, string name)
         {
             Set("hud.level.text", label);
-            Set("hud.pano.name", name);
+            // UX_UNITY §4.2: the name on one line at 36 px; a name that would shrink under 34 px goes on two lines at 34 px (no "…")
+            string one = name, two = "";
+            if (root != null)
+            {
+                var n = N("hud.pano.name");
+                double room = n.Rect.W - TextFit.Margin;
+                if (FontMetrics.FittedSize(name, HudLayout.GoalNamePx, room) < HudLayout.MinTextPx) SplitName(name, HudLayout.MinTextPx, room, out one, out two);
+            }
+            Set("hud.pano.name", one);
+            Set("hud.pano.name2", two);
+            SetVisible("hud.pano.name2", two.Length > 0);
+            if (root != null)
+            {
+                var n = N("hud.pano.name");
+                double fs = two.Length > 0 ? HudLayout.MinTextPx : HudLayout.GoalNamePx;
+                if (n.FontPx != fs)
+                {
+                    n.FontPx = fs;
+                    surface.Refresh(n);
+                }
+            }
+        }
+
+        /// <summary>Splits `name` at the word break that keeps both lines narrowest (TR / EN names have spaces).</summary>
+        public static void SplitName(string name, double size, double room, out string one, out string two)
+        {
+            one = name;
+            two = "";
+            double best = double.MaxValue;
+            for (int i = name.IndexOf(' '); i > 0; i = name.IndexOf(' ', i + 1))
+            {
+                string a = name.Substring(0, i), b = name.Substring(i + 1);
+                double w = Math.Max(FontMetrics.Width(a, size), FontMetrics.Width(b, size));
+                if (w < best)
+                {
+                    best = w;
+                    one = a;
+                    two = b;
+                }
+            }
+            _ = room;
         }
 
         public void SetMoves(int n, string label, bool danger)
@@ -239,6 +304,11 @@ namespace MinikUsta.Presentation.Ui
             {
                 string state = st.Slots[i];
                 bool ready = state == SlotStates.Ready, empty = state == SlotStates.Empty, locked = state == SlotStates.Locked;
+                int unlock = i < st.UnlockLevels.Length ? st.UnlockLevels[i] : int.MaxValue;
+                int count = i < st.Counts.Length ? st.Counts[i] : 0;
+                SetVisible("hud.boost" + i, BoosterSlotRules.Visible(st.Level, unlock, count));
+                SetVisible("hud.boost" + i + ".at", locked);
+                Set("hud.boost" + i + ".at", locked ? text.Format(BoosterLockedAtKey, ("n", unlock)) : "");
                 var slot = N("hud.boost" + i);
                 string frame = ready || empty ? "btn_booster" : "btn_booster_off";
                 if (slot.Frame != frame)
@@ -258,7 +328,7 @@ namespace MinikUsta.Presentation.Ui
             Set("hud.truck.n", text.Format(Strings.Keys.Times, ("n", st.Queue)));
             // the plan picture: rebuilt in place (cells change frame as the build grows)
             var plan = N("hud.pano.plan");
-            var cells = st.Thumb.Nodes("hud.pano.cell", plan.Rect, 26);
+            var cells = st.Thumb.Nodes("hud.pano.cell", plan.Rect, settings.GoalPlanCellPx);
             bool same = plan.Children.Count == cells.Count;
             for (int i = 0; same && i < cells.Count; i++) same = plan.Children[i].Id == cells[i].Id;
             if (same)
@@ -329,8 +399,34 @@ namespace MinikUsta.Presentation.Ui
             if (WindowViews.TryParse(n.Action, out var a)) onAction(a);
         }
 
-        /// <summary>Taps on the HUD: the pause tool; a booster slot (V1: not playable yet, nothing happens).</summary>
+        /// <summary>
+        /// Taps on the HUD: the pause tool; a booster slot → `BoosterTapped(id)` (U2: the app answers with `HintSlot`, K6 — the boosters are
+        /// not playable in this build yet, so every slot tap gets the hint balloon).
+        /// </summary>
         public Action<string>? BoosterTapped { get; set; }
+
+        /// <summary>UX_UNITY §11: "Bölüm {n}" under a locked slot.</summary>
+        public const string BoosterLockedAtKey = "booster.lockedAt";
+
+        /// <summary>U2: the shared hint balloon (the app sets it); null = no hints.</summary>
+        public LockedHint? Hint { get; set; }
+
+        /// <summary>
+        /// U2 (UX_UNITY K6, §5.13): the hint of booster slot `id` — locked: "{n}. bölümde açılır" + the lock shakes; otherwise "Yakında" (the
+        /// in-level boosters are not playable in this build). False when the slot is not on screen.
+        /// </summary>
+        public bool HintSlot(string id)
+        {
+            int i = Array.IndexOf(HudState.SlotOrder, id);
+            if (Hint == null || root == null || layout == null || i < 0 || i >= layout.Boosters.Length) return false;
+            var slot = root.Find("hud.boost" + i);
+            if (slot == null || !slot.Shown) return false;
+            var st = last;
+            bool locked = st != null && i < st.Slots.Length && st.Slots[i] == SlotStates.Locked;
+            string msg = locked ? text.Format("common.unlockAt", ("n", st!.UnlockLevels[i])) : text.Get("common.comingSoon");
+            Hint.Show(layout.Boosters[i], msg, locked ? root.Find("hud.boost" + i + ".lock") : root.Find("hud.boost" + i + ".icon"), canvasW, canvasH);
+            return true;
+        }
 
         private void OnTap(UiNode n)
         {

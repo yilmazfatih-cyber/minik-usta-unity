@@ -38,6 +38,8 @@ namespace MinikUsta.Presentation.Tutorial
     {
         Top,
         Bottom,
+        /// <summary>U2 (UX_UNITY K2-B, P0-6): right above the board — its bottom edge 16 px over the crane area, the tail down to the glove.</summary>
+        Board,
     }
 
     public readonly struct DockPlace
@@ -47,13 +49,18 @@ namespace MinikUsta.Presentation.Tutorial
         public readonly PxRect Rect;
         /// <summary>The tail points up to the HUD (a HUD highlight).</summary>
         public readonly bool TailUp;
+        /// <summary>U2: board dock — the x the tail points down at (the glove / the highlighted block); NaN = no down tail.</summary>
+        public readonly double TailX;
 
-        public DockPlace(BubbleDock dock, PxRect rect, bool tailUp)
+        public DockPlace(BubbleDock dock, PxRect rect, bool tailUp, double tailX = double.NaN)
         {
             Dock = dock;
             Rect = rect;
             TailUp = tailUp;
+            TailX = tailX;
         }
+
+        public bool TailDown => Dock == BubbleDock.Board && !double.IsNaN(TailX);
     }
 
     public static class TutorialLayout
@@ -146,8 +153,21 @@ namespace MinikUsta.Presentation.Tutorial
         /// <summary>Top-left of the two docks: top = under the HUD group + gap, bottom = under the status strip + gap.</summary>
         public static PxRect DockRect(ScreenLayout L, BubbleDock dock, double w, double h, double margin, double gap)
         {
-            double y = dock == BubbleDock.Top ? L.TopGroupBottomY + gap : L.Board.Status.Bottom + gap;
+            double y = dock == BubbleDock.Top ? L.TopGroupBottomY + gap : dock == BubbleDock.Board ? L.Board.Crane.Y - gap - h : L.Board.Status.Bottom + gap;
             return new PxRect(margin, y, w, h);
+        }
+
+        /// <summary>
+        /// U2 (UX_UNITY K2-B): the board dock — bottom edge `gap` over the crane area, centred on `anchorX` (the glove) within the side
+        /// margins. Null when it would reach into the HUD group (+ gap).
+        /// </summary>
+        public static PxRect? BoardDock(ScreenLayout L, double w, double h, double margin, double gap, double anchorX)
+        {
+            double y = L.Board.Crane.Y - gap - h;
+            if (y < L.TopGroupBottomY + gap) return null;
+            double x = double.IsNaN(anchorX) ? margin : anchorX - w / 2;
+            x = Math.Max(margin, Math.Min(L.W - margin - w, x));
+            return new PxRect(x, y, w, h);
         }
 
         /// <summary>The bottom dock exists only when the bubble ends `gap` px over the bottom group (none at FIT 1080 × 1920).</summary>
@@ -172,10 +192,15 @@ namespace MinikUsta.Presentation.Tutorial
         /// A HUD highlight takes the top dock (tail up). Else the docks in order top, bottom: the first meeting the hard condition (yard / site
         /// cells, status strip, HUD) and the soft one (the step's highlights, the glove path box); else the first meeting the hard one; else top.
         /// </summary>
-        public static DockPlace PlaceBubble(ScreenLayout L, double w, double h, string[] ids, IReadOnlyList<PxRect> lit, PxRect? handBox, double margin, double gap)
+        public static DockPlace PlaceBubble(ScreenLayout L, double w, double h, string[] ids, IReadOnlyList<PxRect> lit, PxRect? handBox, double margin, double gap,
+            double anchorX = double.NaN)
         {
             var top = DockRect(L, BubbleDock.Top, w, h, margin, gap);
             foreach (var id in ids) if (IsHudHighlight(id)) return new DockPlace(BubbleDock.Top, top, true);
+            // U2 (UX_UNITY K2-B, P0-6): the board dock first — the bubble right above the crane area, its tail down to the glove (or the
+            // highlighted block), so hand and sentence are read in one look; the old top / bottom docks only when it does not fit
+            var board = BoardDock(L, w, h, margin, gap, anchorX);
+            if (board.HasValue && !Touches(Pad(board.Value, gap), HardAreas(L))) return new DockPlace(BubbleDock.Board, board.Value, false, anchorX);
             var docks = new List<DockPlace> { new DockPlace(BubbleDock.Top, top, false) };
             if (BottomDockValid(L, h, gap)) docks.Add(new DockPlace(BubbleDock.Bottom, DockRect(L, BubbleDock.Bottom, w, h, margin, gap), false));
             var hard = HardAreas(L);

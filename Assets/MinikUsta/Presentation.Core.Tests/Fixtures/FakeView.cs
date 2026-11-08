@@ -132,7 +132,7 @@ namespace MinikUsta.Presentation.Tests.Fixtures
         public bool Visible { get; set; }
     }
 
-    public sealed class FakeView : ILevelView
+    public sealed class FakeView : ILevelView, ILevelHudHost
     {
         public readonly Dictionary<int, FakePiece> Live = new Dictionary<int, FakePiece>();
         public readonly List<FakePiece> Pool = new List<FakePiece>();
@@ -184,6 +184,8 @@ namespace MinikUsta.Presentation.Tests.Fixtures
 
         // V1: the real HUD tree (optional): every HUD call is also forwarded to it (GameApp / HUD tests with a FakeSurface)
         public LevelHud? Hud;
+
+        public LevelHud? HudOrNull => Hud;
         public bool WorldVisible { get; set; } = true;
         public HudState? HudState;
         public int HudStates;

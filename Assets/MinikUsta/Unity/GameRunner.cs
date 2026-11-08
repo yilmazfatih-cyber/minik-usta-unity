@@ -4,6 +4,8 @@
 // player and its windows), boots it, and every frame: screen size → viewport, pointer → app, app.Tick(dt). Development builds
 // get keyboard shortcuts (principle 8, first slice of the debug panel): N next level, R restart, A log the ASCII board
 // (TECH Appendix A), S play the next move of the level's golden solution.
+// U2 (UX_UNITY P0-2): the Android back key (KeyCode.Escape in the legacy Input Manager; Esc on desktop) → `GameApp.Back` (the back
+// stack); "Çık" in the quit confirmation → `Application.Quit`. The design canvas is drawn into `Screen.safeArea` (notch, gesture bar).
 using MinikUsta.Core;
 using MinikUsta.Presentation.Anim;
 using MinikUsta.Presentation.Audio;
@@ -31,6 +33,9 @@ namespace MinikUsta.Unity
         private ArtWarmup? warmup;
         private int screenW;
         private int screenH;
+        private Rect safeRect;
+        private SafeFrame safe;
+        private UnityLevelView? levelView;
 
         public GameApp? App => app;
 
@@ -58,6 +63,7 @@ namespace MinikUsta.Unity
             var ui = new UiRenderer(feel);
             this.ui = ui;
             var view = new UnityLevelView(cam, ui, i18n.Text, () => app?.Player.PausePressed(), layout, feel);
+            levelView = view;
             var catalog = new LevelCatalog(n => ReadText(LevelCatalog.ResourceName(n)));
             // Q2 item 12: Handheld.Vibrate buzzes one fixed pulse and only Android is asked (the brief); everywhere else the sink is silent.
             // P3-01: Unity compiles the `Handheld` class only for mobile targets (Android, iOS). The runtime platform check above cannot
@@ -80,11 +86,9 @@ namespace MinikUsta.Unity
             app = new GameApp(view, ui, catalog, i18n, EconomyConfig.FromText(economyText), store, feel, layout, haptics,
                 EconomyInfo.FromText(economyText), message => Debug.LogWarning(message), audio, art);
             ui.Pressed = () => app?.UiPressed();
+            app.QuitRequested = Application.Quit;
             input = new PointerInput();
-            screenW = Screen.width;
-            screenH = Screen.height;
-            app.SetScreen(screenW, screenH);
-            ui.SetCanvas(app.Player.Viewport.W, app.Player.Viewport.H);
+            ApplyScreen(app);
             app.Boot();
             if (shotOptions != null)
                 shots = new ShotScenario(app, n => DebugSolver.SolutionLog(ReadText("solutions/level_" + n.ToString("000", System.Globalization.CultureInfo.InvariantCulture) + ".solver")),
@@ -101,20 +105,30 @@ namespace MinikUsta.Unity
         {
             var a = app;
             if (a == null || input == null) return;
-            if (Screen.width != screenW || Screen.height != screenH)
-            {
-                screenW = Screen.width;
-                screenH = Screen.height;
-                a.SetScreen(screenW, screenH);
-                ui?.SetCanvas(a.Player.Viewport.W, a.Player.Viewport.H);
-            }
-            input.Poll(a, a.Player.Viewport);
+            if (Screen.width != screenW || Screen.height != screenH || !SameRect(Screen.safeArea, safeRect)) ApplyScreen(a);
+            input.Poll(a, a.Player.Viewport, safe);
+            if (Input.GetKeyDown(KeyCode.Escape)) a.Back(); // U2: Android back / Esc
             if (Debug.isDebugBuild) DebugKeys(a);
             float dtMs = Mathf.Min(Time.unscaledDeltaTime * 1000f, MaxFrameMs);
             warmup?.Tick(dtMs, a.Flow.Current);
             a.Tick(shots != null ? dtMs * shots.TimeScale : dtMs);
             shots?.Tick(dtMs);
         }
+
+        /// <summary>U2: the screen and its safe area → the app's viewport, the camera and the UI canvas.</summary>
+        private void ApplyScreen(GameApp a)
+        {
+            screenW = Screen.width;
+            screenH = Screen.height;
+            safeRect = Screen.safeArea;
+            safe = SafeFrame.Of(screenW, screenH, safeRect.x, safeRect.y, safeRect.width, safeRect.height);
+            if (levelView != null) levelView.Safe = safe;
+            if (ui != null) ui.Safe = safe;
+            a.SetScreen(safe.W, safe.H);
+            ui?.SetCanvas(a.Player.Viewport.W, a.Player.Viewport.H);
+        }
+
+        private static bool SameRect(Rect a, Rect b) => a.x == b.x && a.y == b.y && a.width == b.width && a.height == b.height;
 
         private void DebugKeys(GameApp a)
         {

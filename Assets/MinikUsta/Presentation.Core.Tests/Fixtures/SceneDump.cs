@@ -153,7 +153,7 @@ namespace MinikUsta.Presentation.Tests.Fixtures
         public static JsonValue Scene(string name, AppRig rig, IEnumerable<UiNode>? extra = null)
         {
             var ui = JsonValue.Array();
-            foreach (var layer in new[] { UiLayer.Home, UiLayer.Hud, UiLayer.Window, UiLayer.Fx, UiLayer.Overlay })
+            foreach (var layer in new[] { UiLayer.Home, UiLayer.Hud, UiLayer.Window, UiLayer.Fx, UiLayer.Overlay, UiLayer.Hint })
             {
                 if (rig.Ui.Visible(layer)) ui.Add(Node(rig.Ui.Root(layer)!));
                 if (layer == UiLayer.Window)

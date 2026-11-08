@@ -20,7 +20,7 @@ using UnityEngine;
 
 namespace MinikUsta.Unity
 {
-    public sealed class UnityLevelView : ILevelView
+    public sealed class UnityLevelView : ILevelView, ILevelHudHost
     {
         private readonly DesignSpace space = new DesignSpace();
         private readonly Camera camera;
@@ -68,10 +68,23 @@ namespace MinikUsta.Unity
         /// <summary>The HUD and level windows (engine-independent, drawn by the UiRenderer).</summary>
         public LevelHud Hud { get; }
 
+        /// <summary>U2: the app wires the hint balloon and the booster taps to the HUD.</summary>
+        public LevelHud? HudOrNull => Hud;
+
+        /// <summary>U2 (UX_UNITY P0-2): the safe area of the screen (`GameRunner` sets it before every `SetScreen`).</summary>
+        public SafeFrame Safe { get; set; }
+
         public void SetViewport(DesignViewport viewport, ScreenLayout layout)
         {
             space.Set(viewport);
-            cameraRig.BaseSize = (float)viewport.OrthographicSize(DesignSpace.PixelsPerUnit);
+            // U2: the viewport is built from the SAFE size; the camera still fills the whole screen and sits so that the canvas centre is
+            // on the safe centre (no inset: the old size and position)
+            var safe = Safe;
+            bool inset = safe.ScreenW > 0 && safe.Inset;
+            cameraRig.BaseSize = (float)(inset ? safe.OrthographicSize(viewport, DesignSpace.PixelsPerUnit) : viewport.OrthographicSize(DesignSpace.PixelsPerUnit));
+            double cx = 0, cy = 0;
+            if (inset) safe.CameraOffset(viewport, DesignSpace.PixelsPerUnit, out cx, out cy);
+            cameraRig.SetHome((float)cx, (float)cy);
             ui.SetCanvas(viewport.W, viewport.H);
             Hud.Layout(layout);
         }

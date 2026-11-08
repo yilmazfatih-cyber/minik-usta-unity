@@ -266,14 +266,19 @@ namespace MinikUsta.Presentation.Layout
             H = h;
             BoardShift = (h - s.DesignHeight) * s.ExpandShare;
             Board = BoardLayout.Create(s, geo, h);
-            // row 2 of the HUD ends on top.groupBottomY (264): y = max(112, 264 − 136) = 128 (web createLayout)
-            double row2Y = Math.Max(s.HudRow2Y, s.TopGroupBottomY - s.MovesH);
+            // UX_UNITY P0-5 (paket U2): the HUD group ends at 304 (the goal card 340 × 176 from y 112) whenever the crane area stays
+            // minGapTopPx under it; a tall board at H 1920 shrinks it back towards the compact 264 (the card then 136 high). Row 2's
+            // moves plate and pause tool sit vertically centred on the card; the card starts at the HUD margin so the gap to the
+            // centred moves plate is ≥ 24 px.
+            double room = Board.Grid.CraneTopY - s.MinGapTopPx;
+            TopGroupBottomY = Math.Max(s.TopGroupBottomY, Math.Min(s.HudBottomY, room));
+            double cardH = TopGroupBottomY - s.GoalCardBottomPadPx - s.HudRow2Y;
+            double row2Y = s.HudRow2Y + (cardH - s.MovesH) / 2;
             Pause = new PxRect(s.ToolRightX, row2Y, s.ToolPx, s.ToolPx);
-            Panorama = new PxRect(s.ToolLeftX, row2Y, s.PanoramaWellW, s.MovesH);
+            Panorama = new PxRect(s.HudMarginX, s.HudRow2Y, s.GoalCardW, cardH);
             Goals = new PxRect(s.HudMarginX + s.LevelCapsuleW + s.HudRowGap, s.HudRow1Y, W - 2 * s.HudMarginX - s.LevelCapsuleW - s.HudRowGap, s.HudRow1H);
             Moves = new PxRect((W - s.MovesW) / 2, row2Y, s.MovesW, s.MovesH);
             LevelCapsule = new PxRect(s.HudMarginX, s.HudRow1Y, s.LevelCapsuleW, s.HudRow1H);
-            TopGroupBottomY = s.TopGroupBottomY;
             Character = new PxRect(s.CharacterX, h - s.CharacterBottomPx - s.CharacterH, s.CharacterW, s.CharacterH);
             Boosters = new PxRect[s.BoosterSlots];
             for (int i = 0; i < s.BoosterSlots; i++)

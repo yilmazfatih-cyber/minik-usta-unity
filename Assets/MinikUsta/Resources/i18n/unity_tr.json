@@ -1,5 +1,5 @@
 {
-  "_doc": "Unity-only keys (paket V1): merged on top of the web copy i18n/tr.json by MinikUsta.Presentation.I18n.Localizer. Keep the same keys in unity_en.json. P4B-07: the web source now carries Usta Kral (lose.offer.gift, story.prologue.p2.king), so the B2 override of lose.offer.gift was removed; no web key is overridden here any more.",
+  "_doc": "Unity-only keys (paket V1): merged on top of the web copy i18n/tr.json by MinikUsta.Presentation.I18n.Localizer. Keep the same keys in unity_en.json. P4B-07: the web source now carries Usta Kral (lose.offer.gift, story.prologue.p2.king), so the B2 override of lose.offer.gift was removed; U2 (UX_UNITY §11, P0-10) overrides two web keys until the web copy drops the old form of address: tut.ctx.resume and tut.ctx.support (no \"evlat\" / \"kiddo\"); new keys app.quit.title and booster.lockedAt.",
   "home": {
     "playLevel": "Oyna · Bölüm {n}"
   },
@@ -13,5 +13,19 @@
   "lang": {
     "tr": "Türkçe",
     "en": "English"
+  },
+  "app": {
+    "quit": {
+      "title": "Oyundan çıkılsın mı?"
+    }
+  },
+  "booster": {
+    "lockedAt": "Bölüm {n}"
+  },
+  "tut": {
+    "ctx": {
+      "resume": "Tahta bıraktığın gibi duruyor.",
+      "support": "Önce alttaki boşluğu doldur."
+    }
   }
 }
