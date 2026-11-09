@@ -241,7 +241,7 @@ sahibine bağlı girdilerde (lisans, mağaza hesapları, imza anahtarları, ücr
 | Faz | Kapsam | Durum |
 | --- | --- | --- |
 | 3 | Oynanabilir yer tutucu tahta, his katmanı, şüpheci inceleme ([`docs/PHASE3_REPORT.md`](docs/PHASE3_REPORT.md)) | KABUL (D-097) |
-| 4 | Görsel ve his yükseltmesi: SVG sanat paketi (V0), görsel katman, HUD v3, pencereler, ana sayfa, ayarlar, kayıt, i18n (V1) | V0 ve V1 tamam; sırada V2 (ses, öğretici, güçlendirici oynanışı) |
+| 4 | Görsel ve his yükseltmesi: SVG sanat paketi (V0), görsel katman, HUD v3, pencereler, ana sayfa, ayarlar, kayıt, i18n (V1) | V0 ve V1 tamam; UX turu U1–U4 (P0 ve ux-review R-01…R-07) kodda; U5 raporu [`docs/UX_REPORT.md`](docs/UX_REPORT.md). Açık: AU-1 alt boşluk, AC-14 yeniden puanlama; sırada V2 (ses, öğretici, güçlendirici oynanışı) |
 | 5 | İçerik ve meta: 50 bölüm, 5 hikâye bölümü, kasaba, ekonomi, 2 etkinlik, sahte mağaza | Başlamadı |
 | 6 | Yayın hazırlığı: performans, Android ve WebGL derlemeleri, mağaza metinleri, gizlilik | Başlamadı |
 
