@@ -483,6 +483,130 @@ for (let g = 0; g < GEOS.length; g++) {
   }
 }
 
+// --- v3 block traits (RULES_VERSION 4, GDD §16): random fixed-yard levels with two-tone (Y9), pallet (Y10), wrap + scissors (Y11),
+// bonus (Y12) and slippery (Y13) blocks, one family per variant, random valid play (pallet layers, holds, crane / trowel / brush /
+// hammer on the traits, the K-30 D1 widening). schemaVersion 3, so C# parses the stored level data with the same v3 fields.
+
+const V3_VARIANTS = ['twotone', 'pallet', 'wrap', 'bonus', 'slippery', 'mix'];
+const V3_GEOS = [
+  { wy: 4, hy: 4, ws: 2, hs: 4 },
+  { wy: 5, hy: 5, ws: 2, hs: 5 },
+  { wy: 6, hy: 5, ws: 2, hs: 6 },
+  { wy: 5, hy: 6, ws: 3, hs: 6 },
+];
+
+function v3LevelData(g, rng, id, variant) {
+  const used = new Set();
+  const pieces = [];
+  const traits = {};
+  const place = (shapeId, color, flags = []) => {
+    const shape = shapeById(shapeId);
+    for (let t = 0; t < 60; t++) {
+      const x = rng.nextInt(g.wy - shape.w + 1);
+      const y = rng.nextInt(g.hy - shape.h + 1);
+      const cells = shape.cells.map((c) => `${x + c.x},${y + c.y}`);
+      if (cells.some((c) => used.has(c))) continue;
+      cells.forEach((c) => used.add(c));
+      pieces.push([shapeId, color, x, y, flags]);
+      return pieces.length - 1;
+    }
+    return -1;
+  };
+  const colors = ['W', 'Y'];
+  const pick = (a) => a[rng.nextInt(a.length)];
+  const all = variant === 'mix';
+  if (variant === 'pallet' || all) {
+    const shapeId = pick(['B1_0', 'D2_0', 'D2_90']);
+    const layers = 2 + rng.nextInt(2);
+    const color = pick(colors);
+    const first = place(shapeId, color);
+    if (first >= 0) {
+      traits[first] = { stack: { id: 0, z: 0 } };
+      const [sid, col, x, y] = pieces[first];
+      for (let z = 1; z < layers; z++) {
+        pieces.push([sid, col, x, y, []]);
+        traits[pieces.length - 1] = { stack: { id: 0, z } };
+      }
+    }
+  }
+  if (variant === 'twotone' || all) {
+    for (let k = 0; k < 1 + rng.nextInt(3); k++) {
+      const shapeId = pick(['D2_0', 'D2_90', 'C3_0', 'C3_180']);
+      const n = shapeById(shapeId).cells.length;
+      const first = pick(colors);
+      const other = first === 'W' ? 'Y' : 'W';
+      let cs = first;
+      for (let i = 1; i < n; i++) cs += rng.next() < 0.5 ? first : other;
+      if (new Set(cs).size < 2) cs = first + other + cs.slice(2);
+      const idx = place(shapeId, first);
+      if (idx >= 0) traits[idx] = { ...(traits[idx] ?? {}), colors: cs };
+    }
+  }
+  if (variant === 'wrap' || all) {
+    const s = place(pick(['B1_0', 'D2_0']), pick(colors), ['scissors']);
+    for (let k = 0; k < 1 + rng.nextInt(3); k++) place(pick(['B1_0', 'D2_90', 'O4_0']), pick(colors), s >= 0 ? ['wrapped'] : []);
+  }
+  if (variant === 'bonus' || all) {
+    for (let k = 0; k < 1 + rng.nextInt(2); k++) {
+      const idx = place(pick(['B1_0', 'D2_0']), pick(colors), ['bonus']);
+      if (idx >= 0 && rng.next() < 0.5) traits[idx] = { ...(traits[idx] ?? {}), bonusMoves: 1 + rng.nextInt(3) };
+    }
+  }
+  if (variant === 'slippery' || all) {
+    for (let k = 0; k < 1 + rng.nextInt(3); k++) place(pick(['B1_0', 'D2_0', 'D2_90', 'C3_0']), pick(colors), ['slippery']);
+  }
+  const fill = 0.35 + rng.next() * 0.2;
+  for (let t = 0; t < 200 && used.size < fill * g.wy * g.hy; t++) place(pick(['B1_0', 'D2_0', 'D2_90', 'O4_0']), pick(colors));
+  // K-02: keep at least two free yard cells
+  while (g.wy * g.hy - used.size < 2 && pieces.length > 0) {
+    const p = pieces.pop();
+    const shape = shapeById(p[0]);
+    shape.cells.forEach((c) => used.delete(`${p[2] + c.x},${p[3] + c.y}`));
+  }
+  const hasScissors = pieces.some((p) => p[4].includes('scissors'));
+  const spec = {
+    id,
+    schemaVersion: 3,
+    moves: 40,
+    yard: { cols: g.wy, rows: g.hy },
+    site: { cols: g.ws, rows: g.hs },
+    plan: planRows(g, rng),
+    pieces: hasScissors ? pieces : pieces.map(([a, b, c, d, f]) => [a, b, c, d, f.filter((x) => x !== 'wrapped')]),
+    traits,
+    wall: { height: 2 + rng.nextInt(2) },
+    gravity: { yard: false },
+  };
+  return level(spec);
+}
+
+const v3Rng = mulberry32(0x7633_7633);
+let v3Levels = 0;
+for (let vi = 0; vi < V3_VARIANTS.length; vi++) {
+  for (let gi = 0; gi < V3_GEOS.length; gi++) {
+    let data = null;
+    for (let t = 0; t < 30 && data === null; t++) {
+      let d = null;
+      try {
+        d = v3LevelData(V3_GEOS[gi], v3Rng, 5, V3_VARIANTS[vi]);
+      } catch {
+        d = null;
+      }
+      if (d && roundTrips(d)) {
+        const res = loadLevel(JSON.parse(JSON.stringify(d)));
+        if (res.ok || !res.issues?.some((i) => i.code === 'schema_version_low' || i.code.startsWith('stack') || i.code.startsWith('scissors') || i.code.startsWith('colors'))) data = d;
+      }
+    }
+    if (data === null) continue;
+    const lvl = compile(data);
+    const geo = V3_GEOS[gi];
+    const n = vi * V3_GEOS.length + gi + 1;
+    const seqs = [];
+    for (let seed = 1; seed <= 3; seed++) seqs.push(playSequence(`v3 ${V3_VARIANTS[vi]} ${geo.wy}x${geo.hy}_${geo.ws}x${geo.hs} seed ${pad(seed, 2)}`, lvl, seed + gi, [], seed === 3));
+    writeSource(`v3_${pad(n)}.json`, { kind: 'v3', n, label: V3_VARIANTS[vi] }, data, seqs);
+    v3Levels++;
+  }
+}
+
 // --- scripted scenarios (P4 item 3): Söküm / deadlock, +5 offers, Undo, truck queue -----------------------------------
 // Fixed action lists on the fixtures of tests/core/deadlock.test.ts and tests/review/pipeline.review.test.ts (copied:
 // test data, not core). The C# test compares them step by step like the random sequences; ScenarioTests.cs asserts
@@ -625,7 +749,7 @@ const manifest = {
   files,
 };
 writeFileSync(join(OUT, 'manifest.json'), JSON.stringify(manifest, null, 1) + '\n');
-console.log(`ts-oracle: web ${webCommit}, ${totals.sequences} sequences, ${totals.steps} actions (${geoLevels} random geometry levels, ${truckLevels} truck levels, ${scenarioFiles.length} scenarios) → ${OUT}`);
+console.log(`ts-oracle: web ${webCommit}, ${totals.sequences} sequences, ${totals.steps} actions (${geoLevels} random geometry levels, ${truckLevels} truck levels, ${v3Levels} v3 trait levels, ${scenarioFiles.length} scenarios) → ${OUT}`);
 console.log('actions ', JSON.stringify(manifest.actions));
 console.log('statuses', JSON.stringify(manifest.statuses));
 console.log('outcomes', JSON.stringify(manifest.outcomes));

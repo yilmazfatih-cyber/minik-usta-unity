@@ -1,34 +1,118 @@
 {
-  "schemaVersion": 2,
+  "schemaVersion": 3,
   "id": 2,
   "chapter": 1,
-  "name": { "tr": "Platform", "en": "Platform" },
+  "name": {
+    "tr": "Köşe Destekleri",
+    "en": "Corner Braces"
+  },
   "difficulty": "easy",
-  "moves": 10,
-  "goals": [{ "type": "build" }],
-  "gravity": { "build": "normal", "yard": false },
-  "wall": { "height": 3, "gaps": [] },
-  "site": { "cols": 2, "rows": 4 },
+  "moves": 12,
+  "goals": [
+    {
+      "type": "build"
+    }
+  ],
+  "gravity": {
+    "build": "normal",
+    "yard": false
+  },
+  "wall": {
+    "height": 5,
+    "gaps": []
+  },
+  "site": {
+    "cols": 2,
+    "rows": 6
+  },
   "build": {
     "mode": "segments",
     "segments": [
-      { "name": { "tr": "Platform Tabanı", "en": "Platform Base" }, "rows": ["WW", "GG", "YG", "YY"] },
-      { "name": { "tr": "Platform Korkuluğu", "en": "Platform Rail" }, "rows": ["GG", "YY", "WY", "WW"] }
+      {
+        "name": {
+          "tr": "Sol Köşe",
+          "en": "Left Corner"
+        },
+        "rows": [
+          "YW",
+          "YW",
+          "WW",
+          "GG",
+          "YG",
+          "YG"
+        ]
+      },
+      {
+        "name": {
+          "tr": "Sağ Köşe",
+          "en": "Right Corner"
+        },
+        "rows": [
+          "GY",
+          "GY",
+          "GG",
+          "YW",
+          "YW",
+          "WW"
+        ]
+      }
     ]
   },
   "yard": {
-    "cols": 5,
-    "rows": 4,
+    "cols": 6,
+    "rows": 5,
     "batches": [
       {
         "forSegment": 0,
         "pieces": [
-          { "shape": "C3_0", "color": "Y", "x": 0, "y": 2 },
-          { "shape": "D2_90", "color": "W", "x": 2, "y": 2 },
-          { "shape": "C3_180", "color": "G", "x": 3, "y": 2 },
-          { "shape": "D2_90", "color": "G", "x": 0, "y": 0 },
-          { "shape": "C3_180", "color": "Y", "x": 1, "y": 0 },
-          { "shape": "C3_0", "color": "W", "x": 3, "y": 0 }
+          {
+            "shape": "D2_0",
+            "color": "Y",
+            "x": 2,
+            "y": 3
+          },
+          {
+            "shape": "D2_0",
+            "color": "Y",
+            "x": 3,
+            "y": 3
+          },
+          {
+            "shape": "L4_180",
+            "color": "G",
+            "x": 0,
+            "y": 1
+          },
+          {
+            "shape": "L4_0",
+            "color": "G",
+            "x": 0,
+            "y": 0
+          },
+          {
+            "shape": "D2_0",
+            "color": "Y",
+            "x": 2,
+            "y": 1
+          },
+          {
+            "shape": "J4_0",
+            "color": "W",
+            "x": 2,
+            "y": 0
+          },
+          {
+            "shape": "D2_0",
+            "color": "Y",
+            "x": 4,
+            "y": 1
+          },
+          {
+            "shape": "J4_0",
+            "color": "W",
+            "x": 4,
+            "y": 0
+          }
         ]
       }
     ]
@@ -37,37 +121,52 @@
   "tutorial": [
     {
       "step": 1,
-      "highlight": ["panorama", "build"],
+      "highlight": [
+        "panorama",
+        "build"
+      ],
       "textKey": "tut.m.pattern",
-      "done": { "event": "placementCorrect", "count": 1 }
+      "done": {
+        "event": "placementCorrect",
+        "count": 1
+      }
     },
     {
       "step": 2,
-      "highlight": ["piece:2"],
-      "hand": {
-        "kind": "hold",
-        "path": [
-          [3, 3],
-          [3, 4],
-          [5, 4]
-        ]
-      },
+      "highlight": [
+        "piece:2"
+      ],
       "textKey": "tut.m.shadow",
-      "done": { "event": "placementCorrect", "count": 1 }
+      "done": {
+        "event": "placementCorrect",
+        "count": 1
+      }
     }
   ],
   "targets": {
-    "min": [6, 7],
-    "minShifts": [0, 1],
-    "firstNeedDepth": [0, 1],
-    "maxCover": [0, 3],
-    "depLater": [0, 1],
-    "crossDeps": [1, 99],
-    "forced": [0, 6],
-    "greedyExcess": [0, 0],
-    "greedyWin": [0.9, 1],
-    "ahaMin": [0, 0],
-    "branch3": [0.3, 1],
-    "deadRate": [0, 0]
+    "min": [
+      8,
+      8
+    ],
+    "minShifts": [
+      0,
+      0
+    ],
+    "firstNeedDepth": [
+      0,
+      0
+    ],
+    "greedyWin": [
+      0.9,
+      1
+    ],
+    "ahaMin": [
+      0,
+      0
+    ],
+    "deadRate": [
+      0,
+      0
+    ]
   }
 }

@@ -228,10 +228,10 @@ namespace MinikUsta.Core.Tests
             Assert.AreEqual(m["sequences"]!.AsInt, listed, "manifest file list");
             foreach (string k in new[] { "drag", "hammer", "crane", "paint", "goldTrowel", "undo", "addMoves", "decline", "exit" })
                 Assert.IsTrue(m["actions"]![k] != null && m["actions"]![k]!.AsInt > 0, "the fuzz contains a " + k + " action");
-            // every source kind: shipped levels, Faz 2R archive levels, cover boards, K-49 geometries, truck-queue boards, scripted scenarios (P4 item 3)
+            // every source kind: shipped levels, Faz 2R archive levels, cover boards, K-49 geometries, truck-queue boards, scripted scenarios (P4 item 3), v3 trait boards (pallet, two-tone, wrap, bonus, slippery)
             var kinds = m["files"]!.Items.Select(f => f["source"]!["kind"]!.AsString).Distinct().OrderBy(k => k, StringComparer.Ordinal).ToArray();
-            CollectionAssert.AreEqual(new[] { "archive", "cover", "geo", "level", "scenario", "truck" }, kinds);
-            foreach (string t in new[] { "teardown", "levelWon", "outOfMoves", "deliveryArrived", "deliveryQueued", "siteShifted", "placementWrong", "trowelEarned", "deadlockDetected", "truckHelp", "chainReleased", "cargoSmashed", "colorsSwapped" })
+            CollectionAssert.AreEqual(new[] { "archive", "cover", "geo", "level", "scenario", "truck", "v3" }, kinds);
+            foreach (string t in new[] { "teardown", "levelWon", "outOfMoves", "deliveryArrived", "deliveryQueued", "siteShifted", "placementWrong", "trowelEarned", "deadlockDetected", "truckHelp", "chainReleased", "cargoSmashed", "colorsSwapped", "unwrapped" })
                 Assert.IsTrue(m["events"]![t] != null && m["events"]![t]!.AsInt > 0, "the fuzz contains a " + t + " event");
         }
 

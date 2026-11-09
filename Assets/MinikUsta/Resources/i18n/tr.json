@@ -418,6 +418,7 @@
       }
     },
     "m": {
+      "bonus": "Bonus blok iki hamle verir.",
       "carry": "Bu blok sonraki kat için.",
       "carryNow": "Şimdi sırası geldi!",
       "cranebooster": "Vinç gömülü bloğu da taşır.",
@@ -437,7 +438,8 @@
       "segments": "Kat bitince şantiye kayar.",
       "shadow": "Gölgede {ok} varsa yer doğru.",
       "truck": "Kamyon yeni blok getirdi!",
-      "useall": "Bütün bloklar plana girecek."
+      "useall": "Bütün bloklar plana girecek.",
+      "wrap": "Önce makaslı bloğu yerleştir."
     },
     "meta": {
       "bridge": "{n} bölüm art arda: köprüyü geç!",

@@ -418,6 +418,7 @@
       }
     },
     "m": {
+      "bonus": "The bonus block gives two moves.",
       "carry": "This one's for the next floor.",
       "carryNow": "Now it's this one's turn!",
       "cranebooster": "The Crane moves buried blocks too.",
@@ -437,7 +438,8 @@
       "segments": "Finish a floor, the site moves.",
       "shadow": "{ok} on the shadow: right spot.",
       "truck": "The truck brought new blocks!",
-      "useall": "Every block goes into the plan."
+      "useall": "Every block goes into the plan.",
+      "wrap": "Place the scissors block first."
     },
     "meta": {
       "bridge": "Win {n} straight, cross the bridge!",

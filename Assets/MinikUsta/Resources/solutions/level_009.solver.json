@@ -1,24 +1,22 @@
 {
   "level": 9,
-  "levelHash": "bda97cca974be7ab",
+  "levelHash": "606cb7b3489d2305",
   "rulesVersion": 4,
-  "solverVersion": 3,
-  "min": 12,
-  "yao": { "overWall": 6, "rail": 1 },
+  "solverVersion": 4,
+  "min": 10,
+  "yao": { "overWall": 8, "rail": 0 },
   "log": [
     { "kind": "start", "preBoosters": [], "streakTier": 0 },
-    { "kind": "drag", "pieceId": 0, "to": { "ix": 0, "iy": 4, "mode": 0 } },
-    { "kind": "drag", "pieceId": 3, "to": { "ix": 2, "iy": 3, "mode": 0 } },
-    { "kind": "drag", "pieceId": 4, "to": { "ix": 2, "iy": 2, "mode": 0 } },
-    { "kind": "drag", "pieceId": 6, "to": { "ix": 0, "iy": 1, "mode": 0 } },
-    { "kind": "drag", "pieceId": 4, "to": { "ix": 4, "iy": 0, "mode": 1 } },
-    { "kind": "drag", "pieceId": 3, "to": { "ix": 2, "iy": 0, "mode": 0 } },
-    { "kind": "drag", "pieceId": 2, "to": { "ix": 4, "iy": 1, "mode": 0 } },
-    { "kind": "drag", "pieceId": 6, "to": { "ix": 4, "iy": 2, "mode": 0 } },
-    { "kind": "drag", "pieceId": 1, "to": { "ix": 4, "iy": 3, "mode": 0 } },
-    { "kind": "drag", "pieceId": 5, "to": { "ix": 4, "iy": 0, "mode": 0 } },
-    { "kind": "drag", "pieceId": 0, "to": { "ix": 4, "iy": 1, "mode": 0 } },
-    { "kind": "drag", "pieceId": 3, "to": { "ix": 4, "iy": 2, "mode": 0 } }
+    { "kind": "drag", "pieceId": 2, "to": { "ix": 1, "iy": 1, "mode": 0 } },
+    { "kind": "drag", "pieceId": 3, "to": { "ix": 6, "iy": 0, "mode": 0 } },
+    { "kind": "drag", "pieceId": 4, "to": { "ix": 6, "iy": 0, "mode": 0 } },
+    { "kind": "drag", "pieceId": 7, "to": { "ix": 6, "iy": 3, "mode": 0 } },
+    { "kind": "drag", "pieceId": 0, "to": { "ix": 3, "iy": 1, "mode": 0 } },
+    { "kind": "drag", "pieceId": 1, "to": { "ix": 6, "iy": 4, "mode": 0 } },
+    { "kind": "drag", "pieceId": 2, "to": { "ix": 6, "iy": 0, "mode": 0 } },
+    { "kind": "drag", "pieceId": 5, "to": { "ix": 6, "iy": 1, "mode": 0 } },
+    { "kind": "drag", "pieceId": 6, "to": { "ix": 6, "iy": 3, "mode": 0 } },
+    { "kind": "drag", "pieceId": 0, "to": { "ix": 6, "iy": 4, "mode": 0 } }
   ],
-  "eventLogHash": "14bd02106e37240d"
+  "eventLogHash": "a9f55e45774b08b7"
 }

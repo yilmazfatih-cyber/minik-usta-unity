@@ -1,36 +1,117 @@
 {
-  "schemaVersion": 2,
+  "schemaVersion": 3,
   "id": 6,
   "chapter": 1,
-  "name": { "tr": "Uzun Gövde", "en": "Tall Trunk" },
+  "name": {
+    "tr": "Uzun Gövde",
+    "en": "Tall Trunk"
+  },
   "difficulty": "normal",
-  "moves": 13,
-  "teaches": "W2",
-  "goals": [{ "type": "build" }],
-  "gravity": { "build": "normal", "yard": false },
-  "wall": { "height": 5, "gaps": [] },
-  "site": { "cols": 2, "rows": 4 },
+  "moves": 12,
+  "goals": [
+    {
+      "type": "build"
+    }
+  ],
+  "gravity": {
+    "build": "normal",
+    "yard": false
+  },
+  "wall": {
+    "height": 4,
+    "gaps": []
+  },
+  "site": {
+    "cols": 2,
+    "rows": 5
+  },
   "build": {
     "mode": "segments",
     "segments": [
-      { "name": { "tr": "Gövde Altı", "en": "Trunk Base" }, "rows": ["WW", "GW", "GG", "YY"] },
-      { "name": { "tr": "Gövde Üstü", "en": "Trunk Top" }, "rows": ["YY", "WW", "WW", "YY"] }
+      {
+        "name": {
+          "tr": "Gövde",
+          "en": "Trunk"
+        },
+        "rows": [
+          "WW",
+          "YW",
+          "YY",
+          "YW",
+          "WW"
+        ]
+      },
+      {
+        "name": {
+          "tr": "Yeşil Taç",
+          "en": "Green Crown"
+        },
+        "rows": [
+          "GG",
+          "GG",
+          "WY",
+          "GG",
+          "GG"
+        ]
+      }
     ]
   },
   "yard": {
-    "cols": 4,
-    "rows": 5,
+    "cols": 6,
+    "rows": 4,
     "batches": [
       {
         "forSegment": 0,
         "pieces": [
-          { "shape": "D2_90", "color": "W", "x": 0, "y": 4 },
-          { "shape": "D2_90", "color": "Y", "x": 0, "y": 3 },
-          { "shape": "C3_0", "color": "G", "x": 2, "y": 2 },
-          { "shape": "C3_180", "color": "W", "x": 0, "y": 1 },
-          { "shape": "D2_90", "color": "Y", "x": 2, "y": 1 },
-          { "shape": "D2_90", "color": "Y", "x": 0, "y": 0 },
-          { "shape": "D2_90", "color": "W", "x": 2, "y": 0 }
+          {
+            "shape": "D2_90",
+            "color": "G",
+            "x": 3,
+            "y": 3
+          },
+          {
+            "shape": "C3_270",
+            "color": "W",
+            "x": 4,
+            "y": 2
+          },
+          {
+            "shape": "C3_180",
+            "color": "W",
+            "x": 0,
+            "y": 1
+          },
+          {
+            "shape": "T4_0",
+            "color": "Y",
+            "x": 2,
+            "y": 1
+          },
+          {
+            "shape": "D2_90",
+            "color": "G",
+            "x": 3,
+            "y": 1
+          },
+          {
+            "shape": "D2_0",
+            "color": "G",
+            "x": 0,
+            "y": 0
+          },
+          {
+            "shape": "D2_90",
+            "color": "W",
+            "colors": "WY",
+            "x": 2,
+            "y": 0
+          },
+          {
+            "shape": "D2_0",
+            "color": "G",
+            "x": 5,
+            "y": 0
+          }
         ]
       }
     ]
@@ -39,38 +120,40 @@
   "tutorial": [
     {
       "step": 1,
-      "highlight": ["piece:0"],
-      "hand": {
-        "kind": "drag",
-        "path": [
-          [0, 4],
-          [2, 4]
-        ]
-      },
-      "textKey": "tut.m.park",
-      "done": { "event": "yardMove", "count": 1, "piece": "piece:0" }
-    },
-    {
-      "step": 2,
-      "startOn": { "event": "yardMove", "piece": "piece:0" },
-      "highlight": ["crane", "wall"],
-      "textKey": "tut.m.highwall",
-      "done": { "event": "overWall", "count": 1 }
+      "highlight": [
+        "piece:1"
+      ],
+      "textKey": "tut.m.pattern",
+      "done": {
+        "event": "placementCorrect",
+        "count": 1
+      }
     }
   ],
   "targets": {
-    "min": [9, 10],
-    "minShifts": [2, 3],
-    "firstNeedDepth": [1, 2],
-    "maxCover": [2, 3],
-    "depLater": [1, 3],
-    "crossDeps": [2, 99],
-    "parkSlack": [1, 2],
-    "forced": [4, 8],
-    "greedyExcess": [0, 1],
-    "greedyWin": [0.5, 1],
-    "ahaMin": [0, 1],
-    "branch3": [0.2, 0.6],
-    "deadRate": [0, 0]
+    "min": [
+      10,
+      10
+    ],
+    "minShifts": [
+      2,
+      2
+    ],
+    "firstNeedDepth": [
+      1,
+      1
+    ],
+    "greedyWin": [
+      0.9,
+      1
+    ],
+    "ahaMin": [
+      0,
+      0
+    ],
+    "deadRate": [
+      0,
+      0
+    ]
   }
 }

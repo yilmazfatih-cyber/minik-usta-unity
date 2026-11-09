@@ -1,36 +1,123 @@
 {
-  "schemaVersion": 2,
+  "schemaVersion": 3,
   "id": 9,
   "chapter": 1,
-  "name": { "tr": "İp Merdiven", "en": "Rope Ladder" },
+  "name": {
+    "tr": "Çatı Altı",
+    "en": "Under the Roof"
+  },
   "difficulty": "normal",
-  "moves": 16,
-  "teaches": "W3",
-  "goals": [{ "type": "build" }],
-  "gravity": { "build": "normal", "yard": false },
-  "wall": { "height": 5, "gaps": [{ "type": "static", "y": 0, "size": 1 }] },
-  "site": { "cols": 2, "rows": 4 },
+  "moves": 14,
+  "teaches": "Y12",
+  "goals": [
+    {
+      "type": "build"
+    }
+  ],
+  "gravity": {
+    "build": "normal",
+    "yard": false
+  },
+  "wall": {
+    "height": 4,
+    "gaps": []
+  },
+  "site": {
+    "cols": 2,
+    "rows": 5
+  },
   "build": {
     "mode": "segments",
     "segments": [
-      { "name": { "tr": "Alt Basamaklar", "en": "Lower Rungs" }, "rows": ["GG", "RR", "WW", "WW"] },
-      { "name": { "tr": "Üst Basamaklar", "en": "Upper Rungs" }, "rows": ["RR", "RR", "GG", "WW"] }
+      {
+        "name": {
+          "tr": "Saçak",
+          "en": "Eaves"
+        },
+        "rows": [
+          "YW",
+          "WY",
+          "GG",
+          "YG",
+          "YG"
+        ]
+      },
+      {
+        "name": {
+          "tr": "Çatı Katı",
+          "en": "Attic"
+        },
+        "rows": [
+          "WW",
+          "WW",
+          "YG",
+          "YG",
+          "GG"
+        ]
+      }
     ]
   },
   "yard": {
-    "cols": 4,
-    "rows": 5,
+    "cols": 6,
+    "rows": 4,
     "batches": [
       {
         "forSegment": 0,
         "pieces": [
-          { "shape": "D2_90", "color": "G", "x": 1, "y": 4 },
-          { "shape": "D2_90", "color": "G", "x": 0, "y": 3 },
-          { "shape": "D2_90", "color": "W", "x": 0, "y": 2 },
-          { "shape": "O4_0", "color": "R", "x": 2, "y": 2 },
-          { "shape": "D2_90", "color": "W", "x": 1, "y": 1 },
-          { "shape": "D2_90", "color": "W", "x": 0, "y": 0 },
-          { "shape": "D2_90", "color": "R", "x": 2, "y": 0 }
+          {
+            "shape": "D2_90",
+            "color": "W",
+            "x": 0,
+            "y": 3
+          },
+          {
+            "shape": "D2_90",
+            "color": "Y",
+            "colors": "YW",
+            "x": 0,
+            "y": 2
+          },
+          {
+            "shape": "J4_0",
+            "color": "G",
+            "x": 2,
+            "y": 1
+          },
+          {
+            "shape": "D2_0",
+            "color": "Y",
+            "x": 4,
+            "y": 1
+          },
+          {
+            "shape": "L4_180",
+            "color": "G",
+            "x": 4,
+            "y": 1
+          },
+          {
+            "shape": "D2_0",
+            "color": "Y",
+            "x": 0,
+            "y": 0
+          },
+          {
+            "shape": "D2_90",
+            "color": "W",
+            "x": 2,
+            "y": 0
+          },
+          {
+            "shape": "D2_90",
+            "color": "W",
+            "colors": "WY",
+            "x": 4,
+            "y": 0,
+            "flags": [
+              "bonus"
+            ],
+            "bonusMoves": 2
+          }
         ]
       }
     ]
@@ -39,38 +126,42 @@
   "tutorial": [
     {
       "step": 1,
-      "highlight": ["piece:0"],
-      "hand": {
-        "kind": "drag",
-        "path": [
-          [1, 4],
-          [0, 4]
-        ]
-      },
-      "textKey": "tut.m.dig",
-      "done": { "event": "yardMove", "count": 1, "piece": "piece:0" }
-    },
-    {
-      "step": 2,
-      "startOn": { "event": "yardMove", "piece": "piece:6" },
-      "highlight": ["piece:4", "gap:0"],
-      "textKey": "tut.m.narrow",
-      "done": { "event": "gapPass", "count": 1 }
+      "highlight": [
+        "piece:7",
+        "moves"
+      ],
+      "textKey": "tut.m.bonus",
+      "done": {
+        "event": "placementCorrect",
+        "count": 1,
+        "piece": "piece:7"
+      }
     }
   ],
   "targets": {
-    "min": [11, 13],
-    "minShifts": [3, 5],
-    "firstNeedDepth": [1, 2],
-    "maxCover": [2, 4],
-    "depLater": [2, 6],
-    "crossDeps": [2, 99],
-    "parkSlack": [0.4, 1],
-    "forced": [8, 12],
-    "greedyExcess": [1, 3],
-    "greedyWin": [0.5, 1],
-    "ahaMin": [1, 2],
-    "branch3": [0.2, 0.5],
-    "deadRate": [0, 0]
+    "min": [
+      10,
+      10
+    ],
+    "minShifts": [
+      2,
+      2
+    ],
+    "firstNeedDepth": [
+      1,
+      1
+    ],
+    "greedyWin": [
+      0.9,
+      1
+    ],
+    "ahaMin": [
+      0,
+      0
+    ],
+    "deadRate": [
+      0,
+      0
+    ]
   }
 }

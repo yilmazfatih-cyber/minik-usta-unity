@@ -101,7 +101,7 @@ namespace MinikUsta.Core.Tests
             for (int n = 1; n <= 10; n++)
                 Assert.AreEqual(1, LevelSchema.SchemaVersionOf(LevelJson.ParseOrThrow(TestPaths.LoadLevelJson(n))), "archive level " + n);
             for (int n = 1; n <= 10; n++)
-                Assert.AreEqual(2, LevelSchema.SchemaVersionOf(LevelJson.ParseOrThrow(TestPaths.LoadCurrentLevelJson(n))), "shipped level " + n);
+                Assert.GreaterOrEqual(LevelSchema.SchemaVersionOf(LevelJson.ParseOrThrow(TestPaths.LoadCurrentLevelJson(n))), 2, "shipped level " + n); // fixed yard: v2, or v3 with block traits
             var targets = J.O(
                 "min", new[] { 8, 9 }, "maxCover", new[] { 0, 1 }, "depLater", new[] { 0, 2 }, "crossDeps", new[] { 1, 99 },
                 "parkSlack", new object[] { 1.0, 2.5 }, "forced", new[] { 0, 2 }, "greedyExcess", new[] { 2, 99 }, "greedyWin", new object[] { 0.3, 0.7 },

@@ -272,7 +272,10 @@ namespace MinikUsta.Core.Tests
             Assert.AreEqual(lvl.Geo.H, golden.GeoH, "geo.H");
             Assert.AreEqual(lvl.WallHeight, golden.GeoWall, "geo.wall");
             Assert.AreEqual(golden.Budget, lvl.Moves, "LEVELS \"Hamle\"");
-            Assert.AreEqual(golden.Budget - golden.MinMoves, golden.MovesLeft);
+            // v3 Y12: the golden solution places every bonus block, each adds its `bonusMoves` to the counter (K-60)
+            int bonusTotal = 0;
+            foreach (var cp in lvl.Pieces) bonusTotal += cp.BonusMoves;
+            Assert.AreEqual(golden.Budget - golden.MinMoves + bonusTotal, golden.MovesLeft);
             Assert.IsTrue(SessionActionJson.SameAs(new StartAction(new string[0], 0), golden.Log[0]), "log[0] is the plain start action");
             Assert.IsTrue(golden.Log.Skip(1).All(a => a is DragMove), "every logged action after start is a drag");
             Assert.AreEqual(golden.MinMoves, golden.Steps.Count);

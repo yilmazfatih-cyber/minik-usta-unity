@@ -4,6 +4,7 @@
 // one step further; `ExpectAscii` compares a state with Appendix A text. Builders only run the schema, not the logic checks.
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Text.RegularExpressions;
 using MinikUsta.Core.Json;
 using MinikUsta.Core.Level;
@@ -115,6 +116,8 @@ namespace MinikUsta.Core.Tests.Fixtures
         public JsonValue? Elevator;
         public JsonValue[]? Goals;
         public JsonValue[]? Tutorial;
+        /// <summary>v3 fields of start-batch piece `i` (GDD §16): Y9 `colors`, Y10 `stack`, Y12 `bonusMoves` (merged into the piece JSON).</summary>
+        public Dictionary<int, JsonValue>? Traits;
     }
 
     public static class Builders
@@ -172,7 +175,15 @@ namespace MinikUsta.Core.Tests.Fixtures
             if (spec.Yard?.Rows != null) yard.Set("rows", JsonValue.Of(spec.Yard.Rows.Value));
             var batches = JsonValue.Array();
             var batch0 = JsonValue.Array();
-            foreach (var p in spec.Pieces ?? new P[0]) batch0.Add(Piece(p));
+            int pieceIndex = 0;
+            foreach (var p in spec.Pieces ?? new P[0])
+            {
+                var pj = Piece(p);
+                if (spec.Traits != null && spec.Traits.TryGetValue(pieceIndex, out var extra))
+                    foreach (var k in extra.Keys.ToArray()) pj.Set(k, extra[k]!);
+                batch0.Add(pj);
+                pieceIndex++;
+            }
             batches.Add(J.O("forSegment", 0, "pieces", batch0));
             foreach (var b in spec.Batches ?? new BatchSpec[0])
             {
