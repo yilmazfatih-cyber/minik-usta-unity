@@ -90,8 +90,8 @@ namespace MinikUsta.Presentation.Shots
         public static readonly string[] ShotNames =
         {
             "home", "settings", "level_start", "tutorial", "drag_mid", "landed", "win", "pause", "exit_confirm", "level_start_window",
-            // E3 (GDD §16 v3 block traits): level 5 two-tone, level 7 wrap + scissors and the unwrap burst, level 9 bonus star, level 99 the showcase
-            "v3_twotone", "v3_wrap", "v3_unwrap", "v3_bonus", "v3_showcase",
+            // E3 (GDD §16 v3 block traits): level 5 two-tone, level 7 wrap + scissors, level 9 bonus star, level 99 the showcase
+            "v3_twotone", "v3_wrap", "v3_bonus", "v3_showcase",
             "lose_offer",
         };
 
@@ -227,9 +227,7 @@ namespace MinikUsta.Presentation.Shots
             Add("v3_twotone", 1500f, Once(() => RequireScreen(AppScreen.Level) && Shot("v3_twotone")));
             Add("v3_start_7", hold, Once(() => DebugLevel(7)));
             Add("v3_wrap", 1500f, Once(() => RequireScreen(AppScreen.Level) && Shot("v3_wrap")));
-            Add("v3_play_7", hold, PlayUntilEvent<UnwrappedEvent>());
-            Add("v3_unwrap", 220f, Once(() => Shot("v3_unwrap")));
-            Add("v3_start_9", hold * 2f, Once(() => DebugLevel(9)));
+            Add("v3_start_9", hold, Once(() => DebugLevel(9)));
             Add("v3_bonus", 1500f, Once(() => RequireScreen(AppScreen.Level) && Shot("v3_bonus")));
             Add("v3_start_99", hold, Once(() => DebugLevel(LevelCatalog.Showcase)));
             Add("v3_showcase", 1500f, Once(() => RequireScreen(AppScreen.Level) && Shot("v3_showcase")));
@@ -506,22 +504,6 @@ namespace MinikUsta.Presentation.Shots
             app.DebugStartLevel(n);
             return app.Player.LevelNumber == n;
         }
-
-        /// <summary>E3: plays the golden solution, one move per settled board, until a committed package holds an event of type `T` (then it stops at once).</summary>
-        private Run PlayUntilEvent<T>() where T : GameEvent => dtMs =>
-        {
-            var p = app.Player;
-            var session = p.Session;
-            if (session == null) return Fail2("no session");
-            if (session.Outcome != BoosterOutcomes.Playing) return Fail2("level decided before " + typeof(T).Name);
-            if (!Idle() || sinceCommit < 350f || p.Panel != PanelKind.None) return false;
-            var move = DebugSolver.Next(session, Sol());
-            if (move == null) return Fail2("no move left before " + typeof(T).Name);
-            var res = p.Commit(move);
-            sinceCommit = 0f;
-            foreach (var e in res.Events) if (e is T) return true;
-            return false;
-        };
 
         private bool Idle() => !app.Player.Queue.Busy && app.Player.Clock.Count == 0 && app.Player.CoinsInFlight == 0;
 
