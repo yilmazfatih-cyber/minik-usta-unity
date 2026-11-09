@@ -295,6 +295,7 @@ namespace MinikUsta.Presentation.Tests
                 (Ev(new CrateBrokenEvent(0), 5), StepKind.CrateBreak),
                 (Ev(new BagTornEvent(1), 5), StepKind.BagTear),
                 (Ev(new ChainReleasedEvent(3), 5), StepKind.ChainBreak),
+                (Ev(new UnwrappedEvent(UnwrapBys.Scissors, 2, new[] { 3 }), 5), StepKind.Unwrap),
                 (Ev(new ScrewCollectedEvent(YardAt(2, 0), 1), 5), StepKind.ScrewCollect),
                 (Ev(new KeyCollectedEvent("k1"), 5), StepKind.KeyCollect),
                 (Ev(new GapUnlockedEvent(0), 5), StepKind.GapUnlock),
@@ -321,10 +322,10 @@ namespace MinikUsta.Presentation.Tests
         }
 
         [Test]
-        public void K35_every_one_of_the_43_event_types_gets_its_step_alone_and_in_one_package_no_event_is_dropped()
+        public void K35_every_one_of_the_44_event_types_gets_its_step_alone_and_in_one_package_no_event_is_dropped()
         {
             var all = AllKinds();
-            Assert.AreEqual(43, all.Count);
+            Assert.AreEqual(44, all.Count);
             CollectionAssert.AreEquivalent(EventTypes.All, all.Select(a => a.Ev.TypeName), "one event of every type");
             foreach (var (ev, kind) in all)
             {
@@ -342,6 +343,32 @@ namespace MinikUsta.Presentation.Tests
             var covered = big.CoveredEvents();
             foreach (var e in package) Assert.IsTrue(covered.Contains(e), e.TypeName + " covered in the full package");
             Assert.AreEqual(StepKind.End, big.Steps.Last().Kind);
+        }
+
+        [Test]
+        public void K60_E3_a_bonus_movesChanged_gets_its_own_BonusMoves_step_after_the_cost_tick()
+        {
+            var placed = Ev(new PlacementCorrectEvent(4, new[] { SiteAt(6, 0), SiteAt(7, 0) }, true), 3, 0);
+            var cost = Ev(new MovesChangedEvent(0, -1, MovesChangedReasons.Move, new MoveCost(1, 0)), 4, 1);
+            var bonus = Ev(new MovesChangedEvent(2, 2, MovesChangedReasons.Bonus), 4, 2);
+            var plan = AnimationPlanner.Plan(new GameEvent[] { placed, cost, bonus }, Ctx(), F);
+            var kinds = KindsWithoutInstant(plan).ToList();
+            Assert.Less(kinds.IndexOf("MovesTick"), kinds.IndexOf("BonusMoves"), "the cost ticks first, then the bonus rolls the counter up");
+            var step = plan.Find(StepKind.BonusMoves)!;
+            Assert.AreEqual(4, step.PieceId, "the step knows the placed block (its star badge leaves it)");
+            Assert.AreEqual(2, step.N, "moves left after the bonus");
+            Assert.IsTrue(plan.CoveredEvents().Contains(bonus));
+        }
+
+        [Test]
+        public void K59_E3_a_hammer_unwrap_names_the_cut_block_and_the_scissors_unwrap_names_the_scissors_block()
+        {
+            var cut = Ev(new UnwrappedEvent(UnwrapBys.Hammer, 5, new[] { 5 }), 1, 0);
+            Assert.AreEqual(5, AnimationPlanner.Plan(new GameEvent[] { cut }, Ctx(), F).Find(StepKind.Unwrap)!.PieceId);
+            var snip = Ev(new UnwrappedEvent(UnwrapBys.Scissors, 2, new[] { 3, 5 }), 5, 0);
+            var plan = AnimationPlanner.Plan(new GameEvent[] { snip }, Ctx(), F);
+            Assert.AreEqual(2, plan.Find(StepKind.Unwrap)!.PieceId);
+            Assert.IsTrue(plan.Find(StepKind.Unwrap)!.FastForward, "a grab jumps the burst to its last frame");
         }
 
         [Test]

@@ -456,6 +456,13 @@ namespace MinikUsta.Presentation.Animation
                 float start = t;
                 foreach (var e in Of<MovesChangedEvent>(4))
                 {
+                    if (e.Reason == MovesChangedReasons.Bonus)
+                    {
+                        // E3 (Y12, K-60): after the cost the placement pays its bonus; the counter rolls up
+                        AddBonus(e, t);
+                        Advance(Reduce(f.BonusMs));
+                        continue;
+                    }
                     if (e.Reason != MovesChangedReasons.Move) continue;
                     Add(StepKind.MovesTick, 50, t, Ms(50), f.MovesTickEase, e, n: e.MovesLeft);
                     if (Warn(e.MovesLeft))
@@ -463,6 +470,15 @@ namespace MinikUsta.Presentation.Animation
                     Advance(Ms(50));
                 }
                 Leftovers(4, false, start);
+            }
+
+            /// <summary>E3: the bonus step of a `movesChanged{bonus}`; the block is the piece of the package's correct placement (crane / trowel placements too).</summary>
+            private AnimationStep AddBonus(MovesChangedEvent e, float at)
+            {
+                int piece = -1;
+                foreach (var x in events) if (x is PlacementCorrectEvent pc) piece = pc.PieceId;
+                if (piece < 0) foreach (var x in events) if (x is PieceLiftedEvent pl) piece = pl.PieceId;
+                return Add(StepKind.BonusMoves, 0, at, Reduce(f.BonusMs), EaseType.OutBack, e, fastForward: true, pieceId: piece, n: e.MovesLeft);
             }
 
             private bool Warn(int moves) => ctx.BlocksLeft.HasValue ? LowMovesWarning(moves, ctx.BlocksLeft.Value) : moves <= LastMovesAt;
@@ -675,6 +691,10 @@ namespace MinikUsta.Presentation.Animation
                         return Add(StepKind.CrateBreak, 33, at, Reduce(f.CrateBreakMs), EaseType.OutQuad, x, fastForward: true).Ms;
                     case BagTornEvent x:
                         return Add(StepKind.BagTear, 34, at, Reduce(f.BagTearMs), EaseType.OutQuad, x, fastForward: true).Ms;
+                    case UnwrappedEvent x:
+                        return Add(StepKind.Unwrap, 0, at, Reduce(f.UnwrapMs), EaseType.OutBack, x, fastForward: true, pieceId: x.By == UnwrapBys.Hammer && x.Pieces.Length > 0 ? x.Pieces[0] : x.PieceId).Ms;
+                    case MovesChangedEvent x when x.Reason == MovesChangedReasons.Bonus:
+                        return AddBonus(x, at).Ms;
                     case ChainReleasedEvent x:
                         return Add(StepKind.ChainBreak, 36, at, Reduce(f.ChainBreakMs), EaseType.InCubic, x, fastForward: true, pieceId: x.PieceId).Ms;
                     case GapUnlockedEvent x:
@@ -761,6 +781,7 @@ namespace MinikUsta.Presentation.Animation
                     case PieceMovedEvent x: return x.PieceId;
                     case MoveCancelledEvent x: return x.PieceId;
                     case ChainReleasedEvent x: return x.PieceId;
+                    case UnwrappedEvent x: return x.PieceId;
                     case PieceLiftedEvent x: return x.PieceId;
                     default: return -1;
                 }

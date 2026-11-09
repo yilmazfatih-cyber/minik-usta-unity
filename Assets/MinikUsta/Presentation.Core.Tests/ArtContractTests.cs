@@ -36,7 +36,7 @@ namespace MinikUsta.Presentation.Tests
                 bytes += 4L * p.W * p.H;
             }
             Assert.LessOrEqual(bytes, 48L * 1024 * 1024, "RGBA32 page memory");
-            Assert.AreEqual(488, a.Count, "ART_UNITY §1: 488 frames");
+            Assert.AreEqual(488 + 12, a.Count, "ART_UNITY §1: 488 frames + 12 v3 trait frames (§9, tools/art/extend.mjs, page 3)");
             foreach (var f in a.Frames)
             {
                 var p = a.Pages[f.Page];

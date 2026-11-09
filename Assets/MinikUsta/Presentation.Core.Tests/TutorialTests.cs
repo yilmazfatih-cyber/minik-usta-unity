@@ -75,11 +75,13 @@ namespace MinikUsta.Presentation.Tests
             var (a, _, _) = Make(1);
             Assert.IsNotNull(a.Current, "level 1 has no startOn: step 1 is active at the start");
             Assert.AreEqual(1, a.Current!.Data.Step);
-            var (b, _, _) = Make(4);
+            var (b, _, _) = Make(3);
             Assert.IsNotNull(b.Current);
             b.MoveEnded(new GameEvent[] { Ev(new PieceMovedEvent(2, At.Yard(1, 1), At.Yard(2, 1), EntryKinds.Yard), 1) }, 10);
-            // level 4: step 1 done = yardMove piece:4 (the filter names piece 4); a move of piece 2 leaves step 1 active
+            // v3 level 3: step 1 done = yardMove piece:1 (the filter names piece 1); a move of piece 2 leaves step 1 active
             Assert.AreEqual(1, b.Current!.Data.Step, "K-53 step done ignores other piece");
+            var (c, _, _) = Make(10);
+            Assert.IsNull(c.Current, "level 10 step 1 has a startOn (segmentDone): it waits");
         }
 
         [Test]
@@ -343,10 +345,10 @@ namespace MinikUsta.Presentation.Tests
         // --- glove -----------------------------------------------------------------------------------------------------------------
 
         [Test]
-        public void K53_the_glove_plays_for_the_first_step_of_levels_1_3_4_5_6_9_and_a_tap_glove_always()
+        public void K53_the_glove_plays_for_the_first_step_of_level_1_and_a_tap_glove_always()
         {
-            // D-099 levels: step 1 of 1, 3, 4, 5, 6 and 9 carries a drag glove; 2 and 8 have none, 7 and 10 wait for segmentDone
-            foreach (int n in new[] { 1, 3, 4, 5, 6, 9 })
+            // v3 levels (paket E2): only level 1 carries a drag glove (path [[1,3],[1,5],[6,5]]); 10 has a tap glove behind a segmentDone startOn
+            foreach (int n in new[] { 1 })
             {
                 var (tut, _, lvl) = Make(n);
                 var s = State.CreateInitialState(lvl);
@@ -382,10 +384,10 @@ namespace MinikUsta.Presentation.Tests
             var step = lvl.Data.Tutorial![0];
             var pts = TutorialGlove.FingerPoints(L.Grid, 1.2f, step.Hand!.Path!);
             Assert.AreEqual(3, pts.Length);
-            var c0 = L.Grid.CellRect(0, 3);
+            var c0 = L.Grid.CellRect(1, 3);
             Assert.AreEqual((float)c0.CenterX, pts[0].X, 0.01f, "the first point is the touched cell's centre");
             Assert.AreEqual((float)c0.CenterY, pts[0].Y, 0.01f);
-            var c1 = L.Grid.CellRect(0, 5);
+            var c1 = L.Grid.CellRect(1, 5);
             Assert.AreEqual((float)(c1.CenterY + 1.2 * L.Grid.CellPx), pts[1].Y, 0.01f, "later points carry the finger offset (K-08)");
             var rounded = TutorialGlove.RoundedPath(pts, 24);
             Assert.Greater(rounded.Length, pts.Length, "the inner corner is an arc");

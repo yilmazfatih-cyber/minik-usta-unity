@@ -264,5 +264,72 @@ namespace MinikUsta.Presentation.Game
             seq.InsertCallback(step.Ms, () => p.ShowMoves(0, danger: false));
             Play(seq, time, instant, false);
         }
+
+        // --- E3 (GDD §16 v3 block traits) ------------------------------------------------------------------------------------
+
+        private static readonly Rgba[] RopePalette = { Rgba.Hex("#E0B26C"), Rgba.Hex("#F6DDA4"), Rgba.Hex("#B98A45") };
+        private static readonly Rgba IceSpark = Rgba.Hex("#BFEAFF");
+        private static readonly Rgba GoldSpark = Rgba.Hex("#FFD02B");
+
+        /// <summary>A 0 → 1 run of `TraitFx` over `ms` (the wrap net / badge leaves the block).</summary>
+        internal static Tween TraitRelease(IPieceVisual v, float ms, EaseType ease) =>
+            new Tween(ms, (u, k) => v.TraitFx = u >= 1 ? 1f : Math.Max(0f, Math.Min(1f, k)), null, ease);
+
+        /// <summary>
+        /// Y11 (K-59): the wraps burst off — every cut block's net and knot grow, rise and fade with a white flash and rope confetti;
+        /// the scissors block's badge snips away with sparks. The hammer's cut (`by: hammer`) is the same on its one block.
+        /// </summary>
+        private void Unwrap(AnimationStep step, float time, bool instant, float c)
+        {
+            if (!(step.Event is UnwrappedEvent e)) return;
+            var seq = new Sequence();
+            var cut = new List<int>(e.Pieces);
+            if (e.By == UnwrapBys.Scissors) cut.Add(e.PieceId); // the scissors badge leaves with the wraps
+            foreach (int id in cut)
+            {
+                var v = p.Pieces.Get(id);
+                if (v == null) continue;
+                seq.Insert(0, TraitRelease(v, step.Ms, step.Ease));
+                if (Array.IndexOf(e.Pieces, id) >= 0) seq.Insert(0, FlashPulse(v, F.PlaceFlashPeak, step.Ms * 0.6f));
+                if (instant) continue;
+                var shape = BoardPose.ShapeOf(p.Session!.State, id);
+                if (Array.IndexOf(e.Pieces, id) >= 0) p.Particles.Confetti(v.Position, shape.W * c, F.ParticleUnwrap, RopePalette, step.Ms + 200f, 0.9f * c);
+                else p.Particles.Sparks(v.Position, Rgba.White, F.ParticleUnwrap, 0.9f);
+            }
+            Play(seq, time, instant, true);
+            if (!instant) p.CameraShake(F.GlassShakePx * 0.5f);
+            Snd(Sounds.Clamp, 0); // the snip
+            Snd(Sounds.PlaceOk, step.Ms * 0.35f);
+        }
+
+        /// <summary>
+        /// Y12 (K-60): a correctly placed bonus block pays its moves — the "+n" star leaves the block in a gold burst and the
+        /// counter rolls up with a pop once the star has flown.
+        /// </summary>
+        private void BonusMoves(AnimationStep step, float time, bool instant, float c)
+        {
+            var session = p.Session;
+            if (session == null) return;
+            int n = step.N ?? session.MovesLeft;
+            var seq = new Sequence();
+            var v = step.PieceId >= 0 ? p.Pieces.Get(step.PieceId) : null;
+            if (v != null)
+            {
+                seq.Insert(0, TraitRelease(v, step.Ms * 0.8f, EaseType.OutQuad));
+                if (!instant) p.Particles.StarBurst(v.Position, F.ParticleBonusStar);
+            }
+            seq.InsertCallback(step.Ms * 0.6f, () => p.ShowMoves(n));
+            seq.Insert(step.Ms * 0.6f, Tweens.Pop(p.View.MovesChip, 1f, F.MovesAddBump, 1f, F.MovesTickMs));
+            Play(seq, time, instant, false);
+            Snd(Sounds.MovesAdd, step.Ms * 0.5f); // the +5 jingle: moves arrive
+        }
+
+        /// <summary>Y13 (K-61): a slippery block slides down — frost sparkles where it lands.</summary>
+        private void SlipSparkles(IPieceVisual v, ShapeDef shape, Vec2 to, float ms, float c)
+        {
+            var seq = new Sequence().AppendInterval(ms).AppendCallback(() => p.Particles.Sparks(Bottom(to, shape, c), IceSpark, 6, 0.8f));
+            seq.Tag = LevelPlayer.BoardTag;
+            p.Clock.Play(seq, Math.Max(0f, p.Clock.Now - runTime));
+        }
     }
 }

@@ -275,7 +275,7 @@ namespace MinikUsta.Presentation.Tests
         [Test]
         public void K29_out_of_moves_opens_the_window_with_only_retry_and_retry_restarts_the_attempt()
         {
-            string text = Rig.ReadLevel(1)!.Replace("\"moves\": 10", "\"moves\": 1"); // D-099 level 1: 10 moves
+            string text = Rig.ReadLevel(1)!.Replace("\"moves\": 12", "\"moves\": 1"); // v3 level 1: 12 moves
             var rig = new Rig(read: n => n == 1 ? text : Rig.ReadLevel(n));
             rig.Load(1);
             Assert.AreEqual(1, rig.Session.MovesLeft);
@@ -481,7 +481,7 @@ namespace MinikUsta.Presentation.Tests
             Assert.AreEqual("Bölüm 1", rig.View.LevelLabel);
             Assert.AreEqual("0/2", rig.View.Segments, "D-099 level 1: two floors");
             Assert.AreEqual(rig.Session.Summary().BlocksLeft, rig.View.Blocks);
-            Assert.AreEqual(10, rig.View.Moves);
+            Assert.AreEqual(12, rig.View.Moves);
         }
     }
 }

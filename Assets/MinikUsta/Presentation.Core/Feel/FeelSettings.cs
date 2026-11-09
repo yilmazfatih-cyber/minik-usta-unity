@@ -368,6 +368,13 @@ namespace MinikUsta.Presentation.Feel
         public float ChainBreakMs = 450;
         /// <summary>duration.wetDry — JUICE #38 (Y4).</summary>
         public float WetDryMs = 350;
+        /// <summary>E3 (Y11, K-59): the wraps burst off the blocks (unwrap).</summary>
+        public float UnwrapMs = 520;
+        /// <summary>E3 (Y12, K-60): the bonus star flies to the moves chip.</summary>
+        public float BonusMs = 620;
+        /// <summary>E3: particles of an unwrap per cut block / of a bonus star burst.</summary>
+        public int ParticleUnwrap = 10;
+        public int ParticleBonusStar = 8;
         /// <summary>duration.keyPickup — JUICE #39.</summary>
         public float KeyPickupMs = 400;
         /// <summary>duration.screwCollect — JUICE #40 (Y7).</summary>

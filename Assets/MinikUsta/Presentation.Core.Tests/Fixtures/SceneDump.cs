@@ -68,7 +68,7 @@ namespace MinikUsta.Presentation.Tests.Fixtures
                     double bw = (p.Shape.W + 0.8) * cell * sc * ssc, bh = 0.5 * cell * sc * ssc;
                     Add(new Sprite { Frame = Frames.DropBlob, Rect = new PxRect(cx - bw / 2, cy + p.Shape.H * cell * sc / 2 - bh / 2 + Palette.LiftedShadowY + sdy, bw, bh), Order = b - 1, Alpha = sa });
                 }
-                foreach (var part in BlockSkin.Block(p.Shape, p.Color, cell, look, ArtContractTests.Atlas))
+                foreach (var part in BlockSkin.Block(p.Shape, p.Color, cell, look, ArtContractTests.Atlas, p.Traits))
                 {
                     var r = part.Rect;
                     Add(new Sprite

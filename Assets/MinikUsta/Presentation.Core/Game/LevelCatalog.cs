@@ -23,7 +23,14 @@ namespace MinikUsta.Presentation.Game
         }
 
         /// <summary>Resources path of level n (no extension): `levels/level_001`.</summary>
-        public static string ResourceName(int n) => "levels/level_" + n.ToString("000", CultureInfo.InvariantCulture);
+        public static string ResourceName(int n) => (n >= DevFirst ? "levels_dev/level_" : "levels/level_") + n.ToString("000", CultureInfo.InvariantCulture);
+
+        /// <summary>
+        /// E3: level numbers from here on are development fixtures (`Resources/levels_dev/`, not touched by tools/sync-from-web.sh and not
+        /// part of the 1–`Last` story): level 99 is the block showcase (every v3 trait on one board) for the debug panel and the CI shots.
+        /// </summary>
+        public const int DevFirst = 90;
+        public const int Showcase = 99;
 
         /// <summary>The level after n: n + 1, after the last one the first again.</summary>
         public static int Next(int n) => n >= Last || n < First ? First : n + 1;

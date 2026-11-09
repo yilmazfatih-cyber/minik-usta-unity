@@ -88,6 +88,7 @@ Faz 1 raporu: web reposunda `docs/UNITY_PORT_FAZ1.md`. TS → C# dosya eşlemesi
 │  ├─ gen-p0-vectors.ts            TS çekirdeğinden bit-eşitlik vektörleri üretir (node 22, ek paket yok)
 │  ├─ gen-p1-vectors.ts            hareket / yerçekimi / yerleşim / teslimat vektörleri (10 bölüm + 9 geometri × 5 rastgele tahta)
 │  ├─ gen-p2-vectors.ts            doğrulayıcı / hedef / güçlendirici / çıkmaz / özet / kayıt vektörleri (fikstürler, kanonik çözüm boyunca 90 durum, 40 cover tahtası)
+│  ├─ art/extend.mjs               v3 özellik karelerini (art/svg/trait) atlas sayfası 3'e ekler (ART_UNITY §9)
 │  ├─ gen-p3-vectors.ts            GameSession dizileri: her hamle türü, geri al, +5, ret, çıkış, replay (170 dizi, ~4 300 girdi)
 │  ├─ gen-rule-ids.ts              web belgelerinden kural kimlikleri + fazları → Core.Tests/Golden/rule_ids.json (kapsam kapısı)
 │  ├─ diff/ts-oracle.mjs           diferansiyel fuzz kehaneti: TS GameSession ile ~400 tohumlu / betikli dizi → tools/diff/out/ (git dışı)

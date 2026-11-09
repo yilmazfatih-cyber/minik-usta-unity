@@ -3,6 +3,7 @@
 // and released from the state (`Sync`, TECH §1.4 "the view re-reads the state"), looked up by piece id by the step runner.
 using System.Collections.Generic;
 using MinikUsta.Core;
+using MinikUsta.Presentation.Art;
 using MinikUsta.Presentation.Layout;
 using static MinikUsta.Core.State;
 
@@ -14,6 +15,9 @@ namespace MinikUsta.Presentation.Game
         private readonly Dictionary<int, IPieceVisual> visuals = new Dictionary<int, IPieceVisual>();
         private readonly List<int> scratch = new List<int>();
         private double cellPx = 120;
+
+        /// <summary>Y10: how far a covered pallet layer is drawn below the layer above it, as a share of the cell (per layer).</summary>
+        public const double PalletDepthRise = 0.1;
 
         public PieceViews(ILevelView view)
         {
@@ -31,6 +35,7 @@ namespace MinikUsta.Presentation.Game
         {
             if (visuals.TryGetValue(id, out var v)) return v;
             v = view.AcquirePiece(id, BoardPose.ShapeOf(s, id), PieceColor(s, id), cellPx);
+            v.SetTraits(BlockTraits.Of(s, id));
             visuals[id] = v;
             return v;
         }
@@ -73,6 +78,10 @@ namespace MinikUsta.Presentation.Game
                 bool had = visuals.ContainsKey(id);
                 var v = Ensure(s, id);
                 var target = BoardPose.Center(g, ax, ay, shape);
+                // v3 Y10: a covered pallet layer lies lower under the top layer, so the stack shows as slabs
+                var traits = BlockTraits.Of(s, id);
+                v.SetTraits(traits);
+                if (traits.PalletDepth > 0) target = new Vec2(target.X, target.Y + (float)(PalletDepthRise * cellPx * traits.PalletDepth));
                 if (had && v.Visible)
                 {
                     float dx = v.Position.X - target.X, dy = v.Position.Y - target.Y;
@@ -91,6 +100,7 @@ namespace MinikUsta.Presentation.Game
                 v.Flash = 0;
                 v.Tint = 0;
                 v.Hop = 0;
+                v.TraitFx = 0;
                 v.Grow = 1f;
                 v.ResetCells();
                 v.Lifted = false;

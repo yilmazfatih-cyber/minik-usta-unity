@@ -51,6 +51,18 @@ namespace MinikUsta.Presentation.Game
         bool Placed { get; set; }
 
         /// <summary>
+        /// E3 (GDD §16 v3 block traits): the traits of the block — per-cell colours (Y9), wrap net + knot / scissors / bonus star /
+        /// snowflake / layer badges and planks (Y10–Y13). The visual re-skins only when they changed (`BlockTraits.Equals`).
+        /// </summary>
+        void SetTraits(BlockTraits traits);
+
+        /// <summary>
+        /// E3: 0 … 1 release of the removable trait parts (wrap net, knot, scissors / bonus badges): 0 = in place, 1 = gone — they
+        /// grow, rise and fade (the unwrap burst, the bonus star leaving the block). Reset to 0 by the next `SetTraits`.
+        /// </summary>
+        float TraitFx { get; set; }
+
+        /// <summary>
         /// B2 (JUICE #1): how high the lifted block is, 0 … 1 — its drop shadow moves `FeelSettings.LiftShadowOffsetPx` down, grows by
         /// `LiftShadowSpread` and fades to `LiftShadowAlpha` as it rises (`LiftShadow.Pose`). Only drawn while `Lifted`.
         /// </summary>

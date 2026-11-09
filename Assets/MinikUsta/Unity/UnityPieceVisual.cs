@@ -26,6 +26,7 @@ namespace MinikUsta.Unity
             public PxRect Rect;
             public Rgba Tint;
             public int Order;
+            public PartRole Role;
         }
 
         private readonly DesignSpace space;
@@ -45,6 +46,8 @@ namespace MinikUsta.Unity
         private bool cellsDirty;
         private float grow = 1f;
         private int colorIndex;
+        private BlockTraits traits = BlockTraits.None;
+        private float traitFx;
         private bool dim;
         private bool placed;
         private Vec2 position;
@@ -83,6 +86,8 @@ namespace MinikUsta.Unity
             colorIndex = color;
             dim = false;
             placed = false;
+            traits = BlockTraits.None;
+            traitFx = 0f;
             int n = shape.Cells.Length;
             if (cellSx.Length < n)
             {
@@ -118,7 +123,7 @@ namespace MinikUsta.Unity
         private void Rebuild()
         {
             if (shape == null) return;
-            var list = BlockSkin.Block(shape, colorIndex, cellPx, Look, AtlasSprites.Data);
+            var list = BlockSkin.Block(shape, colorIndex, cellPx, Look, AtlasSprites.Data, traits);
             while (parts.Count < list.Count)
             {
                 var go = new GameObject("Part");
@@ -139,6 +144,7 @@ namespace MinikUsta.Unity
                 p.Rect = s.Rect;
                 p.Tint = s.Tint;
                 p.Order = s.Order;
+                p.Role = s.Role;
             }
             // lifted blob (JUICE #1; ART_UNITY §4.1): under the block, (w + 0,8) cells wide
             var bf = AtlasSprites.Resolve(Frames.DropBlob);
@@ -165,10 +171,19 @@ namespace MinikUsta.Unity
             double bottom = shape.H * cellPx / 2; // design px, y down
             var r = p.Rect;
             var q = new PxRect(r.X * sx, bottom + (r.Y - bottom) * sy, r.W * sx, r.H * sy);
+            if (traitFx > 0f && IsRemovable(p.Role))
+            {
+                // E3: the removable trait parts grow and rise as they leave (unwrap burst, bonus star)
+                double grow = 1 + 0.55 * traitFx, rise = 0.55 * cellPx * traitFx;
+                double cx = q.X + q.W / 2, cy = q.Y + q.H / 2 - rise;
+                q = new PxRect(cx - q.W * grow / 2, cy - q.H * grow / 2, q.W * grow, q.H * grow);
+            }
             SpriteDraw.Apply(p.Sr, p.Fs, q.W, q.H, false, Color.white);
             SpriteDraw.PivotPoint(p.Fs, q, out double px, out double py);
             p.Sr.transform.localPosition = new Vector3(DesignSpace.Units(px), -DesignSpace.Units(py), 0f);
         }
+
+        private static bool IsRemovable(PartRole role) => role == PartRole.Overlay || role == PartRole.Badge;
 
         /// <summary>Back to the pool: hidden, parked.</summary>
         public void Park()
@@ -336,6 +351,27 @@ namespace MinikUsta.Unity
             blob.transform.localScale = new Vector3(blobScale.x * sc, blobScale.y * sc, 1f);
         }
 
+        public void SetTraits(BlockTraits t)
+        {
+            if (t.Equals(traits)) return;
+            traits = t;
+            traitFx = 0f;
+            Rebuild();
+        }
+
+        public float TraitFx
+        {
+            get => traitFx;
+            set
+            {
+                if (traitFx == value) return;
+                traitFx = value;
+                for (int i = 0; i < used; i++)
+                    if (IsRemovable(parts[i].Role)) PlacePart(parts[i]);
+                ApplyColors();
+            }
+        }
+
         public bool Placed
         {
             get => placed;
@@ -376,6 +412,7 @@ namespace MinikUsta.Unity
                 if (flash > 0) c = UnityConvert.Lerp(c, Color.white, flash);
                 if (tint > 0) c = UnityConvert.Lerp(c, Red, tint);
                 c.a *= alpha;
+                if (traitFx > 0f && IsRemovable(p.Role)) c.a *= 1f - Mathf.Clamp01(traitFx);
                 p.Sr.color = c;
             }
             var bc = blob.color;
@@ -385,7 +422,8 @@ namespace MinikUsta.Unity
 
         private void ApplyOrder()
         {
-            int b = raised ? Order.Raised : Order.Pieces;
+            // Y10: a covered pallet layer is drawn under the layers above it
+            int b = raised ? Order.Raised : Order.Pieces - traits.PalletDepth * 10;
             blob.sortingOrder = b - 1;
             for (int i = 0; i < parts.Count; i++) parts[i].Sr.sortingOrder = b + parts[i].Order;
         }

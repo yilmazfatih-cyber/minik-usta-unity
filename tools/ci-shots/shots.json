@@ -12,6 +12,11 @@
     "pause",
     "exit_confirm",
     "level_start_window",
+    "v3_twotone",
+    "v3_wrap",
+    "v3_unwrap",
+    "v3_bonus",
+    "v3_showcase",
     "lose_offer"
   ],
   "sequences": [

@@ -1,0 +1,19 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 120" width="120" height="120" data-scale="1.25" data-pivot="0.5 0.5">
+<defs>
+<linearGradient id="film" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#FFFFFF" stop-opacity=".42"/><stop offset=".55" stop-color="#FFFFFF" stop-opacity=".12"/><stop offset="1" stop-color="#FFFFFF" stop-opacity=".30"/></linearGradient>
+<linearGradient id="rope" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#F6DDA4"/><stop offset=".5" stop-color="#DDB06A"/><stop offset="1" stop-color="#B98A45"/></linearGradient>
+</defs>
+<rect x="3" y="3" width="114" height="114" rx="16" fill="url(#film)" stroke="#FFFFFF" stroke-opacity=".7" stroke-width="3"/>
+<g stroke-linecap="butt">
+<path d="M-6 126 L126 -6" stroke="#4A2F0C" stroke-opacity=".38" stroke-width="19" transform="translate(2 4)"/>
+<path d="M-6 -6 L126 126" stroke="#4A2F0C" stroke-opacity=".38" stroke-width="19" transform="translate(2 4)"/>
+<path d="M-6 126 L126 -6" stroke="#8A5E24" stroke-width="17"/>
+<path d="M-6 -6 L126 126" stroke="#8A5E24" stroke-width="17"/>
+<path d="M-6 126 L126 -6" stroke="url(#rope)" stroke-width="13"/>
+<path d="M-6 -6 L126 126" stroke="url(#rope)" stroke-width="13"/>
+<path d="M-6 126 L126 -6" stroke="#8A5E24" stroke-opacity=".75" stroke-width="13" stroke-dasharray="3 8"/>
+<path d="M-6 -6 L126 126" stroke="#8A5E24" stroke-opacity=".75" stroke-width="13" stroke-dasharray="3 8"/>
+<path d="M-6 126 L126 -6" stroke="#FFF6D8" stroke-opacity=".7" stroke-width="3" transform="translate(-2 -2)"/>
+<path d="M-6 -6 L126 126" stroke="#FFF6D8" stroke-opacity=".7" stroke-width="3" transform="translate(2 -2)"/>
+</g>
+</svg>

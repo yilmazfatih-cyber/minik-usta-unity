@@ -141,6 +141,34 @@ Web, `wip/a2-levels`'i kırmızı testleriyle değil, yeşil `npm run check` ile
 | — (Unity'ye özgü) | `Presentation.Core/Shots/ShotScenario.cs` (`Motion`, `TimeScale`, `ShotOptions.MotionScale`), `tools/ci-shots/shoot.mjs` | P4B-08: iki yavaş çekim penceresi (`seq:king_wave`, `seq:king_big_cheer`), kare istatistiği + şerit PNG; P4B-05: 3B sayfa çözme süreleri manifest'e |
 | — | `Editor/CiBuild.cs`, `ProjectSettings.asset`, `unity-webgl.yml` | P4B-04: Gzip + `decompressionFallback`, indirme boyutu bütçesi (§9) |
 
+### Paket E3 — levels v3 (GDD §16, `RULES_VERSION` 4), web `wip/phase-2r` `2035fc6` (E1 çekirdeği) + `wip/e2` `1fe9af3` (10 yeni bölüm)
+
+Web E1 çekirdeğini (`2035fc6`) ve E2 bölümlerini (`1fe9af3`, `wip/e2` = `2035fc6` + bölümler; çekirdek aynı) taşıdık. Bölüm verisi `wip/e2`'den
+(`tools/sync-from-web.sh <e2 çalışma kopyası>`), yani Unity'de yayınlanan 10 bölüm artık v3 bölümleridir (Faz 2R arşivi ve `Archive2R` değişmedi, hâlâ
+`RULES_VERSION` 3 kaydı). Web'de bu bölümler henüz `wip/phase-2r`'ye girmedi (web geçitleri kırmızı: eski içerik testleri, `shape_decisions_low`); web bölümleri
+değiştirirse `sync-from-web.sh` + `gen-p0…p3` + `review/gen-*` + `ts-oracle` yeniden koşar.
+
+| TS | C# | Not |
+| --- | --- | --- |
+| `types.ts` `DATA_PIECE_FLAGS` / `PIECE_FLAGS` (+`wrapped`, `scissors`, `bonus`, `slippery`, bit 8–11), `HammerTargetKind` `wrap`, olay `unwrapped`, `movesChanged.reason` `bonus` | `Types.cs` (`PieceFlags`, `HammerTargetKinds.Wrap`, `UnwrappedEvent`, `UnwrapBys`, `MovesChangedReasons.Bonus`, `EventKind.Unwrapped`, `EventTypes.All` 44), `Events.cs` (`EventJson`), `State.cs` `FlagBit` | olay türü sayısı 43 → 44 |
+| `shapes.ts` `KIND_FIRST_LEVEL_V3` | `Shapes.cs` `KindFirstLevelV3` | yalnız `schemaVersion` 3 dosyaları |
+| `level/schema.ts` (`schemaVersion` 3, `colors`, `stack`, `bonusMoves`, bayraklar, `TRAIT_MECHANIC_IDS`) | `Level/LevelData.cs` (`PieceData.Colors/Stack/BonusMoves`, `StackData`, `MechanicIds.Traits`, `LevelSchemaPatterns.CellColors`, `LevelSchema.IsV3Flag`), `Level/LevelJson.cs` | zod mesajları aynı |
+| `level/mechanics.ts` `TRAIT_MECHANICS` | `Level/Mechanics.cs` `TraitTable` | `DeriveMechanics` tabloyu ve ardından Y9…Y13'ü verir |
+| `level/compile.ts` (`cellColors`, `stackId/Z/Below`, `bonusMoves`, `toneCode`, `hasStacks`, `linkStacks`) | `Level/Compile.cs` (`CompiledPiece`, `Compiler.LinkStacks/ToneCodeOf/CellColorOf`) | kapak toplamları hücre rengiyle |
+| `state.ts` (`pieceCellColor`, `isTwoTone`, `createInitialState` sırası), `grid.ts` (`layerBelow`, `isCovered`, `ownCellCode`, `writePiece`, `collisionMasks`, değişmezler) | `State.cs`, `Grid.cs` | palet: yalnız üst katman `yardOcc`'ta |
+| `hash.ts` (`pieceClassBits`, `pieceClassExtra`) | `Hash.cs` | Faz 2R karmaları değişmez (golden kanıtı) |
+| `placement.ts`, `goals.ts`, `deadlock.ts` (`correctSpots` hücre renkleri, D3a `cellMasks`, `quickHoldable`, D1 genişlemesi `hasRelease`), `boosters.ts` (K-66), `movement.ts` (`covered`), `gravity.ts` (kaygan), `moves.ts` (`placementBonus`, `onCorrectPlacement`), `session.ts` `RULES_VERSION` 4 | aynı adlı `.cs` dosyaları, `Hooks.cs` (`MoveHooks.PlacementBonus/OnCorrectPlacement`, `HammerRules.Kind`) | |
+| `obstacles/Y9…Y13`, `registry.ts`, `types.ts` | `Obstacles/Y9_TwoTone.cs`, `Y10_Pallet.cs`, `Y11_Wrap.cs`, `Y12_Bonus.cs`, `Y13_Slippery.cs`, `Registry.cs`, `Types.cs` (`ObstacleRule.PlacementBonus/OnCorrectPlacement/HammerKind`) | |
+| `level/logic.ts` L-40 (çalışma anı), L-41 (doğrulama), `tileSearch` (H1 düzeltmesi: her çapa dalı) | `Level/Logic.cs` (`CheckTraits`, `CheckTraitDesign`, `TileSearch`, `LevelColorSet`, `SupplyOf`) | L-42 (çözücü aşaması) taşınmadı: çözücü Unity'de yok |
+| `ascii.ts` (`traits:` satırı, `shapeAscii`, hücre rengi) | `Ascii.cs` (`ShapeAscii`, `TraitEntries`, `FromAscii`) | |
+| `tools/diff/ts-oracle.mjs` + `v3` kaynak ailesi | `tools/diff/ts-oracle.mjs` | 24 rastgele v3 tahtası (iki renkli, palet, sargı, bonus, kaygan, karışık) × 3 tohum; 727 dizi / 19 313 eylem, 0 sapma |
+| — | `Core.Tests/LevelsV3Tests.cs` (24 test, adlarda K-56…K-61, K-35, K-30, K-43) | |
+
+Sunum: `Presentation.Core/Art/BlockTraits.cs` (durumdan özellikler, değer eşitliği), `BlockSkin.Block(..., traits)` (hücre başına renk, sargı ağı, rozetler, palet
+tahtası), `Game/PieceViews.cs` (örtülü palet katmanı alçak ve altta), `IPieceVisual.SetTraits/TraitFx`, `StepKind.Unwrap` / `BonusMoves` (planlayıcı +
+`StepRunner.Fx.cs`), kaygan bloğun düşüşünde buz parıltısı, `LevelCatalog.Showcase` (99, `Resources/levels_dev/`), CI görüntüleri `v3_*` (5 adet).
+Sanat: `art/src/trait/*.svg` (12 kare) → `tools/art/extend.mjs` atlas sayfası 3 (`ART_UNITY` §9).
+
 ### Paket A3 — K-55 sabit saha (D-099), web `wip/a2-levels` (`e80a318`)
 
 | TS | C# | Not |

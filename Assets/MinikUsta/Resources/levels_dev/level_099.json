@@ -1,0 +1,38 @@
+{
+  "schemaVersion": 3,
+  "id": 99,
+  "chapter": 1,
+  "name": { "tr": "Blok Vitrini", "en": "Block Showcase" },
+  "difficulty": "easy",
+  "moves": 40,
+  "goals": [{ "type": "build" }],
+  "gravity": { "build": "normal", "yard": false },
+  "wall": { "height": 2, "gaps": [] },
+  "site": { "cols": 2, "rows": 5 },
+  "build": {
+    "mode": "segments",
+    "segments": [{ "name": { "tr": "Vitrin", "en": "Showcase" }, "rows": ["GG", "WW", "YG", "YW", "GG"] }]
+  },
+  "yard": {
+    "cols": 6,
+    "rows": 5,
+    "batches": [
+      {
+        "forSegment": 0,
+        "pieces": [
+          { "shape": "D2_90", "color": "W", "x": 0, "y": 0, "stack": { "id": 0, "z": 0 } },
+          { "shape": "D2_90", "color": "W", "x": 0, "y": 0, "stack": { "id": 0, "z": 1 } },
+          { "shape": "D2_90", "color": "W", "x": 0, "y": 0, "stack": { "id": 0, "z": 2 } },
+          { "shape": "D2_90", "color": "Y", "x": 2, "y": 0, "colors": "YW" },
+          { "shape": "C3_0", "color": "G", "x": 4, "y": 0, "flags": ["slippery"] },
+          { "shape": "D2_0", "color": "Y", "x": 0, "y": 1, "flags": ["wrapped"] },
+          { "shape": "B1_0", "color": "W", "x": 1, "y": 1, "flags": ["scissors"] },
+          { "shape": "D2_90", "color": "G", "x": 2, "y": 1, "flags": ["bonus"], "bonusMoves": 3 },
+          { "shape": "D2_90", "color": "Y", "x": 2, "y": 2, "colors": "YG" },
+          { "shape": "B1_0", "color": "G", "x": 4, "y": 2, "flags": ["slippery"] }
+        ]
+      }
+    ]
+  },
+  "obstacles": []
+}

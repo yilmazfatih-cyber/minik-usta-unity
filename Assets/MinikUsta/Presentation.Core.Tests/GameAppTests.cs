@@ -122,7 +122,7 @@ namespace MinikUsta.Presentation.Tests
         }
 
         [Test]
-        public void E67_K43_K55_an_attempt_saved_with_rulesVersion_2_is_closed_without_penalty_under_RULES_VERSION_3()
+        public void E67_K43_K55_an_attempt_saved_with_rulesVersion_2_is_closed_without_penalty_under_RULES_VERSION_4()
         {
             var store = new MemorySaveStore();
             var rig = Booted(store);
@@ -135,7 +135,7 @@ namespace MinikUsta.Presentation.Tests
             m.InLevel!.RulesVersion = 2;
             m.InLevel.OfferSpendCoins = 90;
             SaveCodec.Write(store, m);
-            Assert.AreEqual(3, GameSession.RulesVersion, "D-099 (K-55 item 8) bumped the rules version");
+            Assert.AreEqual(4, GameSession.RulesVersion, "D-099 (K-55 item 8) bumped the rules version to 3, levels v3 (GDD §16) to 4");
             var voided = Booted(store);
             Assert.AreEqual(AppScreen.Home, voided.Screen, "the attempt is not replayed; the player is back on the home screen");
             StringAssert.Contains("voided", voided.App.BootNote);
@@ -329,13 +329,12 @@ namespace MinikUsta.Presentation.Tests
             rig.TapOption(PanelAction.Play);
             Assert.AreEqual(8, rig.Player.LevelNumber);
             var st = rig.View.HudState!;
-            Assert.AreEqual(new[] { SlotStates.Ready, SlotStates.Locked, SlotStates.Locked, SlotStates.Locked }, st.Slots,
-                "GDD K-54 example: Bölüm 8 starts with the hammer open, 3 trials and a heavy cargo target");
+            Assert.AreEqual(new[] { SlotStates.NoTarget, SlotStates.Locked, SlotStates.Locked, SlotStates.Locked }, st.Slots,
+                "GDD K-54: Bölüm 8 starts with the hammer open and 3 trials; the v3 level 8 has no wrap or crate, so the hammer has no target yet (LEVELS §8.12 B-note)");
             Assert.AreEqual(3, st.Counts[0]);
             var hud = rig.Ui.Root(UiLayer.Hud)!;
-            Assert.AreEqual("btn_booster", hud.Get("hud.boost0").Frame);
-            Assert.IsTrue(hud.Get("hud.boost0.badge").Visible);
-            Assert.AreEqual("3", hud.Get("hud.boost0.n").Text);
+            Assert.AreEqual("btn_booster_off", hud.Get("hud.boost0").Frame, "no target in the v3 level 8: the open slot is dimmed");
+            Assert.IsFalse(hud.Get("hud.boost0.badge").Visible, "a dimmed slot shows no count badge");
             Assert.IsFalse(hud.Get("hud.boost0.plus").Visible);
             Assert.AreEqual("btn_booster_off", hud.Get("hud.boost1").Frame);
             Assert.IsTrue(hud.Get("hud.boost1.lock").Visible, "locked: the padlock");

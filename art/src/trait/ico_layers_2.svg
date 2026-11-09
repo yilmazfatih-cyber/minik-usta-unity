@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 88 88" width="88" height="88" data-scale="1.2" data-pivot="0.5 0.5">
+<defs><linearGradient id="bd" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#FFFFFF"/><stop offset="1" stop-color="#DCE3F2"/></linearGradient></defs>
+<circle cx="44" cy="50" r="38" fill="#221B66" fill-opacity=".45"/>
+<circle cx="44" cy="44" r="38" fill="#221B66"/>
+<circle cx="44" cy="44" r="33" fill="url(#bd)"/>
+<ellipse cx="34" cy="26" rx="16" ry="6" transform="rotate(-28 34 26)" fill="#FFFFFF" fill-opacity=".8"/><g transform="translate(0 -23.5)"><rect x="19" y="67" width="50" height="14" rx="4" fill="#4A2C0D"/><rect x="21" y="67" width="46" height="11" rx="3.5" fill="#D9A05A"/><rect x="23" y="68.5" width="42" height="3" rx="1.5" fill="#FFFFFF" fill-opacity=".4"/><path d="M33 69 V78 M55 69 V78" stroke="#8C5A28" stroke-width="2"/><rect x="19" y="54" width="50" height="14" rx="4" fill="#4A2C0D"/><rect x="21" y="54" width="46" height="11" rx="3.5" fill="#D9A05A"/><rect x="23" y="55.5" width="42" height="3" rx="1.5" fill="#FFFFFF" fill-opacity=".4"/><path d="M33 56 V65 M55 56 V65" stroke="#8C5A28" stroke-width="2"/></g>
+</svg>

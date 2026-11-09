@@ -121,6 +121,7 @@ namespace MinikUsta.Presentation.Game
                         var shape = BoardPose.ShapeOf(s, e.PieceId);
                         var to = BoardPose.Center(g, e.To, shape);
                         Play(Tweens.Move(v, to, step.Ms).SetCurve(FallMotion.YardFallLeg(e.Rows, F).Progress), time, instant, true);
+                        if (!instant && HasFlag(s, e.PieceId, FlagBit.Slippery)) SlipSparkles(v, shape, to, step.Ms, c);
                         if (!p.Reduced)
                         {
                             float sx = 1 + (F.LandSquashX - 1) / 2;
@@ -342,6 +343,12 @@ namespace MinikUsta.Presentation.Game
                     return;
                 case StepKind.StreakReset:
                     StreakReset(step, time, instant);
+                    return;
+                case StepKind.Unwrap:
+                    Unwrap(step, time, instant, c);
+                    return;
+                case StepKind.BonusMoves:
+                    BonusMoves(step, time, instant, c);
                     return;
                 case StepKind.MovesTick:
                 case StepKind.MovesAdded:

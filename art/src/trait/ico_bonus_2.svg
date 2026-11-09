@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 88 88" width="88" height="88" data-scale="1.2" data-pivot="0.5 0.5">
+<defs><linearGradient id="st" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#FFF089"/><stop offset=".5" stop-color="#FFD02B"/><stop offset="1" stop-color="#FF9E0A"/></linearGradient></defs>
+<polygon points="44.0,10.0 56.3,35.0 83.9,39.0 64.0,58.5 68.7,86.0 44.0,73.0 19.3,86.0 24.0,58.5 4.1,39.0 31.7,35.0" fill="#7A3B00" fill-opacity=".5" stroke="#7A3B00" stroke-opacity=".5" stroke-width="9" stroke-linejoin="round"/>
+<polygon points="44.0,4.0 56.3,29.0 83.9,33.0 64.0,52.5 68.7,80.0 44.0,67.0 19.3,80.0 24.0,52.5 4.1,33.0 31.7,29.0" fill="#B45309" stroke="#B45309" stroke-width="9" stroke-linejoin="round"/>
+<polygon points="44.0,4.0 56.3,29.0 83.9,33.0 64.0,52.5 68.7,80.0 44.0,67.0 19.3,80.0 24.0,52.5 4.1,33.0 31.7,29.0" fill="url(#st)" stroke="url(#st)" stroke-width="3" stroke-linejoin="round"/>
+<ellipse cx="34" cy="26" rx="12" ry="4.5" transform="rotate(-30 34 26)" fill="#FFFFFF" fill-opacity=".75"/>
+<g transform="translate(30 47)" stroke-linecap="round" stroke-linejoin="round" fill="none"><path d="M-6 0 H6 M0 -6 V6" stroke="#FFFFFF" stroke-width="9"/><path d="M-6 0 H6 M0 -6 V6" stroke="#6A3000" stroke-width="4.6"/></g>
+<g transform="translate(55 47)" stroke-linecap="round" stroke-linejoin="round" fill="none"><path d="M-9 -8 Q-9 -16 0 -16 Q9 -16 9 -7 Q9 -1 -9 14 L10 14" stroke="#FFFFFF" stroke-width="10.5"/><path d="M-9 -8 Q-9 -16 0 -16 Q9 -16 9 -7 Q9 -1 -9 14 L10 14" stroke="#6A3000" stroke-width="5.4"/></g>
+</svg>

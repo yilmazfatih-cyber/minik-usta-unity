@@ -35,6 +35,12 @@ namespace MinikUsta.Presentation.Art
         ShadowFill,
         ShadowLine,
         ShadowCorner,
+        /// <summary>v3 trait overlay over every cell (wrap net, frost sheen); drawn above the body, removable (`TraitFx`).</summary>
+        Overlay,
+        /// <summary>v3 trait badge on the top-left cell (knot, scissors, "+n" star, snowflake, layer count); removable (`TraitFx`).</summary>
+        Badge,
+        /// <summary>v3 Y10 pallet planks under the lowest layer (cell-sized plus a 10 px rim left, right and below).</summary>
+        Planks,
     }
 
     /// <summary>One frame of a composed block / shadow: drawn INTO `Rect` (design px, relative to the piece box centre, y down).</summary>
@@ -104,8 +110,48 @@ namespace MinikUsta.Presentation.Art
             return new PxRect(left ? cell.X : cell.Right - size, top ? cell.Y : cell.Bottom - size, size, size);
         }
 
-        /// <summary>The parts of a block (body tiles, corner fills, gloss or mortar), back to front.</summary>
-        public static List<SpritePart> Block(ShapeDef shape, int colorIndex, double cellPx, BlockLook look, AtlasData? atlas = null)
+        /// <summary>Badge size / offset (design px at a 120 px cell): it sits on the top-left cell's corner, slightly outside it, so the stud symbol stays visible.</summary>
+        public const double BadgePx = 70;
+        public const double BadgeDx = -8;
+        public const double BadgeDy = -12;
+        /// <summary>Badge slots go right along the top edge, this far apart (design px at a 120 px cell).</summary>
+        public const double BadgeStep = 54;
+        /// <summary>Pallet planks rim (design px at a 120 px cell) and the frame size `pallet_cell` was drawn for (140 × 130).</summary>
+        public const double PalletRim = 10;
+        public const double PalletW = 140;
+        public const double PalletH = 130;
+        /// <summary>Sorting: planks under the body, overlays and badges above it (added to the visual's base order).</summary>
+        public const int PlanksOrder = -3;
+        public const int OverlayOrder = 3;
+        public const int BadgeOrder = 4;
+
+        /// <summary>The cell a badge sits on: the top row's left-most cell.</summary>
+        public static int BadgeCell(ShapeDef shape)
+        {
+            int best = 0;
+            for (int i = 1; i < shape.Cells.Length; i++)
+            {
+                var c = shape.Cells[i];
+                var b = shape.Cells[best];
+                if (c.Y > b.Y || (c.Y == b.Y && c.X < b.X)) best = i;
+            }
+            return best;
+        }
+
+        /// <summary>The badge frames of `traits`, left to right (knot, scissors, bonus star, snowflake, layer count).</summary>
+        public static List<string> BadgeFrames(BlockTraits traits)
+        {
+            var o = new List<string>(3);
+            if (traits.Wrapped) o.Add(Frames.WrapKnot);
+            if (traits.Scissors) o.Add(Frames.IcoScissors);
+            if (traits.Bonus > 0) o.Add(Frames.IcoBonus(traits.Bonus));
+            if (traits.Slippery) o.Add(Frames.IcoSlip);
+            if (traits.PalletLayers >= 2) o.Add(Frames.IcoLayers(traits.PalletLayers));
+            return o;
+        }
+
+        /// <summary>The parts of a block (body tiles, corner fills, gloss or mortar, v3 trait overlays and badges), back to front.</summary>
+        public static List<SpritePart> Block(ShapeDef shape, int colorIndex, double cellPx, BlockLook look, AtlasData? atlas = null, BlockTraits? traits = null)
         {
             var o = new List<SpritePart>(shape.Cells.Length * 3);
             var tint = look == BlockLook.Placed ? PlacedTint : look == BlockLook.Dim ? DimTint : Rgba.White;
@@ -116,11 +162,13 @@ namespace MinikUsta.Presentation.Art
                 var c = shape.Cells[i];
                 int mask = BoardPose.NeighbourMask(shape, c);
                 var r = CellRect(shape, c, cellPx);
-                string body = Frames.Block(colorIndex, mask);
+                // v3 Y9: a two-tone block draws every cell in its own colour (the joined tiles still read as one block)
+                int ci = traits?.CellColors != null && i < traits.CellColors.Length ? traits.CellColors[i] : colorIndex;
+                string body = Frames.Block(ci, mask);
                 o.Add(new SpritePart(body, PartRole.Body, i, r, tint, 0));
                 foreach (var (kk, dx, dy) in Corners)
                     if (Has(shape, c.X + dx, c.Y) && Has(shape, c.X, c.Y + dy) && Has(shape, c.X + dx, c.Y + dy))
-                        o.Add(new SpritePart(Frames.BlockCorner(colorIndex, mask, kk), PartRole.Corner, i, CornerRect(r, kk, cs), tint, 1));
+                        o.Add(new SpritePart(Frames.BlockCorner(ci, mask, kk), PartRole.Corner, i, CornerRect(r, kk, cs), tint, 1));
                 if (look == BlockLook.Holdable)
                 {
                     var f = atlas?.Find(body);
@@ -135,8 +183,33 @@ namespace MinikUsta.Presentation.Art
                 {
                     o.Add(new SpritePart(Frames.Locked, PartRole.Locked, i, r, Rgba.White, 2));
                 }
+                if (traits != null && !traits.IsNone) CellTraitParts(o, traits, i, r, cellPx);
             }
+            if (traits != null && !traits.IsNone) BadgeParts(o, shape, traits, cellPx);
             return o;
+        }
+
+        private static void CellTraitParts(List<SpritePart> o, BlockTraits traits, int cell, PxRect r, double cellPx)
+        {
+            double k = cellPx / 120.0;
+            if (traits.PalletBase)
+                o.Add(new SpritePart(Frames.PalletCell, PartRole.Planks, cell, new PxRect(r.X - PalletRim * k, r.Y, PalletW * k, PalletH * k), Rgba.White, PlanksOrder));
+            if (traits.Wrapped) o.Add(new SpritePart(Frames.OvlWrap, PartRole.Overlay, cell, r, Rgba.White, OverlayOrder));
+            if (traits.Slippery) o.Add(new SpritePart(Frames.OvlIce, PartRole.Overlay, cell, r, Rgba.White, OverlayOrder));
+        }
+
+        private static void BadgeParts(List<SpritePart> o, ShapeDef shape, BlockTraits traits, double cellPx)
+        {
+            var frames = BadgeFrames(traits);
+            if (frames.Count == 0) return;
+            int bc = BadgeCell(shape);
+            var r = CellRect(shape, shape.Cells[bc], cellPx);
+            double k = cellPx / 120.0;
+            for (int slot = 0; slot < frames.Count; slot++)
+            {
+                double s = BadgePx * k;
+                o.Add(new SpritePart(frames[slot], PartRole.Badge, bc, new PxRect(r.X + (BadgeDx + slot * BadgeStep) * k, r.Y + BadgeDy * k, s, s), Rgba.White, BadgeOrder));
+            }
         }
 
         /// <summary>The K-18 fall shadow parts for `look` (fill only when the shadow has a body; outline always).</summary>

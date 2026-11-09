@@ -52,6 +52,26 @@ namespace MinikUsta.Presentation.Tests.Fixtures
             Dim = dim;
         }
 
+        /// <summary>The v3 traits as `SetTraits` left them (E3).</summary>
+        public BlockTraits Traits = BlockTraits.None;
+        private float traitFx;
+        public float TraitFx
+        {
+            get => traitFx;
+            set
+            {
+                traitFx = value;
+                if (value > MaxTraitFx) MaxTraitFx = value;
+            }
+        }
+        /// <summary>The largest `TraitFx` ever set (tests: an unwrap / bonus release played).</summary>
+        public float MaxTraitFx;
+
+        public void SetTraits(BlockTraits traits)
+        {
+            Traits = traits;
+        }
+
         public void SetCellScale(int cell, float sx, float sy)
         {
             if (CellScales.Length != CellCount)

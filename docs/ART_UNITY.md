@@ -328,3 +328,27 @@ Gerekçe (neden 4, neden 5 değil):
 
 **logo** (2): `logo_emblem`, `logo_wordmark`
 
+---
+
+## 9. v3 blok özellikleri — uzantı kareleri (paket E3, code-lead)
+
+Atlas (sayfa 0–2) B1'in Blender çıktısıdır ve bu depodan yeniden üretilemez (3B PNG kaynakları depoda yok). Yeni özellik kareleri
+bu yüzden **ayrı SVG'lerden, ek bir atlas sayfasına** konur; `atlas.json`'a eklenir (`extend` bloğu: ilk sayfa, kare listesi), mevcut kareler ve
+sayfalar değişmez. Kaynak `art/src/trait/*.svg` → `art/svg/trait/` (`node art/gen/build.mjs`) → `node tools/art/extend.mjs --web <web>` (idempotent).
+
+| Özellik | Kare | Boyut (tasarım px) · ölçek | Nerede |
+| ------- | ---- | -------------------------- | ------ |
+| Y11 sargı | `ovl_wrap` (şeffaf film + ip ağı) | 120² · 1,25 | her hücrenin üstüne |
+| Y11 sargı | `ovl_wrap_knot` (fiyonk) | 88² · 1,2 | rozet |
+| Y11 makas | `ico_scissors` | 88² · 1,2 | rozet |
+| Y12 bonus | `ico_bonus_1/2/3` (altın yıldız "+n") | 88² · 1,2 | rozet |
+| Y13 kaygan | `ovl_ice` (şeffaf buz + ışık çizgileri), `ico_slip` (kar tanesi) | 120² · 1,25, 88² · 1,2 | hücre örtüsü, rozet |
+| Y10 palet | `pallet_cell` (tahta kaplama, hücre + 10 px kenar), `ico_layers_2/3/4` | 140 × 130 · 1,25, 88² · 1,2 | en alt katmanın altı, rozet |
+| Y9 iki renkli | yeni kare yok | — | hücre başına kendi `blk_<c>_<mm>` karosu |
+
+Kurallar: **renk + simge** (her özelliğin kendine ait biçimi vardır: ip ağı, makas, yıldız, kar tanesi, tahta katmanları; iki renkli bloğun her hücresi kendi
+sembolünü taşır); rozet `BlockSkin.BadgePx = 70` tasarım px, en üst satırın sol hücresinin sol üst köşesinde, birden fazla rozet sağa dizilir (sargı, makas,
+bonus, kaygan, katman); örtüler gövdenin üstünde (`Order` 3), rozetler üstünde (4), palet tahtası altında (−3). Örtülü palet katmanı (`PalletDepth` > 0) hücrenin
+%10'u kadar aşağıda ve diğer blokların altında çizilir (`PieceViews.PalletDepthRise`). Bellek: sayfa 3 = 620 × 376 (0,93 MB), toplam 66,98 MB < 64 MiB bütçesi.
+Öz puan (rubrik): hacim/ışık 3 (kare düz vektör, 3B bloklarla aynı dilde değil), renk/kontrast 4, ikon/rozet 4, okunurluk 4 — 3B (Blender) sürümü sonraki sanat paketi.
+

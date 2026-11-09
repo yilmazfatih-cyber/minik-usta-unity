@@ -58,15 +58,15 @@ namespace MinikUsta.Presentation.Tests
             else if (v.IsArray) foreach (var i in v.Items) foreach (var x in Frames(i)) yield return x;
         }
 
-        /// <summary>Level 3 mid-play: one block placed, the next one lifted over its correct landing (K-18 shadow ✓).</summary>
-        private static AppRig MidLevel()
+        /// <summary>Level 3 mid-play (v3 levels): two blocks placed, the next one lifted over its correct landing (K-18 shadow ✓).</summary>
+        private static AppRig MidLevel(int level = 3, int k = 2)
         {
             var rig = new AppRig(Store(2, 1250, true));
             rig.App.Boot();
             rig.Tap(HomeView.PlayId);
             rig.TapOption(PanelAction.Play);
-            rig.PlayGolden(3, 1);
-            var m = Play.SolverGolden(3).Drags[1];
+            rig.PlayGolden(level, k);
+            var m = Play.SolverGolden(level).Drags[k];
             var p = rig.Player;
             var cell = Grid.PieceBoardCells(rig.Session.State, m.PieceId)[0];
             var r = p.Layout!.Grid.CellRect(cell.X, cell.Y);
@@ -128,6 +128,21 @@ namespace MinikUsta.Presentation.Tests
             Assert.AreEqual(Flow.AppScreen.Win, win.Screen);
             // the star pop and the window pop have finished: the scene shows the window at rest
             Emit(SceneDump.Scene("win", win));
+        }
+
+        [Test(Description = "E3: the v3 block traits on their levels (5 two-tone, 7 wrap + scissors, 9 bonus, 99 showcase) as scenes for tools/art/compose.mjs")]
+        public void E3_scenes_v3_levels_show_the_block_traits()
+        {
+            foreach (int n in new[] { 5, 7, 9, 99 })
+            {
+                var rig = new AppRig(Store(10, 1250, true));
+                rig.App.Boot();
+                rig.Tap(HomeView.PlayId);
+                rig.App.DebugStartLevel(n);
+                rig.Settle();
+                Assert.AreEqual(n, rig.Player.LevelNumber);
+                Emit(SceneDump.Scene("traits-" + n, rig));
+            }
         }
 
         /// <summary>Ticks until `done` (or `maxMs`) in 60 fps frames.</summary>

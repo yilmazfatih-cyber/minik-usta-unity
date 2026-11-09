@@ -42,6 +42,20 @@ namespace MinikUsta.Presentation.Art
         public const string White = "px_white";
         public const string DropBlob = "fx_drop_blob";
 
+        // v3 block traits (paket E3, docs/ART_UNITY.md section 9; the frames are in the extension pages of atlas.json, tools/art/extend.mjs)
+        public const string OvlWrap = "ovl_wrap";
+        public const string WrapKnot = "ovl_wrap_knot";
+        public const string IcoScissors = "ico_scissors";
+        public const string OvlIce = "ovl_ice";
+        public const string IcoSlip = "ico_slip";
+        public const string PalletCell = "pallet_cell";
+
+        /// <summary>Y12 star badge "+n" (n 1–3).</summary>
+        public static string IcoBonus(int n) => "ico_bonus_" + (n < 1 ? 1 : n > 3 ? 3 : n);
+
+        /// <summary>Y10 layer badge (n 2–4 layers).</summary>
+        public static string IcoLayers(int n) => "ico_layers_" + (n < 2 ? 2 : n > 4 ? 4 : n);
+
         // fx
         public const string FxSpark = "fx_spark";
         public const string FxDust = "fx_dust";

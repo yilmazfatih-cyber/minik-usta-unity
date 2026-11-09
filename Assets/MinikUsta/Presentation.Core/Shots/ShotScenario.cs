@@ -89,7 +89,10 @@ namespace MinikUsta.Presentation.Shots
         /// <summary>The shots in the order they are signalled (`shot:&lt;name&gt;`); the CI manifest lists the same names.</summary>
         public static readonly string[] ShotNames =
         {
-            "home", "settings", "level_start", "tutorial", "drag_mid", "landed", "win", "pause", "exit_confirm", "level_start_window", "lose_offer",
+            "home", "settings", "level_start", "tutorial", "drag_mid", "landed", "win", "pause", "exit_confirm", "level_start_window",
+            // E3 (GDD §16 v3 block traits): level 5 two-tone, level 7 wrap + scissors and the unwrap burst, level 9 bonus star, level 99 the showcase
+            "v3_twotone", "v3_wrap", "v3_unwrap", "v3_bonus", "v3_showcase",
+            "lose_offer",
         };
 
         /// <summary>The motion windows (`seq:&lt;name&gt;`) and the shot each one comes right before; tools/ci-shots/shots.json lists the same.</summary>
@@ -219,6 +222,18 @@ namespace MinikUsta.Presentation.Shots
             Add("play_3", 900f, Once(() => TapHome(HomeView.PlayAction) && RequireScreen(AppScreen.LevelStart)));
             Add("level_start_window", 900f, Once(() => Shot("level_start_window")));
             Add("start_3", hold, Once(() => Panel(AppScreen.LevelStart, PanelAction.Play)));
+            // E3: the v3 block traits on their levels, then back to level 3 for the +5 offer
+            Add("v3_start_5", hold, Once(() => DebugLevel(5)));
+            Add("v3_twotone", 1500f, Once(() => RequireScreen(AppScreen.Level) && Shot("v3_twotone")));
+            Add("v3_start_7", hold, Once(() => DebugLevel(7)));
+            Add("v3_wrap", 1500f, Once(() => RequireScreen(AppScreen.Level) && Shot("v3_wrap")));
+            Add("v3_play_7", hold, PlayUntilEvent<UnwrappedEvent>());
+            Add("v3_unwrap", 220f, Once(() => Shot("v3_unwrap")));
+            Add("v3_start_9", hold * 2f, Once(() => DebugLevel(9)));
+            Add("v3_bonus", 1500f, Once(() => RequireScreen(AppScreen.Level) && Shot("v3_bonus")));
+            Add("v3_start_99", hold, Once(() => DebugLevel(LevelCatalog.Showcase)));
+            Add("v3_showcase", 1500f, Once(() => RequireScreen(AppScreen.Level) && Shot("v3_showcase")));
+            Add("v3_back_3", hold, Once(() => DebugLevel(3)));
             Add("burn", 1200f, BurnMoves);
             Add("lose_offer", 0f, WaitIdleThen(900f, () => RequireScreen(AppScreen.LoseOffer) && Shot("lose_offer")));
             Add("done", hold, Once(() =>
@@ -483,6 +498,30 @@ namespace MinikUsta.Presentation.Shots
             sinceCommit = 0f;
             return true;
         }
+
+        /// <summary>E3: restarts the level screen on level `n` (the debug panel's level jump).</summary>
+        private bool DebugLevel(int n)
+        {
+            if (!RequireScreen(AppScreen.Level)) return false;
+            app.DebugStartLevel(n);
+            return app.Player.LevelNumber == n;
+        }
+
+        /// <summary>E3: plays the golden solution, one move per settled board, until a committed package holds an event of type `T` (then it stops at once).</summary>
+        private Run PlayUntilEvent<T>() where T : GameEvent => dtMs =>
+        {
+            var p = app.Player;
+            var session = p.Session;
+            if (session == null) return Fail2("no session");
+            if (session.Outcome != BoosterOutcomes.Playing) return Fail2("level decided before " + typeof(T).Name);
+            if (!Idle() || sinceCommit < 350f || p.Panel != PanelKind.None) return false;
+            var move = DebugSolver.Next(session, Sol());
+            if (move == null) return Fail2("no move left before " + typeof(T).Name);
+            var res = p.Commit(move);
+            sinceCommit = 0f;
+            foreach (var e in res.Events) if (e is T) return true;
+            return false;
+        };
 
         private bool Idle() => !app.Player.Queue.Busy && app.Player.Clock.Count == 0 && app.Player.CoinsInFlight == 0;
 

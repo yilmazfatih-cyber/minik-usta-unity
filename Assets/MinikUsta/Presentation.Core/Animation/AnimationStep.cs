@@ -84,6 +84,10 @@ namespace MinikUsta.Presentation.Animation
         BagTear,
         /// <summary>#36 chain broken (Y3).</summary>
         ChainBreak,
+        /// <summary>E3 (Y11, K-59): the wraps burst off (`unwrapped`): rope + film fly up and fade, confetti, the scissors badge snips. `PieceId` = the scissors block (or the cut wrap for the hammer), `Also` none.</summary>
+        Unwrap,
+        /// <summary>E3 (Y12, K-60): a correctly placed bonus block pays its moves (`movesChanged{bonus}`): the "+n" star leaves the block, flies to the moves chip, the counter rolls up. `PieceId` = the placed block.</summary>
+        BonusMoves,
         /// <summary>#40 screw collected (Y7).</summary>
         ScrewCollect,
         /// <summary>#39 key collected.</summary>
