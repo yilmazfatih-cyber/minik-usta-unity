@@ -242,6 +242,7 @@ sahibine bağlı girdilerde (lisans, mağaza hesapları, imza anahtarları, ücr
 | Faz | Kapsam | Durum |
 | --- | --- | --- |
 | 3 | Oynanabilir yer tutucu tahta, his katmanı, şüpheci inceleme ([`docs/PHASE3_REPORT.md`](docs/PHASE3_REPORT.md)) | KABUL (D-097) |
+| 3-v3 | Bölümler v3 (D-102, KABUL 2026-11-09): 10 bölüm, 8–16 blok (toplam 118), L4/J4/C3/T4/I3 şekilleri, iki renkli, sargı + makas, bonus, kaygan blok; yayın `levels/` 701b8f3 ile aynı. Açık: blok 17–22 sınırı, palet (Y10) yok, çıkmaz kanıtı ve bot ölçümü yok ([`docs/LEVELS_V3_REPORT.md`](docs/LEVELS_V3_REPORT.md)) | Yayında (v3b); kanıt ve karar açıkları raporda |
 | 4 | Görsel ve his yükseltmesi: SVG sanat paketi (V0), görsel katman, HUD v3, pencereler, ana sayfa, ayarlar, kayıt, i18n (V1) | V0 ve V1 tamam; UX turu U1–U4 (P0 ve ux-review R-01…R-07) kodda; U5 raporu [`docs/UX_REPORT.md`](docs/UX_REPORT.md). Açık: AU-1 alt boşluk, AC-14 yeniden puanlama; sırada V2 (ses, öğretici, güçlendirici oynanışı) |
 | 5 | İçerik ve meta: 50 bölüm, 5 hikâye bölümü, kasaba, ekonomi, 2 etkinlik, sahte mağaza | Başlamadı |
 | 6 | Yayın hazırlığı: performans, Android ve WebGL derlemeleri, mağaza metinleri, gizlilik | Başlamadı |
