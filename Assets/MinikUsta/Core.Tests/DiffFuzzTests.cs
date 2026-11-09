@@ -235,6 +235,28 @@ namespace MinikUsta.Core.Tests
                 Assert.IsTrue(m["events"]![t] != null && m["events"]![t]!.AsInt > 0, "the fuzz contains a " + t + " event");
         }
 
+        [Test(Description = "K-45 L-40 L-41 the validator issues of every v3 trait board (check, code, severity, path, message; every check) equal the TypeScript validator")]
+        public void K45_L40_L41_v3_validator_issues_equal_the_TypeScript_validator()
+        {
+            RequireOracle();
+            int boards = 0, withIssues = 0;
+            var codes = new HashSet<string>();
+            foreach (var f in Manifest["files"]!.Items)
+            {
+                if (f["source"]!["kind"]!.AsString != "v3") continue;
+                var src = SourceFile(f["file"]!.AsString);
+                var expected = src["validate"]!.Items.Select(x => x.AsString).ToArray();
+                var res = Logic.ValidateLevelJson(src["level"]!, new LogicContext());
+                var actual = res.Issues.Select(i => string.Join("|", i.Check, i.Code, i.Severity, i.Path, i.Message)).ToArray();
+                CollectionAssert.AreEqual(expected, actual, f["file"]!.AsString + ": validator issues");
+                boards++;
+                if (expected.Length > 0) withIssues++;
+                foreach (var e in expected) codes.Add(e.Split('|')[1]);
+            }
+            Assert.GreaterOrEqual(boards, 20, "v3 boards in the oracle output");
+            Assert.Greater(withIssues, 0, "the boards exercise the validator (codes: " + string.Join(", ", codes.OrderBy(c => c, StringComparer.Ordinal)) + ")");
+        }
+
         [Test(Description = "K-35 K-43 diff fuzz: every step of a seeded TS sequence (Zobrist hash, buffer, events, ASCII, session) equals the C# session")]
         [TestCaseSource(nameof(Sequences))]
         public void K35_K43_diff_fuzz_sequence_equals_the_TypeScript_core(string file, int index)

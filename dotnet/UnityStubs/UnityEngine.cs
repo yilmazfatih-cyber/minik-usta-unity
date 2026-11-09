@@ -329,6 +329,8 @@ namespace UnityEngine
         N = 110,
         R = 114,
         S = 115,
+        /// <summary>UnityCsReference KeyCode.V = 118 (E3: the debug key of the block showcase, level 99).</summary>
+        V = 118,
     }
 
     public class Input

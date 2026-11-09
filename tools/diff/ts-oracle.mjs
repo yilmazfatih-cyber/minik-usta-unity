@@ -61,6 +61,7 @@ const web = (p) => import(pathToFileURL(join(WEB, p)).href);
 const ARCHIVE = resolve(opt('--archive', join(ROOT, 'Assets', 'MinikUsta', 'Core.Tests', 'Archive2R')));
 const { compile, loadLevel } = await web('src/core/level/compile.ts');
 const { LevelSchema } = await web('src/core/level/schema.ts');
+const { validateLevelJson } = await web('src/core/level/logic.ts');
 const { Zone } = await web('src/core/types.ts');
 const { pieceZone, pieceShape } = await web('src/core/state.ts');
 const { hashHex } = await web('src/core/hash.ts');
@@ -398,6 +399,10 @@ function writeSource(file, source, data, sequences) {
     source,
     levelHash: levelHash(data),
     level: data,
+    // v3 boards also carry the validator result (every check, L-40 / L-41 included): "check|code|severity|path|message" per issue
+    ...(source.kind === 'v3'
+      ? { validate: validateLevelJson(JSON.parse(JSON.stringify(data)), {}).issues.map((i) => [i.check, i.code, i.severity, i.path, i.message].join('|')) }
+      : {}),
     sequences,
   };
   // one sequence per line keeps the file greppable

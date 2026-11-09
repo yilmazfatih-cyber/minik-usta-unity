@@ -135,6 +135,7 @@ namespace MinikUsta.Unity
             var p = a.Player;
             if (Input.GetKeyDown(KeyCode.N)) a.DebugStartLevel(LevelCatalog.Next(p.LevelNumber));
             if (Input.GetKeyDown(KeyCode.R)) a.DebugStartLevel(p.LevelNumber);
+            if (Input.GetKeyDown(KeyCode.V)) a.DebugStartLevel(LevelCatalog.Showcase); // E3: every v3 block trait on one board
             if (Input.GetKeyDown(KeyCode.A) && p.Session != null) Debug.Log(Ascii.ToAscii(p.Session.State, true));
             if (Input.GetKeyDown(KeyCode.S)) DebugSolveStep(a);
         }
