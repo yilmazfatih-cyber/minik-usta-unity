@@ -55,10 +55,13 @@ namespace MinikUsta.Core
         public readonly string[] Obstacles;
         public readonly int[] Locked;
         public readonly int[] Stuck;
+        /// <summary>v3 `traits:` entries (null when the line is absent).</summary>
+        public readonly string[]? Traits;
 
         public AsciiBoard(int levelId, int turn, int moves, int seg, int segCount, int elev, bool ids, AsciiSize size, string[][] cells,
-            string[] wall, string[] plan, string[]? hidden, int[] queue, string[] obstacles, int[] locked, int[] stuck)
+            string[] wall, string[] plan, string[]? hidden, int[] queue, string[] obstacles, int[] locked, int[] stuck, string[]? traits = null)
         {
+            Traits = traits;
             LevelId = levelId;
             Turn = turn;
             Moves = moves;
@@ -95,6 +98,8 @@ namespace MinikUsta.Core
     /// </summary>
     public static class Ascii
     {
+        private static readonly Regex V3FlagEntry = new Regex("^(wrapped|scissors|bonus|slippery):([0-9]+)$", RegexOptions.CultureInvariant);
+        private static readonly Regex PalletEntry = new Regex("^pallet:([^@]+)@\\(([0-9]),([0-9])\\)$", RegexOptions.CultureInvariant);
         private const string IdChars = "0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ";
         /// <summary>Yard air and site air (LEVELS §0 notation).</summary>
         public const string AirChar = "·";
@@ -105,11 +110,107 @@ namespace MinikUsta.Core
             return IdChars[id].ToString();
         }
 
-        private static string ColorChar(GameState s, int id, bool upper)
+        /// <summary>Colour letter of piece `id` at board cell (x, y) (a two-tone block prints its cell's own colour, Y9).</summary>
+        private static string ColorChar(GameState s, int id, bool upper, int x = -1, int y = -1)
         {
             int ci = PieceColor(s, id);
+            if (s.Lvl.Pieces[id].CellColors != null && x >= 0)
+            {
+                var shape = Shapes.ShapeByIndex(PieceShape(s, id));
+                int ax = PieceX(s, id);
+                int ay = PieceY(s, id) + (PieceZone(s, id) == Zone.Site ? Hdr(s, H.Elev) : 0);
+                for (int i = 0; i < shape.Cells.Length; i++)
+                {
+                    if (ax + shape.Cells[i].X == x && ay + shape.Cells[i].Y == y)
+                    {
+                        ci = PieceCellColor(s, id, i);
+                        break;
+                    }
+                }
+            }
             string c = (ci >= 0 && ci < ColorCodes.All.Length ? ColorCodes.All[ci] : "W").ToLowerInvariant();
             return upper ? c.ToUpperInvariant() : c;
+        }
+
+        /// <summary>
+        /// A shape drawn top → bottom, rows joined with ` / ` (LEVELS §8.2 notation): `X` cell, `.` empty; with `colors` (Y9, the
+        /// shape's (y, x) cell order) each cell prints its colour letter. `ShapeAscii("L4_180")` = `XX / .X / .X`.
+        /// </summary>
+        public static string ShapeAscii(string id, string? colors = null)
+        {
+            var shape = Shapes.ShapeById(id);
+            var rows = new List<string>();
+            for (int y = shape.H - 1; y >= 0; y--)
+            {
+                var row = new StringBuilder();
+                for (int x = 0; x < shape.W; x++)
+                {
+                    int i = -1;
+                    for (int k = 0; k < shape.Cells.Length; k++) if (shape.Cells[k].X == x && shape.Cells[k].Y == y) { i = k; break; }
+                    row.Append(i < 0 ? '.' : colors != null && i < colors.Length ? colors[i] : 'X');
+                }
+                rows.Add(row.ToString());
+            }
+            return string.Join(" / ", rows);
+        }
+
+        private static readonly HashSet<string> TraitIds = new HashSet<string> { "Y9", "Y10", "Y11", "Y12", "Y13" };
+        private static readonly string[] V3FlagNames = { PieceFlags.Wrapped, PieceFlags.Scissors, PieceFlags.Bonus, PieceFlags.Slippery };
+
+        /// <summary>v3 `traits:` line entries (see the TS module comment); null when the level has no v3 trait.</summary>
+        private static List<string>? TraitEntries(GameState s, bool ids)
+        {
+            var lvl = s.Lvl;
+            bool any = false;
+            foreach (var m in lvl.Mechanics) if (TraitIds.Contains(m)) any = true;
+            if (!any) return null;
+            var o = new List<string>();
+            int P = lvl.Layout.Counts.Pieces;
+            // pallets: layers still at their pallet anchor in the yard, bottom → top (insertion order of the first layer, like a JS Map)
+            var keys = new List<string>();
+            var pallets = new Dictionary<string, List<int>>();
+            for (int id = 0; id < P; id++)
+            {
+                var p = lvl.Pieces[id];
+                if (p.StackId < 0 || PieceZone(s, id) != Zone.Yard) continue;
+                if (PieceX(s, id) != p.X || PieceY(s, id) != p.Y) continue;
+                string key = p.X + "," + p.Y;
+                if (!pallets.TryGetValue(key, out var list))
+                {
+                    list = new List<int>();
+                    pallets[key] = list;
+                    keys.Add(key);
+                }
+                list.Add(id);
+            }
+            foreach (var at in keys)
+            {
+                var layers = pallets[at];
+                if (layers.Count < 2) continue;
+                layers.Sort((a, b) => lvl.Pieces[a].StackZ - lvl.Pieces[b].StackZ);
+                if (ids)
+                {
+                    var chars = new List<string>();
+                    foreach (int l in layers) chars.Add(IdChar(l));
+                    o.Add("pallet:" + string.Join(",", chars) + "@(" + at + ")");
+                }
+                else o.Add("pallet@(" + at + ")x" + layers.Count);
+            }
+            foreach (var name in V3FlagNames)
+            {
+                for (int id = 0; id < P; id++)
+                {
+                    if ((PieceFlagBits(s, id) & FlagBit.Of(name)) == 0) continue;
+                    int zone = PieceZone(s, id);
+                    if (ids) o.Add(name + ":" + id);
+                    else if (zone == Zone.Yard)
+                    {
+                        string tag = name == PieceFlags.Bonus ? "bonus+" + lvl.Pieces[id].BonusMoves : name;
+                        o.Add(tag + "@(" + PieceX(s, id) + "," + PieceY(s, id) + ")");
+                    }
+                }
+            }
+            return o;
         }
 
         /// <summary>Wall boundary character of board row y.</summary>
@@ -133,7 +234,7 @@ namespace MinikUsta.Core
             var geo = s.Lvl.Geo;
             if (y >= geo.Hy && y < geo.H) return AirChar;
             int v = YardOcc(s, x, y);
-            if (v > 0) return ids ? IdChar(v - 1) : ColorChar(s, v - 1, false);
+            if (v > 0) return ids ? IdChar(v - 1) : ColorChar(s, v - 1, false, x, y);
             if (v < 0 && !ids)
             {
                 int oi = -v - 1;
@@ -156,7 +257,7 @@ namespace MinikUsta.Core
             if (v == SiteTrowel) return "*";
             if (v <= 0) return ".";
             if (ids) return IdChar(v - 1);
-            return ColorChar(s, v - 1, (PieceFlagBits(s, v - 1) & FlagBit.Locked) != 0);
+            return ColorChar(s, v - 1, (PieceFlagBits(s, v - 1) & FlagBit.Locked) != 0, geo.SiteX + sx, y);
         }
 
         /// <summary>The board as Appendix A text (lines joined with `\n`, no trailing newline).</summary>
@@ -219,6 +320,8 @@ namespace MinikUsta.Core
             }
             var queue = QueueIds(s);
             if (queue.Length > 0) lines.Add("queue: " + string.Join(" ", Strings(queue)));
+            var traits = TraitEntries(s, ids);
+            if (traits != null) lines.Add("traits: " + (traits.Count > 0 ? string.Join(" ", traits) : "-"));
             if (ids)
             {
                 var obs = new List<string>();
@@ -309,6 +412,7 @@ namespace MinikUsta.Core
             var obstacles = new string[0];
             var locked = new int[0];
             var stuck = new int[0];
+            string[]? traits = null;
             for (int li = sized.Success ? 2 : 1; li < lines.Length; li++)
             {
                 string line = lines[li];
@@ -338,6 +442,11 @@ namespace MinikUsta.Core
                 else if (line.StartsWith("obstacles:", StringComparison.Ordinal)) obstacles = Words(line.Substring(10));
                 else if (line.StartsWith("locked:", StringComparison.Ordinal)) locked = Nums(line.Substring(7));
                 else if (line.StartsWith("stuck:", StringComparison.Ordinal)) stuck = Nums(line.Substring(6));
+                else if (line.StartsWith("traits:", StringComparison.Ordinal))
+                {
+                    string rest = JsRegex.Trim(line.Substring(7));
+                    traits = rest == "-" ? new string[0] : Words(rest);
+                }
                 else if (JsRegex.Trim(line).Length != 0) throw new FormatException("ascii: unexpected line \"" + line + "\"");
             }
             if (seen.Count != rows) throw new FormatException("ascii: the board needs rows " + (rows - 1) + " … 0");
@@ -357,7 +466,8 @@ namespace MinikUsta.Core
                 queue,
                 obstacles,
                 locked,
-                stuck);
+                stuck,
+                traits);
         }
 
         /// <summary>
@@ -440,6 +550,34 @@ namespace MinikUsta.Core
                 SetPieceField(s, id, PF.Y, onSite ? ay - board.Elev : ay);
                 SetPieceField(s, id, PF.Seg, onSite ? board.Seg : compiled.Segment);
                 Grid.OccupyPiece(s, id);
+            }
+            // v3: covered pallet layers (not drawn) and the v3 flags, from the `traits:` line
+            if (board.Traits != null)
+            {
+                for (int id = 0; id < P; id++) foreach (var name in V3FlagNames) SetFlag(s, id, FlagBit.Of(name), false);
+                foreach (var e in board.Traits)
+                {
+                    var flag = V3FlagEntry.Match(e);
+                    if (flag.Success)
+                    {
+                        SetFlag(s, int.Parse(flag.Groups[2].Value, CultureInfo.InvariantCulture), FlagBit.Of(flag.Groups[1].Value), true);
+                        continue;
+                    }
+                    var pallet = PalletEntry.Match(e);
+                    if (!pallet.Success) throw new FormatException("ascii: bad traits entry \"" + e + "\"");
+                    int x = int.Parse(pallet.Groups[2].Value, CultureInfo.InvariantCulture);
+                    int y = int.Parse(pallet.Groups[3].Value, CultureInfo.InvariantCulture);
+                    var layerIds = pallet.Groups[1].Value.Split(',');
+                    // bottom → top; only the top is drawn (and so already placed): the others lie under it
+                    for (int li = 0; li < layerIds.Length - 1; li++)
+                    {
+                        int id = IdChars.IndexOf(layerIds[li], StringComparison.Ordinal);
+                        SetPieceField(s, id, PF.Zone, Zone.Yard);
+                        SetPieceField(s, id, PF.X, x);
+                        SetPieceField(s, id, PF.Y, y);
+                        SetPieceField(s, id, PF.Seg, -1);
+                    }
+                }
             }
             foreach (int id in board.Queue) EnqueuePiece(s, id);
             foreach (int id in board.Locked) SetFlag(s, id, FlagBit.Locked, true);

@@ -101,13 +101,27 @@ namespace MinikUsta.Core
         private const int Mul0 = unchecked((int)0x9e3779b1u);
         private const int Mul1 = unchecked((int)0x85ebca77u);
 
-        /// <summary>Packs the piece class into one int: canonical shape (6 bits) | colour (3) | flags (8) | counter (8).</summary>
-        private static int PieceClass(int[] buf, int b)
+        /// <summary>Packs the piece class into one int: canonical shape (6 bits) | colour (3) | flags (8) | counter (8) | v3 flags (4, bits 25-28).</summary>
+        public static int PieceClassBits(int[] buf, int b)
         {
             return (buf[b + PF.Shape] & 63)
                 | ((buf[b + PF.Color] & 7) << 6)
                 | ((buf[b + PF.Flags] & 255) << 9)
-                | ((buf[b + PF.Counter] & 255) << 17);
+                | ((buf[b + PF.Counter] & 255) << 17)
+                | (((buf[b + PF.Flags] >> 8) & 15) << 25);
+        }
+
+        /// <summary>
+        /// v3 static part of a piece's class at a position (0 for every Faz 2R piece): the two-tone code (Y9) and, for a pallet
+        /// layer lying at its pallet anchor in the yard, `(z + 1) &lt;&lt; 29` (Y10).
+        /// </summary>
+        public static int PieceClassExtra(CompiledLevel lvl, int id, int zone, int x, int y)
+        {
+            if (id < 0 || id >= lvl.Pieces.Length) return 0;
+            var p = lvl.Pieces[id];
+            int extra = p.ToneCode;
+            if (p.StackId >= 0 && zone == Zone.Yard && x == p.X && y == p.Y) extra ^= unchecked((p.StackZ + 1) << 29);
+            return extra;
         }
 
         /// <summary>Writes the 64-bit hash into `out` ([lane0, lane1]) and returns it. Pass `out` to avoid an allocation.</summary>
@@ -144,7 +158,7 @@ namespace MinikUsta.Core
             for (int q = 0; q < queueLen; q++)
             {
                 int id = buf[layout.Queue + q];
-                int cls = PieceClass(buf, layout.Pieces + id * State.PieceStride);
+                int cls = PieceClassBits(buf, layout.Pieces + id * State.PieceStride) ^ lvl.Pieces[id].ToneCode;
                 unchecked
                 {
                     h0 ^= Rng.Fmix32((cls * Mul0) ^ (int)z.Pos0[PosQueue + q]);
@@ -160,7 +174,7 @@ namespace MinikUsta.Core
                 // queue handled above (order matters); pending and gone pieces are not hashed
                 if (zone != Zone.Yard && zone != Zone.Site) continue;
                 int pos = PiecePosition(siteX, zone, buf[b + PF.X], buf[b + PF.Y], buf[b + PF.Seg]);
-                int cls = PieceClass(buf, b);
+                int cls = PieceClassBits(buf, b) ^ PieceClassExtra(lvl, id, zone, buf[b + PF.X], buf[b + PF.Y]);
                 unchecked
                 {
                     h0 ^= Rng.Fmix32((cls * Mul0) ^ (int)z.Pos0[pos]);

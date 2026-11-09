@@ -70,7 +70,10 @@ namespace MinikUsta.Core.Obstacles
         /// Every rule plugin (TECH §7.1). Faz 2R: W1, Y3, S1 (S2 Plan Boşluğu left the MVP, R2-01: its plugin is gone, the `.`
         /// cell rules stay in the core for a later return); a new obstacle adds one line here.
         /// </summary>
-        public static readonly ObstacleRule[] AllRules = { W1_StaticGap.Rule, Y3_Chain.Rule, S1_SlidingSite.Rule };
+        public static readonly ObstacleRule[] AllRules =
+        {
+            W1_StaticGap.Rule, Y3_Chain.Rule, Y9_TwoTone.Rule, Y10_Pallet.Rule, Y11_Wrap.Rule, Y12_Bonus.Rule, Y13_Slippery.Rule, S1_SlidingSite.Rule,
+        };
 
         static Registry()
         {
@@ -278,7 +281,34 @@ namespace MinikUsta.Core.Obstacles
                 ComposeAfterNeighbors(set.Rules),
                 ComposeHammer(set),
                 ComposeTruckHelp(set.Rules),
-                ComposeTimers(lvl, set.Rules));
+                ComposeTimers(lvl, set.Rules),
+                null,
+                ComposePlacementBonus(set.Rules),
+                ComposeCorrectPlacement(set.Rules));
+        }
+
+        private static Func<RuleContext, int, int>? ComposePlacementBonus(ObstacleRule[] rules)
+        {
+            var fns = new List<Func<RuleContext, int, int>>();
+            foreach (var r in rules) if (r.PlacementBonus != null) fns.Add(r.PlacementBonus);
+            if (fns.Count == 0) return null;
+            return (ctx, id) =>
+            {
+                int n = 0;
+                foreach (var f in fns) n += f(ctx, id);
+                return n;
+            };
+        }
+
+        private static Action<RuleContext, int>? ComposeCorrectPlacement(ObstacleRule[] rules)
+        {
+            var fns = new List<Action<RuleContext, int>>();
+            foreach (var r in rules) if (r.OnCorrectPlacement != null) fns.Add(r.OnCorrectPlacement);
+            if (fns.Count == 0) return null;
+            return (ctx, id) =>
+            {
+                foreach (var f in fns) f(ctx, id);
+            };
         }
 
         private static ObstacleRule? GapOwner(RuleSet set, GameState s, int gap)
@@ -500,6 +530,11 @@ namespace MinikUsta.Core.Obstacles
                     var r = Owner(ctx.S, entity);
                     if (r?.OnHammer == null) throw new ArgumentOutOfRangeException(nameof(entity), "hammer: no rule accepts this target");
                     return r.OnHammer(ctx, entity);
+                },
+                (s, entity) =>
+                {
+                    var r = Owner(s, entity);
+                    return r != null ? (r.HammerKind ?? HammerTargetKinds.Chain) : null;
                 });
         }
 

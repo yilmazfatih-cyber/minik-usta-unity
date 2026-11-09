@@ -261,11 +261,13 @@ namespace MinikUsta.Core
             SetHdr(s, H.Turn, Hdr(s, H.Turn) + 1);
             SetHdr(s, H.MovesSpent, Hdr(s, H.MovesSpent) + 1); // K-43 item 2: every non-cancelled drag move
             em.Emit(new MovesChangedEvent(left + delta, delta, MovesChangedReasons.Move, new MoveCost(baseCost >= 2 ? 2 : 1, glass > 0 ? 1 : 0)));
+            if (placed) PlacementBonusStep(ctx, em, hooks, id);
 
             // --- step 5: neighbour effects of the START cells + hidden item check #1 (K-42)
             em.Step = 5;
             if (startZone == Zone.Yard) NeighbourEffects(ctx, hooks, startCells, id);
             hooks.AfterNeighbors?.Invoke(ctx);
+            if (placed) hooks.OnCorrectPlacement?.Invoke(ctx, id);
             UncoverCheck(ctx, hooks);
 
             // --- steps 6–12
@@ -278,6 +280,17 @@ namespace MinikUsta.Core
             em.Step = 10;
             RunTimers(ctx, hooks);
             return EndOfMove(ctx, em, hooks, opts, pre, placed || shifted || delivered);
+        }
+
+        /// <summary>v3 K-35 step 4 tail (Y12, GDD §16 K-60): the bonus of a correct placement, after the cost (`movesChanged{bonus}`).</summary>
+        private static void PlacementBonusStep(RuleContext ctx, Emitter em, MoveHooks hooks, int id)
+        {
+            int bonus = hooks.PlacementBonus?.Invoke(ctx, id) ?? 0;
+            if (bonus <= 0) return;
+            var s = ctx.S;
+            int left = Hdr(s, H.MovesLeft) + bonus;
+            SetHdr(s, H.MovesLeft, left);
+            em.Emit(new MovesChangedEvent(left, bonus, MovesChangedReasons.Bonus));
         }
 
         /// <summary>K-35 step 3 for a block that landed on the site (fall or rail). Returns true for a correct placement.</summary>
@@ -355,7 +368,15 @@ namespace MinikUsta.Core
             int queueBefore = Hdr(s, H.QueueLen);
             em.Step = 1;
             var moved = BoosterEffect(ctx, em, move, hooks);
+            // v3: a crane / Golden Trowel placement is a correct placement (K-60 bonus at step 4, K-59 scissors at step 5)
+            int placedId = move is GoldTrowelMove gt ? gt.PieceId : move is CraneMove cm && cm.ToZone == At.ZoneSite ? cm.PieceId : -1;
+            if (placedId >= 0)
+            {
+                em.Step = 4;
+                PlacementBonusStep(ctx, em, hooks, placedId);
+            }
             em.Step = 5;
+            if (placedId >= 0) hooks.OnCorrectPlacement?.Invoke(ctx, placedId);
             UncoverCheck(ctx, hooks);
             YardGravityStep(ctx, em, hooks);
             em.Step = 7;

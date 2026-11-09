@@ -150,7 +150,7 @@ namespace MinikUsta.Core.Tests.Obstacles
             CollectionAssert.AreEqual(new[] { 1, 9 }, new[] { queued.Queued, queued.Step });
             CollectionAssert.AreEqual(new[] { 25 }, QueueIds(s));
             Assert.AreEqual(Zone.Queue, PieceZone(s, 25));
-            var next = Run(s, DragTo(24, 6, 8)); // frees the only two cells; the waiting block lands there
+            var next = Run(s, DragTo(24, 6, 8), noTruckHelp: true); // frees the only two cells; the waiting block lands there
             var arrived = Find<DeliveryArrivedEvent>(next.Ev);
             CollectionAssert.AreEqual(new[] { 25 }, arrived.Pieces);
             Assert.AreEqual(9, arrived.Step);

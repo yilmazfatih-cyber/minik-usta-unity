@@ -121,10 +121,32 @@ namespace MinikUsta.Core.Level
         public readonly int Y;
         /// <summary>Debris segment; −1 otherwise.</summary>
         public readonly int Segment;
+        /// <summary>
+        /// v3 Y9 two-tone block (GDD §16 K-57): colour index per shape cell in the shape's (y, x) cell order; null for a one-colour
+        /// block. Static (the brush cannot pick it, the crane does not turn it).
+        /// </summary>
+        public readonly int[]? CellColors;
+        /// <summary>v3 Y10 pallet (K-58): pallet id, or −1.</summary>
+        public readonly int StackId;
+        /// <summary>Layer (0 = bottom), −1 outside a pallet.</summary>
+        public readonly int StackZ;
+        /// <summary>The layer directly below this one in its pallet (same anchor), or −1.</summary>
+        public readonly int StackBelow;
+        /// <summary>v3 Y12 (K-60): moves added by a correct placement of a `bonus` block (default 2); 0 without `bonus`.</summary>
+        public readonly int BonusMoves;
+        /// <summary>v3 Y9: non-zero 32-bit code of `CellColors` (Zobrist piece class); 0 for a one-colour block.</summary>
+        public readonly int ToneCode;
 
         public CompiledPiece(int id, string origin, int batch, int index, string cls, string dataShape, int shapeIndex, int colorIndex,
-            int flags, int wetMoves, int startZone, int x, int y, int segment)
+            int flags, int wetMoves, int startZone, int x, int y, int segment, int[]? cellColors = null, int stackId = -1, int stackZ = -1,
+            int stackBelow = -1, int bonusMoves = 0)
         {
+            CellColors = cellColors;
+            StackId = stackId;
+            StackZ = stackZ;
+            StackBelow = stackBelow;
+            BonusMoves = bonusMoves;
+            ToneCode = Compiler.ToneCodeOf(cellColors);
             Id = id;
             Origin = origin;
             Batch = batch;
@@ -140,6 +162,9 @@ namespace MinikUsta.Core.Level
             Y = y;
             Segment = segment;
         }
+
+        internal CompiledPiece WithStackBelow(int below) => new CompiledPiece(Id, Origin, Batch, Index, Cls, DataShape, ShapeIndex, ColorIndex, Flags,
+            WetMoves, StartZone, X, Y, Segment, CellColors, StackId, StackZ, below, BonusMoves);
     }
 
     public sealed class CompiledGap
@@ -274,6 +299,8 @@ namespace MinikUsta.Core.Level
         public readonly int[][] SupplyByBatch;
         /// <summary>K-47 / K-48 `N`: material blocks of the level (cargo excluded).</summary>
         public readonly int MaterialCount;
+        /// <summary>v3 Y10: the level has at least one pallet (core pallet paths run only then).</summary>
+        public readonly bool HasStacks;
         public readonly CompiledBatch[] Batches;
         public readonly CompiledObstacle[] Obstacles;
         /// <summary>Obstacle indices of screws and keys, in hidden-section order.</summary>
@@ -320,6 +347,7 @@ namespace MinikUsta.Core.Level
             DemandBySegment = cover.DemandBySegment;
             SupplyByBatch = cover.SupplyByBatch;
             MaterialCount = cover.MaterialCount;
+            foreach (var cp in pieces) if (cp.StackId >= 0) HasStacks = true;
             Batches = batches;
             Obstacles = obstacles;
             HiddenItems = hiddenItems;
@@ -376,6 +404,45 @@ namespace MinikUsta.Core.Level
         };
 
         private static int ColorIndex(string c) => ColorCodes.IndexOf(c);
+
+        /// <summary>v3 Y12 default `bonusMoves` (GDD §16 K-60 item 1).</summary>
+        public const int DefaultBonusMoves = 2;
+
+        /// <summary>
+        /// v3 Y10: sets `StackBelow` of every pallet layer = the layer of the same pallet with z − 1 at the same anchor (the validator
+        /// guarantees one shape and anchor per pallet and consecutive z, L-40 `stack_invalid`; a broken pallet just gets no link).
+        /// </summary>
+        private static void LinkStacks(CompiledPiece[] pieces)
+        {
+            for (int i = 0; i < pieces.Length; i++)
+            {
+                var p = pieces[i];
+                if (p.StackId < 0 || p.StackZ <= 0) continue;
+                foreach (var q in pieces)
+                {
+                    if (q.StackId == p.StackId && q.StackZ == p.StackZ - 1 && q.X == p.X && q.Y == p.Y)
+                    {
+                        pieces[i] = p.WithStackBelow(q.Id);
+                        break;
+                    }
+                }
+            }
+        }
+
+        /// <summary>FNV-1a of the cell colour indices, forced non-zero (0 = one-colour block).</summary>
+        internal static int ToneCodeOf(int[]? cellColors)
+        {
+            if (cellColors == null) return 0;
+            unchecked
+            {
+                uint h = 0x811c9dc5u;
+                foreach (int c in cellColors) h = (uint)((int)(h ^ (uint)(c + 1)) * 0x01000193);
+                return (int)(h | 1u);
+            }
+        }
+
+        /// <summary>Colour index of cell `i` (shape (y, x) order) of a compiled piece whose current colour is `color` (Y9, K-57).</summary>
+        public static int CellColorOf(CompiledPiece? p, int color, int i) => p?.CellColors != null && i < p.CellColors.Length ? p.CellColors[i] : color;
 
         /// <summary>`L`: LCM of shutter 2·period, slider 2·(b − a), carousel carouselEvery·S, elevator 2·(b − a) (§2.6).</summary>
         public static int CycleLength(LevelData level)
@@ -462,6 +529,12 @@ namespace MinikUsta.Core.Level
                     int flags = 0;
                     if (p.Flags != null) foreach (var f in p.Flags) flags |= FlagBit.Of(f);
                     string cls = PieceClassOf(p.Shape);
+                    int[]? cellColors = null;
+                    if (cls == PieceClasses.Material && p.Colors != null && p.Colors.Length == shape.CellCount)
+                    {
+                        cellColors = new int[p.Colors.Length];
+                        for (int ci = 0; ci < cellColors.Length; ci++) cellColors[ci] = ColorIndex(p.Colors[ci].ToString());
+                    }
                     pieces.Add(new CompiledPiece(
                         id,
                         k == 0 ? PieceOrigins.Yard : PieceOrigins.Truck,
@@ -476,7 +549,12 @@ namespace MinikUsta.Core.Level
                         k == 0 ? Zone.Yard : Zone.Pending,
                         p.X,
                         k == 0 ? p.Y : geo.Hy,
-                        -1));
+                        -1,
+                        cellColors,
+                        k == 0 && p.Stack != null ? p.Stack.Id : -1,
+                        k == 0 && p.Stack != null ? p.Stack.Z : -1,
+                        -1,
+                        p.HasFlag(PieceFlags.Bonus) ? (p.BonusMoves ?? DefaultBonusMoves) : 0));
                     tutorialPieceIds[k == 0 ? "piece:" + i : "piece:k" + k + "_" + i] = id;
                     pieceIds[i] = id;
                 }
@@ -506,6 +584,7 @@ namespace MinikUsta.Core.Level
             }
             int staticPieceCount = pieces.Count;
             var pieceArr = pieces.ToArray();
+            LinkStacks(pieceArr);
             var cover = ComputeCoverTotals(level, segments, pieceArr);
 
             int hiddenCount = 0;
@@ -597,8 +676,13 @@ namespace MinikUsta.Core.Level
                 if (p.Cls != PieceClasses.Material || p.ColorIndex < 0) continue;
                 int cells = Shapes.ShapeById(p.DataShape).CellCount;
                 int k = p.Origin == PieceOrigins.Debris ? p.Segment : p.Batch;
-                if (k >= 0 && k < batchCount) supplyByBatch[k][p.ColorIndex] += cells;
-                supply[p.ColorIndex] += cells;
+                // Y9 (K-57 item 2): a two-tone block supplies each cell in its own colour
+                for (int i = 0; i < cells; i++)
+                {
+                    int c = CellColorOf(p, p.ColorIndex, i);
+                    if (k >= 0 && k < batchCount) supplyByBatch[k][c] += 1;
+                    supply[c] += 1;
+                }
                 materialCount += 1;
             }
             return new CoverTotals(supply, demand, demandBySegment, supplyByBatch, materialCount);

@@ -13,6 +13,8 @@ namespace MinikUsta.Core.Obstacles
         {
             "W1", "W2", "W3", "W4", "W5", "W6", "W7", "W8",
             "Y1", "Y2", "Y3", "Y4", "Y5", "Y6", "Y7", "Y8",
+            // v3 block traits (GDD §16 K-57…K-61)
+            "Y9", "Y10", "Y11", "Y12", "Y13",
             "S1", "S2", "S3", "S4", "S5", "S6", "S7", "S8",
             "G-H", "G-L",
         };
@@ -114,6 +116,10 @@ namespace MinikUsta.Core.Obstacles
         public readonly Action<RuleContext, int>? OnYardRelease;
         /// <summary>K-35 step 4 base cost (Y8 stuck: 2); null = no opinion. Several rules → the largest; none → 1 (K-07).</summary>
         public readonly Func<RuleContext, int, int?>? MoveCost;
+        /// <summary>v3 K-35 step 4 tail: moves a correct placement adds (Y12 bonus, K-60); the sum of every rule's value.</summary>
+        public readonly Func<RuleContext, int, int>? PlacementBonus;
+        /// <summary>v3 K-35 step 5: a correct placement happened (Y11 scissors, K-59); every rule, in order.</summary>
+        public readonly Action<RuleContext, int>? OnCorrectPlacement;
         /// <summary>K-35 steps 5–6: a yard entity of the owned obstacle type / piece flag next to the moved or fallen block. Returns a `NeighborEffects` value.</summary>
         public readonly Func<RuleContext, EntityRef, int, string>? OnNeighborMoved;
         /// <summary>K-35 steps 5–6 (K-42): the cell of a hidden item of the owned obstacle type is empty (Y7 screw, W7 key).</summary>
@@ -130,6 +136,8 @@ namespace MinikUsta.Core.Obstacles
         public readonly Func<RuleContext, EntityRef, string>? OnHammer;
         /// <summary>K-30 D1 help, first stage: lift the rule's blockers (Y3 chains, Y4 wetness). True when something changed.</summary>
         public readonly Func<RuleContext, bool>? OnTruckHelp;
+        /// <summary>K-36 target kind of an owned block entity before the hit (UI, `boosterApplied.detail`); default `chain`. TS `hammerKind`.</summary>
+        public readonly string? HammerKind;
 
         public ObstacleRule(string id, string zone, int order, string[] infoKeys, Func<CompiledLevel, bool> appliesTo, RuleOwnership? owns = null,
             Func<GameState, int, bool>? canPick = null, Func<GameState, int, int, bool>? canPassGap = null,
@@ -139,8 +147,12 @@ namespace MinikUsta.Core.Obstacles
             Func<RuleContext, EntityRef, int, string>? onNeighborMoved = null, Action<RuleContext, int>? onCellUncovered = null,
             Action<RuleContext>? onMoveEnd = null, int? moveEndOrder = null, Action<RuleContext>? afterNeighbors = null,
             Func<GameState, EntityRef, bool>? canHammer = null, Func<RuleContext, EntityRef, string>? onHammer = null,
-            Func<RuleContext, bool>? onTruckHelp = null)
+            Func<RuleContext, bool>? onTruckHelp = null, Func<RuleContext, int, int>? placementBonus = null,
+            Action<RuleContext, int>? onCorrectPlacement = null, string? hammerKind = null)
         {
+            PlacementBonus = placementBonus;
+            OnCorrectPlacement = onCorrectPlacement;
+            HammerKind = hammerKind;
             Id = id;
             Zone = zone;
             Order = order;
@@ -167,7 +179,8 @@ namespace MinikUsta.Core.Obstacles
 
         /// <summary>A copy with another id (tests: `{ ...fakeRule('W1'), id: 'X9' }`).</summary>
         public ObstacleRule WithId(string id) => new ObstacleRule(id, Zone, Order, InfoKeys, AppliesTo, Owns, CanPick, CanPassGap, ModifyFall, OnLanded,
-            OnPlacement, OnPassGap, OnYardRelease, MoveCost, OnNeighborMoved, OnCellUncovered, OnMoveEnd, MoveEndOrder, AfterNeighbors, CanHammer, OnHammer, OnTruckHelp);
+            OnPlacement, OnPassGap, OnYardRelease, MoveCost, OnNeighborMoved, OnCellUncovered, OnMoveEnd, MoveEndOrder, AfterNeighbors, CanHammer, OnHammer, OnTruckHelp,
+            PlacementBonus, OnCorrectPlacement, HammerKind);
 
         public override string ToString() => "rule " + Id;
     }

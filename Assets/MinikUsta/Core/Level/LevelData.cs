@@ -22,6 +22,9 @@ namespace MinikUsta.Core.Level
             "G-H", "G-L", "S9",
         };
 
+        /// <summary>v3 block traits (GDD §16 K-57…K-61): Y9 two-tone, Y10 pallet, Y11 wrap + scissors, Y12 bonus, Y13 slippery. TS `TRAIT_MECHANIC_IDS`.</summary>
+        public static readonly string[] Traits = { "Y9", "Y10", "Y11", "Y12", "Y13" };
+
         /// <summary>Faz 2R transition (TECH §2R.12): S2 left the signature table; the id stays in the `teaches` enum.</summary>
         public static readonly string[] Legacy = { "S2" };
     }
@@ -40,10 +43,13 @@ namespace MinikUsta.Core.Level
     public static class LevelSchema
     {
         /// <summary>The level's schema version (GDD §14; missing = 1).</summary>
-        public static int SchemaVersionOf(LevelData level) => level.SchemaVersion == 2 ? 2 : 1;
+        public static int SchemaVersionOf(LevelData level) => level.SchemaVersion == 3 ? 3 : level.SchemaVersion == 2 ? 2 : 1;
 
         /// <summary>K-55 (D-099): a `schemaVersion` 2 level — every block in the yard from the start, no batch or truck refill.</summary>
-        public static bool IsFixedYardLevel(LevelData level) => SchemaVersionOf(level) == 2;
+        public static bool IsFixedYardLevel(LevelData level) => SchemaVersionOf(level) >= 2;
+
+        /// <summary>v3 flags: a level that writes one of them must be schemaVersion 3 (L-40 `schema_version_low`). TS `V3_FLAGS`.</summary>
+        public static bool IsV3Flag(string flag) => flag == PieceFlags.Wrapped || flag == PieceFlags.Scissors || flag == PieceFlags.Bonus || flag == PieceFlags.Slippery;
     }
 
     /// <summary>Schema regular expressions (schema.ts).</summary>
@@ -82,6 +88,8 @@ namespace MinikUsta.Core.Level
         public static readonly JsRegex PlanRow = new JsRegex("^[WYGROCBP.?]{1,4}$");
         /// <summary>GDD K-44 (Faz 2R): Ağır Yük shapes. Their `color` is optional and ignored (no colour, not material).</summary>
         public static readonly JsRegex CargoShape = new JsRegex("^(I5|Q9)_");
+        /// <summary>v3 Y9 cell colours (GDD §16 K-57): one colour letter per shape cell, 2–9 letters.</summary>
+        public static readonly JsRegex CellColors = new JsRegex("^[WYGROCBP]{2,9}$");
         /// <summary>`TÜR_AÇI` shape id format (`ShapeIdSchema`).</summary>
         public static readonly JsRegex ShapeId = new JsRegex("^(B1|D2|I3|I4|O4|C3|L4|J4|T4|S4|Z4|I5|Q9)_(0|90|180|270)$");
 
@@ -386,6 +394,19 @@ namespace MinikUsta.Core.Level
         }
     }
 
+    /// <summary>v3 Y10 pallet membership (GDD §16 K-58): pallet `Id` 0–7, layer `Z` 0–3 (0 = bottom).</summary>
+    public sealed class StackData
+    {
+        public readonly int Id;
+        public readonly int Z;
+
+        public StackData(int id, int z)
+        {
+            Id = id;
+            Z = z;
+        }
+    }
+
     /// <summary>A yard / truck block. `Color` is the placeholder "W" for an Ağır Yük written without a colour (K-44).</summary>
     public sealed class PieceData
     {
@@ -397,9 +418,18 @@ namespace MinikUsta.Core.Level
         public readonly string[]? Flags;
         /// <summary>OBSTACLES Y4; `wet` ⇔ `wetMoves` (L-26).</summary>
         public readonly int? WetMoves;
+        /// <summary>v3 Y9 two-tone block: colour per cell in the shape's (y, x) cell order; `Color` must equal its first letter.</summary>
+        public readonly string? Colors;
+        /// <summary>v3 Y10 pallet layer.</summary>
+        public readonly StackData? Stack;
+        /// <summary>v3 Y12: moves a correctly placed `bonus` block adds (default 2; only with `bonus`, L-40).</summary>
+        public readonly int? BonusMoves;
 
-        public PieceData(string shape, string color, int x, int y, string[]? flags, int? wetMoves)
+        public PieceData(string shape, string color, int x, int y, string[]? flags, int? wetMoves, string? colors = null, StackData? stack = null, int? bonusMoves = null)
         {
+            Colors = colors;
+            Stack = stack;
+            BonusMoves = bonusMoves;
             Shape = shape;
             Color = color;
             X = x;
@@ -425,6 +455,9 @@ namespace MinikUsta.Core.Level
                 o.Set("flags", f);
             }
             if (WetMoves.HasValue) o.Set("wetMoves", JsonValue.Of(WetMoves.Value));
+            if (Colors != null) o.Set("colors", JsonValue.Of(Colors));
+            if (Stack != null) o.Set("stack", JsonValue.Object().Set("id", JsonValue.Of(Stack.Id)).Set("z", JsonValue.Of(Stack.Z)));
+            if (BonusMoves.HasValue) o.Set("bonusMoves", JsonValue.Of(BonusMoves.Value));
             return o;
         }
     }

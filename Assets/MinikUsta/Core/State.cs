@@ -89,6 +89,10 @@ namespace MinikUsta.Core
         public const int Locked = 1 << 5;
         public const int Debris = 1 << 6;
         public const int Stuck = 1 << 7;
+        public const int Wrapped = 1 << 8;
+        public const int Scissors = 1 << 9;
+        public const int Bonus = 1 << 10;
+        public const int Slippery = 1 << 11;
 
         /// <summary>`FLAG_BIT[flag]`; throws on an unknown flag name.</summary>
         public static int Of(string flag)
@@ -294,6 +298,19 @@ namespace MinikUsta.Core
         public static void SetPieceZone(GameState s, int id, int v) => SetPieceField(s, id, PF.Zone, v);
 
         /// <summary>`hasFlag(s, id, flag)` with the flag BIT (`FlagBit.Locked` …).</summary>
+        /// <summary>
+        /// Colour index of cell `i` (the shape's (y, x) cell order) of piece `id`: the static `CellColors` of a v3 two-tone block (Y9,
+        /// K-57), else the piece's current colour.
+        /// </summary>
+        public static int PieceCellColor(GameState s, int id, int i)
+        {
+            var cc = s.Lvl.Pieces[id].CellColors;
+            return cc != null && i < cc.Length ? cc[i] : PieceColor(s, id);
+        }
+
+        /// <summary>v3 Y9: the piece is a two-tone block (per-cell colours, K-57).</summary>
+        public static bool IsTwoTone(GameState s, int id) => s.Lvl.Pieces[id].CellColors != null;
+
         public static bool HasFlag(GameState s, int id, int flagBit) => (PieceFlagBits(s, id) & flagBit) != 0;
 
         public static void SetFlag(GameState s, int id, int flagBit, bool on)
@@ -427,7 +444,14 @@ namespace MinikUsta.Core
                 SetHdr(s, H.Elev, lvl.Elevator.Start);
                 SetHdr(s, H.ElevDir, lvl.Elevator.Dir);
             }
-            foreach (var p in lvl.Pieces)
+            // v3 Y10 (K-58): pallet layers share their cells; layers are written bottom-up so the top layer owns the occupancy
+            var order = lvl.Pieces;
+            if (lvl.HasStacks)
+            {
+                order = (CompiledPiece[])lvl.Pieces.Clone();
+                Array.Sort(order, (a, b) => a.StackZ != b.StackZ ? a.StackZ.CompareTo(b.StackZ) : a.Id.CompareTo(b.Id));
+            }
+            foreach (var p in order)
             {
                 SetPieceField(s, p.Id, PF.Shape, p.ShapeIndex);
                 SetPieceField(s, p.Id, PF.Color, p.ColorIndex);

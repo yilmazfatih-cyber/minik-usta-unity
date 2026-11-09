@@ -22,11 +22,11 @@ namespace MinikUsta.Core.Tests.Obstacles
     {
         private static readonly int[] Levels1To10 = { 1, 2, 3, 4, 5, 6, 7, 8, 9, 10 };
 
-        [Test(Description = "TECH 7.1 ALL_RULES is a valid table: W1, Y3, S1 (Faz 2R: S2 out of the MVP), each in its zone hundred (W → Y → S → G)")]
+        [Test(Description = "TECH 7.1 ALL_RULES is a valid table: W1, Y3, Y9-Y13 (v3 block traits), S1 (Faz 2R: S2 out of the MVP), each in its zone hundred (W → Y → S → G)")]
         public void TECH_7_1_AllRules_is_a_valid_table()
         {
             CollectionAssert.IsEmpty(Registry.ValidateRules(Registry.AllRules));
-            CollectionAssert.AreEqual(new[] { "W1", "Y3", "S1" }, Registry.AllRules.Select(r => r.Id).ToArray());
+            CollectionAssert.AreEqual(new[] { "W1", "Y3", "Y9", "Y10", "Y11", "Y12", "Y13", "S1" }, Registry.AllRules.Select(r => r.Id).ToArray());
             foreach (var r in Registry.AllRules)
             {
                 Assert.AreEqual(RuleZones.Of(r.Id), r.Zone);

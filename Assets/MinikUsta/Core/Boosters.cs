@@ -265,7 +265,8 @@ namespace MinikUsta.Core
             if (zone == Zone.Yard && Movement.IsCargoShape(Shapes.ShapeByIndex(PieceShape(s, id)))) return HammerTargetKinds.Cargo;
             if (IsSiteWrongObject(s, id))
                 return (PieceFlagBits(s, id) & FlagBit.Debris) != 0 ? HammerTargetKinds.SiteDebris : HammerTargetKinds.StuckMortar;
-            if (zone == Zone.Yard && hooks.Hammer != null && hooks.Hammer.CanHit(s, EntityRef.Piece(id))) return HammerTargetKinds.Chain;
+            if (zone == Zone.Yard && hooks.Hammer != null && hooks.Hammer.CanHit(s, EntityRef.Piece(id)))
+                return hooks.Hammer.Kind?.Invoke(s, EntityRef.Piece(id)) ?? HammerTargetKinds.Chain;
             return null;
         }
 
@@ -315,7 +316,7 @@ namespace MinikUsta.Core
             }
             var piece = EntityRef.Piece(id);
             hooks.Hammer?.Hit(ctx, piece);
-            return HammerEffect.Ruled(HammerTargetKinds.Chain, piece);
+            return HammerEffect.Ruled(kind == HammerTargetKinds.Wrap ? HammerTargetKinds.Wrap : HammerTargetKinds.Chain, piece);
         }
 
         // --- K-37 Crane ----------------------------------------------------------------------------------------------------
@@ -325,7 +326,7 @@ namespace MinikUsta.Core
         {
             if (!ValidId(s, id) || Won(s)) return false;
             int zone = PieceZone(s, id);
-            if (zone == Zone.Yard) return !Locked(s, id) && RulesAllow(s, id, hooks);
+            if (zone == Zone.Yard) return !Locked(s, id) && !(s.Lvl.HasStacks && Grid.IsCovered(s, id)) && RulesAllow(s, id, hooks);
             return IsSiteWrongObject(s, id);
         }
 
@@ -335,10 +336,11 @@ namespace MinikUsta.Core
             int wy = s.Lvl.Geo.Wy;
             int hy = s.Lvl.Geo.Hy;
             if (x < 0 || y < 0 || x + shape.W > wy || y + shape.H > hy) return false;
+            int own = s.Lvl.HasStacks ? Grid.OwnCellCode(s, self) : self + 1;
             foreach (var c in shape.Cells)
             {
                 int v = YardOcc(s, x + c.X, y + c.Y);
-                if (v != 0 && v != self + 1) return false;
+                if (v != 0 && v != own) return false;
             }
             return true;
         }
@@ -350,12 +352,15 @@ namespace MinikUsta.Core
             if (!ValidId(s, id) || !IsMaterialPiece(s, id)) return o.ToArray();
             var shape = Shapes.ShapeByIndex(PieceShape(s, id));
             if (Movement.IsCargoShape(shape)) return o.ToArray();
+            var cc = s.Lvl.Pieces[id].CellColors;
             var seen = new HashSet<int>();
             foreach (int rotation in Rotations.All)
             {
                 var t = Turned(shape, rotation);
                 if (!seen.Add(t.Index)) continue;
-                foreach (var at in Deadlock.CorrectSpots(s, t, PieceColor(s, id), id)) o.Add(new CraneSpot(rotation, at));
+                // v3 Y9: a two-tone block keeps its orientation (no rotated colour table)
+                if (cc != null && t.Index != shape.Index) continue;
+                foreach (var at in Deadlock.CorrectSpots(s, t, PieceColor(s, id), id, cc)) o.Add(new CraneSpot(rotation, at));
             }
             return o.ToArray();
         }
@@ -379,7 +384,9 @@ namespace MinikUsta.Core
             }
             if (!IsMaterialPiece(s, id) || Movement.IsCargoShape(shape)) return BoosterRejects.NoTarget;
             if (t.W > s.Lvl.Geo.Ws) return BoosterRejects.BadRotation;
-            foreach (var a in Deadlock.CorrectSpots(s, t, PieceColor(s, id), id)) if (a.Ix == x && a.Iy == y) return null;
+            var ccTarget = s.Lvl.Pieces[id].CellColors;
+            if (ccTarget != null && t.Index != shape.Index) return BoosterRejects.BadRotation;
+            foreach (var a in Deadlock.CorrectSpots(s, t, PieceColor(s, id), id, ccTarget)) if (a.Ix == x && a.Iy == y) return null;
             return BoosterRejects.NotCorrect;
         }
 
@@ -442,7 +449,9 @@ namespace MinikUsta.Core
         // --- K-38 Paint brush ----------------------------------------------------------------------------------------------
 
         /// <summary>K-38: block A / B of a swap: a yard material block that is not locked (buried, chained or wet allowed).</summary>
-        public static bool PaintSelectable(GameState s, int id) => ValidId(s, id) && PieceZone(s, id) == Zone.Yard && IsMaterialPiece(s, id) && !Locked(s, id);
+        public static bool PaintSelectable(GameState s, int id) =>
+            ValidId(s, id) && PieceZone(s, id) == Zone.Yard && IsMaterialPiece(s, id) && !Locked(s, id) && !IsTwoTone(s, id) &&
+            !(s.Lvl.HasStacks && Grid.IsCovered(s, id));
 
         /// <summary>K-38: `b` may be swapped with `a` (equal cell counts, different colours).</summary>
         public static bool PaintPairOk(GameState s, int a, int b)
@@ -495,7 +504,8 @@ namespace MinikUsta.Core
 
         /// <summary>K-33: the trowel may take this block (yard material, not locked, chained or wet).</summary>
         public static bool TrowelSelectable(GameState s, int id, MoveHooks hooks) =>
-            ValidId(s, id) && PieceZone(s, id) == Zone.Yard && IsMaterialPiece(s, id) && !Locked(s, id) && RulesAllow(s, id, hooks);
+            ValidId(s, id) && PieceZone(s, id) == Zone.Yard && IsMaterialPiece(s, id) && !Locked(s, id) &&
+            !(s.Lvl.HasStacks && Grid.IsCovered(s, id)) && RulesAllow(s, id, hooks);
 
         /// <summary>
         /// K-33 `P`: the block's correct spots on the active segment (access, wall and gaps ignored; K-16 + K-34 on empty cells).
@@ -504,7 +514,7 @@ namespace MinikUsta.Core
         public static Anchor[] TrowelSpots(GameState s, int id, bool precheck = false)
         {
             if (!ValidId(s, id) || PieceZone(s, id) != Zone.Yard || !IsMaterialPiece(s, id)) return new Anchor[0];
-            var spots = Deadlock.CorrectSpots(s, Shapes.ShapeByIndex(PieceShape(s, id)), PieceColor(s, id));
+            var spots = Deadlock.CorrectSpots(s, Shapes.ShapeByIndex(PieceShape(s, id)), PieceColor(s, id), -1, s.Lvl.Pieces[id].CellColors);
             if (!precheck) return spots;
             var o = new List<Anchor>();
             foreach (var at in spots)

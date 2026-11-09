@@ -170,8 +170,13 @@ namespace MinikUsta.Core
             for (int id = 0; id < P; id++)
             {
                 if (!IsRemainingSupply(s, id)) continue;
-                int c = PieceColor(s, id);
-                if (c >= 0 && c < o.Length) o[c] += Shapes.ShapeByIndex(PieceShape(s, id)).CellCount;
+                int n = Shapes.ShapeByIndex(PieceShape(s, id)).CellCount;
+                // v3 Y9 (K-57 item 2): a two-tone block supplies each cell in its own colour
+                for (int i = 0; i < n; i++)
+                {
+                    int c = PieceCellColor(s, id, i);
+                    if (c >= 0 && c < o.Length) o[c] += 1;
+                }
             }
             return o;
         }

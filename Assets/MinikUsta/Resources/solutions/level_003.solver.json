@@ -1,7 +1,7 @@
 {
   "level": 3,
   "levelHash": "1e238937fff7cf92",
-  "rulesVersion": 3,
+  "rulesVersion": 4,
   "solverVersion": 3,
   "min": 8,
   "yao": { "overWall": 7, "rail": 0 },

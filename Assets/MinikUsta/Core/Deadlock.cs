@@ -172,12 +172,12 @@ namespace MinikUsta.Core
         public static bool QuickHoldable(GameState s, int id, DragRules? rules = null)
         {
             if (PieceZone(s, id) != Zone.Yard || (PieceFlagBits(s, id) & FlagBit.Locked) != 0) return false;
+            if (s.Lvl.HasStacks && (Grid.IsCovered(s, id) || Grid.LayerBelow(s, id) >= 0)) return false;
             if (rules?.CanPick != null && !rules.CanPick(s, id)) return false;
             var shape = Shapes.ShapeByIndex(PieceShape(s, id));
             int x0 = PieceX(s, id);
             int y0 = PieceY(s, id);
-            int limit = Movement.IsCargoShape(shape) ? s.Lvl.Geo.Hy : s.Lvl.Geo.Rows;
-            if (y0 + shape.H + 1 > limit) return false;
+            if (y0 + shape.H + 1 > s.Lvl.Geo.Hy) return false;
             for (int c = 0; c < shape.W; c++)
             {
                 int v = YardOcc(s, x0 + c, y0 + shape.ColTop[c] + 1);
@@ -191,16 +191,26 @@ namespace MinikUsta.Core
         {
             if (QuickHoldable(s, id, rules)) return true;
             int left = Hdr(s, H.MovesLeft);
-            if (left > 0) return Movement.TryBeginDrag(s, id, rules).Ok;
+            if (left > 0) return HasRelease(s, id, rules);
             SetHdr(s, H.MovesLeft, 1);
             try
             {
-                return Movement.TryBeginDrag(s, id, rules).Ok;
+                return HasRelease(s, id, rules);
             }
             finally
             {
                 SetHdr(s, H.MovesLeft, left);
             }
+        }
+
+        /// <summary>The block can be held and some node of R is a non-cancel release (K-07 rows 2, 6, 7). v3 D1 widening.</summary>
+        private static bool HasRelease(GameState s, int id, DragRules? rules)
+        {
+            var attempt = Movement.TryBeginDrag(s, id, rules);
+            if (!attempt.Ok) return false;
+            var session = attempt.Session!;
+            foreach (var n in session.ReachableNodes()) if (session.Classify(n).Kind != DropKinds.Cancel) return true;
+            return false;
         }
 
         /// <summary>D1 (K-30): no block on the board can be held by K-09 (a)–(d).</summary>
@@ -297,7 +307,7 @@ namespace MinikUsta.Core
         /// height, every cell a plan cell of the block's colour (`?` resolved). `exclude` = a piece whose own cells count as
         /// empty (a debris / stuck block lifted by the crane). Left to right. Empty when every segment is complete.
         /// </summary>
-        public static Anchor[] CorrectSpots(GameState s, ShapeDef shape, int color, int exclude = -1)
+        public static Anchor[] CorrectSpots(GameState s, ShapeDef shape, int color, int exclude = -1, int[]? cellColors = null)
         {
             var o = new List<Anchor>();
             var lvl = s.Lvl;
@@ -326,7 +336,9 @@ namespace MinikUsta.Core
                     int sy = y0 + c.Y;
                     int idx = sy * ws + sx;
                     int planColor = idx >= 0 && idx < plan.PlanColors.Length ? plan.PlanColors[idx] : -2;
-                    if (planColor != color) ok = false;
+                    // v3 Y9 (K-57): a two-tone block needs each cell's own colour
+                    int want = cellColors != null && i < cellColors.Length ? cellColors[i] : color;
+                    if (planColor != want) ok = false;
                     else
                     {
                         int v = SiteOcc(s, seg, sx, sy);
@@ -350,7 +362,8 @@ namespace MinikUsta.Core
             {
                 if (PieceZone(s, id) != Zone.Yard || !Goals.IsMaterial(s, id)) continue;
                 if ((PieceFlagBits(s, id) & FlagBit.Locked) != 0) continue;
-                if (CorrectSpots(s, Shapes.ShapeByIndex(PieceShape(s, id)), PieceColor(s, id)).Length > 0) o.Add(id);
+                var cc = s.Lvl.Pieces[id].CellColors;
+                if (CorrectSpots(s, Shapes.ShapeByIndex(PieceShape(s, id)), PieceColor(s, id), -1, cc).Length > 0) o.Add(id);
             }
             return o.ToArray();
         }
@@ -402,14 +415,17 @@ namespace MinikUsta.Core
         {
             public readonly ShapeDef Shape;
             public readonly int ColorMask;
+            /// <summary>v3 Y9 (K-57): colour bit per shape cell of a two-tone class (no W6 joker); null = `ColorMask` for every cell.</summary>
+            public readonly int[]? CellMasks;
             /// <summary>Segment index from which the class may be used (batch availability).</summary>
             public readonly int From;
             public int Count;
 
-            public TileClass(ShapeDef shape, int colorMask, int from)
+            public TileClass(ShapeDef shape, int colorMask, int[]? cellMasks, int from)
             {
                 Shape = shape;
                 ColorMask = colorMask;
+                CellMasks = cellMasks;
                 From = from;
                 Count = 1;
             }
@@ -503,14 +519,21 @@ namespace MinikUsta.Core
                 if (!Goals.IsRemainingSupply(s, id)) continue;
                 var shape = Shapes.ShapeByIndex(PieceShape(s, id));
                 int color = PieceColor(s, id);
+                var cc = lvl.Pieces[id].CellColors;
                 int mask = color >= 0 ? 1 << color : 0;
-                foreach (var j in jokers) if (shape.H <= j.Size) mask |= 1 << j.Color;
+                if (cc == null) foreach (var j in jokers) if (shape.H <= j.Size) mask |= 1 << j.Color;
+                int[]? cellMasks = null;
+                if (cc != null)
+                {
+                    cellMasks = new int[shape.Cells.Length];
+                    for (int ci = 0; ci < cellMasks.Length; ci++) cellMasks[ci] = 1 << PieceCellColor(s, id, ci);
+                }
                 int from = lvl.Mode == "segments" && PieceZone(s, id) == Zone.Pending ? BatchFrom(lvl, id) : 0;
-                string key = shape.Index + ":" + mask + ":" + from;
+                string key = shape.Index + ":" + mask + ":" + from + ":" + (cellMasks != null ? string.Join(".", cellMasks) : "");
                 if (byKey.TryGetValue(key, out var cls)) cls.Count += 1;
                 else
                 {
-                    cls = new TileClass(shape, mask, from);
+                    cls = new TileClass(shape, mask, cellMasks, from);
                     byKey[key] = cls;
                     classList.Add(cls);
                 }
@@ -523,7 +546,10 @@ namespace MinikUsta.Core
                 int d = a.Shape.Index - b.Shape.Index;
                 if (d != 0) return d;
                 d = a.ColorMask - b.ColorMask;
-                return d != 0 ? d : a.From - b.From;
+                if (d != 0) return d;
+                d = a.From - b.From;
+                if (d != 0) return d;
+                return string.CompareOrdinal(a.CellMasks != null ? string.Join(".", a.CellMasks) : "", b.CellMasks != null ? string.Join(".", b.CellMasks) : "");
             });
             TileClass[] classes = classList.ToArray();
 
@@ -658,11 +684,13 @@ namespace MinikUsta.Core
                             else if (y0 + sh.ColTop[j] >= hs) fits = false;
                         }
                         if (!fits) continue;
-                        foreach (var c in sh.Cells)
+                        for (int ci = 0; ci < sh.Cells.Length; ci++)
                         {
+                            var c = sh.Cells[ci];
                             int idx = bse + (y0 + c.Y) * ws + x0 + c.X;
                             int bit = idx >= 0 && idx < planBit.Length ? planBit[idx] : 0;
-                            if ((bit & cls.ColorMask) == 0)
+                            int want = cls.CellMasks != null ? cls.CellMasks[ci] : cls.ColorMask;
+                            if ((bit & want) == 0)
                             {
                                 fits = false;
                                 break;

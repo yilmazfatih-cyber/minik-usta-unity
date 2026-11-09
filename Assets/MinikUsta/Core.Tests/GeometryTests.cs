@@ -466,7 +466,7 @@ namespace MinikUsta.Core.Tests
             {
                 new Rule(@"^public const int \w+ = (5|6|7|8|9|10);$", "header (H) and piece record (PF) field offsets"),
                 new Rule(@"^public const int PieceStride = 9;$", "piece record stride"),
-                new Rule(@"^public const int \w+ = 1 << (5|6|7);$", "piece flag bit positions (FlagBit)"),
+                new Rule(@"^public const int \w+ = 1 << (5|6|7|8|9|10);$", "piece flag bit positions (FlagBit; v3 flags 8-11)"),
                 new Rule(@"<< 16\)|>> 6\)|<< 6\)|\(16 - 8 \* k\)|>> 8\)|<< 8\)|<< 24\)", "base64 / little-endian byte packing of the buffer"),
             },
             ["Movement.cs"] = new[]
@@ -478,13 +478,14 @@ namespace MinikUsta.Core.Tests
             ["Hash.cs"] = new[]
             {
                 new Rule(@"^private const int HeaderTerms = 8;$", "eight hashed header fields"),
-                new Rule(@"& 7\) << 6\)|& 255\) << 9\)", "piece class bit packing (colour 3 bits, flags 8 bits)"),
+                new Rule(@"& 7\) << 6\)|& 255\) << 9\)|>> 8\) & 15\) << 25\)", "piece class bit packing (colour 3 bits, flags 8 bits, v3 flags bits 25-28)"),
                 new Rule(@"^MixField\((5|6|7), ", "hashed header term index"),
             },
             ["Ascii.cs"] = new[]
             {
                 new Rule(@"Groups\[(5|6|7)\]", "regex group index"),
                 new Rule(@"Substring\((6|7|10)\)", "line prefix length (`queue:`, `locked:`, `obstacles:` …)"),
+                new Rule(@"V3FlagEntry|PalletEntry", "v3 `traits:` entry patterns (pallet anchor digits 0-9)"),
             },
             ["Level/Compile.cs"] = new[] { new Rule(@"new Step10Timer\(""[^""]+"", (5|6)\)", "K-35 step-10 timer order") },
         };

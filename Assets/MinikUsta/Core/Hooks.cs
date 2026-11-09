@@ -110,12 +110,17 @@ namespace MinikUsta.Core
     {
         private readonly Func<GameState, EntityRef, bool> canHit;
         private readonly Func<RuleContext, EntityRef, string> hit;
+        private readonly Func<GameState, EntityRef, string?>? kind;
 
-        public HammerRules(Func<GameState, EntityRef, bool> canHit, Func<RuleContext, EntityRef, string> hit)
+        public HammerRules(Func<GameState, EntityRef, bool> canHit, Func<RuleContext, EntityRef, string> hit, Func<GameState, EntityRef, string?>? kind = null)
         {
             this.canHit = canHit;
             this.hit = hit;
+            this.kind = kind;
         }
+
+        /// <summary>Target kind of a block entity the hammer may hit (`chain`, v3 `wrap`); null when it may not or when no kind hook is set. TS `kind?`.</summary>
+        public Func<GameState, EntityRef, string?>? Kind => kind;
 
         /// <summary>The hammer may hit `entity` now (a crate / bag that still stands, a chained yard block).</summary>
         public bool CanHit(GameState s, EntityRef entity) => canHit(s, entity);
@@ -145,6 +150,10 @@ namespace MinikUsta.Core
         public readonly Action<RuleContext, int>? OnYardRelease;
         /// <summary>Step 4 base cost (Y8: 2 when `ctx.Scratch.WasStuck`); null = 1. The glass penalty is added on top.</summary>
         public readonly Func<RuleContext, int, int?>? MoveCost;
+        /// <summary>v3 step 4 tail (Y12 bonus, K-60): moves the correct placement of the block adds (0 = none). Also for a crane / Golden Trowel placement. (ctx, pieceId).</summary>
+        public readonly Func<RuleContext, int, int>? PlacementBonus;
+        /// <summary>v3 step 5 (Y11 scissors, K-59 item 3): the block was placed correctly in this action (drag, crane or Golden Trowel), after the neighbour effects. (ctx, pieceId).</summary>
+        public readonly Action<RuleContext, int>? OnCorrectPlacement;
         /// <summary>Steps 5–6: a yard entity next to the moved / fallen block (Y1 crate, Y2 bag, Y3 chain). (ctx, entity, movedPieceId) → NeighborEffects.</summary>
         public readonly Func<RuleContext, EntityRef, int, string>? OnNeighborMoved;
         /// <summary>Steps 5–6: the cell of hidden item `obstacle` (screw Y7, key W7) is empty and not collected yet (K-42).</summary>
@@ -165,8 +174,11 @@ namespace MinikUsta.Core
             Func<RuleContext, int, int?>? moveCost = null, Func<RuleContext, EntityRef, int, string>? onNeighborMoved = null,
             Action<RuleContext, int>? onCellUncovered = null, Action<RuleContext>? afterNeighbors = null, HammerRules? hammer = null,
             Func<RuleContext, bool>? onTruckHelp = null, IReadOnlyDictionary<string, Action<RuleContext>>? timers = null,
-            Action<RuleContext>? deadlock = null)
+            Action<RuleContext>? deadlock = null, Func<RuleContext, int, int>? placementBonus = null,
+            Action<RuleContext, int>? onCorrectPlacement = null)
         {
+            PlacementBonus = placementBonus;
+            OnCorrectPlacement = onCorrectPlacement;
             Drag = drag;
             Fall = fall;
             Placement = placement;
@@ -193,11 +205,13 @@ namespace MinikUsta.Core
             if (Hammer != null) o.Add("hammer");
             if (MoveCost != null) o.Add("moveCost");
             if (OnCellUncovered != null) o.Add("onCellUncovered");
+            if (OnCorrectPlacement != null) o.Add("onCorrectPlacement");
             if (OnNeighborMoved != null) o.Add("onNeighborMoved");
             if (OnPassGap != null) o.Add("onPassGap");
             if (OnTruckHelp != null) o.Add("onTruckHelp");
             if (OnYardRelease != null) o.Add("onYardRelease");
             if (Placement != null) o.Add("placement");
+            if (PlacementBonus != null) o.Add("placementBonus");
             if (Timers != null) o.Add("timers");
             return o.ToArray();
         }

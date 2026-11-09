@@ -117,6 +117,16 @@ namespace MinikUsta.Core
             { "S4", 3 }, { "Z4", 3 }, { "I4", 4 }, { "I5", 1 }, { "Q9", 1 },
         };
 
+        /// <summary>
+        /// v3 shape unlocks by level id (GDD §16 K-56; schemaVersion 3 files only — earlier files keep the K-44 chapter table):
+        /// L4/J4 at 2, T4 at 6, I3 at 8, S4/Z4 at 11, I4 at 21. Ağır Yük (I5, Q9) stays apart (0).
+        /// </summary>
+        public static readonly IReadOnlyDictionary<string, int> KindFirstLevelV3 = new Dictionary<string, int>
+        {
+            { "B1", 1 }, { "D2", 1 }, { "O4", 1 }, { "C3", 1 }, { "L4", 2 }, { "J4", 2 }, { "T4", 6 }, { "I3", 8 },
+            { "S4", 11 }, { "Z4", 11 }, { "I4", 21 }, { "I5", 0 }, { "Q9", 0 },
+        };
+
         /// <summary>Heavy shapes (I5, Q9 and every w ≥ 3 orientation) are allowed only from this level id (GDD K-44 "8. bölüm").</summary>
         public const int HeavyMinLevelId = 8;
 

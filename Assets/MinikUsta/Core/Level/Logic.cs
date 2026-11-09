@@ -157,6 +157,8 @@ namespace MinikUsta.Core.Level
         {
             "L-01", "L-02", "L-03", "L-04", "L-05", "L-06", "L-07", "L-08", "L-09", "L-10", "L-11", "L-12", "L-13", "L-14",
             "L-15", "L-16", "L-17", "L-18", "L-21", "L-22", "L-23", "L-24", "L-25", "L-26", "L-28", "L-29", "L-30", "L-31", "L-36",
+            // v3 block traits (GDD §16 K-56…K-65; LEVELS §8.10 U-v3-1)
+            "L-40", "L-41",
         };
 
         /// <summary>
@@ -165,7 +167,7 @@ namespace MinikUsta.Core.Level
         /// `plan_has_window`, `elevator_overflow`) is back in the runtime set since WP-M (TECH §2R.3 note 2). L-36 (K-55,
         /// `fixed_yard_batches`, D-099): a `schemaVersion` 2 level with truck batches is not loaded.
         /// </summary>
-        public static readonly string[] RuntimeChecks = { "L-02", "L-04", "L-05", "L-08", "L-09", "L-24", "L-25", "L-26", "L-28", "L-36" };
+        public static readonly string[] RuntimeChecks = { "L-02", "L-04", "L-05", "L-08", "L-09", "L-24", "L-25", "L-26", "L-28", "L-36", "L-40" };
 
         /// <summary>First level of each colour (BRIEF §6, GDD K-31; LEVELS §0: R "en erken" 4, first used in Faz 2R level 5).</summary>
         public static readonly IReadOnlyDictionary<string, int> ColorFirstLevel = new Dictionary<string, int>
@@ -215,7 +217,7 @@ namespace MinikUsta.Core.Level
             { "L-13", "K-45/7" }, { "L-14", "K-45/6" }, { "L-15", "K-45/6" }, { "L-16", "K-45/10" }, { "L-17", "GDD 14.1" }, { "L-18", "LEVELS 0" },
             { "L-21", "K-45/5" }, { "L-22", "K-45/10" }, { "L-23", "K-45/6" }, { "L-24", "K-24" }, { "L-25", "K-23" }, { "L-26", "Y4" },
             { "L-28", "K-45/2" }, { "L-29", "K-45/7" }, { "L-30", "K-45/8" }, { "L-31", "K-45/10" },
-            { "L-36", "K-45/11" },
+            { "L-36", "K-45/11" }, { "L-40", "GDD 16" }, { "L-41", "GDD 16" },
         };
 
         /// <summary>`CHECK_RULE[check]`.</summary>
@@ -514,6 +516,8 @@ namespace MinikUsta.Core.Level
             if (enabled.Contains("L-25")) CheckCarousel(level, push);
             if (enabled.Contains("L-26")) CheckWet(level, push);
             if (enabled.Contains("L-31")) CheckTutorialLoad(level, push);
+            if (enabled.Contains("L-40")) CheckTraits(level, push);
+            if (enabled.Contains("L-41")) CheckTraitDesign(level, geo, plans, plansUsable, push);
             return issues.ToArray();
         }
 
@@ -647,6 +651,8 @@ namespace MinikUsta.Core.Level
                         push("L-02", "out_of_yard", path, p.Shape + " at (" + p.X + "," + p.Y + ") leaves the yard (" + where + ")");
                         continue;
                     }
+                    // v3 Y10 (K-58 item 5): a pallet's layers share its cells; only the top layer claims them (footprint F)
+                    if (p.Stack != null && HasHigherLayer(b0.Pieces, p)) continue;
                     foreach (var c in cells) Claim(c.X, c.Y, path);
                 }
             }
@@ -670,6 +676,13 @@ namespace MinikUsta.Core.Level
                 push("L-03", "yard_fill_low", "yard", "E = " + empty + " empty cells > ⌊0,4·" + cells2 + "⌋ = " + max + " (K-02)");
         }
 
+        /// <summary>Another layer of the same pallet lies above `p` (higher z).</summary>
+        private static bool HasHigherLayer(PieceData[] pieces, PieceData p)
+        {
+            foreach (var q in pieces) if (q.Stack != null && p.Stack != null && q.Stack.Id == p.Stack.Id && q.Stack.Z > p.Stack.Z) return true;
+            return false;
+        }
+
         /// <summary>
         /// L-04 (K-44, K-45/5): forbidden orientations; I5/Q9 only in the yard (never debris); kinds per story chapter; Ağır Yük
         /// only from level 8; a material block's data orientation at most Ws wide (`piece_too_wide`). Returns whether no error
@@ -687,8 +700,14 @@ namespace MinikUsta.Core.Level
             {
                 if (Shapes.ForbiddenShapes.Contains(b.Id)) Bad("shape_forbidden", b.Path, b.Id + " is forbidden in level data (K-44)");
                 if (b.Debris && b.Cargo) Bad("shape_forbidden", b.Path, b.Shape.Kind + " (Ağır Yük) may only be used in the yard");
+                // v3 (schemaVersion 3, GDD §16 K-56): unlock by level id; earlier files keep the K-44 chapter table
+                int firstLevel = LevelSchema.SchemaVersionOf(level) == 3 && !b.Cargo ? Shapes.KindFirstLevelV3[b.Shape.Kind] : 0;
                 int first = Shapes.KindFirstChapter[b.Shape.Kind];
-                if (first > level.Chapter)
+                if (firstLevel > 0)
+                {
+                    if (firstLevel > level.Id) Bad("shape_locked", b.Path, b.Shape.Kind + " unlocks at level " + firstLevel + " (v3 table, K-56)");
+                }
+                else if (first > level.Chapter)
                     Bad("shape_locked", b.Path, b.Shape.Kind + " unlocks in story chapter " + first + " (level is chapter " + level.Chapter + ")");
                 if (b.Cargo && level.Id < Shapes.HeavyMinLevelId)
                     Bad("shape_locked", b.Path, "Ağır Yük " + b.Id + " is allowed only from level " + Shapes.HeavyMinLevelId);
@@ -709,7 +728,11 @@ namespace MinikUsta.Core.Level
             foreach (var plan in plans)
                 foreach (char c in plan.Cells)
                     if (c != Plan.None && c != Plan.Dot) set.Add(c.ToString());
-            foreach (var b in MaterialBlocks(level)) set.Add(b.Color);
+            foreach (var b in MaterialBlocks(level))
+            {
+                set.Add(b.Color);
+                if (b.Piece?.Colors != null) foreach (char c in b.Piece.Colors) set.Add(c.ToString()); // v3 Y9: every cell colour (K-57 item 3)
+            }
             foreach (var g in level.Wall.Gaps) if (g.Type == "paint" && g.Color != null) set.Add(g.Color);
             var o = new List<string>();
             foreach (var c in ColorCodes.All) if (set.Contains(c)) o.Add(c);
@@ -806,6 +829,17 @@ namespace MinikUsta.Core.Level
             foreach (var b in MaterialBlocks(level))
             {
                 if (b.From > upTo) continue;
+                // v3 Y9 (K-57 item 2): a two-tone block supplies each cell in its own colour
+                string? cells = b.Piece?.Colors;
+                if (cells != null && cells.Length == b.Shape.CellCount)
+                {
+                    foreach (char c in cells)
+                    {
+                        int cj = ColorCodes.IndexOf(c.ToString());
+                        if (cj >= 0) o[cj] += 1;
+                    }
+                    continue;
+                }
                 int ci = ColorCodes.IndexOf(b.Color);
                 if (ci >= 0) o[ci] += b.Shape.CellCount;
             }
@@ -874,55 +908,63 @@ namespace MinikUsta.Core.Level
             public readonly ShapeDef Shape;
             /// <summary>Own colour first, then the W6 joker colours (paint gates the block's box height fits, TECH §2R.4 step 1).</summary>
             public readonly string[] Colors;
+            /// <summary>v3 Y9 (K-57): colour per shape cell of a two-tone class (no W6 joker); null = one colour from `Colors`.</summary>
+            public readonly string? CellColors;
             /// <summary>First 0-based segment index the class may fill (`availableFrom`; 0 in carousel mode).</summary>
             public readonly int From;
 
-            public LevelTileClass(ShapeDef shape, string[] colors, int from)
+            public LevelTileClass(ShapeDef shape, string[] colors, string? cellColors, int from)
             {
                 Shape = shape;
                 Colors = colors;
+                CellColors = cellColors;
                 From = from;
             }
         }
 
         /// <summary>
         /// D3a (GDD K-30, TECH §2R.4) on the level's start state, from the level data: can the material blocks cover every
-        /// segment exactly, bottom-up? Steps as in §2R.4:
-        /// 1. Classes (shape, colours, `availableFrom`) with counts; the start profile of every segment is empty (nothing is
-        ///    correctly placed at the start: debris starts wrong, L-29). Batch blocks are available from their `forSegment`,
-        ///    debris from its segment. W6 joker: a block whose box height fits a paint gate may take that gate's colour.
-        /// 2. The lowest column of the active segment (leftmost on a tie) is covered next by a class in its fixed data
-        ///    orientation, shifted so one of its columns starts there; every block column must start exactly at that column's
-        ///    height (K-34, which with a full plan also rules out holes) and every cell must have the plan colour.
-        /// 3. Failed states are memoised by (segment, column profile, class counts).
-        /// 4. The search is depth first in a fixed order (class index, shift) and stops after `budget` expansions: `unknown`
-        ///    then, never `dead`.
-        /// `segments` mode tiles the segments in order; `carousel` tiles them in index order from one shared pool and ignores
-        /// `availableFrom` (the delivery order depends on the completion order there; a relaxation, so never a false `dead`).
-        /// Access (walls, gaps, digging) is not considered: that is the solver's (L-19) and D3b's. Ağır Yük is not material.
-        /// Returns a `TileResults` value.
+        /// segment exactly, bottom-up? Classes (shape, colours, `availableFrom`) with counts; the start profile of every segment
+        /// is empty. Every (class, anchor) whose column bottoms sit on the column heights (K-34) is a branch (U-v3-0 H1 fix: not
+        /// only blocks covering the lowest column), every cell must have the plan colour (a two-tone class: its own cell colours).
+        /// Failed states are memoised by (segment, column profile, class counts); depth first in a fixed order (class index,
+        /// anchor), stops after `budget` expansions: `unknown` then, never `dead`. Access is not considered. Returns a
+        /// `TileResults` value.
         /// </summary>
         public static string TileLevel(LevelData level, SegmentPlan[] plans, BoardGeo? geo = null, int budget = TileBudget)
         {
             geo ??= Geometry.GeoFromLevel(level);
+            return TileSearch(level, plans, geo, budget, null, null);
+        }
+
+        private static string TileSearch(LevelData level, SegmentPlan[] plans, BoardGeo geo, int budget, Func<Placed, bool>? skip, Func<Placed, bool>? target)
+        {
             bool carousel = level.Build.Mode == "carousel";
             var paint = new List<GapData>();
             foreach (var g in level.Wall.Gaps) if (g.Type == "paint") paint.Add(g);
             List<LevelTileClass> classes = new List<LevelTileClass>();
             List<int> counts = new List<int>();
             var index = new Dictionary<string, int>();
+            var targets = new List<bool>();
             foreach (var b in MaterialBlocks(level))
             {
+                if (skip != null && skip(b)) continue;
+                bool isTarget = target != null && target(b);
                 var shape = Shapes.ShapeById(b.Shape.Canonical);
+                string? cellColors = b.Piece?.Colors;
                 var colors = new List<string> { b.Color };
-                foreach (var g in paint)
-                    if (shape.H <= g.Size && g.Color != null && !colors.Contains(g.Color)) colors.Add(g.Color);
+                if (cellColors == null)
+                {
+                    foreach (var g in paint)
+                        if (shape.H <= g.Size && g.Color != null && !colors.Contains(g.Color)) colors.Add(g.Color);
+                }
                 int from = carousel ? 0 : b.From;
-                string key = shape.Index + ":" + string.Join("", colors) + ":" + from;
+                string key = shape.Index + ":" + string.Join("", colors) + ":" + from + ":" + (cellColors ?? "") + ":" + (isTarget ? "T" : "");
                 if (!index.TryGetValue(key, out int i))
                 {
                     i = classes.Count;
-                    classes.Add(new LevelTileClass(shape, colors.ToArray(), from));
+                    classes.Add(new LevelTileClass(shape, colors.ToArray(), cellColors, from));
+                    targets.Add(isTarget);
                     counts.Add(0);
                     index[key] = i;
                 }
@@ -957,10 +999,11 @@ namespace MinikUsta.Core.Level
                 else failedText.Add(TextKey(seg));
             }
 
+            bool goal = target != null;
             // 1 = true, 0 = false, 2 = budget
             int Solve(int seg)
             {
-                if (seg >= S) return 1;
+                if (seg >= S) return goal ? 0 : 1;
                 bool full = true;
                 foreach (int h in heights) if (h != hs) full = false;
                 if (full)
@@ -974,19 +1017,15 @@ namespace MinikUsta.Core.Level
                 if (++expansions > budget) return 2;
                 if (seg < 0 || seg >= plans.Length) return 0;
                 var plan = plans[seg];
-                int col = 0;
-                for (int x = 1; x < ws; x++) if (heights[x] < heights[col]) col = x;
-                int row = heights[col];
                 for (int ti = 0; ti < classes.Count; ti++)
                 {
                     var t = classes[ti];
                     if (counts[ti] == 0 || t.From > seg) continue;
                     var s = t.Shape;
-                    for (int k = 0; k < s.W; k++)
+                    for (int ax = 0; ax + s.W <= ws; ax++)
                     {
-                        int ax = col - k;
-                        int ay = row - s.ColBottom[k];
-                        if (ax < 0 || ax + s.W > ws || ay < 0) continue;
+                        int ay = heights[ax] - s.ColBottom[0];
+                        if (ay < 0) continue;
                         bool ok = true;
                         for (int j = 0; j < s.W && ok; j++)
                         {
@@ -994,11 +1033,23 @@ namespace MinikUsta.Core.Level
                             if (ay + s.ColBottom[j] != heights[x] || ay + s.ColTop[j] >= hs) ok = false;
                         }
                         if (!ok) continue;
-                        var first = s.Cells[0];
-                        char color = plan.Cells[Plan.LocalIndex(ax + first.X, ay + first.Y, ws)];
-                        if (color == Plan.None || color == Plan.Dot || Array.IndexOf(t.Colors, color.ToString()) < 0) continue;
-                        foreach (var c in s.Cells) if (plan.Cells[Plan.LocalIndex(ax + c.X, ay + c.Y, ws)] != color) ok = false;
+                        if (t.CellColors != null)
+                        {
+                            for (int ci = 0; ci < s.Cells.Length; ci++)
+                            {
+                                var c = s.Cells[ci];
+                                if (ci >= t.CellColors.Length || plan.Cells[Plan.LocalIndex(ax + c.X, ay + c.Y, ws)] != t.CellColors[ci]) ok = false;
+                            }
+                        }
+                        else
+                        {
+                            var first = s.Cells[0];
+                            char color = plan.Cells[Plan.LocalIndex(ax + first.X, ay + first.Y, ws)];
+                            if (color == Plan.None || color == Plan.Dot || Array.IndexOf(t.Colors, color.ToString()) < 0) continue;
+                            foreach (var c in s.Cells) if (plan.Cells[Plan.LocalIndex(ax + c.X, ay + c.Y, ws)] != color) ok = false;
+                        }
                         if (!ok) continue;
+                        if (targets[ti]) return 1;
                         var saved = new int[s.W];
                         Array.Copy(heights, ax, saved, 0, s.W);
                         for (int j = 0; j < s.W; j++) heights[ax + j] = ay + s.ColTop[j] + 1;
@@ -1829,6 +1880,306 @@ namespace MinikUsta.Core.Level
             var o = new List<string>();
             for (int k = 0; k < m; k++) if (bestRest[k] > 0) o.Add(open[k]);
             return o.ToArray();
+        }
+
+        // ---------------------------------------------------------------------------------------------------------------
+        // L-40 / L-41 v3 block traits (GDD §16 ÖNERİ K-56…K-65; LEVELS §8.10 U-v3-1 code table; OBSTACLES v3 combinations)
+        // ---------------------------------------------------------------------------------------------------------------
+
+        /// <summary>Colour pairs a two-tone block may use in story chapter 1 (K-65 item 3: deutan and protan ΔE ≥ 30).</summary>
+        public static readonly string[] TwoTonePairsCh1 = { "WY", "RY", "GW", "GY" };
+        /// <summary>At most this many bonus blocks per level (K-60 item 2).</summary>
+        public const int MaxBonusBlocks = 2;
+        /// <summary>K-63 tiling families on a 2-column site: "bottom row full" orientations.</summary>
+        public static readonly HashSet<string> BottomFamily = new HashSet<string> { "D2_90", "O4_0", "C3_0", "C3_270", "L4_0", "J4_0" };
+        /// <summary>K-63 tiling families: "column" orientations.</summary>
+        public static readonly HashSet<string> ColumnFamily = new HashSet<string> { "D2_0", "I3_0", "L4_180", "J4_180", "T4_0", "T4_180" };
+
+        /// <summary>v3 OBSTACLES "aynı bloktaki birleşimler": flag pairs forbidden on one block in every story chapter.</summary>
+        private static readonly string[][] V3ForbiddenPairs =
+        {
+            new[] { "wrapped", "scissors", "the scissors block cannot be wrapped (K-59 item 5)" },
+            new[] { "wrapped", "chained", "two locks on one block" },
+            new[] { "wrapped", "wet", "two locks on one block" },
+            new[] { "scissors", "glass", "a broken scissors block would return and blur the trigger" },
+            new[] { "scissors", "chained", "two locks on one block" },
+            new[] { "scissors", "wet", "two locks on one block" },
+            new[] { "bonus", "wet", "two number badges on one block (K-65 item 4)" },
+        };
+
+        /// <summary>Flags a pallet layer can never carry (OBSTACLES v3 table: a layer neither floats nor breaks nor locks).</summary>
+        private static readonly string[] StackForbiddenFlags = { "slippery", "glass", "mortar", "chained", "wet", "balloon" };
+
+        /// <summary>The piece writes a v3 field (`colors`, `stack`, `bonusMoves`, a v3 flag).</summary>
+        private static bool UsesV3(PieceData p)
+        {
+            if (p.Colors != null || p.Stack != null || p.BonusMoves.HasValue) return true;
+            foreach (var f in FlagsOf(p)) if (LevelSchema.IsV3Flag(f)) return true;
+            return false;
+        }
+
+        private sealed class PalletLayer
+        {
+            public readonly string Path;
+            public readonly PieceData Piece;
+
+            public PalletLayer(string path, PieceData piece)
+            {
+                Path = path;
+                Piece = piece;
+            }
+        }
+
+        /// <summary>Pallets of the start batch: id → layers (path, piece) in data order; ids in first-appearance order (JS Map).</summary>
+        private static List<KeyValuePair<int, List<PalletLayer>>> PalletsOf(LevelData level)
+        {
+            var o = new List<KeyValuePair<int, List<PalletLayer>>>();
+            if (level.Yard.Batches.Length == 0) return o;
+            var pieces = level.Yard.Batches[0].Pieces;
+            for (int i = 0; i < pieces.Length; i++)
+            {
+                var p = pieces[i];
+                if (p.Stack == null) continue;
+                List<PalletLayer>? list = null;
+                foreach (var kv in o) if (kv.Key == p.Stack.Id) list = kv.Value;
+                if (list == null)
+                {
+                    list = new List<PalletLayer>();
+                    o.Add(new KeyValuePair<int, List<PalletLayer>>(p.Stack.Id, list));
+                }
+                list.Add(new PalletLayer("yard.batches[0].pieces[" + i + "]", p));
+            }
+            return o;
+        }
+
+        /// <summary>
+        /// L-40 (runtime subset: a broken v3 level is not loaded): `schema_version_low`, `colors_invalid` (K-57), `stack_invalid`
+        /// (K-58 item 1), `scissors_missing` / `scissors_many` (K-59 item 2), `bonus_many` / `bonus_invalid` (K-60),
+        /// `flag_combo_forbidden` (OBSTACLES v3 combination table).
+        /// </summary>
+        private static void CheckTraits(LevelData level, Push push)
+        {
+            bool v3 = LevelSchema.SchemaVersionOf(level) == 3;
+            int scissors = 0;
+            int wrapped = 0;
+            int bonus = 0;
+            for (int bi = 0; bi < level.Yard.Batches.Length; bi++)
+            {
+                var b = level.Yard.Batches[bi];
+                for (int i = 0; i < b.Pieces.Length; i++)
+                {
+                    var p = b.Pieces[i];
+                    string path = "yard.batches[" + bi + "].pieces[" + i + "]";
+                    if (!UsesV3(p)) continue;
+                    if (!v3) push("L-40", "schema_version_low", path, "v3 block traits need schemaVersion 3 (GDD §16, U-v3-1)");
+                    var shape = Shapes.ShapeById(p.Shape);
+                    var flags = FlagsOf(p);
+                    if (Mechanics.IsCargo(shape)) push("L-40", "flag_combo_forbidden", path, "Ağır Yük takes no v3 trait (OBSTACLES v3 table)");
+                    if (p.Colors != null)
+                    {
+                        var set = new HashSet<char>(p.Colors);
+                        if (p.Colors.Length != shape.CellCount)
+                            push("L-40", "colors_invalid", path, "colors \"" + p.Colors + "\" has " + p.Colors.Length + " letters, " + p.Shape + " has " + shape.CellCount + " cells (K-57)");
+                        else if (set.Count < 2)
+                            push("L-40", "colors_invalid", path, "colors \"" + p.Colors + "\" has one colour: write it as a one-colour block (K-57)");
+                        else if (p.Colors[0].ToString() != p.Color)
+                            push("L-40", "colors_invalid", path, "color " + p.Color + " must be the first cell colour of \"" + p.Colors + "\" (K-57)");
+                    }
+                    if (p.Stack != null && bi != 0)
+                        push("L-40", "stack_invalid", path, "a pallet lies in the start yard (batch 0) only (K-58, K-55)");
+                    if (p.BonusMoves.HasValue && Array.IndexOf(flags, "bonus") < 0)
+                        push("L-40", "bonus_invalid", path, "bonusMoves without the bonus flag (K-60)");
+                    if (Array.IndexOf(flags, "scissors") >= 0) scissors++;
+                    if (Array.IndexOf(flags, "wrapped") >= 0) wrapped++;
+                    if (Array.IndexOf(flags, "bonus") >= 0) bonus++;
+                    foreach (var pair in V3ForbiddenPairs)
+                        if (Array.IndexOf(flags, pair[0]) >= 0 && Array.IndexOf(flags, pair[1]) >= 0)
+                            push("L-40", "flag_combo_forbidden", path, pair[0] + " + " + pair[1] + " is forbidden: " + pair[2]);
+                    if (p.Stack != null)
+                    {
+                        var bad = new List<string>();
+                        foreach (var f in flags) if (Array.IndexOf(StackForbiddenFlags, f) >= 0) bad.Add(f);
+                        if (bad.Count > 0) push("L-40", "flag_combo_forbidden", path, "a pallet layer cannot be " + string.Join(", ", bad) + " (OBSTACLES v3 table)");
+                    }
+                }
+            }
+            if (wrapped > 0 && scissors == 0)
+                push("L-40", "scissors_missing", "yard", wrapped + " wrapped block(s) and no scissors block (K-59 item 2)");
+            if (scissors > 1) push("L-40", "scissors_many", "yard", scissors + " scissors blocks; exactly one (K-59 item 2)");
+            if (bonus > MaxBonusBlocks) push("L-40", "bonus_many", "yard", bonus + " bonus blocks > " + MaxBonusBlocks + " (K-60 item 2)");
+            foreach (var kv in PalletsOf(level))
+            {
+                int id = kv.Key;
+                var layers = kv.Value;
+                string path = layers.Count > 0 ? layers[0].Path : "yard";
+                if (layers.Count == 0) continue;
+                var first = layers[0].Piece;
+                var zs = new List<int>();
+                foreach (var l in layers) zs.Add(l.Piece.Stack != null ? l.Piece.Stack.Z : -1);
+                zs.Sort();
+                if (layers.Count < 2 || layers.Count > 4)
+                    push("L-40", "stack_invalid", path, "pallet " + id + " has " + layers.Count + " layer(s); 2–4 (K-58 item 1)");
+                bool gap = false;
+                for (int k = 0; k < zs.Count; k++) if (zs[k] != k) gap = true;
+                if (gap) push("L-40", "stack_invalid", path, "pallet " + id + " layers z = " + string.Join(",", zs) + "; 0, 1, … without gaps (K-58 item 1)");
+                bool differs = false;
+                foreach (var l in layers) if (l.Piece.Shape != first.Shape || l.Piece.X != first.X || l.Piece.Y != first.Y) differs = true;
+                if (differs) push("L-40", "stack_invalid", path, "pallet " + id + ": every layer has the same shape and anchor (K-58 item 1)");
+                if (level.Gravity.Yard) push("L-40", "stack_invalid", path, "a pallet in a yard-gravity level (Y6) is not defined (OBSTACLES v3 table)");
+            }
+            if (level.Chapter >= 2)
+            {
+                // K-59 item 5 (story 2+): a wrapped pallet layer must be the top layer
+                foreach (var kv in PalletsOf(level))
+                {
+                    int top = int.MinValue;
+                    foreach (var l in kv.Value) top = Math.Max(top, l.Piece.Stack != null ? l.Piece.Stack.Z : 0);
+                    foreach (var l in kv.Value)
+                        if (Array.IndexOf(FlagsOf(l.Piece), "wrapped") >= 0 && (l.Piece.Stack != null ? l.Piece.Stack.Z : 0) != top)
+                            push("L-40", "flag_combo_forbidden", l.Path, "pallet " + kv.Key + ": only the top layer may be wrapped (K-59 item 5)");
+                }
+            }
+        }
+
+        /// <summary>
+        /// L-41 (validate stage, design rules): `trait_locked`, `piece_unreachable` (K-56), `colors_low_contrast` (K-65 item 3, story 1),
+        /// `stack_mixed` (K-65 item 1, story 1), `pallet_capacity` (K-58 item 8), `trait_overlay_many` (K-65 item 2, story 1),
+        /// `scissors_trivial` / `scissors_blocked` (K-59 item 6), `tile_family_mix` (K-63, Easy / Normal). schemaVersion 3 only.
+        /// </summary>
+        private static void CheckTraitDesign(LevelData level, BoardGeo geo, SegmentPlan[] plans, bool plansUsable, Push push)
+        {
+            if (LevelSchema.SchemaVersionOf(level) != 3) return;
+            bool story1 = level.Chapter == 1;
+            var mechanics = new HashSet<string>(Mechanics.DeriveMechanics(level));
+            foreach (var t in Mechanics.TraitTable)
+                if (mechanics.Contains(t.Id) && t.FirstLevel > level.Id)
+                    push("L-41", "trait_locked", "level", t.Id + " is introduced at level " + t.FirstLevel + "; level " + level.Id + " may not use it");
+            var pieces = level.Yard.Batches.Length > 0 ? level.Yard.Batches[0].Pieces : new PieceData[0];
+            for (int i = 0; i < pieces.Length; i++)
+            {
+                var p = pieces[i];
+                string path = "yard.batches[0].pieces[" + i + "]";
+                var shape = Shapes.ShapeById(p.Shape);
+                if (!Mechanics.IsCargo(shape) && !CanReachSite(shape, level))
+                    push("L-41", "piece_unreachable", path,
+                        p.Shape + " (" + shape.H + " tall) passes neither over the wall (height " + level.Wall.Height + ", H " + Mechanics.BoardHeight(level) + ") nor through a gap (K-56, K-05)");
+                if (story1 && p.Colors != null)
+                {
+                    var letters = new List<string>();
+                    foreach (char c in p.Colors) if (!letters.Contains(c.ToString())) letters.Add(c.ToString());
+                    letters.Sort(string.CompareOrdinal);
+                    string pair = string.Join("", letters);
+                    if (Array.IndexOf(TwoTonePairsCh1, pair) < 0)
+                        push("L-41", "colors_low_contrast", path, "colours " + pair + " are not an allowed story-1 pair (" + string.Join(", ", TwoTonePairsCh1) + "; K-65 item 3)");
+                }
+                if (story1)
+                {
+                    var fl = FlagsOf(p);
+                    int overlays = (Array.IndexOf(fl, "wrapped") >= 0 ? 1 : 0) + (Array.IndexOf(fl, "scissors") >= 0 ? 1 : 0) + (Array.IndexOf(fl, "bonus") >= 0 ? 1 : 0) + (p.Stack != null ? 1 : 0);
+                    if (overlays > 1)
+                        push("L-41", "trait_overlay_many", path, overlays + " overlay traits on one block; at most 1 in story 1 (K-65 item 2)", Severities.Warn);
+                }
+            }
+            // pallets: story-1 single type, capacity
+            var pallets = PalletsOf(level);
+            int worst = 0;
+            foreach (var kv in pallets)
+            {
+                if (kv.Value.Count == 0) continue;
+                var first = kv.Value[0].Piece;
+                if (story1)
+                {
+                    bool same = true;
+                    foreach (var l in kv.Value)
+                        if (!(l.Piece.Shape == first.Shape && l.Piece.Color == first.Color && (l.Piece.Colors ?? "") == (first.Colors ?? "") && FlagsOf(l.Piece).Length == 0)) same = false;
+                    if (!same) push("L-41", "stack_mixed", kv.Value[0].Path, "pallet " + kv.Key + ": in story 1 every layer is the same block without flags (K-65 item 1)");
+                }
+                worst = Math.Max(worst, Shapes.ShapeById(first.Shape).CellCount * (kv.Value.Count - 1));
+            }
+            if (pallets.Count > 0)
+            {
+                var footprint = new HashSet<int>();
+                foreach (var p in pieces)
+                {
+                    if (p.Stack != null && HasHigherLayer(pieces, p)) continue;
+                    foreach (var c in CellsAt(Shapes.ShapeById(p.Shape), p.X, p.Y)) footprint.Add(c.Y * geo.Wy + c.X);
+                }
+                foreach (var o in level.Obstacles)
+                    if (o.Type == "crate" || o.Type == "cement_bag") footprint.Add(o.Y * geo.Wy + o.X);
+                int empty = geo.Wy * geo.Hy - footprint.Count;
+                int need = 2 + worst;
+                if (empty < need)
+                    push("L-41", "pallet_capacity", "yard", "E = " + empty + " empty cells < 2 + max(cells × (layers − 1)) = " + need + " (K-58 item 8)",
+                        level.Difficulty == "easy" ? Severities.Error : Severities.Warn);
+            }
+            // scissors: trivial (not under a dig) / blocked (its correct placement needs a wrapped block first)
+            int sIndex = -1;
+            for (int i = 0; i < pieces.Length; i++) if (Array.IndexOf(FlagsOf(pieces[i]), "scissors") >= 0) { sIndex = i; break; }
+            var sc = sIndex >= 0 ? pieces[sIndex] : null;
+            bool anyWrapped = false;
+            foreach (var p in pieces) if (Array.IndexOf(FlagsOf(p), "wrapped") >= 0) anyWrapped = true;
+            if (sc != null && anyWrapped)
+            {
+                string path = "yard.batches[0].pieces[" + sIndex + "]";
+                var shape = Shapes.ShapeById(sc.Shape);
+                var occupied = new HashSet<int>();
+                foreach (var p in pieces)
+                {
+                    if (p == sc) continue;
+                    foreach (var c in CellsAt(Shapes.ShapeById(p.Shape), p.X, p.Y)) occupied.Add(c.Y * geo.Wy + c.X);
+                }
+                foreach (var o in level.Obstacles)
+                    if (o.Type == "crate" || o.Type == "cement_bag") occupied.Add(o.Y * geo.Wy + o.X);
+                bool dug = false;
+                for (int j = 0; j < shape.W && !dug; j++)
+                {
+                    int x = sc.X + j;
+                    for (int y = sc.Y + shape.ColTop[j] + 1; y < geo.Hy && !dug; y++)
+                        if (occupied.Contains(y * geo.Wy + x)) dug = true;
+                }
+                if (!dug)
+                    push("L-41", "scissors_trivial", path, "the scissors block is not under any block at the start: no order decision (K-59 item 6)", Severities.Warn);
+                if (plansUsable)
+                {
+                    var res = TileSearch(level, plans, geo, TileBudget,
+                        b => b.Piece != null && Array.IndexOf(FlagsOf(b.Piece), "wrapped") >= 0,
+                        b => ReferenceEquals(b.Piece, sc));
+                    if (res == TileResults.Dead)
+                        push("L-41", "scissors_blocked", path,
+                            "the scissors block cannot be placed correctly before a wrapped block is placed (K-34 support or an earlier segment needs a wrapped block; K-59 item 6)");
+                }
+            }
+            // K-63 tiling families (Easy / Normal): one "bottom row full" and one "column" orientation per colour
+            if (level.Difficulty == "easy" || level.Difficulty == "normal")
+            {
+                var famOrder = new List<string>();
+                var bottomInsertion = new Dictionary<string, List<string>>();
+                var columnInsertion = new Dictionary<string, List<string>>();
+                foreach (var p in pieces)
+                {
+                    if (p.Colors != null || Mechanics.IsCargo(Shapes.ShapeById(p.Shape))) continue;
+                    if (!bottomInsertion.ContainsKey(p.Color))
+                    {
+                        famOrder.Add(p.Color);
+                        bottomInsertion[p.Color] = new List<string>();
+                        columnInsertion[p.Color] = new List<string>();
+                    }
+                    if (BottomFamily.Contains(p.Shape) && !bottomInsertion[p.Color].Contains(p.Shape)) bottomInsertion[p.Color].Add(p.Shape);
+                    if (ColumnFamily.Contains(p.Shape) && !columnInsertion[p.Color].Contains(p.Shape)) columnInsertion[p.Color].Add(p.Shape);
+                }
+                foreach (var color in famOrder)
+                {
+                    var bt = bottomInsertion[color];
+                    var cl = columnInsertion[color];
+                    if (bt.Count > 1 || cl.Count > 1)
+                    {
+                        var all = new List<string>(bt);
+                        all.AddRange(cl);
+                        push("L-41", "tile_family_mix", "yard",
+                            "colour " + color + ": " + string.Join(", ", all) + " mix tiling families; the solver must prove trapCount 0 (K-63)", Severities.Warn);
+                    }
+                }
+            }
         }
     }
 }

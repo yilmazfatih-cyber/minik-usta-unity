@@ -179,6 +179,9 @@ namespace MinikUsta.Core
                 case ChainReleasedEvent x:
                     o.Set("pieceId", JsonValue.Of(x.PieceId));
                     break;
+                case UnwrappedEvent x:
+                    o.Set("by", JsonValue.Of(x.By)).Set("pieceId", JsonValue.Of(x.PieceId)).Set("pieces", Ints(x.Pieces));
+                    break;
                 case ScrewCollectedEvent x:
                     o.Set("at", AtJson(x.At)).Set("total", JsonValue.Of(x.Total));
                     break;

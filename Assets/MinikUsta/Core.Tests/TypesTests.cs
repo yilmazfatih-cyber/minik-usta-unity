@@ -36,16 +36,16 @@ namespace MinikUsta.Core.Tests
             Assert.AreEqual(3, Zone.Gone);
             Assert.AreEqual(4, Zone.Pending);
             CollectionAssert.AreEqual(new[] { "yard", "site", "queue", "gone", "pending" }, Zone.Names);
-            CollectionAssert.AreEqual(new[] { "glass", "mortar", "balloon", "chained", "wet", "locked", "debris", "stuck" }, PieceFlags.All);
-            CollectionAssert.AreEqual(new[] { "glass", "mortar", "balloon", "chained", "wet" }, PieceFlags.DataFlags);
+            CollectionAssert.AreEqual(new[] { "glass", "mortar", "balloon", "chained", "wet", "locked", "debris", "stuck", "wrapped", "scissors", "bonus", "slippery" }, PieceFlags.All);
+            CollectionAssert.AreEqual(new[] { "glass", "mortar", "balloon", "chained", "wet", "wrapped", "scissors", "bonus", "slippery" }, PieceFlags.DataFlags);
         }
 
         [Test]
-        public void Event_kinds_cover_the_43_TS_event_types_with_distinct_names()
+        public void Event_kinds_cover_the_44_TS_event_types_with_distinct_names()
         {
-            Assert.AreEqual(43, EventTypes.All.Length);
-            Assert.AreEqual(43, Enum.GetValues(typeof(EventKind)).Length);
-            Assert.AreEqual(43, new HashSet<string>(EventTypes.All).Count);
+            Assert.AreEqual(44, EventTypes.All.Length);
+            Assert.AreEqual(44, Enum.GetValues(typeof(EventKind)).Length);
+            Assert.AreEqual(44, new HashSet<string>(EventTypes.All).Count);
             // every concrete event class reports the name of its kind
             GameEvent[] samples =
             {

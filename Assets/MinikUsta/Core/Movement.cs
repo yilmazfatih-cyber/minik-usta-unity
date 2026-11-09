@@ -128,6 +128,8 @@ namespace MinikUsta.Core
         public const string NoMoves = "noMoves";
         public const string Rule = "rule";
         public const string Immovable = "immovable";
+        /// <summary>v3 Y10 (GDD §16 K-58 item 3): a pallet layer under another layer; no reaction, no move spent.</summary>
+        public const string Covered = "covered";
     }
 
     /// <summary>TS `DragAttempt`: `Ok` with a `Session`, or a `Reason` (`PickFailures`).</summary>
@@ -215,6 +217,7 @@ namespace MinikUsta.Core
             if (zone != Zone.Yard && zone != Zone.Site) return DragAttempt.Failure(PickFailures.NotOnBoard);
             if (zone == Zone.Site && PieceSeg(s, pieceId) != Grid.VisibleSegment(s)) return DragAttempt.Failure(PickFailures.HiddenSegment);
             if ((PieceFlagBits(s, pieceId) & FlagBit.Locked) != 0) return DragAttempt.Failure(PickFailures.Locked);
+            if (s.Lvl.HasStacks && Grid.IsCovered(s, pieceId)) return DragAttempt.Failure(PickFailures.Covered);
             if (Hdr(s, H.MovesLeft) <= 0) return DragAttempt.Failure(PickFailures.NoMoves);
             if (rules.CanPick != null && !rules.CanPick(s, pieceId)) return DragAttempt.Failure(PickFailures.Rule);
             var session = new DragSession(s, pieceId, rules);

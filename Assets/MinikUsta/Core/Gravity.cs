@@ -567,12 +567,18 @@ namespace MinikUsta.Core
         {
             bool yardOn = s.Lvl.Gravity.Yard;
             var ents = new List<Ent>();
-            if (yardOn)
+            // v3 Y13 (GDD §16 K-61): a `slippery` block falls even without Y6; a covered pallet layer (K-58) is never an entity
+            bool slippery = false;
+            if (!yardOn)
+                foreach (var cp in s.Lvl.Pieces) if ((cp.Flags & FlagBit.Slippery) != 0) { slippery = true; break; }
+            if (yardOn || slippery)
             {
                 int P = s.Lvl.Layout.Counts.Pieces;
                 for (int id = 0; id < P; id++)
                 {
                     if (PieceZone(s, id) != Zone.Yard) continue;
+                    if (!yardOn && (PieceFlagBits(s, id) & FlagBit.Slippery) == 0) continue;
+                    if (s.Lvl.HasStacks && Grid.IsCovered(s, id)) continue;
                     bool balloon = (PieceFlagBits(s, id) & FlagBit.Balloon) != 0;
                     ents.Add(new Ent(YardMotion.KindPiece, id, Shapes.ShapeByIndex(PieceShape(s, id)), PieceX(s, id), PieceY(s, id), !balloon, balloon));
                 }

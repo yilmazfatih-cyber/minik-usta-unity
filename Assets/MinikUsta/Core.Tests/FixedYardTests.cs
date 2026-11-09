@@ -84,8 +84,8 @@ namespace MinikUsta.Core.Tests
             Assert.IsTrue(Compiler.LoadLevel(json).Ok);
         }
 
-        [Test(Description = "K-55 GDD §14 schemaVersion 1 | 2 (backward compatible): missing = 1, the Faz 2R archive files still parse, 3 is rejected; v2 targets take the D-099 bands")]
-        public void K55_GDD_14_schemaVersion_1_or_2_is_accepted_3_is_rejected_and_the_D099_target_bands_round_trip()
+        [Test(Description = "K-55 GDD §14 schemaVersion 1 | 2 | 3 (backward compatible): missing = 1, the Faz 2R archive files still parse, 4 is rejected; v2 targets take the D-099 bands")]
+        public void K55_GDD_14_schemaVersion_1_2_or_3_is_accepted_4_is_rejected_and_the_D099_target_bands_round_trip()
         {
             JsonValue Base(int? version)
             {
@@ -96,7 +96,8 @@ namespace MinikUsta.Core.Tests
             bool Ok(JsonValue j) => LevelJson.Parse(j, new List<SchemaIssue>()) != null;
             Assert.IsTrue(Ok(Base(1)));
             Assert.IsTrue(Ok(Base(2)));
-            Assert.IsFalse(Ok(Base(3)));
+            Assert.IsTrue(Ok(Base(3)));
+            Assert.IsFalse(Ok(Base(4)));
             for (int n = 1; n <= 10; n++)
                 Assert.AreEqual(1, LevelSchema.SchemaVersionOf(LevelJson.ParseOrThrow(TestPaths.LoadLevelJson(n))), "archive level " + n);
             for (int n = 1; n <= 10; n++)

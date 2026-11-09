@@ -266,7 +266,7 @@ namespace MinikUsta.Core.Tests
             var json = LevelJsonOf(n, archive);
             Assert.AreEqual(n, golden.Level);
             Assert.AreEqual(GameSession.LevelHash(LevelJson.ParseOrThrow(json)), golden.LevelHash, "levelHash of levels/level_NNN.json (K-43/4)");
-            Assert.AreEqual(GameSession.RulesVersion, golden.RulesVersion);
+            Assert.AreEqual(archive ? 3 : GameSession.RulesVersion, golden.RulesVersion); // the Faz 2R archive stays recorded at RULES_VERSION 3
             CollectionAssert.AreEqual(new[] { lvl.Geo.Wy, lvl.Geo.Hy }, golden.GeoYard, "geo.yard");
             CollectionAssert.AreEqual(new[] { lvl.Geo.Ws, lvl.Geo.Hs }, golden.GeoSite, "geo.site");
             Assert.AreEqual(lvl.Geo.H, golden.GeoH, "geo.H");
@@ -303,7 +303,7 @@ namespace MinikUsta.Core.Tests
             var solver = LoadSolver(n, archive);
             Assert.AreEqual(n, solver.Level);
             Assert.AreEqual(golden.LevelHash, solver.LevelHash);
-            Assert.AreEqual(GameSession.RulesVersion, solver.RulesVersion);
+            Assert.AreEqual(archive ? 3 : GameSession.RulesVersion, solver.RulesVersion);
             Assert.IsTrue(SessionActionJson.SameLog(solver.Log, golden.Log), "solver log = hand log");
             Assert.AreEqual(golden.MinMoves, solver.Min);
             CollectionAssert.AreEqual(new[] { golden.YaoOverWall, golden.YaoRail }, new[] { solver.YaoOverWall, solver.YaoRail });

@@ -112,7 +112,7 @@ namespace MinikUsta.Core.Level
         private static readonly string[] FlagFilters = { "glass", "balloon", "mortar" };
         private static readonly string[] HitTypes = { "crate", "cement_bag", "chain" };
         private static readonly string[] ItemTypes = { "screw", "key" };
-        private static readonly string[] Teaches = Concat(MechanicIds.All, MechanicIds.Legacy);
+        private static readonly string[] Teaches = Concat(Concat(MechanicIds.All, MechanicIds.Traits), MechanicIds.Legacy);
 
         private static string[] Concat(string[] a, string[] b)
         {
@@ -383,7 +383,8 @@ namespace MinikUsta.Core.Level
                     // GDD §14 (D-099): 1 = Faz 2R archive, 2 = fixed yard (K-55); missing = 1
                     if (sv.IsNumber && sv.AsDouble == 1) schemaVersion = 1;
                     else if (sv.IsNumber && sv.AsDouble == 2) schemaVersion = 2;
-                    else Issue(At(path, "schemaVersion"), "invalid_union", "Invalid input: expected 1 or 2");
+                    else if (sv.IsNumber && sv.AsDouble == 3) schemaVersion = 3;
+                    else Issue(At(path, "schemaVersion"), "invalid_union", "Invalid input: expected 1, 2 or 3");
                 }
                 var id = Int(v["id"], At(path, "id"), 1, 999);
                 var chapter = Int(v["chapter"], At(path, "chapter"), 1, 5);
@@ -729,7 +730,8 @@ namespace MinikUsta.Core.Level
 
             private static readonly string[] YardKeys = { "cols", "rows", "batches" };
             private static readonly string[] BatchKeys = { "forSegment", "dropColumns", "pieces" };
-            private static readonly string[] PieceKeys = { "shape", "color", "x", "y", "flags", "wetMoves" };
+            private static readonly string[] PieceKeys = { "shape", "color", "x", "y", "flags", "wetMoves", "colors", "stack", "bonusMoves" };
+            private static readonly string[] StackKeys = { "id", "z" };
 
             private YardData? Yard(JsonValue? v, object[] path)
             {
@@ -811,6 +813,28 @@ namespace MinikUsta.Core.Level
                     }
                 }
                 var wetMoves = Int(v["wetMoves"], At(path, "wetMoves"), 1, 5, false);
+                string? colors = null;
+                if (v.Has("colors"))
+                {
+                    colors = Pattern(v["colors"], At(path, "colors"), LevelSchemaPatterns.CellColors);
+                    if (colors == null) ok = false;
+                }
+                StackData? stack = null;
+                if (v.Has("stack"))
+                {
+                    var sp = At(path, "stack");
+                    var sv = v["stack"];
+                    if (!Strict(sv, sp, StackKeys)) ok = false;
+                    else
+                    {
+                        var sid = Int(sv!["id"], At(sp, "id"), 0, 7);
+                        var sz = Int(sv["z"], At(sp, "z"), 0, 3);
+                        if (sid == null || sz == null) ok = false;
+                        else stack = new StackData(sid.Value, sz.Value);
+                    }
+                }
+                var bonusMoves = Int(v["bonusMoves"], At(path, "bonusMoves"), 1, 3, false);
+                if (v.Has("bonusMoves") && bonusMoves == null) ok = false;
                 // superRefine: a material block needs a colour (only I5/Q9 Ağır Yük has none, K-44)
                 if (shape != null && !v.Has("color") && !LevelSchemaPatterns.CargoShape.IsMatch(shape))
                 {
@@ -820,7 +844,7 @@ namespace MinikUsta.Core.Level
                 if (v.Has("color") && color == null) ok = false;
                 if (!ok || shape == null || x == null || y == null) return null;
                 // transform: color ?? CARGO_PLACEHOLDER_COLOR
-                return new PieceData(shape, color ?? LevelSchemaPatterns.CargoPlaceholderColor, x.Value, y.Value, flags, wetMoves);
+                return new PieceData(shape, color ?? LevelSchemaPatterns.CargoPlaceholderColor, x.Value, y.Value, flags, wetMoves, colors, stack, bonusMoves);
             }
 
             private static readonly string[] ObstacleKeys = { "type", "x", "y", "hp", "id" };

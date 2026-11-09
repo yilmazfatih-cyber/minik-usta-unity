@@ -118,12 +118,17 @@ namespace MinikUsta.Core
         public const string Locked = "locked";
         public const string Debris = "debris";
         public const string Stuck = "stuck";
+        /// <summary>v3 (GDD §16 K-59…K-61, schemaVersion 3): wrapped / scissors (Y11), bonus (Y12), slippery (Y13).</summary>
+        public const string Wrapped = "wrapped";
+        public const string Scissors = "scissors";
+        public const string Bonus = "bonus";
+        public const string Slippery = "slippery";
 
-        /// <summary>Block flags written in level data (GDD K-21).</summary>
-        public static readonly string[] DataFlags = { Glass, Mortar, Balloon, Chained, Wet };
+        /// <summary>Block flags written in level data (GDD K-21; v3 flags appended).</summary>
+        public static readonly string[] DataFlags = { Glass, Mortar, Balloon, Chained, Wet, Wrapped, Scissors, Bonus, Slippery };
 
         /// <summary>All runtime piece flags: data flags + `debris` (S4, added by compile) + `locked` (K-14) + `stuck` (Y8).</summary>
-        public static readonly string[] All = { Glass, Mortar, Balloon, Chained, Wet, Locked, Debris, Stuck };
+        public static readonly string[] All = { Glass, Mortar, Balloon, Chained, Wet, Locked, Debris, Stuck, Wrapped, Scissors, Bonus, Slippery };
 
         public static int IndexOf(string flag) => Array.IndexOf(All, flag);
     }
@@ -469,6 +474,8 @@ namespace MinikUsta.Core
         public const string Chain = "chain";
         public const string SiteDebris = "siteDebris";
         public const string StuckMortar = "stuckMortar";
+        /// <summary>v3 (K-59 item 4, K-66 item 3): the hammer cuts one wrap (Y11).</summary>
+        public const string Wrap = "wrap";
     }
 
     public static class BoosterNames
@@ -481,7 +488,7 @@ namespace MinikUsta.Core
 
     // --- events (TECH §6.3) ------------------------------------------------------------------------------------------
 
-    /// <summary>The 43 event types of `GameEventBody['t']`, in the TS union order.</summary>
+    /// <summary>The 44 event types of `GameEventBody['t']`, in the TS union order.</summary>
     public enum EventKind
     {
         MoveCancelled,
@@ -505,6 +512,7 @@ namespace MinikUsta.Core
         CrateBroken,
         BagTorn,
         ChainReleased,
+        Unwrapped,
         ScrewCollected,
         KeyCollected,
         GapUnlocked,
@@ -880,13 +888,15 @@ namespace MinikUsta.Core
         public const string Move = "move";
         public const string Offer = "offer";
         public const string Booster = "booster";
+        /// <summary>v3 (K-60): a correctly placed bonus block added `bonusMoves` in step 4.</summary>
+        public const string Bonus = "bonus";
     }
 
     public sealed class MovesChangedEvent : GameEvent
     {
         public readonly int MovesLeft;
         public readonly int Delta;
-        /// <summary>move | offer | booster.</summary>
+        /// <summary>move | offer | booster | bonus.</summary>
         public readonly string Reason;
         public readonly MoveCost? Cost;
 
@@ -954,6 +964,30 @@ namespace MinikUsta.Core
 
         public override EventKind T => EventKind.ChainReleased;
         public override string TypeName => "chainReleased";
+    }
+
+    public static class UnwrapBys
+    {
+        public const string Scissors = "scissors";
+        public const string Hammer = "hammer";
+    }
+
+    /// <summary>v3 (K-59): wraps removed. `By` scissors = step 5 of the move whose correct placement of the scissors block `PieceId` removed every wrap (`Pieces`, id order); hammer = K-36 cut one wrap.</summary>
+    public sealed class UnwrappedEvent : GameEvent
+    {
+        public readonly string By;
+        public readonly int PieceId;
+        public readonly int[] Pieces;
+
+        public UnwrappedEvent(string by, int pieceId, int[] pieces)
+        {
+            By = by;
+            PieceId = pieceId;
+            Pieces = pieces;
+        }
+
+        public override EventKind T => EventKind.Unwrapped;
+        public override string TypeName => "unwrapped";
     }
 
     public sealed class ScrewCollectedEvent : GameEvent
@@ -1316,7 +1350,7 @@ namespace MinikUsta.Core
         public override string TypeName => "teardown";
     }
 
-    /// <summary>Event type names in `EventKind` order (TS `GameEventType` union, 43 entries).</summary>
+    /// <summary>Event type names in `EventKind` order (TS `GameEventType` union, 44 entries).</summary>
     public static class EventTypes
     {
         public static readonly string[] All =
@@ -1324,7 +1358,7 @@ namespace MinikUsta.Core
             "moveCancelled", "pieceMoved", "piecePainted", "windDrift", "pieceFell", "balloonRose", "steered",
             "glassBroke", "pieceReturned", "placementCorrect", "cellsRevealed", "comboChanged", "trowelEarned",
             "placementWrong", "mortarStuck", "pieceBounced", "movesChanged", "crateDamaged", "crateBroken", "bagTorn",
-            "chainReleased", "screwCollected", "keyCollected", "gapUnlocked", "gapChanged", "wetTick", "goalProgress",
+            "chainReleased", "unwrapped", "screwCollected", "keyCollected", "gapUnlocked", "gapChanged", "wetTick", "goalProgress",
             "segmentCompleted", "siteShifted", "carouselRotated", "elevatorMoved", "deliveryArrived", "deliveryQueued",
             "levelWon", "outOfMoves", "deadlockDetected", "truckHelp", "boosterApplied", "boosterRejected",
             "pieceLifted", "colorsSwapped", "cargoSmashed", "teardown",

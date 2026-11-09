@@ -463,10 +463,10 @@ namespace MinikUsta.Core.Tests
             CollectionAssert.AreEqual(new[] { "build.debris[0]", "build.debris[1]", "build.debris[2]" }, stacked.Select(i => i.Path).ToArray());
         }
 
-        [Test(Description = "K-45 runtime subset: L-02, L-04, L-05, L-08, L-09, L-24, L-25, L-26, L-28, L-36 (WP-M put L-05 back after the Faz 2R levels; K-55 adds L-36)")]
+        [Test(Description = "K-45 runtime subset: L-02, L-04, L-05, L-08, L-09, L-24, L-25, L-26, L-28, L-36, L-40 (WP-M put L-05 back after the Faz 2R levels; K-55 adds L-36; v3 adds L-40)")]
         public void K45_runtime_subset()
         {
-            CollectionAssert.AreEqual(new[] { "L-02", "L-04", "L-05", "L-08", "L-09", "L-24", "L-25", "L-26", "L-28", "L-36" }, Logic.RuntimeChecks);
+            CollectionAssert.AreEqual(new[] { "L-02", "L-04", "L-05", "L-08", "L-09", "L-24", "L-25", "L-26", "L-28", "L-36", "L-40" }, Logic.RuntimeChecks);
             string[] Run(string file) => Logic.ValidateLevelJson(Fixture("invalid", file), new LogicContext(only: Logic.RuntimeChecks)).Issues.Select(i => i.Code).ToArray();
             CollectionAssert.IsEmpty(Run("yard_fill_low"));
             CollectionAssert.AreEqual(new[] { "plan_size" }, Run("plan_size_rows"));

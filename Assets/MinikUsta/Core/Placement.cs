@@ -221,13 +221,16 @@ namespace MinikUsta.Core
             int hs = geo.Hs;
             int elev = Hdr(s, H.Elev);
             int color = PieceColor(s, pieceId);
+            // v3 Y9 (GDD §16 K-57 item 1): a two-tone block is checked per cell; `cells` are in the shape's cell order
+            bool twoTone = IsTwoTone(s, pieceId);
             bool outside = false;
             bool window = false;
             bool wrongColor = false;
             var low = new int[ws];
             for (int sx = 0; sx < ws; sx++) low[sx] = NoRow;
-            foreach (var c in cells)
+            for (int ci = 0; ci < cells.Length; ci++)
             {
+                var c = cells[ci];
                 int sx = c.X - siteX;
                 int sy = c.Y - elev;
                 if (sx < 0 || sx >= ws || sy < 0)
@@ -240,7 +243,7 @@ namespace MinikUsta.Core
                 int v = plan != null && sy < hs ? plan.PlanColors[sy * ws + sx] : Compiler.PlanOutside;
                 if (v == Compiler.PlanOutside) outside = true;
                 else if (v == Compiler.PlanDot) window = true;
-                else if (v != color) wrongColor = true;
+                else if (v != (twoTone ? PieceCellColor(s, pieceId, ci) : color)) wrongColor = true;
             }
 
             // K-34: missing support per covered column (the piece's own cells never count as a wrong object below itself)
@@ -297,10 +300,11 @@ namespace MinikUsta.Core
             int ws = geo.Ws;
             int hs = geo.Hs;
             int elev = Hdr(s, H.Elev);
-            int color = PieceColor(s, pieceId);
             var o = new List<BoardCell>();
-            foreach (var c in cells)
+            for (int ci = 0; ci < cells.Length; ci++)
             {
+                var c = cells[ci];
+                int color = PieceCellColor(s, pieceId, ci);
                 int sx = c.X - siteX;
                 int sy = c.Y - elev;
                 bool inside = sx >= 0 && sx < ws && sy >= 0;

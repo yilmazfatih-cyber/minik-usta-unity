@@ -176,7 +176,7 @@ namespace MinikUsta.Core
         /// (K-55 item 8, K-30: a D1 the rules cannot lift is a Söküm with cause `access`, never a reshuffle; after an accepted
         /// +5 offer the D1 Söküm goes back to the start of the last action). An attempt saved with 2 is voided (E-67).
         /// </summary>
-        public const int RulesVersion = 3;
+        public const int RulesVersion = 4;
         /// <summary>K-29: moves of an accepted offer.</summary>
         public const int OfferMoves = 5;
         /// <summary>K-29: offers per attempt (ad or coins).</summary>

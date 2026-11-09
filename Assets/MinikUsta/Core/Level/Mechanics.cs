@@ -117,16 +117,32 @@ namespace MinikUsta.Core.Level
             new MechanicSignature("S9", 12, l => (l.Site?.Cols ?? Geometry.DefaultSizes.Ws) >= 3),
         };
 
+        /// <summary>
+        /// v3 block traits (OBSTACLES "v3 imza önerileri", GDD §16): same shape as `Table`, kept apart until the rows move into the
+        /// OBSTACLES "Veri imzası" table. First levels = LEVELS §8.3. TS `TRAIT_MECHANICS`.
+        /// </summary>
+        public static readonly MechanicSignature[] TraitTable =
+        {
+            new MechanicSignature("Y9", 5, l => { foreach (var p in AllPieces(l)) if (p.Colors != null) return true; return false; }),
+            new MechanicSignature("Y10", 3, l => { foreach (var p in AllPieces(l)) if (p.Stack != null) return true; return false; }),
+            new MechanicSignature("Y11", 7, l => AnyFlag(l, PieceFlags.Wrapped) || AnyFlag(l, PieceFlags.Scissors)),
+            new MechanicSignature("Y12", 9, l => AnyFlag(l, PieceFlags.Bonus)),
+            new MechanicSignature("Y13", 13, l => AnyFlag(l, PieceFlags.Slippery)),
+        };
+
         static Mechanics()
         {
             if (Table.Length != MechanicIds.All.Length) throw new InvalidOperationException("mechanics table out of sync with MECHANIC_IDS");
+            if (string.Join(",", System.Linq.Enumerable.Select(TraitTable, m => m.Id)) != string.Join(",", MechanicIds.Traits))
+                throw new InvalidOperationException("trait table out of sync with TRAIT_MECHANIC_IDS");
         }
 
-        /// <summary>The level's mechanic set, in table order.</summary>
+        /// <summary>The level's mechanic set: signature table order, then the v3 traits (Y9 … Y13).</summary>
         public static string[] DeriveMechanics(LevelData level)
         {
             var o = new List<string>();
             foreach (var m in Table) if (m.Detect(level)) o.Add(m.Id);
+            foreach (var m in TraitTable) if (m.Detect(level)) o.Add(m.Id);
             return o.ToArray();
         }
 

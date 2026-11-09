@@ -55,6 +55,37 @@ namespace MinikUsta.Core
         /// <summary>Clears the piece from the occupancy grids.</summary>
         public static void VacatePiece(GameState s, int id) => WritePiece(s, id, 0);
 
+        // --- v3 Y10 pallets (GDD §16 K-58) ---------------------------------------------------------------------------------
+
+        /// <summary>
+        /// The pallet layer directly below `id` that still lies under it (same anchor, in the yard), or −1. Only the top layer of a
+        /// pallet is in `yardOcc`; the layers below keep their record (zone yard, same anchor) and fill the same cells.
+        /// </summary>
+        public static int LayerBelow(GameState s, int id)
+        {
+            int b = id >= 0 && id < s.Lvl.Pieces.Length ? s.Lvl.Pieces[id].StackBelow : -1;
+            if (b < 0 || PieceZone(s, id) != Zone.Yard || PieceZone(s, b) != Zone.Yard) return -1;
+            return PieceX(s, b) == PieceX(s, id) && PieceY(s, b) == PieceY(s, id) ? b : -1;
+        }
+
+        /// <summary>K-58 item 3: a pallet layer under another layer (not the top). Its cells hold the top layer in `yardOcc`.</summary>
+        public static bool IsCovered(GameState s, int id)
+        {
+            if (id < 0 || id >= s.Lvl.Pieces.Length) return false;
+            var p = s.Lvl.Pieces[id];
+            if (p.StackId < 0 || PieceZone(s, id) != Zone.Yard) return false;
+            var cells = Shapes.ShapeByIndex(PieceShape(s, id)).Cells;
+            if (cells.Length == 0) return false;
+            var first = cells[0];
+            return YardOcc(s, PieceX(s, id) + first.X, PieceY(s, id) + first.Y) != id + 1;
+        }
+
+        /// <summary>
+        /// K-58 item 4: the cells of the held block count as empty for its drag (its own start), except a pallet layer with a layer
+        /// below it: its cells stay full (the layer below). The occupancy code to skip, or 0 for none.
+        /// </summary>
+        public static int OwnCellCode(GameState s, int id) => LayerBelow(s, id) >= 0 ? 0 : id + 1;
+
         private static void WritePiece(GameState s, int id, int value)
         {
             int zone = PieceZone(s, id);
@@ -64,6 +95,12 @@ namespace MinikUsta.Core
             int y = PieceY(s, id);
             if (zone == Zone.Yard)
             {
+                // K-58 item 2: a pallet's cells stay full while a layer is left — vacating the top writes the layer below
+                if (value == 0)
+                {
+                    int below = LayerBelow(s, id);
+                    if (below >= 0) value = below + 1;
+                }
                 foreach (var c in shape.Cells) SetYardOcc(s, x + c.X, y + c.Y, value);
             }
             else
@@ -123,7 +160,8 @@ namespace MinikUsta.Core
             int h = geo.H;
             int rows = geo.Rows;
             int siteX = geo.SiteX;
-            int skip = exclude + 1;
+            // K-58 item 4: a pallet layer's own cells stay blocked (the layer below fills them)
+            int skip = exclude >= 0 && s.Lvl.HasStacks ? OwnCellCode(s, exclude) : exclude + 1;
             for (int y = 0; y < rows; y++)
             {
                 int row = 0;
@@ -207,6 +245,21 @@ namespace MinikUsta.Core
                 var shape = Shapes.ShapeByIndex(PieceShape(s, id));
                 int x = PieceX(s, id);
                 int y = PieceY(s, id);
+                // K-58: a covered pallet layer shares the cells of the layer above it (same pallet, same anchor, higher z)
+                if (zone == Zone.Yard && IsCovered(s, id))
+                {
+                    var firstCell = shape.Cells.Length > 0 ? shape.Cells[0] : (Cell?)null;
+                    int top = firstCell.HasValue ? YardOcc(s, x + firstCell.Value.X, y + firstCell.Value.Y) - 1 : -1;
+                    bool ok = false;
+                    if (top >= 0 && top < lvl.Pieces.Length)
+                    {
+                        var tp = lvl.Pieces[top];
+                        var me = lvl.Pieces[id];
+                        ok = tp.StackId == me.StackId && tp.StackZ > me.StackZ && PieceZone(s, top) == Zone.Yard && PieceX(s, top) == x && PieceY(s, top) == y;
+                    }
+                    if (!ok) errors.Add("piece " + id + ": covered pallet layer without its pallet's upper layer on it");
+                    continue;
+                }
                 foreach (var c in shape.Cells)
                 {
                     int cx = x + c.X;
