@@ -2,116 +2,42 @@
   "schemaVersion": 3,
   "id": 6,
   "chapter": 1,
-  "name": {
-    "tr": "Uzun Gövde",
-    "en": "Tall Trunk"
-  },
+  "name": { "tr": "Uzun Gövde", "en": "Tall Trunk" },
   "difficulty": "normal",
-  "moves": 12,
-  "goals": [
-    {
-      "type": "build"
-    }
-  ],
-  "gravity": {
-    "build": "normal",
-    "yard": false
-  },
-  "wall": {
-    "height": 4,
-    "gaps": []
-  },
-  "site": {
-    "cols": 2,
-    "rows": 5
-  },
+  "moves": 18,
+  "goals": [{ "type": "build" }],
+  "gravity": { "build": "normal", "yard": false },
+  "wall": { "height": 5, "gaps": [] },
+  "site": { "cols": 2, "rows": 6 },
   "build": {
     "mode": "segments",
     "segments": [
-      {
-        "name": {
-          "tr": "Gövde",
-          "en": "Trunk"
-        },
-        "rows": [
-          "WW",
-          "YW",
-          "YY",
-          "YW",
-          "WW"
-        ]
-      },
-      {
-        "name": {
-          "tr": "Yeşil Taç",
-          "en": "Green Crown"
-        },
-        "rows": [
-          "GG",
-          "GG",
-          "WY",
-          "GG",
-          "GG"
-        ]
-      }
+      { "name": { "tr": "Kat 1", "en": "Floor 1" }, "rows": ["WG", "WG", "GG", "YY", "YY", "YY"] },
+      { "name": { "tr": "Kat 2", "en": "Floor 2" }, "rows": ["GG", "WG", "WW", "WW", "GG", "WW"] },
+      { "name": { "tr": "Kat 3", "en": "Floor 3" }, "rows": ["GG", "GG", "GG", "WG", "WW", "WW"] }
     ]
   },
   "yard": {
     "cols": 6,
-    "rows": 4,
+    "rows": 7,
     "batches": [
       {
         "forSegment": 0,
         "pieces": [
-          {
-            "shape": "D2_90",
-            "color": "G",
-            "x": 3,
-            "y": 3
-          },
-          {
-            "shape": "C3_270",
-            "color": "W",
-            "x": 4,
-            "y": 2
-          },
-          {
-            "shape": "C3_180",
-            "color": "W",
-            "x": 0,
-            "y": 1
-          },
-          {
-            "shape": "T4_0",
-            "color": "Y",
-            "x": 2,
-            "y": 1
-          },
-          {
-            "shape": "D2_90",
-            "color": "G",
-            "x": 3,
-            "y": 1
-          },
-          {
-            "shape": "D2_0",
-            "color": "G",
-            "x": 0,
-            "y": 0
-          },
-          {
-            "shape": "D2_90",
-            "color": "W",
-            "colors": "WY",
-            "x": 2,
-            "y": 0
-          },
-          {
-            "shape": "D2_0",
-            "color": "G",
-            "x": 5,
-            "y": 0
-          }
+          { "shape": "D2_90", "color": "G", "x": 3, "y": 6 },
+          { "shape": "C3_0", "color": "Y", "x": 0, "y": 5 },
+          { "shape": "C3_180", "color": "Y", "x": 1, "y": 5 },
+          { "shape": "D2_90", "color": "W", "x": 1, "y": 4 },
+          { "shape": "C3_270", "color": "G", "x": 3, "y": 4, "colors": "GGW" },
+          { "shape": "D2_0", "color": "W", "x": 5, "y": 4 },
+          { "shape": "T4_0", "color": "W", "x": 0, "y": 2 },
+          { "shape": "D2_90", "color": "W", "x": 1, "y": 2 },
+          { "shape": "C3_180", "color": "G", "x": 2, "y": 2 },
+          { "shape": "D2_0", "color": "G", "x": 5, "y": 2 },
+          { "shape": "C3_0", "color": "W", "x": 0, "y": 0 },
+          { "shape": "D2_0", "color": "G", "x": 2, "y": 0 },
+          { "shape": "C3_180", "color": "G", "x": 3, "y": 0 },
+          { "shape": "D2_0", "color": "G", "x": 5, "y": 0 }
         ]
       }
     ]
@@ -120,40 +46,10 @@
   "tutorial": [
     {
       "step": 1,
-      "highlight": [
-        "piece:1"
-      ],
+      "highlight": ["piece:0"],
       "textKey": "tut.m.pattern",
-      "done": {
-        "event": "placementCorrect",
-        "count": 1
-      }
+      "done": { "event": "placementCorrect", "count": 1 }
     }
   ],
-  "targets": {
-    "min": [
-      10,
-      10
-    ],
-    "minShifts": [
-      2,
-      2
-    ],
-    "firstNeedDepth": [
-      1,
-      1
-    ],
-    "greedyWin": [
-      0.9,
-      1
-    ],
-    "ahaMin": [
-      0,
-      0
-    ],
-    "deadRate": [
-      0,
-      0
-    ]
-  }
+  "targets": { "min": [16, 16], "deadRate": [0, 0] }
 }

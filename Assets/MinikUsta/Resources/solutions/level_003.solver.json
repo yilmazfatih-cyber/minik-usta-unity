@@ -1,22 +1,23 @@
 {
   "level": 3,
-  "levelHash": "615bb177ea4c1483",
+  "levelHash": "c039d0bda87f820f",
   "rulesVersion": 4,
-  "solverVersion": 4,
-  "min": 10,
-  "yao": { "overWall": 8, "rail": 0 },
+  "solverVersion": 6,
+  "min": 11,
+  "yao": { "overWall": 9, "rail": 0 },
   "log": [
     { "kind": "start", "preBoosters": [], "streakTier": 0 },
-    { "kind": "drag", "pieceId": 1, "to": { "ix": 0, "iy": 2, "mode": 0 } },
-    { "kind": "drag", "pieceId": 0, "to": { "ix": 0, "iy": 3, "mode": 0 } },
-    { "kind": "drag", "pieceId": 2, "to": { "ix": 6, "iy": 0, "mode": 0 } },
-    { "kind": "drag", "pieceId": 3, "to": { "ix": 6, "iy": 1, "mode": 0 } },
-    { "kind": "drag", "pieceId": 1, "to": { "ix": 6, "iy": 3, "mode": 0 } },
-    { "kind": "drag", "pieceId": 4, "to": { "ix": 6, "iy": 4, "mode": 0 } },
-    { "kind": "drag", "pieceId": 5, "to": { "ix": 6, "iy": 0, "mode": 0 } },
-    { "kind": "drag", "pieceId": 6, "to": { "ix": 6, "iy": 1, "mode": 0 } },
-    { "kind": "drag", "pieceId": 7, "to": { "ix": 6, "iy": 2, "mode": 0 } },
-    { "kind": "drag", "pieceId": 0, "to": { "ix": 6, "iy": 4, "mode": 0 } }
+    { "kind": "drag", "pieceId": 0, "to": { "ix": 0, "iy": 4, "mode": 0 } },
+    { "kind": "drag", "pieceId": 4, "to": { "ix": 3, "iy": 2, "mode": 0 } },
+    { "kind": "drag", "pieceId": 3, "to": { "ix": 5, "iy": 0, "mode": 0 } },
+    { "kind": "drag", "pieceId": 7, "to": { "ix": 6, "iy": 0, "mode": 0 } },
+    { "kind": "drag", "pieceId": 8, "to": { "ix": 6, "iy": 2, "mode": 0 } },
+    { "kind": "drag", "pieceId": 2, "to": { "ix": 5, "iy": 2, "mode": 0 } },
+    { "kind": "drag", "pieceId": 1, "to": { "ix": 5, "iy": 4, "mode": 0 } },
+    { "kind": "drag", "pieceId": 4, "to": { "ix": 5, "iy": 0, "mode": 0 } },
+    { "kind": "drag", "pieceId": 0, "to": { "ix": 5, "iy": 2, "mode": 0 } },
+    { "kind": "drag", "pieceId": 5, "to": { "ix": 5, "iy": 3, "mode": 0 } },
+    { "kind": "drag", "pieceId": 6, "to": { "ix": 6, "iy": 3, "mode": 0 } }
   ],
-  "eventLogHash": "3df7ed8ff1f9813f"
+  "eventLogHash": "b484301f06963e42"
 }

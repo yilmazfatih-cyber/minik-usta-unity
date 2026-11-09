@@ -206,6 +206,17 @@ function dragAction(game, rng, burn) {
   const s = game.state;
   const geo = s.lvl.geo;
   const P = s.lvl.layout.counts.pieces;
+  // CL-V3-10: now and then try to pick a yard block that cannot be picked (a covered pallet layer, a wrapped block, a
+  // block under another): the core must refuse it the same way in both ports (status `rejected`, no state change)
+  if (rng.next() < 0.07) {
+    const blocked = [];
+    for (let id = 0; id < P; id++) if (pieceZone(s, id) === Zone.yard && !tryBeginDrag(s, id, game.hooks.drag).ok) blocked.push(id);
+    const id = pick(rng, blocked);
+    if (id !== undefined) {
+      totals.coveredPicks = (totals.coveredPicks ?? 0) + 1;
+      return { kind: 'drag', pieceId: id, to: { ix: 0, iy: 0, mode: 0 } };
+    }
+  }
   const first = rng.nextInt(Math.max(1, P));
   for (let k = 0; k < P; k++) {
     const id = (first + k) % P;
@@ -315,7 +326,11 @@ function sessionFields(game) {
 }
 
 function snapshot(game, events) {
-  for (const e of events) bump(totals.events, e.t);
+  for (const e of events) {
+    bump(totals.events, e.t);
+    if (e.t === 'movesChanged' && e.reason === 'bonus') bump(totals.events, 'movesChanged:bonus');
+    if (e.t === 'placementWrong' && Array.isArray(e.reasons) && e.reasons.includes('color')) bump(totals.events, 'placementWrong:color');
+  }
   const s = game.state;
   return {
     z: hashHex(s),
@@ -328,7 +343,7 @@ function snapshot(game, events) {
   };
 }
 
-function playSequence(name, lvl, seed, prefixMoves, burn, script = null) {
+function playSequence(name, lvl, seed, prefixMoves, burn, script = null, forcePrefix = null) {
   let h = 2166136261;
   for (const ch of name) h = Math.imul(h ^ ch.charCodeAt(0), 16777619) >>> 0;
   const rng = mulberry32(h);
@@ -337,7 +352,7 @@ function playSequence(name, lvl, seed, prefixMoves, burn, script = null) {
   const startSink = new ArraySink();
   const game = GameSession.start(lvl, { preBoosters, streakTier }, { streakBonus }, startSink);
   const steps = [{ i: 0, a: { kind: 'start', preBoosters, streakTier }, st: 'start', ...snapshot(game, startSink.events) }];
-  const prefix = prefixMoves.length === 0 ? 0 : seed % (prefixMoves.length + 1);
+  const prefix = forcePrefix ?? (prefixMoves.length === 0 ? 0 : seed % (prefixMoves.length + 1));
   const cap = script && !script.randomAfter ? script.actions.length : MOVES;
   for (let k = 0; k < cap; k++) {
     if (game.outcome === 'won' || game.outcome === 'lost' || game.outcome === 'exited') break;
@@ -394,7 +409,25 @@ rmSync(OUT, { recursive: true, force: true });
 mkdirSync(OUT, { recursive: true });
 const files = [];
 
+/** CL-V3-10: trait families a level's data uses (the win / event gates at the end of the run). */
+function traitFamilies(data) {
+  const fam = new Set();
+  const pieces = [...(data.yard?.batches ?? []).flatMap((b) => b.pieces ?? [])];
+  for (const p of pieces) {
+    if (p.colors !== undefined) fam.add('twotone');
+    if (p.stack !== undefined) fam.add('pallet');
+    for (const f of p.flags ?? []) {
+      if (f === 'wrapped' || f === 'scissors') fam.add('wrap');
+      if (f === 'bonus') fam.add('bonus');
+      if (f === 'slippery') fam.add('slippery');
+    }
+  }
+  return fam;
+}
+const familyWins = {};
+
 function writeSource(file, source, data, sequences) {
+  for (const f of traitFamilies(data)) for (const q of sequences) if (q.replay.oc === 'won') familyWins[f] = (familyWins[f] ?? 0) + 1;
   const body = {
     source,
     levelHash: levelHash(data),
@@ -425,6 +458,9 @@ for (const kind of ['level', 'archive']) {
       const burn = seed % 3 === 0;
       seqs.push(playSequence(`${kind} ${pad(n)} seed ${pad(seed, 2)}${burn ? ' burn' : ''}`, lvl, seed, burn ? [] : canonical, burn));
     }
+    // CL-V3-10: the known solution played to the end (a win), and its first half followed by random play
+    seqs.push(playSequence(`${kind} ${pad(n)} solution`, lvl, 100, canonical, false, null, canonical.length));
+    seqs.push(playSequence(`${kind} ${pad(n)} half`, lvl, 101, canonical, false, null, Math.floor(canonical.length / 2)));
     writeSource(kind === 'level' ? `level_${pad(n)}.json` : `archive_${pad(n)}.json`, { kind, n }, lvl.data, seqs);
   }
 }
@@ -759,3 +795,27 @@ console.log('actions ', JSON.stringify(manifest.actions));
 console.log('statuses', JSON.stringify(manifest.statuses));
 console.log('outcomes', JSON.stringify(manifest.outcomes));
 console.log('events  ', JSON.stringify(manifest.events));
+console.log('coveredPicks', totals.coveredPicks ?? 0, 'familyWins', JSON.stringify(familyWins));
+// CL-V3-10 gates: every trait family that a shipped level (or a variant) carries must be won at least once by the
+// oracle, and the event families the traits produce must be seen at least 20 times. Pallet has no shipped level in
+// story 1 (K-58 item 9 later); it is checked only for being played, not won (reported, not failed).
+const need = [['unwrapped', 20], ['movesChanged:bonus', 20], ['placementWrong:color', 20]];
+let gateFail = false;
+for (const [k, n] of need) {
+  const have = manifest.events[k] ?? 0;
+  if (have < n) {
+    console.error(`ts-oracle GATE: event ${k} seen ${have} < ${n}`);
+    gateFail = true;
+  }
+}
+for (const f of ['twotone', 'wrap', 'bonus', 'slippery']) {
+  if ((familyWins[f] ?? 0) < 1) {
+    console.error(`ts-oracle GATE: trait family ${f} has no won sequence`);
+    gateFail = true;
+  }
+}
+if ((totals.coveredPicks ?? 0) < 20) {
+  console.error(`ts-oracle GATE: covered pick attempts ${totals.coveredPicks ?? 0} < 20`);
+  gateFail = true;
+}
+if (gateFail && process.env.ORACLE_GATES !== 'off') process.exit(1);

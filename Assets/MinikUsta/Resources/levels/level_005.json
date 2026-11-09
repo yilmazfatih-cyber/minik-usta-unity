@@ -2,118 +2,41 @@
   "schemaVersion": 3,
   "id": 5,
   "chapter": 1,
-  "name": {
-    "tr": "Renkli Pencere",
-    "en": "Two-Tone Window"
-  },
+  "name": { "tr": "Renkli Pencere", "en": "Two-Tone Window" },
   "difficulty": "normal",
-  "moves": 14,
+  "moves": 18,
   "teaches": "Y9",
-  "goals": [
-    {
-      "type": "build"
-    }
-  ],
-  "gravity": {
-    "build": "normal",
-    "yard": false
-  },
-  "wall": {
-    "height": 3,
-    "gaps": []
-  },
-  "site": {
-    "cols": 2,
-    "rows": 4
-  },
+  "goals": [{ "type": "build" }],
+  "gravity": { "build": "normal", "yard": false },
+  "wall": { "height": 4, "gaps": [] },
+  "site": { "cols": 2, "rows": 5 },
   "build": {
     "mode": "segments",
     "segments": [
-      {
-        "name": {
-          "tr": "Pencere Altı",
-          "en": "Below the Window"
-        },
-        "rows": [
-          "GG",
-          "GG",
-          "YW",
-          "WY"
-        ]
-      },
-      {
-        "name": {
-          "tr": "Pencere",
-          "en": "Window"
-        },
-        "rows": [
-          "YW",
-          "YW",
-          "GG",
-          "GG"
-        ]
-      }
+      { "name": { "tr": "Kat 1", "en": "Floor 1" }, "rows": ["WW", "RY", "WW", "RW", "RR"] },
+      { "name": { "tr": "Kat 2", "en": "Floor 2" }, "rows": ["WW", "YY", "RY", "RR", "RR"] },
+      { "name": { "tr": "Kat 3", "en": "Floor 3" }, "rows": ["WR", "WY", "RY", "RW", "RR"] }
     ]
   },
   "yard": {
-    "cols": 5,
-    "rows": 4,
+    "cols": 6,
+    "rows": 6,
     "batches": [
       {
         "forSegment": 0,
         "pieces": [
-          {
-            "shape": "D2_90",
-            "color": "Y",
-            "colors": "YW",
-            "x": 2,
-            "y": 3
-          },
-          {
-            "shape": "D2_0",
-            "color": "G",
-            "x": 1,
-            "y": 2
-          },
-          {
-            "shape": "D2_90",
-            "color": "W",
-            "colors": "WY",
-            "x": 2,
-            "y": 2
-          },
-          {
-            "shape": "D2_0",
-            "color": "G",
-            "x": 4,
-            "y": 2
-          },
-          {
-            "shape": "D2_90",
-            "color": "Y",
-            "colors": "YW",
-            "x": 0,
-            "y": 1
-          },
-          {
-            "shape": "D2_90",
-            "color": "Y",
-            "colors": "YW",
-            "x": 3,
-            "y": 1
-          },
-          {
-            "shape": "D2_90",
-            "color": "G",
-            "x": 1,
-            "y": 0
-          },
-          {
-            "shape": "D2_90",
-            "color": "G",
-            "x": 3,
-            "y": 0
-          }
+          { "shape": "D2_90", "color": "W", "x": 1, "y": 5 },
+          { "shape": "C3_0", "color": "R", "x": 0, "y": 4 },
+          { "shape": "C3_180", "color": "W", "x": 3, "y": 4 },
+          { "shape": "D2_90", "color": "R", "x": 0, "y": 3 },
+          { "shape": "O4_0", "color": "R", "x": 2, "y": 3, "colors": "RRRY" },
+          { "shape": "D2_90", "color": "R", "x": 4, "y": 3, "colors": "RY" },
+          { "shape": "D2_90", "color": "W", "x": 0, "y": 2 },
+          { "shape": "D2_90", "color": "Y", "x": 4, "y": 2 },
+          { "shape": "D2_0", "color": "W", "x": 0, "y": 0, "colors": "WY" },
+          { "shape": "D2_0", "color": "Y", "x": 1, "y": 0, "colors": "YR" },
+          { "shape": "L4_0", "color": "R", "x": 3, "y": 0 },
+          { "shape": "D2_0", "color": "W", "x": 5, "y": 0 }
         ]
       }
     ]
@@ -122,40 +45,10 @@
   "tutorial": [
     {
       "step": 1,
-      "highlight": [
-        "piece:2"
-      ],
-      "textKey": "tut.m.match",
-      "done": {
-        "event": "placementCorrect",
-        "count": 1
-      }
+      "highlight": ["piece:4"],
+      "textKey": "tut.m.twotone",
+      "done": { "event": "placementCorrect", "count": 1 }
     }
   ],
-  "targets": {
-    "min": [
-      10,
-      10
-    ],
-    "minShifts": [
-      2,
-      2
-    ],
-    "firstNeedDepth": [
-      2,
-      2
-    ],
-    "greedyWin": [
-      0.9,
-      1
-    ],
-    "ahaMin": [
-      0,
-      0
-    ],
-    "deadRate": [
-      0,
-      0
-    ]
-  }
+  "targets": { "min": [14, 14], "deadRate": [0, 0] }
 }

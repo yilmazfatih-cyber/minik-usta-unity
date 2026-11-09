@@ -2,122 +2,51 @@
   "schemaVersion": 3,
   "id": 9,
   "chapter": 1,
-  "name": {
-    "tr": "Çatı Altı",
-    "en": "Under the Roof"
-  },
+  "name": { "tr": "Çatı Altı", "en": "Under the Roof" },
   "difficulty": "normal",
-  "moves": 14,
+  "moves": 22,
   "teaches": "Y12",
-  "goals": [
-    {
-      "type": "build"
-    }
-  ],
-  "gravity": {
-    "build": "normal",
-    "yard": false
-  },
-  "wall": {
-    "height": 4,
-    "gaps": []
-  },
-  "site": {
-    "cols": 2,
-    "rows": 5
-  },
+  "goals": [{ "type": "build" }],
+  "gravity": { "build": "normal", "yard": false },
+  "wall": { "height": 4, "gaps": [] },
+  "site": { "cols": 2, "rows": 6 },
   "build": {
     "mode": "segments",
     "segments": [
-      {
-        "name": {
-          "tr": "Saçak",
-          "en": "Eaves"
-        },
-        "rows": [
-          "YW",
-          "WY",
-          "GG",
-          "YG",
-          "YG"
-        ]
-      },
-      {
-        "name": {
-          "tr": "Çatı Katı",
-          "en": "Attic"
-        },
-        "rows": [
-          "WW",
-          "WW",
-          "YG",
-          "YG",
-          "GG"
-        ]
-      }
+      { "name": { "tr": "Kat 1", "en": "Floor 1" }, "rows": ["WW", "GW", "GG", "GY", "WY", "YY"] },
+      { "name": { "tr": "Kat 2", "en": "Floor 2" }, "rows": ["GG", "GY", "WY", "WY", "WG", "YY"] },
+      { "name": { "tr": "Kat 3", "en": "Floor 3" }, "rows": ["GG", "GG", "GG", "WG", "WW", "WW"] }
     ]
   },
   "yard": {
     "cols": 6,
-    "rows": 4,
+    "rows": 7,
     "batches": [
       {
         "forSegment": 0,
         "pieces": [
+          { "shape": "D2_90", "color": "W", "x": 1, "y": 6, "colors": "WG" },
+          { "shape": "D2_90", "color": "Y", "x": 0, "y": 5 },
+          { "shape": "D2_0", "color": "G", "x": 3, "y": 5, "colors": "GW" },
+          { "shape": "C3_90", "color": "G", "x": 4, "y": 5 },
+          { "shape": "C3_270", "color": "W", "x": 1, "y": 4, "colors": "WYY" },
+          { "shape": "D2_90", "color": "W", "x": 3, "y": 4 },
+          { "shape": "D2_90", "color": "Y", "x": 0, "y": 3 },
+          { "shape": "D2_90", "color": "G", "x": 3, "y": 3 },
+          { "shape": "I3_0", "color": "W", "x": 5, "y": 3, "colors": "WWG" },
+          { "shape": "D2_0", "color": "W", "x": 2, "y": 2 },
           {
-            "shape": "D2_90",
+            "shape": "I3_0",
             "color": "W",
             "x": 0,
-            "y": 3
-          },
-          {
-            "shape": "D2_90",
-            "color": "Y",
-            "colors": "YW",
-            "x": 0,
-            "y": 2
-          },
-          {
-            "shape": "J4_0",
-            "color": "G",
-            "x": 2,
-            "y": 1
-          },
-          {
-            "shape": "D2_0",
-            "color": "Y",
-            "x": 4,
-            "y": 1
-          },
-          {
-            "shape": "L4_180",
-            "color": "G",
-            "x": 4,
-            "y": 1
-          },
-          {
-            "shape": "D2_0",
-            "color": "Y",
-            "x": 0,
-            "y": 0
-          },
-          {
-            "shape": "D2_90",
-            "color": "W",
-            "x": 2,
-            "y": 0
-          },
-          {
-            "shape": "D2_90",
-            "color": "W",
-            "colors": "WY",
-            "x": 4,
             "y": 0,
-            "flags": [
-              "bonus"
-            ],
+            "colors": "WWG",
+            "flags": ["bonus"],
             "bonusMoves": 2
-          }
+          },
+          { "shape": "O4_0", "color": "G", "x": 1, "y": 0 },
+          { "shape": "I3_0", "color": "W", "x": 3, "y": 0, "colors": "WGG" },
+          { "shape": "I3_0", "color": "Y", "x": 5, "y": 0 }
         ]
       }
     ]
@@ -126,42 +55,10 @@
   "tutorial": [
     {
       "step": 1,
-      "highlight": [
-        "piece:7",
-        "moves"
-      ],
+      "highlight": ["piece:10", "moves"],
       "textKey": "tut.m.bonus",
-      "done": {
-        "event": "placementCorrect",
-        "count": 1,
-        "piece": "piece:7"
-      }
+      "done": { "event": "placementCorrect", "count": 1, "piece": "piece:10" }
     }
   ],
-  "targets": {
-    "min": [
-      10,
-      10
-    ],
-    "minShifts": [
-      2,
-      2
-    ],
-    "firstNeedDepth": [
-      1,
-      1
-    ],
-    "greedyWin": [
-      0.9,
-      1
-    ],
-    "ahaMin": [
-      0,
-      0
-    ],
-    "deadRate": [
-      0,
-      0
-    ]
-  }
+  "targets": { "min": [18, 18], "deadRate": [0, 0] }
 }

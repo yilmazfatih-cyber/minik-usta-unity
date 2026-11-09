@@ -1,5 +1,5 @@
 {
-  "schemaVersion": 2,
+  "schemaVersion": 3,
   "id": 4,
   "chapter": 1,
   "name": {
@@ -7,7 +7,7 @@
     "en": "Front Wall"
   },
   "difficulty": "easy",
-  "moves": 14,
+  "moves": 16,
   "goals": [
     {
       "type": "build"
@@ -23,91 +23,113 @@
   },
   "site": {
     "cols": 2,
-    "rows": 5
+    "rows": 4
   },
   "build": {
     "mode": "segments",
     "segments": [
       {
         "name": {
-          "tr": "Kırmızı Kemer",
-          "en": "Red Arch"
+          "tr": "Kat 1",
+          "en": "Floor 1"
         },
         "rows": [
           "WW",
-          "WW",
-          "YY",
-          "RY",
+          "RR",
+          "RR",
           "RR"
         ]
       },
       {
         "name": {
-          "tr": "Beyaz Duvar",
-          "en": "White Wall"
+          "tr": "Kat 2",
+          "en": "Floor 2"
         },
         "rows": [
-          "YY",
-          "YR",
+          "RR",
           "RR",
           "WW",
           "WW"
+        ]
+      },
+      {
+        "name": {
+          "tr": "Kat 3",
+          "en": "Floor 3"
+        },
+        "rows": [
+          "WW",
+          "WW",
+          "WY",
+          "YY"
         ]
       }
     ]
   },
   "yard": {
     "cols": 6,
-    "rows": 4,
+    "rows": 5,
     "batches": [
       {
         "forSegment": 0,
         "pieces": [
           {
-            "shape": "D2_90",
-            "color": "W",
-            "x": 1,
+            "shape": "C3_180",
+            "color": "R",
+            "x": 0,
             "y": 3
+          },
+          {
+            "shape": "D2_0",
+            "color": "W",
+            "x": 2,
+            "y": 3
+          },
+          {
+            "shape": "D2_0",
+            "color": "W",
+            "x": 5,
+            "y": 3
+          },
+          {
+            "shape": "D2_0",
+            "color": "R",
+            "x": 0,
+            "y": 2
           },
           {
             "shape": "D2_90",
             "color": "W",
-            "x": 4,
-            "y": 3
+            "x": 1,
+            "y": 2
+          },
+          {
+            "shape": "D2_0",
+            "color": "W",
+            "x": 3,
+            "y": 2
           },
           {
             "shape": "C3_0",
             "color": "R",
-            "x": 0,
-            "y": 2
-          },
-          {
-            "shape": "D2_90",
-            "color": "W",
-            "x": 2,
-            "y": 2
-          },
-          {
-            "shape": "C3_180",
-            "color": "Y",
             "x": 4,
-            "y": 1
+            "y": 2
           },
           {
-            "shape": "C3_270",
+            "shape": "D2_0",
             "color": "R",
             "x": 0,
             "y": 0
           },
           {
-            "shape": "C3_90",
-            "color": "Y",
+            "shape": "C3_180",
+            "color": "W",
             "x": 2,
             "y": 0
           },
           {
-            "shape": "D2_90",
-            "color": "W",
+            "shape": "C3_270",
+            "color": "Y",
             "x": 4,
             "y": 0
           }
@@ -118,24 +140,8 @@
   "obstacles": [],
   "targets": {
     "min": [
-      10,
-      10
-    ],
-    "minShifts": [
-      2,
-      2
-    ],
-    "firstNeedDepth": [
-      1,
-      1
-    ],
-    "greedyWin": [
-      0.9,
-      1
-    ],
-    "ahaMin": [
-      0,
-      0
+      12,
+      12
     ],
     "deadRate": [
       0,

@@ -324,23 +324,24 @@ namespace MinikUsta.Presentation.Tests
         [Test]
         public void K54_hud_booster_slots_locked_below_their_level_and_ready_with_the_free_trials_from_it()
         {
-            var rig = Booted(StoreWithWon(7));
+            var rig = Booted(StoreWithWon(9));
             rig.Tap(HomeView.PlayId);
             rig.TapOption(PanelAction.Play);
-            Assert.AreEqual(8, rig.Player.LevelNumber);
+            Assert.AreEqual(10, rig.Player.LevelNumber);
             var st = rig.View.HudState!;
-            Assert.AreEqual(new[] { SlotStates.NoTarget, SlotStates.Locked, SlotStates.Locked, SlotStates.Locked }, st.Slots,
-                "GDD K-54: Bölüm 8 starts with the hammer open and 3 trials; the v3 level 8 has no wrap or crate, so the hammer has no target yet (LEVELS §8.12 B-note)");
+            Assert.AreEqual(new[] { SlotStates.Ready, SlotStates.Ready, SlotStates.Locked, SlotStates.Locked }, st.Slots,
+                "GDD K-54: Bölüm 10 opens the hammer (3 trials; the level has wraps to cut) and the crane (2 trials) together (CL-V3-07)");
             Assert.AreEqual(3, st.Counts[0]);
+            Assert.AreEqual(2, st.Counts[1]);
             var hud = rig.Ui.Root(UiLayer.Hud)!;
-            Assert.AreEqual("btn_booster_off", hud.Get("hud.boost0").Frame, "no target in the v3 level 8: the open slot is dimmed");
-            Assert.IsFalse(hud.Get("hud.boost0.badge").Visible, "a dimmed slot shows no count badge");
-            Assert.IsFalse(hud.Get("hud.boost0.plus").Visible);
-            Assert.AreEqual("btn_booster_off", hud.Get("hud.boost1").Frame);
-            Assert.IsTrue(hud.Get("hud.boost1.lock").Visible, "locked: the padlock");
-            Assert.IsFalse(hud.Get("hud.boost1.badge").Visible);
+            Assert.AreNotEqual("btn_booster_off", hud.Get("hud.boost0").Frame, "an open slot with a target is not dimmed");
+            Assert.AreEqual("btn_booster_off", hud.Get("hud.boost2").Frame);
+            Assert.IsTrue(hud.Get("hud.boost2.lock").Visible, "locked: the padlock");
+            Assert.IsFalse(hud.Get("hud.boost2.badge").Visible);
             Assert.AreEqual(3, rig.App.Save.BoosterCount("hammer"), "META §4: free trials granted once at unlock");
+            Assert.AreEqual(2, rig.App.Save.BoosterCount("crane"));
             Assert.IsTrue(rig.App.Save.FreeTrialsGranted.Contains("hammer"));
+            Assert.IsTrue(rig.App.Save.FreeTrialsGranted.Contains("crane"));
         }
 
         [Test]

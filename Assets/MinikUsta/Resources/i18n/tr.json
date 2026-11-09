@@ -303,6 +303,21 @@
     },
     "y8": {
       "desc": "Harçlı blok yanlış yere düşerse yapışır. Dikkatli bırak!"
+    },
+    "y9": {
+      "desc": "İki renkli blok: her rengi kendi yerine gelmeli."
+    },
+    "y10": {
+      "desc": "Paletten hep en üstteki alınır."
+    },
+    "y11": {
+      "desc": "Makaslı bloğu yerleştir, paketler açılsın."
+    },
+    "y12": {
+      "desc": "Bonus blok yerine oturunca +2 hamle verir."
+    },
+    "y13": {
+      "desc": "Kaygan blok havada durmaz, aşağı kayar."
     }
   },
   "pause": {
@@ -438,6 +453,7 @@
       "segments": "Kat bitince şantiye kayar.",
       "shadow": "Gölgede {ok} varsa yer doğru.",
       "truck": "Kamyon yeni blok getirdi!",
+      "twotone": "İki renk de plana otursun.",
       "useall": "Bütün bloklar plana girecek.",
       "wrap": "Önce makaslı bloğu yerleştir."
     },

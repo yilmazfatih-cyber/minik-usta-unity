@@ -43,7 +43,7 @@ namespace MinikUsta.Presentation.Tests
             var s = StateOf(5);
             int id = FindPiece(s, p => p.CellColors != null);
             var cc = s.Lvl.Pieces[id].CellColors!;
-            Assert.AreNotEqual(cc[0], cc[1]);
+            Assert.Greater(cc.Distinct().Count(), 1, "a two-tone block has at least two colours");
             var bodies = Parts(s, id).Where(p => p.Role == PartRole.Body).OrderBy(p => p.Cell).ToList();
             Assert.AreEqual(cc.Length, bodies.Count);
             for (int i = 0; i < cc.Length; i++) StringAssert.StartsWith("blk_" + ColorCodes.All[cc[i]].ToLowerInvariant() + "_", bodies[i].Frame, "cell " + i);

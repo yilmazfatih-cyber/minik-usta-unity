@@ -22,7 +22,7 @@ namespace MinikUsta.Core.Tests
             var req = Required();
             Assert.AreEqual(76, req.Count, "phase ≤ 2R ids");
             CollectionAssert.AreEqual(new[] { 46, 5, 22, 3 }, new[] { "K", "obstacle", "E", "N" }.Select(k => req.Count(r => r.Kind == k)).ToArray(), "K, obstacle, E, N");
-            Assert.AreEqual(55, all.Count(r => r.Kind == "K"), "every GDD K-xx has an id (K-55 is the newest; its phase is 3, TECH 12.4)");
+            Assert.AreEqual(66, all.Count(r => r.Kind == "K"), "every GDD K-xx has an id (K-55 is the newest binding rule, phase 3; K-56…K-66 are the v3 ÖNERİ rules, phase v3)");
             CollectionAssert.AreEqual(new[] { "S1", "W1", "W2", "W3", "Y5" }, req.Where(r => r.Kind == "obstacle").Select(r => r.Id).OrderBy(x => x, System.StringComparer.Ordinal).ToArray(), "obstacles of levels 1–10");
             // later phases are not required yet (TS: K-20 and the bridge / league rows are phase 3–4)
             Assert.IsFalse(req.Any(r => r.Id == "K-20" || r.Id == "E-22" || r.Id == "E-45"), "phase 3–4 ids stay out of the 2R set");
@@ -45,6 +45,16 @@ namespace MinikUsta.Core.Tests
             Assert.IsFalse(RuleCoverage.Names("ShapesTests.S10_x", "S1"));
             Assert.Greater(RuleCoverage.MissingIds(Required(), new[] { "X.K01_only" }, RuleCoverage.Phase2R).Count, 0);
             Assert.AreEqual(0, RuleCoverage.MissingIds(Required(), Required().Select(r => r.Id + " covered").ToArray(), RuleCoverage.Phase2R).Count);
+        }
+
+        [Test(Description = "test:rules --phase v3 (CL-V3-11): every v3 ÖNERİ rule has a C# test named after it; the solver-measure rule is TS tool only, C# N/A")]
+        public void Rule_coverage_phase_v3_every_proposal_rule_has_a_test_named_after_it_except_the_ts_only_one()
+        {
+            var v3 = RuleCoverage.LoadIds().Where(r => r.Phase == RuleCoverage.PhaseV3).ToList();
+            CollectionAssert.AreEqual(Enumerable.Range(56, 11).Select(n => "K-" + n).ToArray(), v3.Select(r => r.Id).OrderBy(x => x, System.StringComparer.Ordinal).ToArray(), "the v3 ids");
+            var titles = RuleCoverage.TestTitles(typeof(RuleCoverageTests).Assembly, out _);
+            var missing = RuleCoverage.MissingIds(v3.Where(r => !RuleCoverage.NotApplicableInCSharp.Contains(r.Id)), titles, RuleCoverage.PhaseV3);
+            Assert.IsEmpty(missing, "rule-coverage (phase v3): " + string.Join(", ", missing));
         }
 
         [Test(Description = "test:rules --phase 2R on the C# tests: every required id has a test named after it")]

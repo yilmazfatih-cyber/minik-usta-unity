@@ -127,7 +127,7 @@ namespace MinikUsta.Core.Level
             new MechanicSignature("Y10", 3, l => { foreach (var p in AllPieces(l)) if (p.Stack != null) return true; return false; }),
             new MechanicSignature("Y11", 7, l => AnyFlag(l, PieceFlags.Wrapped) || AnyFlag(l, PieceFlags.Scissors)),
             new MechanicSignature("Y12", 9, l => AnyFlag(l, PieceFlags.Bonus)),
-            new MechanicSignature("Y13", 13, l => AnyFlag(l, PieceFlags.Slippery)),
+            new MechanicSignature("Y13", 8, l => AnyFlag(l, PieceFlags.Slippery)),
         };
 
         static Mechanics()

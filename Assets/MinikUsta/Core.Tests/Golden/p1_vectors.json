@@ -1,7 +1,7 @@
 {
   "generatedFrom": {
     "webRepo": "yilmazfatih-cyber/minik-usta",
-    "webCommit": "1fe9af3",
+    "webCommit": "701b8f3",
     "generator": "tools/gen-p1-vectors.ts"
   },
   "random": {
@@ -1360,207 +1360,13 @@
     },
     {
       "name": "level_003",
-      "geo": "6x4|2x5",
+      "geo": "5x5|2x5",
       "yardGravity": false,
       "wallHeight": 4,
       "gaps": [],
       "motions": [],
-      "hashAfterSettle": "920471c172949fac",
-      "movesLeft": 14,
-      "front": [
-        "site:6,0,0",
-        "site:7,0,0"
-      ],
-      "masks": [
-        0,
-        0
-      ],
-      "pieces": [
-        {
-          "id": 0,
-          "pick": "ok",
-          "cargo": false,
-          "canCrossWall": true,
-          "canEnterRail": false,
-          "reachableCount": 27,
-          "starts": [
-            "0:1,3"
-          ],
-          "nodes": 30,
-          "hash": "4e3b3c4cb6b70c3e",
-          "followHash": "bf9a3251d81f2276"
-        },
-        {
-          "id": 1,
-          "pick": "ok",
-          "cargo": false,
-          "canCrossWall": false,
-          "canEnterRail": false,
-          "reachableCount": 2,
-          "starts": [
-            "0:1,2"
-          ],
-          "nodes": 5,
-          "hash": "325bf472db04c41f",
-          "followHash": "b493408c99b1290f"
-        },
-        {
-          "id": 2,
-          "pick": "immovable"
-        },
-        {
-          "id": 3,
-          "pick": "ok",
-          "cargo": false,
-          "canCrossWall": true,
-          "canEnterRail": false,
-          "reachableCount": 22,
-          "starts": [
-            "0:4,2"
-          ],
-          "nodes": 25,
-          "hash": "73e2ae60229dd49d",
-          "followHash": "b0c926205997b8a8"
-        },
-        {
-          "id": 4,
-          "pick": "ok",
-          "cargo": false,
-          "canCrossWall": false,
-          "canEnterRail": false,
-          "reachableCount": 2,
-          "starts": [
-            "0:1,1"
-          ],
-          "nodes": 5,
-          "hash": "2c33a2e9a42a4c0a",
-          "followHash": "71af144d93f49b0a"
-        },
-        {
-          "id": 5,
-          "pick": "ok",
-          "cargo": false,
-          "canCrossWall": false,
-          "canEnterRail": false,
-          "reachableCount": 2,
-          "starts": [
-            "0:1,0"
-          ],
-          "nodes": 5,
-          "hash": "4489e5944836921d",
-          "followHash": "6b17c274c93f8575"
-        },
-        {
-          "id": 6,
-          "pick": "immovable"
-        },
-        {
-          "id": 7,
-          "pick": "immovable"
-        }
-      ]
-    },
-    {
-      "name": "level_004",
-      "geo": "6x4|2x5",
-      "yardGravity": false,
-      "wallHeight": 4,
-      "gaps": [],
-      "motions": [],
-      "hashAfterSettle": "8ae3b8c4aa36b902",
-      "movesLeft": 14,
-      "front": [
-        "site:6,0,0",
-        "site:7,0,0"
-      ],
-      "masks": [
-        0,
-        0
-      ],
-      "pieces": [
-        {
-          "id": 0,
-          "pick": "ok",
-          "cargo": false,
-          "canCrossWall": true,
-          "canEnterRail": false,
-          "reachableCount": 27,
-          "starts": [
-            "0:1,3"
-          ],
-          "nodes": 30,
-          "hash": "524558bbf5e066fe",
-          "followHash": "864604e8a938ba42"
-        },
-        {
-          "id": 1,
-          "pick": "ok",
-          "cargo": false,
-          "canCrossWall": true,
-          "canEnterRail": false,
-          "reachableCount": 27,
-          "starts": [
-            "0:4,3"
-          ],
-          "nodes": 30,
-          "hash": "d60497d26e096fa1",
-          "followHash": "4d28b1fe6b6b414b"
-        },
-        {
-          "id": 2,
-          "pick": "immovable"
-        },
-        {
-          "id": 3,
-          "pick": "immovable"
-        },
-        {
-          "id": 4,
-          "pick": "immovable"
-        },
-        {
-          "id": 5,
-          "pick": "immovable"
-        },
-        {
-          "id": 6,
-          "pick": "ok",
-          "cargo": false,
-          "canCrossWall": false,
-          "canEnterRail": false,
-          "reachableCount": 2,
-          "starts": [
-            "0:2,0"
-          ],
-          "nodes": 5,
-          "hash": "c3c21529d418c717",
-          "followHash": "15efbcd235700b7b"
-        },
-        {
-          "id": 7,
-          "pick": "ok",
-          "cargo": false,
-          "canCrossWall": false,
-          "canEnterRail": false,
-          "reachableCount": 2,
-          "starts": [
-            "0:4,0"
-          ],
-          "nodes": 5,
-          "hash": "d19327522511396c",
-          "followHash": "a7e2d97eda790512"
-        }
-      ]
-    },
-    {
-      "name": "level_005",
-      "geo": "5x4|2x4",
-      "yardGravity": false,
-      "wallHeight": 3,
-      "gaps": [],
-      "motions": [],
-      "hashAfterSettle": "60f74a4b40dcbf6c",
-      "movesLeft": 14,
+      "hashAfterSettle": "025afa57b1da2e2e",
+      "movesLeft": 15,
       "front": [
         "site:5,0,0",
         "site:6,0,0"
@@ -1576,13 +1382,13 @@
           "cargo": false,
           "canCrossWall": true,
           "canEnterRail": false,
-          "reachableCount": 17,
+          "reachableCount": 19,
           "starts": [
-            "0:2,3"
+            "0:1,4"
           ],
-          "nodes": 20,
-          "hash": "bf5f3a5279bd49ed",
-          "followHash": "226253fbb1ebd6aa"
+          "nodes": 22,
+          "hash": "8cf395f0c4293aae",
+          "followHash": "7b44ad89b5638d5c"
         },
         {
           "id": 1,
@@ -1592,337 +1398,47 @@
           "canEnterRail": false,
           "reachableCount": 19,
           "starts": [
-            "0:1,2"
+            "0:3,4"
           ],
           "nodes": 22,
-          "hash": "7f2a4fc419789da7",
-          "followHash": "2e44140c377a5b0c"
+          "hash": "2c2b7f0c3a9162dd",
+          "followHash": "c9977eb832c6b1bd"
         },
         {
           "id": 2,
-          "pick": "immovable"
-        },
-        {
-          "id": 3,
-          "pick": "ok",
-          "cargo": false,
-          "canCrossWall": true,
-          "canEnterRail": false,
-          "reachableCount": 19,
-          "starts": [
-            "0:4,2"
-          ],
-          "nodes": 22,
-          "hash": "9072e6266f495cf4",
-          "followHash": "6c03296cecadbb88"
-        },
-        {
-          "id": 4,
-          "pick": "ok",
-          "cargo": false,
-          "canCrossWall": false,
-          "canEnterRail": false,
-          "reachableCount": 2,
-          "starts": [
-            "0:0,1"
-          ],
-          "nodes": 5,
-          "hash": "ebe84f1de31e835d",
-          "followHash": "32664ed9bff50dde"
-        },
-        {
-          "id": 5,
-          "pick": "ok",
-          "cargo": false,
-          "canCrossWall": false,
-          "canEnterRail": false,
-          "reachableCount": 2,
-          "starts": [
-            "0:3,1"
-          ],
-          "nodes": 5,
-          "hash": "96842d46069badb6",
-          "followHash": "7f01cfe01680df6c"
-        },
-        {
-          "id": 6,
-          "pick": "ok",
-          "cargo": false,
-          "canCrossWall": false,
-          "canEnterRail": false,
-          "reachableCount": 2,
-          "starts": [
-            "0:1,0"
-          ],
-          "nodes": 5,
-          "hash": "d252cce81ba51387",
-          "followHash": "f7bc7a0b1d12dfad"
-        },
-        {
-          "id": 7,
-          "pick": "immovable"
-        }
-      ]
-    },
-    {
-      "name": "level_006",
-      "geo": "6x4|2x5",
-      "yardGravity": false,
-      "wallHeight": 4,
-      "gaps": [],
-      "motions": [],
-      "hashAfterSettle": "d86ef6c48d6da6a5",
-      "movesLeft": 12,
-      "front": [
-        "site:6,0,0",
-        "site:7,0,0"
-      ],
-      "masks": [
-        0,
-        0
-      ],
-      "pieces": [
-        {
-          "id": 0,
-          "pick": "ok",
-          "cargo": false,
-          "canCrossWall": true,
-          "canEnterRail": false,
-          "reachableCount": 27,
-          "starts": [
-            "0:3,3"
-          ],
-          "nodes": 30,
-          "hash": "0636e3f41b8e369a",
-          "followHash": "0804c93a47f98630"
-        },
-        {
-          "id": 1,
-          "pick": "immovable"
-        },
-        {
-          "id": 2,
-          "pick": "ok",
-          "cargo": false,
-          "canCrossWall": true,
-          "canEnterRail": false,
-          "reachableCount": 22,
-          "starts": [
-            "0:0,1"
-          ],
-          "nodes": 25,
-          "hash": "6b199ada5654befb",
-          "followHash": "b8090427b2691e72"
-        },
-        {
-          "id": 3,
-          "pick": "immovable"
-        },
-        {
-          "id": 4,
-          "pick": "immovable"
-        },
-        {
-          "id": 5,
-          "pick": "immovable"
-        },
-        {
-          "id": 6,
-          "pick": "ok",
-          "cargo": false,
-          "canCrossWall": false,
-          "canEnterRail": false,
-          "reachableCount": 3,
-          "starts": [
-            "0:2,0"
-          ],
-          "nodes": 6,
-          "hash": "88c59e9566953625",
-          "followHash": "d2971e8bc47e88b2"
-        },
-        {
-          "id": 7,
-          "pick": "immovable"
-        }
-      ]
-    },
-    {
-      "name": "level_007",
-      "geo": "6x4|2x5",
-      "yardGravity": false,
-      "wallHeight": 4,
-      "gaps": [],
-      "motions": [],
-      "hashAfterSettle": "8a6fddc81a0dd9b1",
-      "movesLeft": 14,
-      "front": [
-        "site:6,0,0",
-        "site:7,0,0"
-      ],
-      "masks": [
-        0,
-        0
-      ],
-      "pieces": [
-        {
-          "id": 0,
-          "pick": "ok",
-          "cargo": false,
-          "canCrossWall": true,
-          "canEnterRail": false,
-          "reachableCount": 28,
-          "starts": [
-            "0:0,3"
-          ],
-          "nodes": 31,
-          "hash": "2ec33402400c1579",
-          "followHash": "32973345afcd6bf8"
-        },
-        {
-          "id": 1,
-          "pick": "ok",
-          "cargo": false,
-          "canCrossWall": true,
-          "canEnterRail": false,
-          "reachableCount": 29,
-          "starts": [
-            "0:2,3"
-          ],
-          "nodes": 32,
-          "hash": "294610234a0dc7ac",
-          "followHash": "945c67bba4ff7163"
-        },
-        {
-          "id": 2,
-          "pick": "immovable"
-        },
-        {
-          "id": 3,
-          "pick": "immovable"
-        },
-        {
-          "id": 4,
-          "pick": "immovable"
-        },
-        {
-          "id": 5,
-          "pick": "immovable"
-        },
-        {
-          "id": 6,
-          "pick": "ok",
-          "cargo": false,
-          "canCrossWall": true,
-          "canEnterRail": false,
-          "reachableCount": 28,
-          "starts": [
-            "0:4,1"
-          ],
-          "nodes": 31,
-          "hash": "96bdfc53f5e67790",
-          "followHash": "abf4f483cc3f0e21"
-        },
-        {
-          "id": 7,
-          "pick": "immovable"
-        },
-        {
-          "id": 8,
-          "pick": "immovable"
-        }
-      ]
-    },
-    {
-      "name": "level_008",
-      "geo": "6x4|2x5",
-      "yardGravity": false,
-      "wallHeight": 4,
-      "gaps": [],
-      "motions": [],
-      "hashAfterSettle": "dab77c538e9cfdcc",
-      "movesLeft": 14,
-      "front": [
-        "site:6,0,0",
-        "site:7,0,0"
-      ],
-      "masks": [
-        0,
-        0
-      ],
-      "pieces": [
-        {
-          "id": 0,
-          "pick": "ok",
-          "cargo": false,
-          "canCrossWall": true,
-          "canEnterRail": false,
-          "reachableCount": 27,
-          "starts": [
-            "0:1,2"
-          ],
-          "nodes": 30,
-          "hash": "4930f9b1c00a38cd",
-          "followHash": "e8dd2e492674b40d"
-        },
-        {
-          "id": 1,
-          "pick": "ok",
-          "cargo": false,
-          "canCrossWall": true,
-          "canEnterRail": false,
-          "reachableCount": 22,
-          "starts": [
-            "0:2,2"
-          ],
-          "nodes": 25,
-          "hash": "b3d88f9cf99c5a5d",
-          "followHash": "7364d2589d2b5373"
-        },
-        {
-          "id": 2,
-          "pick": "ok",
-          "cargo": false,
-          "canCrossWall": true,
-          "canEnterRail": false,
-          "reachableCount": 22,
-          "starts": [
-            "0:4,2"
-          ],
-          "nodes": 25,
-          "hash": "73e2ae60229dd49d",
-          "followHash": "b0c926205997b8a8"
-        },
-        {
-          "id": 3,
-          "pick": "immovable"
-        },
-        {
-          "id": 4,
           "pick": "ok",
           "cargo": false,
           "canCrossWall": true,
           "canEnterRail": false,
           "reachableCount": 20,
           "starts": [
-            "0:0,0"
+            "0:0,2"
           ],
           "nodes": 23,
-          "hash": "0ab6bfd49b7bdde8",
-          "followHash": "6cbeb873f53e665b"
+          "hash": "b3ca2cbc43a96531",
+          "followHash": "c8b908a9a944639e"
         },
         {
-          "id": 5,
+          "id": 3,
+          "pick": "immovable"
+        },
+        {
+          "id": 4,
           "pick": "ok",
           "cargo": false,
           "canCrossWall": false,
           "canEnterRail": false,
           "reachableCount": 2,
           "starts": [
-            "0:1,0"
+            "0:2,2"
           ],
           "nodes": 5,
-          "hash": "35b3cb4cb4c2c615",
-          "followHash": "df10baca4d195994"
+          "hash": "11da0b4b183f787d",
+          "followHash": "6401defcb08bfd11"
+        },
+        {
+          "id": 5,
+          "pick": "immovable"
         },
         {
           "id": 6,
@@ -1930,19 +1446,43 @@
         },
         {
           "id": 7,
-          "pick": "immovable"
+          "pick": "ok",
+          "cargo": false,
+          "canCrossWall": false,
+          "canEnterRail": false,
+          "reachableCount": 2,
+          "starts": [
+            "0:2,0"
+          ],
+          "nodes": 5,
+          "hash": "d44551f6fbd3e326",
+          "followHash": "2aec7f163aa3ad43"
+        },
+        {
+          "id": 8,
+          "pick": "ok",
+          "cargo": false,
+          "canCrossWall": false,
+          "canEnterRail": false,
+          "reachableCount": 4,
+          "starts": [
+            "0:4,0"
+          ],
+          "nodes": 7,
+          "hash": "dd329347f63c0de6",
+          "followHash": "4e9b56d4d9e3e1d4"
         }
       ]
     },
     {
-      "name": "level_009",
-      "geo": "6x4|2x5",
+      "name": "level_004",
+      "geo": "6x5|2x4",
       "yardGravity": false,
       "wallHeight": 4,
       "gaps": [],
       "motions": [],
-      "hashAfterSettle": "2a883bbc7780df4c",
-      "movesLeft": 14,
+      "hashAfterSettle": "7895edd458bcba06",
+      "movesLeft": 16,
       "front": [
         "site:6,0,0",
         "site:7,0,0"
@@ -1958,16 +1498,166 @@
           "cargo": false,
           "canCrossWall": true,
           "canEnterRail": false,
-          "reachableCount": 27,
+          "reachableCount": 17,
           "starts": [
             "0:0,3"
           ],
-          "nodes": 30,
-          "hash": "0ab7826c5268f627",
-          "followHash": "be5c833a04fcd2fa"
+          "nodes": 20,
+          "hash": "bb399af89ee4e41a",
+          "followHash": "428f326a0ce03f32"
         },
         {
           "id": 1,
+          "pick": "ok",
+          "cargo": false,
+          "canCrossWall": true,
+          "canEnterRail": false,
+          "reachableCount": 22,
+          "starts": [
+            "0:2,3"
+          ],
+          "nodes": 25,
+          "hash": "a6bf0ed89ac41112",
+          "followHash": "a86509041f716d05"
+        },
+        {
+          "id": 2,
+          "pick": "ok",
+          "cargo": false,
+          "canCrossWall": true,
+          "canEnterRail": false,
+          "reachableCount": 22,
+          "starts": [
+            "0:5,3"
+          ],
+          "nodes": 25,
+          "hash": "b4766c40a8bfa812",
+          "followHash": "286a5c5c38d92e12"
+        },
+        {
+          "id": 3,
+          "pick": "immovable"
+        },
+        {
+          "id": 4,
+          "pick": "immovable"
+        },
+        {
+          "id": 5,
+          "pick": "ok",
+          "cargo": false,
+          "canCrossWall": true,
+          "canEnterRail": false,
+          "reachableCount": 22,
+          "starts": [
+            "0:3,2"
+          ],
+          "nodes": 25,
+          "hash": "b1e95dd2b1f35cd0",
+          "followHash": "4b2b0ccb18a9520d"
+        },
+        {
+          "id": 6,
+          "pick": "immovable"
+        },
+        {
+          "id": 7,
+          "pick": "ok",
+          "cargo": false,
+          "canCrossWall": false,
+          "canEnterRail": false,
+          "reachableCount": 2,
+          "starts": [
+            "0:0,0"
+          ],
+          "nodes": 5,
+          "hash": "e12426e0fc7f304b",
+          "followHash": "77e73e72b5faf729"
+        },
+        {
+          "id": 8,
+          "pick": "ok",
+          "cargo": false,
+          "canCrossWall": false,
+          "canEnterRail": false,
+          "reachableCount": 2,
+          "starts": [
+            "0:2,0"
+          ],
+          "nodes": 5,
+          "hash": "c41b04bc8146e168",
+          "followHash": "222f3048dfcfd908"
+        },
+        {
+          "id": 9,
+          "pick": "immovable"
+        }
+      ]
+    },
+    {
+      "name": "level_005",
+      "geo": "6x6|2x5",
+      "yardGravity": false,
+      "wallHeight": 4,
+      "gaps": [],
+      "motions": [],
+      "hashAfterSettle": "17a344959125cc1d",
+      "movesLeft": 18,
+      "front": [
+        "site:6,0,0",
+        "site:7,0,0"
+      ],
+      "masks": [
+        0,
+        0
+      ],
+      "pieces": [
+        {
+          "id": 0,
+          "pick": "ok",
+          "cargo": false,
+          "canCrossWall": true,
+          "canEnterRail": false,
+          "reachableCount": 23,
+          "starts": [
+            "0:1,5"
+          ],
+          "nodes": 26,
+          "hash": "1cc0af249d7c8831",
+          "followHash": "c5ff08e02dbbe7c0"
+        },
+        {
+          "id": 1,
+          "pick": "immovable"
+        },
+        {
+          "id": 2,
+          "pick": "ok",
+          "cargo": false,
+          "canCrossWall": true,
+          "canEnterRail": false,
+          "reachableCount": 21,
+          "starts": [
+            "0:3,4"
+          ],
+          "nodes": 24,
+          "hash": "a196f3a6f58f9476",
+          "followHash": "d4178a6a6eacada1"
+        },
+        {
+          "id": 3,
+          "pick": "immovable"
+        },
+        {
+          "id": 4,
+          "pick": "immovable"
+        },
+        {
+          "id": 5,
+          "pick": "immovable"
+        },
+        {
+          "id": 6,
           "pick": "ok",
           "cargo": false,
           "canCrossWall": false,
@@ -1977,84 +1667,60 @@
             "0:0,2"
           ],
           "nodes": 5,
-          "hash": "cf381c037f6f2744",
-          "followHash": "72e273101da4e17b"
-        },
-        {
-          "id": 2,
-          "pick": "ok",
-          "cargo": false,
-          "canCrossWall": true,
-          "canEnterRail": false,
-          "reachableCount": 15,
-          "starts": [
-            "0:2,1"
-          ],
-          "nodes": 18,
-          "hash": "c04df277d28615fa",
-          "followHash": "93f016be203a811b"
-        },
-        {
-          "id": 3,
-          "pick": "immovable"
-        },
-        {
-          "id": 4,
-          "pick": "ok",
-          "cargo": false,
-          "canCrossWall": true,
-          "canEnterRail": false,
-          "reachableCount": 19,
-          "starts": [
-            "0:4,1"
-          ],
-          "nodes": 22,
-          "hash": "0d50b0f84cb7a23f",
-          "followHash": "7c27475310b35f2d"
-        },
-        {
-          "id": 5,
-          "pick": "ok",
-          "cargo": false,
-          "canCrossWall": false,
-          "canEnterRail": false,
-          "reachableCount": 2,
-          "starts": [
-            "0:0,0"
-          ],
-          "nodes": 5,
-          "hash": "61cf7c8ac45ee981",
-          "followHash": "77e73e72b5faf729"
-        },
-        {
-          "id": 6,
-          "pick": "ok",
-          "cargo": false,
-          "canCrossWall": false,
-          "canEnterRail": false,
-          "reachableCount": 2,
-          "starts": [
-            "0:2,0"
-          ],
-          "nodes": 5,
-          "hash": "670b64952941a7ca",
-          "followHash": "222f3048dfcfd908"
+          "hash": "987482606db42043",
+          "followHash": "a1d6c11f91a5556f"
         },
         {
           "id": 7,
+          "pick": "immovable"
+        },
+        {
+          "id": 8,
+          "pick": "immovable"
+        },
+        {
+          "id": 9,
+          "pick": "ok",
+          "cargo": false,
+          "canCrossWall": false,
+          "canEnterRail": false,
+          "reachableCount": 3,
+          "starts": [
+            "0:1,0"
+          ],
+          "nodes": 6,
+          "hash": "9ba38f036fa0abc5",
+          "followHash": "6037dba9ad5f1dd0"
+        },
+        {
+          "id": 10,
+          "pick": "ok",
+          "cargo": false,
+          "canCrossWall": false,
+          "canEnterRail": false,
+          "reachableCount": 2,
+          "starts": [
+            "0:3,0"
+          ],
+          "nodes": 5,
+          "hash": "6a08078e909ca7e6",
+          "followHash": "d36f6ea0af930873"
+        },
+        {
+          "id": 11,
           "pick": "immovable"
         }
       ]
     },
     {
-      "name": "level_010",
-      "geo": "6x4|2x5",
+      "name": "level_006",
+      "geo": "6x7|2x6",
       "yardGravity": false,
-      "wallHeight": 4,
+      "wallHeight": 5,
       "gaps": [],
       "motions": [],
-      "hashAfterSettle": "d1f45a9077a03bae",
-      "movesLeft": 13,
+      "hashAfterSettle": "20c94678ab8a2c9d",
+      "movesLeft": 18,
       "front": [
         "site:6,0,0",
         "site:7,0,0"
@@ -2070,13 +1736,231 @@
           "cargo": false,
           "canCrossWall": true,
           "canEnterRail": false,
-          "reachableCount": 26,
+          "reachableCount": 24,
           "starts": [
-            "0:0,3"
+            "0:3,6"
           ],
-          "nodes": 29,
-          "hash": "771d784be18d232e",
-          "followHash": "6a963a66a13fd57f"
+          "nodes": 27,
+          "hash": "eec7983224c40982",
+          "followHash": "43e8a3e6d5d97221"
+        },
+        {
+          "id": 1,
+          "pick": "immovable"
+        },
+        {
+          "id": 2,
+          "pick": "ok",
+          "cargo": false,
+          "canCrossWall": true,
+          "canEnterRail": false,
+          "reachableCount": 20,
+          "starts": [
+            "0:1,5"
+          ],
+          "nodes": 23,
+          "hash": "267a1b480082213d",
+          "followHash": "c4a0856ddd6bca85"
+        },
+        {
+          "id": 3,
+          "pick": "immovable"
+        },
+        {
+          "id": 4,
+          "pick": "immovable"
+        },
+        {
+          "id": 5,
+          "pick": "ok",
+          "cargo": false,
+          "canCrossWall": true,
+          "canEnterRail": false,
+          "reachableCount": 25,
+          "starts": [
+            "0:5,4"
+          ],
+          "nodes": 28,
+          "hash": "37dd96247bf7ea41",
+          "followHash": "f97b0f4542d45921"
+        },
+        {
+          "id": 6,
+          "pick": "immovable"
+        },
+        {
+          "id": 7,
+          "pick": "immovable"
+        },
+        {
+          "id": 8,
+          "pick": "ok",
+          "cargo": false,
+          "canCrossWall": false,
+          "canEnterRail": false,
+          "reachableCount": 2,
+          "starts": [
+            "0:2,2"
+          ],
+          "nodes": 5,
+          "hash": "5217ffe4861eaff0",
+          "followHash": "3eac56ebb4f5d521"
+        },
+        {
+          "id": 9,
+          "pick": "ok",
+          "cargo": false,
+          "canCrossWall": false,
+          "canEnterRail": false,
+          "reachableCount": 2,
+          "starts": [
+            "0:5,2"
+          ],
+          "nodes": 5,
+          "hash": "2a9fc7edd92f5dba",
+          "followHash": "33870341fa563ec3"
+        },
+        {
+          "id": 10,
+          "pick": "immovable"
+        },
+        {
+          "id": 11,
+          "pick": "immovable"
+        },
+        {
+          "id": 12,
+          "pick": "immovable"
+        },
+        {
+          "id": 13,
+          "pick": "immovable"
+        }
+      ]
+    },
+    {
+      "name": "level_007",
+      "geo": "6x6|2x4",
+      "yardGravity": false,
+      "wallHeight": 3,
+      "gaps": [],
+      "motions": [],
+      "hashAfterSettle": "378f5f42db46f530",
+      "movesLeft": 18,
+      "front": [
+        "site:6,0,0",
+        "site:7,0,0"
+      ],
+      "masks": [
+        0,
+        0
+      ],
+      "pieces": [
+        {
+          "id": 0,
+          "pick": "ok",
+          "cargo": false,
+          "canCrossWall": true,
+          "canEnterRail": false,
+          "reachableCount": 20,
+          "starts": [
+            "0:1,4"
+          ],
+          "nodes": 23,
+          "hash": "1412c0f60f5bc664",
+          "followHash": "75b66c002043302f"
+        },
+        {
+          "id": 1,
+          "pick": "immovable"
+        },
+        {
+          "id": 2,
+          "pick": "ok",
+          "cargo": false,
+          "canCrossWall": true,
+          "canEnterRail": false,
+          "reachableCount": 24,
+          "starts": [
+            "0:4,4"
+          ],
+          "nodes": 27,
+          "hash": "b349d5565eb7fc12",
+          "followHash": "7fedac363528ffaa"
+        },
+        {
+          "id": 3,
+          "pick": "immovable"
+        },
+        {
+          "id": 4,
+          "pick": "ok",
+          "cargo": false,
+          "canCrossWall": true,
+          "canEnterRail": false,
+          "reachableCount": 24,
+          "starts": [
+            "0:4,3"
+          ],
+          "nodes": 27,
+          "hash": "7c54316a053cb6fd",
+          "followHash": "9e123c9033d16bb3"
+        },
+        {
+          "id": 5,
+          "pick": "immovable"
+        },
+        {
+          "id": 6,
+          "pick": "immovable"
+        },
+        {
+          "id": 7,
+          "pick": "immovable"
+        },
+        {
+          "id": 8,
+          "pick": "immovable"
+        },
+        {
+          "id": 9,
+          "pick": "immovable"
+        },
+        {
+          "id": 10,
+          "pick": "immovable"
+        },
+        {
+          "id": 11,
+          "pick": "immovable"
+        },
+        {
+          "id": 12,
+          "pick": "immovable"
+        }
+      ]
+    },
+    {
+      "name": "level_008",
+      "geo": "6x7|2x6",
+      "yardGravity": false,
+      "wallHeight": 5,
+      "gaps": [],
+      "motions": [],
+      "hashAfterSettle": "b933bb7a80d9bd26",
+      "movesLeft": 20,
+      "front": [
+        "site:6,0,0",
+        "site:7,0,0"
+      ],
+      "masks": [
+        0,
+        0
+      ],
+      "pieces": [
+        {
+          "id": 0,
+          "pick": "immovable"
         },
         {
           "id": 1,
@@ -2084,17 +1968,27 @@
           "cargo": false,
           "canCrossWall": true,
           "canEnterRail": false,
-          "reachableCount": 26,
+          "reachableCount": 23,
           "starts": [
-            "0:3,3"
+            "0:1,5"
           ],
-          "nodes": 29,
-          "hash": "c4687d43c55cd611",
-          "followHash": "f8572b447433d853"
+          "nodes": 26,
+          "hash": "3dc015180d0ff326",
+          "followHash": "ccf771446b611950"
         },
         {
           "id": 2,
-          "pick": "immovable"
+          "pick": "ok",
+          "cargo": false,
+          "canCrossWall": true,
+          "canEnterRail": false,
+          "reachableCount": 28,
+          "starts": [
+            "0:4,5"
+          ],
+          "nodes": 31,
+          "hash": "c892a926a911b67d",
+          "followHash": "5c5fdcd76f842fa4"
         },
         {
           "id": 3,
@@ -2110,20 +2004,156 @@
         },
         {
           "id": 6,
+          "pick": "immovable"
+        },
+        {
+          "id": 7,
+          "pick": "ok",
+          "cargo": false,
+          "canCrossWall": true,
+          "canEnterRail": false,
+          "reachableCount": 28,
+          "starts": [
+            "0:5,3"
+          ],
+          "nodes": 31,
+          "hash": "48657405e621eb9b",
+          "followHash": "014b0209bbf72b9c"
+        },
+        {
+          "id": 8,
+          "pick": "immovable"
+        },
+        {
+          "id": 9,
+          "pick": "immovable"
+        },
+        {
+          "id": 10,
+          "pick": "immovable"
+        },
+        {
+          "id": 11,
+          "pick": "immovable"
+        },
+        {
+          "id": 12,
           "pick": "ok",
           "cargo": false,
           "canCrossWall": false,
           "canEnterRail": false,
-          "reachableCount": 3,
+          "reachableCount": 2,
           "starts": [
-            "0:0,0"
+            "0:4,0"
           ],
-          "nodes": 6,
-          "hash": "8f8c08562d9e02f0",
-          "followHash": "f358082cb49ac071"
+          "nodes": 5,
+          "hash": "1a2c229ac1712790",
+          "followHash": "0ea13270d06e0162"
+        },
+        {
+          "id": 13,
+          "pick": "immovable"
+        }
+      ]
+    },
+    {
+      "name": "level_009",
+      "geo": "6x7|2x6",
+      "yardGravity": false,
+      "wallHeight": 4,
+      "gaps": [],
+      "motions": [],
+      "hashAfterSettle": "1feb800648175623",
+      "movesLeft": 22,
+      "front": [
+        "site:6,0,0",
+        "site:7,0,0"
+      ],
+      "masks": [
+        0,
+        0
+      ],
+      "pieces": [
+        {
+          "id": 0,
+          "pick": "ok",
+          "cargo": false,
+          "canCrossWall": true,
+          "canEnterRail": false,
+          "reachableCount": 23,
+          "starts": [
+            "0:1,6"
+          ],
+          "nodes": 26,
+          "hash": "8678a258b854e667",
+          "followHash": "897a01810833913b"
+        },
+        {
+          "id": 1,
+          "pick": "immovable"
+        },
+        {
+          "id": 2,
+          "pick": "ok",
+          "cargo": false,
+          "canCrossWall": true,
+          "canEnterRail": false,
+          "reachableCount": 25,
+          "starts": [
+            "0:3,5"
+          ],
+          "nodes": 28,
+          "hash": "f990e41321c95632",
+          "followHash": "39df227a1db19786"
+        },
+        {
+          "id": 3,
+          "pick": "ok",
+          "cargo": false,
+          "canCrossWall": true,
+          "canEnterRail": false,
+          "reachableCount": 18,
+          "starts": [
+            "0:4,5"
+          ],
+          "nodes": 21,
+          "hash": "a4163316e56b6bac",
+          "followHash": "a41512cf25200d5d"
+        },
+        {
+          "id": 4,
+          "pick": "immovable"
+        },
+        {
+          "id": 5,
+          "pick": "immovable"
+        },
+        {
+          "id": 6,
+          "pick": "immovable"
         },
         {
           "id": 7,
+          "pick": "immovable"
+        },
+        {
+          "id": 8,
+          "pick": "immovable"
+        },
+        {
+          "id": 9,
+          "pick": "immovable"
+        },
+        {
+          "id": 10,
+          "pick": "immovable"
+        },
+        {
+          "id": 11,
+          "pick": "immovable"
+        },
+        {
+          "id": 12,
           "pick": "ok",
           "cargo": false,
           "canCrossWall": false,
@@ -2133,8 +2163,186 @@
             "0:3,0"
           ],
           "nodes": 5,
-          "hash": "b91eb91356af689c",
-          "followHash": "428b996e4074d16e"
+          "hash": "403a2708d2fa2e31",
+          "followHash": "2c956ce04eaea03e"
+        },
+        {
+          "id": 13,
+          "pick": "ok",
+          "cargo": false,
+          "canCrossWall": false,
+          "canEnterRail": false,
+          "reachableCount": 2,
+          "starts": [
+            "0:5,0"
+          ],
+          "nodes": 5,
+          "hash": "df074e0f6ce7c3c7",
+          "followHash": "746ccc9cf42b55a9"
+        }
+      ]
+    },
+    {
+      "name": "level_010",
+      "geo": "6x8|2x5",
+      "yardGravity": false,
+      "wallHeight": 5,
+      "gaps": [],
+      "motions": [],
+      "hashAfterSettle": "fc3cd55c365074ea",
+      "movesLeft": 21,
+      "front": [
+        "site:6,0,0",
+        "site:7,0,0"
+      ],
+      "masks": [
+        0,
+        0
+      ],
+      "pieces": [
+        {
+          "id": 0,
+          "pick": "ok",
+          "cargo": false,
+          "canCrossWall": true,
+          "canEnterRail": false,
+          "reachableCount": 19,
+          "starts": [
+            "0:3,6"
+          ],
+          "nodes": 22,
+          "hash": "ff9502012eb7f688",
+          "followHash": "7fc766970d859413"
+        },
+        {
+          "id": 1,
+          "pick": "ok",
+          "cargo": false,
+          "canCrossWall": false,
+          "canEnterRail": false,
+          "reachableCount": 4,
+          "starts": [
+            "0:0,5"
+          ],
+          "nodes": 7,
+          "hash": "9930dd7d779ea230",
+          "followHash": "87654537db93239a"
+        },
+        {
+          "id": 2,
+          "pick": "ok",
+          "cargo": false,
+          "canCrossWall": true,
+          "canEnterRail": false,
+          "reachableCount": 29,
+          "starts": [
+            "0:1,5"
+          ],
+          "nodes": 32,
+          "hash": "1a502f848cfdf91a",
+          "followHash": "d258189a8a51b5ec"
+        },
+        {
+          "id": 3,
+          "pick": "ok",
+          "cargo": false,
+          "canCrossWall": false,
+          "canEnterRail": false,
+          "reachableCount": 5,
+          "starts": [
+            "0:2,5"
+          ],
+          "nodes": 8,
+          "hash": "fc58b4f0a5ada52e",
+          "followHash": "79e0699a9601a59b"
+        },
+        {
+          "id": 4,
+          "pick": "ok",
+          "cargo": false,
+          "canCrossWall": true,
+          "canEnterRail": false,
+          "reachableCount": 19,
+          "starts": [
+            "0:4,5"
+          ],
+          "nodes": 22,
+          "hash": "f7d8dc5d3eed4bd5",
+          "followHash": "c1df4c41be55b9a2"
+        },
+        {
+          "id": 5,
+          "pick": "immovable"
+        },
+        {
+          "id": 6,
+          "pick": "ok",
+          "cargo": false,
+          "canCrossWall": false,
+          "canEnterRail": false,
+          "reachableCount": 4,
+          "starts": [
+            "0:4,3"
+          ],
+          "nodes": 7,
+          "hash": "f4545aeacb5cb8be",
+          "followHash": "426d20349f614360"
+        },
+        {
+          "id": 7,
+          "pick": "immovable"
+        },
+        {
+          "id": 8,
+          "pick": "immovable"
+        },
+        {
+          "id": 9,
+          "pick": "ok",
+          "cargo": false,
+          "canCrossWall": false,
+          "canEnterRail": false,
+          "reachableCount": 2,
+          "starts": [
+            "0:3,2"
+          ],
+          "nodes": 5,
+          "hash": "07f20ec5da47f1b9",
+          "followHash": "3855e885386743d2"
+        },
+        {
+          "id": 10,
+          "pick": "ok",
+          "cargo": false,
+          "canCrossWall": false,
+          "canEnterRail": false,
+          "reachableCount": 4,
+          "starts": [
+            "0:4,1"
+          ],
+          "nodes": 7,
+          "hash": "dbdd112c7c9054c6",
+          "followHash": "e6e908d0f4a13930"
+        },
+        {
+          "id": 11,
+          "pick": "immovable"
+        },
+        {
+          "id": 12,
+          "pick": "immovable"
+        },
+        {
+          "id": 13,
+          "pick": "immovable"
+        },
+        {
+          "id": 14,
+          "pick": "immovable"
+        },
+        {
+          "id": 15,
+          "pick": "immovable"
         }
       ]
     },

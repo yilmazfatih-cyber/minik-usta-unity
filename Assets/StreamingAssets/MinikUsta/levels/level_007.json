@@ -2,133 +2,43 @@
   "schemaVersion": 3,
   "id": 7,
   "chapter": 1,
-  "name": {
-    "tr": "Paketli Malzeme",
-    "en": "Wrapped Supplies"
-  },
+  "name": { "tr": "Paketli Malzeme", "en": "Wrapped Supplies" },
   "difficulty": "normal",
-  "moves": 14,
+  "moves": 18,
   "teaches": "Y11",
-  "goals": [
-    {
-      "type": "build"
-    }
-  ],
-  "gravity": {
-    "build": "normal",
-    "yard": false
-  },
-  "wall": {
-    "height": 4,
-    "gaps": []
-  },
-  "site": {
-    "cols": 2,
-    "rows": 5
-  },
+  "goals": [{ "type": "build" }],
+  "gravity": { "build": "normal", "yard": false },
+  "wall": { "height": 3, "gaps": [] },
+  "site": { "cols": 2, "rows": 4 },
   "build": {
     "mode": "segments",
     "segments": [
-      {
-        "name": {
-          "tr": "Paket Katı",
-          "en": "Parcel Floor"
-        },
-        "rows": [
-          "YY",
-          "YY",
-          "RY",
-          "YR",
-          "RR"
-        ]
-      },
-      {
-        "name": {
-          "tr": "Yeşil Kemer",
-          "en": "Green Arch"
-        },
-        "rows": [
-          "YY",
-          "GY",
-          "GG",
-          "YY",
-          "YY"
-        ]
-      }
+      { "name": { "tr": "Kat 1", "en": "Floor 1" }, "rows": ["YY", "RR", "RG", "GG"] },
+      { "name": { "tr": "Kat 2", "en": "Floor 2" }, "rows": ["YR", "YY", "GG", "GG"] },
+      { "name": { "tr": "Kat 3", "en": "Floor 3" }, "rows": ["YR", "GG", "GR", "GR"] },
+      { "name": { "tr": "Kat 4", "en": "Floor 4" }, "rows": ["GG", "YY", "YY", "YY"] }
     ]
   },
   "yard": {
     "cols": 6,
-    "rows": 4,
+    "rows": 6,
     "batches": [
       {
         "forSegment": 0,
         "pieces": [
-          {
-            "shape": "D2_90",
-            "color": "Y",
-            "x": 0,
-            "y": 3
-          },
-          {
-            "shape": "D2_90",
-            "color": "Y",
-            "x": 2,
-            "y": 3
-          },
-          {
-            "shape": "D2_90",
-            "color": "R",
-            "x": 0,
-            "y": 2,
-            "flags": [
-              "scissors"
-            ]
-          },
-          {
-            "shape": "C3_180",
-            "color": "Y",
-            "x": 2,
-            "y": 1
-          },
-          {
-            "shape": "D2_90",
-            "color": "Y",
-            "colors": "YR",
-            "x": 0,
-            "y": 1,
-            "flags": [
-              "wrapped"
-            ]
-          },
-          {
-            "shape": "C3_0",
-            "color": "G",
-            "x": 2,
-            "y": 0
-          },
-          {
-            "shape": "D2_90",
-            "color": "Y",
-            "x": 4,
-            "y": 1
-          },
-          {
-            "shape": "D2_90",
-            "color": "R",
-            "colors": "RY",
-            "x": 0,
-            "y": 0,
-            "flags": [
-              "wrapped"
-            ]
-          },
-          {
-            "shape": "D2_90",
-            "color": "Y",
-            "x": 4,
-            "y": 0
-          }
+          { "shape": "C3_90", "color": "R", "x": 1, "y": 4 },
+          { "shape": "C3_270", "color": "G", "x": 2, "y": 4 },
+          { "shape": "D2_90", "color": "Y", "x": 4, "y": 4, "colors": "YR" },
+          { "shape": "D2_90", "color": "G", "x": 2, "y": 3 },
+          { "shape": "D2_90", "color": "Y", "x": 4, "y": 3 },
+          { "shape": "O4_0", "color": "Y", "x": 0, "y": 2, "colors": "YYYR" },
+          { "shape": "D2_90", "color": "G", "x": 2, "y": 2 },
+          { "shape": "D2_90", "color": "G", "x": 2, "y": 1, "flags": ["scissors"] },
+          { "shape": "D2_0", "color": "G", "x": 4, "y": 1 },
+          { "shape": "D2_0", "color": "R", "x": 5, "y": 1 },
+          { "shape": "O4_0", "color": "Y", "x": 0, "y": 0 },
+          { "shape": "D2_90", "color": "Y", "x": 2, "y": 0, "flags": ["wrapped"] },
+          { "shape": "D2_90", "color": "G", "x": 4, "y": 0, "flags": ["wrapped"] }
         ]
       }
     ]
@@ -137,41 +47,10 @@
   "tutorial": [
     {
       "step": 1,
-      "highlight": [
-        "piece:2"
-      ],
+      "highlight": ["piece:7"],
       "textKey": "tut.m.wrap",
-      "done": {
-        "event": "placementCorrect",
-        "count": 1,
-        "piece": "piece:2"
-      }
+      "done": { "event": "placementCorrect", "count": 1, "piece": "piece:7" }
     }
   ],
-  "targets": {
-    "min": [
-      10,
-      10
-    ],
-    "minShifts": [
-      1,
-      1
-    ],
-    "firstNeedDepth": [
-      1,
-      1
-    ],
-    "greedyWin": [
-      0.9,
-      1
-    ],
-    "ahaMin": [
-      0,
-      0
-    ],
-    "deadRate": [
-      0,
-      0
-    ]
-  }
+  "targets": { "min": [14, 14], "deadRate": [0, 0] }
 }

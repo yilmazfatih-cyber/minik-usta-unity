@@ -37,6 +37,8 @@ const count = (kind: string): number => required.filter((r) => r.kind === kind).
 const out = {
   generatedFrom: { webRepo: 'yilmazfatih-cyber/minik-usta', webCommit, generator: 'tools/gen-rule-ids.ts', source: 'tools/rule-coverage.ts ruleIds' },
   phase2R,
+  phaseV3: rc.PHASE_V3,
+  notApplicableInCSharp: { 'K-64': 'TS tool only (solver measures); no C# counterpart' },
   required2R: { total: required.length, K: count('K'), obstacle: count('obstacle'), E: count('E'), N: count('N') },
   ids,
 };

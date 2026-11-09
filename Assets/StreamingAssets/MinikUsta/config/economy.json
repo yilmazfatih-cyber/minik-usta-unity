@@ -53,7 +53,7 @@
     "_doc": "Unlock rule (META §4): a booster granted before its unlockLevel (level chest 10 Thermos, daily reward, starter pack) is kept in inventory; its slot stays locked (not usable/selectable) until unlockLevel; freeTrials are added on top of the stored count at unlock.",
     "hammer": {
       "kind": "inLevel",
-      "unlockLevel": 8,
+      "unlockLevel": 10,
       "freeTrials": 3,
       "price": 600,
       "effect": "breakObstacle",

@@ -21,7 +21,7 @@ namespace MinikUsta.Presentation.Tests
             Assert.AreEqual(3, e.MaxOffers);
             Assert.AreEqual(5, e.ExtraMoves);
             Assert.AreEqual(30, e.WinCoins["normal"]);
-            Assert.AreEqual(8, e.UnlockLevel("hammer"));
+            Assert.AreEqual(10, e.UnlockLevel("hammer"), "levels v3b: the Hammer opens with the first wrap level (CL-V3-07)");
             Assert.AreEqual(12, e.UnlockLevel("thermos"));
             Assert.AreEqual("coins_1000", e.ReferencePack.Sku);
             Assert.AreEqual(GameSessionOfferMoves, e.ExtraMoves, "outOfMoves.extraMoves = the core's OFFER_MOVES (web tests/ui/windows.test.ts)");

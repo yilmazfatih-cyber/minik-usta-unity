@@ -172,6 +172,10 @@ jobs:
           sudo chown -R "$USER" build
           ls -la build/WebGL/MinikUsta
           touch build/WebGL/MinikUsta/.nojekyll
+          # CL-V3-02: the page says what it is until the owner has played the v3b levels (dead-state gate is an estimate there)
+          if [ -f build/WebGL/MinikUsta/index.html ]; then
+            sed -i 's#<title>\([^<]*\)</title>#<title>\1 - levels v3b preview</title>#' build/WebGL/MinikUsta/index.html
+          fi
       - name: Upload Pages artifact
         if: steps.verify.outputs.ok == 'true'
         uses: actions/upload-pages-artifact@v3

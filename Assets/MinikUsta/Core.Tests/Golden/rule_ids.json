@@ -1,11 +1,15 @@
 {
  "generatedFrom": {
   "webRepo": "yilmazfatih-cyber/minik-usta",
-  "webCommit": "1fe9af3",
+  "webCommit": "701b8f3",
   "generator": "tools/gen-rule-ids.ts",
   "source": "tools/rule-coverage.ts ruleIds"
  },
  "phase2R": 2.5,
+ "phaseV3": 2.7,
+ "notApplicableInCSharp": {
+  "K-64": "TS tool only (solver measures); no C# counterpart"
+ },
  "required2R": {
   "total": 76,
   "K": 46,
@@ -69,6 +73,17 @@
 {"id":"K-53","kind":"K","phase":2.5},
 {"id":"K-54","kind":"K","phase":2.5},
 {"id":"K-55","kind":"K","phase":3},
+{"id":"K-56","kind":"K","phase":2.7},
+{"id":"K-57","kind":"K","phase":2.7},
+{"id":"K-58","kind":"K","phase":2.7},
+{"id":"K-59","kind":"K","phase":2.7},
+{"id":"K-60","kind":"K","phase":2.7},
+{"id":"K-61","kind":"K","phase":2.7},
+{"id":"K-62","kind":"K","phase":2.7},
+{"id":"K-63","kind":"K","phase":2.7},
+{"id":"K-64","kind":"K","phase":2.7},
+{"id":"K-65","kind":"K","phase":2.7},
+{"id":"K-66","kind":"K","phase":2.7},
 {"id":"G-H","kind":"obstacle","phase":3},
 {"id":"G-L","kind":"obstacle","phase":3},
 {"id":"S1","kind":"obstacle","phase":2},

@@ -287,13 +287,13 @@ namespace MinikUsta.Presentation.Tests
         [Test]
         public void U2_P0_3_a_booster_slot_tap_reaches_the_app_and_shows_unlock_level_or_coming_soon()
         {
-            var rig = InLevel(6);
+            var rig = InLevel(8);
             var hud = Hud(rig);
-            Assert.IsTrue(hud.Get("hud.boost0").Shown, "Bölüm 6: the hammer slot is on screen");
+            Assert.IsTrue(hud.Get("hud.boost0").Shown, "Bölüm 8: the hammer slot is on screen (2 levels before it opens at 10)");
             rig.Tap("hud.boost0");
-            Assert.AreEqual("8. bölümde açılır", rig.App.Hint.Text);
+            Assert.AreEqual("10. bölümde açılır", rig.App.Hint.Text);
             Assert.AreEqual(rig.Player.Layout!.Boosters[0], rig.App.Hint.Target);
-            var en = InLevel(8, 390, 844, "en");
+            var en = InLevel(10, 390, 844, "en");
             en.Tap("hud.boost0");
             Assert.AreEqual("Coming soon", en.App.Hint.Text, "an unlocked slot: the boosters are not playable in this build yet");
             Assert.IsFalse(en.App.Hint.Text!.Contains("{"), "no raw placeholder");
@@ -483,21 +483,22 @@ namespace MinikUsta.Presentation.Tests
         // --- P0-7 booster slot visibility (K3) -----------------------------------------------------------------------------------
 
         [Test]
-        public void U2_P0_7_no_booster_slot_in_levels_1_to_5_the_hammer_appears_locked_at_level_6()
+        public void U2_P0_7_no_booster_slot_in_levels_1_to_7_the_hammer_appears_locked_at_level_8()
         {
-            for (int level = 1; level <= 5; level++)
+            for (int level = 1; level <= 7; level++)
             {
                 var hud = Hud(InLevel(level));
                 for (int i = 0; i < 4; i++) Assert.IsFalse(hud.Get("hud.boost" + i).Shown, "B" + level + " slot " + i);
             }
-            var rig = InLevel(6);
+            var rig = InLevel(8);
             var h6 = Hud(rig);
-            Assert.IsTrue(h6.Get("hud.boost0").Shown, "the hammer (unlock 8) shows 2 levels early");
+            Assert.IsTrue(h6.Get("hud.boost0").Shown, "the hammer (unlock 10) shows 2 levels early");
             Assert.IsTrue(h6.Get("hud.boost0.lock").Shown);
-            Assert.AreEqual("Bölüm 8", h6.Get("hud.boost0.at").Text);
+            Assert.AreEqual("Bölüm 10", h6.Get("hud.boost0.at").Text);
             Assert.IsTrue(h6.Get("hud.boost0.at").Shown);
             Assert.AreEqual(34, TextFit.SizeOf(h6.Get("hud.boost0.at")));
-            for (int i = 1; i < 4; i++) Assert.IsFalse(h6.Get("hud.boost" + i).Shown, "slot " + i + " stays hidden at Bölüm 6");
+            Assert.IsTrue(h6.Get("hud.boost1").Shown, "the crane (unlock 10) shows 2 levels early as well");
+            for (int i = 2; i < 4; i++) Assert.IsFalse(h6.Get("hud.boost" + i).Shown, "slot " + i + " stays hidden at Bölüm 8");
             Assert.IsTrue(BoosterSlotRules.Visible(8, 10, 0), "the crane slot from Bölüm 8");
             Assert.IsTrue(BoosterSlotRules.Visible(11, 13, 0), "undo from 11");
             Assert.IsFalse(BoosterSlotRules.Visible(19, 22, 0), "the brush from 20");

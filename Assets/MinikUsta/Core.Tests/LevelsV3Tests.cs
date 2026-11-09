@@ -395,6 +395,59 @@ namespace MinikUsta.Core.Tests
             CollectionAssert.IsEmpty(Grid.StateInvariantErrors(s));
         }
 
+        // --- K-62 / K-63 / K-65 (CL-V3-09: the rules whose C# code had no test named after it) --------------------------------
+
+        [Test(Description = "K-62 story 1: k = 0 — the bonus only adds moves at run time; the level's own budget is not raised by it")]
+        public void K62_story1_bonus_does_not_enter_the_budget()
+        {
+            var s = V3(Bonus(new[] { "WW", "WW" }, 4));
+            Assert.AreEqual(2, s.Lvl.Pieces[0].BonusMoves);
+            Assert.AreEqual(4, s.Lvl.Moves);
+            // two placements, the first pays +2: 4 − 1 + 2 − 1 = 4 left; without the bonus block the same plan leaves 2
+            var r = Run(s, DragTo(0, 4, 3));
+            Assert.AreEqual(5, Hdr(s, H.MovesLeft));
+            Assert.IsTrue(Has<PlacementCorrectEvent>(r.Ev));
+        }
+
+        [Test(Description = "K-63 tile_family_mix: one colour with two \"bottom row full\" kinds (C3_0 and D2_90) warns on Easy / Normal, not on Hard")]
+        public void K63_tile_family_mix_warns_on_easy()
+        {
+            var spec = new LevelSpec
+            {
+                Id = 4, Difficulty = "easy", Yard = Yard, Site = SiteSize, Plan = new[] { "WW", "GG", "GW", "GG" },
+                Pieces = Ps(Pc("C3_0", "G", 0, 0), Pc("D2_90", "W", 2, 0), Pc("D2_90", "G", 2, 1), Pc("B1_0", "W", 0, 2)),
+            };
+            spec.SchemaVersion = 3;
+            var issue = Logic.ValidateLevelJson(Builders.LevelJson(spec), new LogicContext()).Issues.FirstOrDefault(i => i.Code == "tile_family_mix");
+            Assert.IsNotNull(issue);
+            Assert.AreEqual("warn", issue!.Severity);
+            spec.Difficulty = "hard";
+            CollectionAssert.DoesNotContain(Codes(spec), "tile_family_mix");
+        }
+
+        [Test(Description = "K-65 story 1: a pallet of mixed layers is stack_mixed; two-tone pairs W–R and G–Y are colors_low_contrast (CL-V3-08); story 2 accepts them")]
+        public void K65_story1_readability_constraints()
+        {
+            LevelSpec TwoToneOf(string a, string b, int id) => new LevelSpec
+            {
+                Id = id, Yard = Yard, Site = SiteSize, Plan = new[] { "WW", "WW", b + a, b + a },
+                Pieces = Ps(Pc("D2_90", "W", 0, 0), Pc("D2_90", "W", 0, 1), Pc("D2_90", a, 2, 0), Pc("D2_90", a, 2, 1)),
+                Traits = Tr((2, Colors(a + b)), (3, Colors(a + b))),
+            };
+            CollectionAssert.Contains(Codes(TwoToneOf("R", "W", 9)), "colors_low_contrast");
+            CollectionAssert.Contains(Codes(TwoToneOf("G", "Y", 9)), "colors_low_contrast");
+            CollectionAssert.DoesNotContain(Codes(TwoToneOf("R", "W", 11)), "colors_low_contrast");
+            var mixed = new LevelSpec
+            {
+                Id = 9, Yard = Yard, Site = SiteSize, Plan = new[] { "WW", "WW", "YW", "YW" },
+                Pieces = Ps(Pc("D2_90", "W", 0, 0), Pc("D2_90", "W", 0, 0, new[] { "bonus" }), Pc("D2_90", "Y", 2, 0), Pc("D2_90", "Y", 2, 1)),
+                Traits = Tr((0, StackOf(0, 0)), (1, StackOf(0, 1)), (2, Colors("YW")), (3, Colors("YW"))),
+            };
+            CollectionAssert.IsSupersetOf(Codes(mixed), new[] { "stack_mixed", "trait_overlay_many" });
+            mixed.Id = 11;
+            CollectionAssert.DoesNotContain(Codes(mixed), "stack_mixed");
+        }
+
         // --- K-30 D1 widening, schema, mechanics --------------------------------------------------------------------------
 
         [Test(Description = "K-30 K-66 Y9 … Y13 are derived from the data, v3 fields in a v2 file are schema_version_low (L-40), events list 44 names")]

@@ -26,7 +26,15 @@ namespace MinikUsta.Core.Tests
             var previous = new HashSet<string>();
             for (int k = 1; k < System.Math.Min(n, 11); k++)
                 foreach (var m in Mechanics.DeriveMechanics(LevelJson.ParseOrThrow(Draft(k)))) previous.Add(m);
-            return Logic.ValidateLevelJson(json ?? Draft(n), new LogicContext(fileId: n, previousMechanics: previous, boosterUnlock: TestPaths.LoadBoosterUnlock())).Issues;
+            return Logic.ValidateLevelJson(json ?? Draft(n), new LogicContext(fileId: n, previousMechanics: previous, boosterUnlock: ArchiveBoosterUnlock())).Issues;
+        }
+
+        /// <summary>The Faz 2R archive was written for the Faz 2R unlock table (Hammer at 8); the shipped table moved it to 10 (CL-V3-07).</summary>
+        private static IReadOnlyDictionary<string, int> ArchiveBoosterUnlock()
+        {
+            var table = new Dictionary<string, int>(TestPaths.LoadBoosterUnlock());
+            table["hammer"] = 8;
+            return table;
         }
 
         [Test(Description = "K-45 every level passes the schema and every validate check (mechanic history, booster unlocks)")]

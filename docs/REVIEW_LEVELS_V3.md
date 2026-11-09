@@ -225,3 +225,23 @@ iş akışına taşınsın.
 | Palet için D3b çıkmaz tablosu | Önce kaygan blok (Y13) Hikaye 1'e alınsın, palet "yalnız şantiyeye" kuralıyla Hikaye 2'de gelsin |
 | `traitDelta` bot kipi | Aynı bölümü özelliği kaldırılmış kopyasıyla çözüp `min` ve açgözlü kazanma farkına bakmak (araç 1 gün) |
 | Her yeni özellik için yeni atlas sayfası | Mevcut UI rozet sayfasında boş kare + çentik kaplaması |
+
+## Kapanışlar (paket F, code-lead, 2026-11-09)
+
+Web: `wip/phase-2r` `701b8f3` (wip/e2 içeriğini de taşır; D-091 tek kaynağı yine web). Unity: bu commit, web `701b8f3`'ten
+`tools/sync-from-web.sh`, `gen-p0…p3-vectors`, `gen-rule-ids`, `tools/review/gen-*` ve `ts-oracle.mjs` yeniden koşularak.
+
+| Bulgu | Durum | Not |
+| --- | --- | --- |
+| CL-V3-01 Engel | **Kısmen kapandı** | Blok sayısı 8,8,9,10,12,14,13,14,14,16 = **118** (eski 81, hedef 124); bölüm 10'da 16 (hedef 16–22'nin alt ucu); saha 5×4 … 6×8. Seçenek B uygulandı (ışın + 10 000 yürüyüş, TECH V3.6); kapı bir **tahmindir**. 17–22 blok için D2 payı sınırı gevşemeli ya da 6×8'den büyük şantiye gerek: product-lead kararı. |
+| CL-V3-02 Engel | **Kapandı (Unity tarafı)** | web `wip/phase-2r` `levels:check` yeşil (10/10, 0 hata, 0 uyarı), `npm run check` yeşil; Unity senkron zinciri koşuldu; Pages başlığına "levels v3b preview" eklendi. `shape_decisions_low` Hikaye 1'de uyarı: **product-lead B3 onayı bekliyor**. |
+| CL-V3-03 Önemli | **Kısmen** | `ahaMin` büyük bölümde ölçülemez (tüm çizge). Yerine oyun vekili + "dikkatli oyuncu" oranı; JSON `targets` yalnız `min`/`deadRate`. Bölüm 10 `moves` 21 = `best` 20 + 1 (Zor satırı); `best` bir üst sınır, gerçek pay ≥ 1. |
+| CL-V3-04 Önemli | **Kısmen** | Her bölümde (saha, şantiye, duvar) farklı (en çok iki bölüm paylaşır). Şekiller O4 C3 L4 J4 T4 I3; iki renkli O4/C3/I3. D2 payı toplamda %61 (eski %68), bölüm 6, 8, 9, 10'da %50; bölüm 4, 5, 7'de %60–69 (sınır %50 tutmadı). |
+| CL-V3-05 Önemli | **Kapandı** | Y13 kaygan bölüm 8'de (TS + C# `firstLevel` 8). Palet (Y10) K-58 madde 9 ile sonra. Gönderilen yeni özellik: Y9, Y11, Y12, Y13 = 4. |
+| CL-V3-06 Önemli | **Kapanmadı (karar)** | Bonus Hikaye 1'de `k` = 0: bütçeyi değiştirmez, bir his anıdır. Sahibe söylenmeli; HUD "(+2)" yapılmadı. |
+| CL-V3-07 Önemli | **Kapandı** | Çekiç açılışı 10 (`economy.json`); bölüm 10'da sargı var. Testler (web + C#) 10'a göre. |
+| CL-V3-08 Önemli | **Kısmen** | G–Y izinli çiftlerden çıkarıldı (TS + C#, test: `K65_story1_readability_constraints`). Renk körü sembol çizimi (`BlockSkin`) **yapılmadı** (Unity'siz doğrulanamaz). |
+| CL-V3-09 Önemli | **Kapandı** | C# testleri K-62, K-63, K-65 eklendi; K-64 "yalnız TS aracı" (`notApplicableInCSharp`); `Rule_coverage_phase_v3`. Fuzz CI'da hâlâ yerel çıktı ister (küçük anlık görüntü fikstürü yok: `out/` büyük). |
+| CL-V3-10 Önemli | **Kısmen** | `ts-oracle.mjs`: seçilemeyen blok denemeleri (583), çözümün tamamı/yarısı, aile bazlı kazanma (iki renkli 41, sargı 16, kaygan 13, bonus 5) ve olay eşikleri (üretimde hata verir). Palet ailesi: gönderilen bölüm yok. |
+| CL-V3-11 Önemli | **Kapandı** | web `test:rules --phase v3` (K-56…K-66), `npm run check` buna bağlandı. |
+| CL-V3-12 Önemli | **Kapandı** | `tut.m.twotone` (ton denetimi design-lead'de) ve `obs.y9…y13.desc`. |

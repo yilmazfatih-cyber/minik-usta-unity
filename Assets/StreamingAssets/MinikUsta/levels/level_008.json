@@ -2,158 +2,47 @@
   "schemaVersion": 3,
   "id": 8,
   "chapter": 1,
-  "name": {
-    "tr": "İp Merdiven",
-    "en": "Rope Ladder"
-  },
+  "name": { "tr": "İp Merdiven", "en": "Rope Ladder" },
   "difficulty": "normal",
-  "moves": 14,
-  "goals": [
-    {
-      "type": "build"
-    }
-  ],
-  "gravity": {
-    "build": "normal",
-    "yard": false
-  },
-  "wall": {
-    "height": 4,
-    "gaps": []
-  },
-  "site": {
-    "cols": 2,
-    "rows": 5
-  },
+  "moves": 20,
+  "teaches": "Y13",
+  "goals": [{ "type": "build" }],
+  "gravity": { "build": "normal", "yard": false },
+  "wall": { "height": 5, "gaps": [] },
+  "site": { "cols": 2, "rows": 6 },
   "build": {
     "mode": "segments",
     "segments": [
-      {
-        "name": {
-          "tr": "Sol Direk",
-          "en": "Left Post"
-        },
-        "rows": [
-          "GG",
-          "WG",
-          "WY",
-          "WY",
-          "GG"
-        ]
-      },
-      {
-        "name": {
-          "tr": "Sağ Direk",
-          "en": "Right Post"
-        },
-        "rows": [
-          "GG",
-          "GW",
-          "YW",
-          "YW",
-          "GG"
-        ]
-      }
+      { "name": { "tr": "Kat 1", "en": "Floor 1" }, "rows": ["YG", "YG", "GG", "GW", "WW", "WW"] },
+      { "name": { "tr": "Kat 2", "en": "Floor 2" }, "rows": ["GG", "GY", "WY", "WY", "WG", "GG"] },
+      { "name": { "tr": "Kat 3", "en": "Floor 3" }, "rows": ["YG", "YG", "YG", "GG", "GG", "GW"] }
     ]
   },
   "yard": {
     "cols": 6,
-    "rows": 4,
+    "rows": 7,
     "batches": [
       {
         "forSegment": 0,
         "pieces": [
-          {
-            "shape": "D2_0",
-            "color": "Y",
-            "x": 1,
-            "y": 2
-          },
-          {
-            "shape": "C3_90",
-            "color": "G",
-            "x": 2,
-            "y": 2
-          },
-          {
-            "shape": "C3_180",
-            "color": "G",
-            "x": 4,
-            "y": 2
-          },
-          {
-            "shape": "D2_90",
-            "color": "G",
-            "x": 4,
-            "y": 1
-          },
-          {
-            "shape": "I3_0",
-            "color": "W",
-            "x": 0,
-            "y": 0
-          },
-          {
-            "shape": "D2_0",
-            "color": "Y",
-            "x": 1,
-            "y": 0
-          },
-          {
-            "shape": "I3_0",
-            "color": "W",
-            "x": 3,
-            "y": 0
-          },
-          {
-            "shape": "D2_90",
-            "color": "G",
-            "x": 4,
-            "y": 0
-          }
+          { "shape": "C3_0", "color": "W", "x": 0, "y": 5 },
+          { "shape": "C3_180", "color": "W", "x": 1, "y": 5, "colors": "WGW" },
+          { "shape": "D2_0", "color": "Y", "x": 4, "y": 5 },
+          { "shape": "D2_90", "color": "G", "x": 3, "y": 4, "flags": ["slippery"] },
+          { "shape": "D2_0", "color": "G", "x": 0, "y": 3 },
+          { "shape": "D2_0", "color": "G", "x": 1, "y": 3 },
+          { "shape": "D2_0", "color": "W", "x": 2, "y": 3, "flags": ["slippery"] },
+          { "shape": "D2_0", "color": "G", "x": 5, "y": 3, "colors": "GW" },
+          { "shape": "C3_90", "color": "G", "x": 3, "y": 2 },
+          { "shape": "I3_0", "color": "Y", "x": 0, "y": 0 },
+          { "shape": "I3_0", "color": "Y", "x": 1, "y": 0 },
+          { "shape": "I3_0", "color": "G", "x": 2, "y": 0 },
+          { "shape": "D2_0", "color": "G", "x": 4, "y": 0 },
+          { "shape": "L4_180", "color": "W", "x": 4, "y": 0, "colors": "WGGG" }
         ]
       }
     ]
   },
   "obstacles": [],
-  "tutorial": [
-    {
-      "step": 1,
-      "highlight": [
-        "piece:5"
-      ],
-      "textKey": "tut.m.dig",
-      "done": {
-        "event": "yardMove",
-        "count": 1,
-        "piece": "piece:5"
-      }
-    }
-  ],
-  "targets": {
-    "min": [
-      12,
-      12
-    ],
-    "minShifts": [
-      4,
-      4
-    ],
-    "firstNeedDepth": [
-      3,
-      3
-    ],
-    "greedyWin": [
-      0.9,
-      1
-    ],
-    "ahaMin": [
-      0,
-      0
-    ],
-    "deadRate": [
-      0,
-      0
-    ]
-  }
+  "targets": { "min": [16, 16], "deadRate": [0, 0] }
 }

@@ -1,22 +1,28 @@
 {
   "level": 6,
-  "levelHash": "3f23efa6b9af3ce1",
+  "levelHash": "811f788614f138d0",
   "rulesVersion": 4,
-  "solverVersion": 4,
-  "min": 10,
-  "yao": { "overWall": 8, "rail": 0 },
+  "solverVersion": 6,
+  "min": 16,
+  "yao": { "overWall": 14, "rail": 0 },
   "log": [
     { "kind": "start", "preBoosters": [], "streakTier": 0 },
-    { "kind": "drag", "pieceId": 0, "to": { "ix": 0, "iy": 3, "mode": 0 } },
+    { "kind": "drag", "pieceId": 0, "to": { "ix": 4, "iy": 6, "mode": 0 } },
+    { "kind": "drag", "pieceId": 2, "to": { "ix": 2, "iy": 5, "mode": 0 } },
     { "kind": "drag", "pieceId": 1, "to": { "ix": 6, "iy": 0, "mode": 0 } },
-    { "kind": "drag", "pieceId": 3, "to": { "ix": 6, "iy": 1, "mode": 0 } },
-    { "kind": "drag", "pieceId": 0, "to": { "ix": 2, "iy": 2, "mode": 0 } },
-    { "kind": "drag", "pieceId": 2, "to": { "ix": 6, "iy": 3, "mode": 0 } },
-    { "kind": "drag", "pieceId": 5, "to": { "ix": 6, "iy": 0, "mode": 0 } },
-    { "kind": "drag", "pieceId": 7, "to": { "ix": 7, "iy": 0, "mode": 0 } },
-    { "kind": "drag", "pieceId": 6, "to": { "ix": 6, "iy": 2, "mode": 0 } },
+    { "kind": "drag", "pieceId": 2, "to": { "ix": 6, "iy": 1, "mode": 0 } },
     { "kind": "drag", "pieceId": 0, "to": { "ix": 6, "iy": 3, "mode": 0 } },
-    { "kind": "drag", "pieceId": 4, "to": { "ix": 6, "iy": 4, "mode": 0 } }
+    { "kind": "drag", "pieceId": 5, "to": { "ix": 6, "iy": 4, "mode": 0 } },
+    { "kind": "drag", "pieceId": 9, "to": { "ix": 7, "iy": 4, "mode": 0 } },
+    { "kind": "drag", "pieceId": 3, "to": { "ix": 6, "iy": 0, "mode": 0 } },
+    { "kind": "drag", "pieceId": 4, "to": { "ix": 6, "iy": 1, "mode": 0 } },
+    { "kind": "drag", "pieceId": 6, "to": { "ix": 6, "iy": 2, "mode": 0 } },
+    { "kind": "drag", "pieceId": 8, "to": { "ix": 6, "iy": 4, "mode": 0 } },
+    { "kind": "drag", "pieceId": 7, "to": { "ix": 6, "iy": 0, "mode": 0 } },
+    { "kind": "drag", "pieceId": 10, "to": { "ix": 6, "iy": 1, "mode": 0 } },
+    { "kind": "drag", "pieceId": 12, "to": { "ix": 6, "iy": 2, "mode": 0 } },
+    { "kind": "drag", "pieceId": 11, "to": { "ix": 6, "iy": 4, "mode": 0 } },
+    { "kind": "drag", "pieceId": 13, "to": { "ix": 7, "iy": 4, "mode": 0 } }
   ],
-  "eventLogHash": "d13a4d43c6e6be81"
+  "eventLogHash": "bcb12db33e9377b0"
 }

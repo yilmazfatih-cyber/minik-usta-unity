@@ -1887,7 +1887,7 @@ namespace MinikUsta.Core.Level
         // ---------------------------------------------------------------------------------------------------------------
 
         /// <summary>Colour pairs a two-tone block may use in story chapter 1 (K-65 item 3: deutan and protan ΔE ≥ 30).</summary>
-        public static readonly string[] TwoTonePairsCh1 = { "WY", "RY", "GW", "GY" };
+        public static readonly string[] TwoTonePairsCh1 = { "WY", "RY", "GW" };
         /// <summary>At most this many bonus blocks per level (K-60 item 2).</summary>
         public const int MaxBonusBlocks = 2;
         /// <summary>K-63 tiling families on a 2-column site: "bottom row full" orientations.</summary>

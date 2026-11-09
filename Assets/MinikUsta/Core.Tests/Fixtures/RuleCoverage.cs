@@ -34,6 +34,10 @@ namespace MinikUsta.Core.Tests.Fixtures
     {
         /// <summary>TS `PHASE_2R`: the Faz 2R phase, between 2 and 3.</summary>
         public const double Phase2R = 2.5;
+        /// <summary>Levels v3 (CL-V3-11): the binding K-56…K-66 ÖNERİ rules, after 2R.</summary>
+        public const double PhaseV3 = 2.7;
+        /// <summary>Rules that have no C# counterpart by design; each is named in the test that skips it.</summary>
+        public static readonly string[] NotApplicableInCSharp = { "K-64" };
 
         /// <summary>Every id of Golden/rule_ids.json (all phases).</summary>
         public static List<RuleId> LoadIds()
