@@ -343,12 +343,12 @@ sayfalar değişmez. Kaynak `art/src/trait/*.svg` → `art/svg/trait/` (`node ar
 | Y11 makas | `ico_scissors` | 88² · 1,2 | rozet |
 | Y12 bonus | `ico_bonus_1/2/3` (altın yıldız "+n") | 88² · 1,2 | rozet |
 | Y13 kaygan | `ovl_ice` (şeffaf buz + ışık çizgileri), `ico_slip` (kar tanesi) | 120² · 1,25, 88² · 1,2 | hücre örtüsü, rozet |
-| Y10 palet | `pallet_cell` (tahta kaplama, hücre + 10 px kenar), `ico_layers_2/3/4` | 140 × 130 · 1,25, 88² · 1,2 | en alt katmanın altı, rozet |
+| Y10 palet (D-108) | `pallet_cell` (**gri-mavi metal kızak**, ahşap değil; hücre + 10 px kenar), `ico_layers_2/3/4` (**×n beyaz daire rozet**, Ø 76, kontur 5 px, rakam 44 px) | 140 × 130 · 1,25, 88² · 1,2 | en alt katmanın altı, rozet (satırda ilk sıra) |
 | Y9 iki renkli | yeni kare yok | — | hücre başına kendi `blk_<c>_<mm>` karosu |
 
 Kurallar: **renk + simge** (her özelliğin kendine ait biçimi vardır: ip ağı, makas, yıldız, kar tanesi, tahta katmanları; iki renkli bloğun her hücresi kendi
 sembolünü taşır); rozet `BlockSkin.BadgePx = 70` tasarım px, en üst satırın sol hücresinin sol üst köşesinde, birden fazla rozet sağa dizilir (sargı, makas,
-bonus, kaygan, katman); örtüler gövdenin üstünde (`Order` 3), rozetler üstünde (4), palet tahtası altında (−3). Örtülü palet katmanı (`PalletDepth` > 0) hücrenin
+bonus, kaygan, katman); örtüler gövdenin üstünde (`Order` 3), rozetler üstünde (4), palet tahtası altında (−3). **Palet görünümü şartnamesi (D-108, design-lead paket A2, 2026-11-12; ayrıntı web `docs/ART_DIRECTION.md` §3A.6, değerler `tokens.json` `check.palletV3c`):** kızak `body` #8A9BB0 / `lip` #C2CFDD / `shade` #5A6B80 / kontur #2E3A4B (W bloğuna ΔE00 ≥ 40; C ve B'ye 15,4); katman kenar çizgisi 3 px α 0,55, katman başına 6 px yükselme; rozet **beyaz daire** Ø 76 (altın yıldız "+n" ile biçim, renk ve işaret ayrımı), `BadgePx` palet rozeti için 76'ya çıkar, 360 px ekranda hiçbir ölçekte 56 design px altına inmez, rakam ≥ `kit.badge.fontPx` (36) × k (önerilen 44 px). Çentik tarifi kalktı. Atlas yeniden çizimi sanat turu işi (C1); bu belge yalnız şartnamedir. Örtülü palet katmanı (`PalletDepth` > 0) hücrenin
 %10'u kadar aşağıda ve diğer blokların altında çizilir (`PieceViews.PalletDepthRise`). Bellek: sayfa 3 = 620 × 376 (0,93 MB), toplam 66,98 MB < 64 MiB bütçesi.
 Öz puan (rubrik): hacim/ışık 3 (kare düz vektör, 3B bloklarla aynı dilde değil), renk/kontrast 4, ikon/rozet 4, okunurluk 4 — 3B (Blender) sürümü sonraki sanat paketi.
 
