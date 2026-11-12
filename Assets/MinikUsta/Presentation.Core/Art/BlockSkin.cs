@@ -164,13 +164,10 @@ namespace MinikUsta.Presentation.Art
             var tint = look == BlockLook.Placed ? PlacedTint : look == BlockLook.Dim ? DimTint : Rgba.White;
             double k = cellPx / 120.0;
             double cs = CornerPx * k;
-            // P4 Y10: a covered pallet layer lies exactly under the layer above it (same pose): it draws only its board (the edge line
-            // that shows the stack depth) and, when it is the lowest, the planks — no body, nothing a touch could mistake for a block
-            if (traits != null && traits.PalletDepth > 0)
-            {
-                CoveredLayerParts(o, shape, traits, cellPx);
-                return o;
-            }
+            // P4 Y10: a covered pallet layer lies exactly under the layer above it (same pose, drawn under it), so lifting the top layer
+            // shows it in place; besides its (dim) body it draws its board — the edge line that shows the stack depth — and, when it is
+            // the lowest, the planks
+            if (traits != null && traits.PalletDepth > 0) CoveredLayerParts(o, shape, traits, cellPx);
             for (int i = 0; i < shape.Cells.Length; i++)
             {
                 var c = shape.Cells[i];
@@ -203,7 +200,7 @@ namespace MinikUsta.Presentation.Art
             return o;
         }
 
-        /// <summary>Parts of a covered pallet layer (`PalletDepth` &gt; 0): per bottom cell one board, plus the planks when it is the lowest.</summary>
+        /// <summary>Extra parts of a covered pallet layer (`PalletDepth` &gt; 0): per bottom cell one board (the planks of the lowest layer are `CellTraitParts`).</summary>
         private static void CoveredLayerParts(List<SpritePart> o, ShapeDef shape, BlockTraits traits, double cellPx)
         {
             double k = cellPx / 120.0;
@@ -214,16 +211,15 @@ namespace MinikUsta.Presentation.Art
                 var r = CellRect(shape, c, cellPx);
                 double y = r.Bottom + (traits.PalletDepth - 1) * PalletSlabStep * k;
                 o.Add(new SpritePart(Frames.PalletSlab, PartRole.Planks, i, new PxRect(r.X - PalletRim * k, y, PalletW * k, PalletSlabH * k), Rgba.White, PlanksOrder + 1));
-                if (traits.PalletBase)
-                    o.Add(new SpritePart(Frames.PalletCell, PartRole.Planks, i, new PxRect(r.X - PalletRim * k, r.Y + traits.PalletDepth * PalletSlabStep * k, PalletW * k, PalletH * k), Rgba.White, PlanksOrder));
             }
         }
 
         private static void CellTraitParts(List<SpritePart> o, BlockTraits traits, int cell, PxRect r, double cellPx)
         {
             double k = cellPx / 120.0;
+            // the planks sit under the last board: `PalletDepth` boards further down (0 when the lowest layer is also the top)
             if (traits.PalletBase)
-                o.Add(new SpritePart(Frames.PalletCell, PartRole.Planks, cell, new PxRect(r.X - PalletRim * k, r.Y, PalletW * k, PalletH * k), Rgba.White, PlanksOrder));
+                o.Add(new SpritePart(Frames.PalletCell, PartRole.Planks, cell, new PxRect(r.X - PalletRim * k, r.Y + traits.PalletDepth * PalletSlabStep * k, PalletW * k, PalletH * k), Rgba.White, PlanksOrder));
             if (traits.Wrapped) o.Add(new SpritePart(Frames.OvlWrap, PartRole.Overlay, cell, r, Rgba.White, OverlayOrder));
             if (traits.Slippery) o.Add(new SpritePart(Frames.OvlIce, PartRole.Overlay, cell, r, Rgba.White, OverlayOrder));
         }

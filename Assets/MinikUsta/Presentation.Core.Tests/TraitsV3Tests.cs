@@ -148,12 +148,13 @@ namespace MinikUsta.Presentation.Tests
             Assert.AreEqual(top.Position.Y, low.Position.Y, 0.01, "P4: a covered layer lies in the same pose, so no layer moves when the one above leaves");
             var shape = Shapes.ShapeById("D2_90");
             var covered = BlockSkin.Block(shape, 0, 120, BlockLook.Dim, null, low.Traits);
-            Assert.IsTrue(covered.All(p => p.Role == PartRole.Planks), "a covered layer draws no body: only its board and the planks");
+            Assert.IsTrue(covered.Any(p => p.Role == PartRole.Body), "a covered layer keeps its body, so lifting the top layer shows it in place");
+            Assert.IsFalse(covered.Any(p => p.Role == PartRole.Gloss), "dim, not holdable: no gloss (K-09, K-58 item 3)");
             var boards = covered.Where(p => p.Frame == Frames.PalletSlab).ToList();
             Assert.AreEqual(2, boards.Count, "one board per bottom cell");
             var planks = covered.Where(p => p.Frame == Frames.PalletCell).ToList();
             Assert.AreEqual(2, planks.Count, "one plank frame per cell");
-            Assert.IsTrue(planks.All(p => p.Order < boards[0].Order), "planks under the boards");
+            Assert.IsTrue(planks.All(p => p.Order < boards[0].Order && p.Order < 0), "planks under the boards and under every body");
             Assert.IsTrue(planks.All(p => p.Rect.W > 120 && p.Rect.H > 120), "the planks reach past the cell on both sides and below");
             var cell = BlockSkin.CellRect(shape, shape.Cells[0], 120);
             Assert.AreEqual(cell.Bottom, boards.Min(p => p.Rect.Y), 1e-9, "the first board sits right under the layer above");
