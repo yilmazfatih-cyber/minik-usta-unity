@@ -90,8 +90,8 @@ namespace MinikUsta.Presentation.Shots
         public static readonly string[] ShotNames =
         {
             "home", "settings", "level_start", "tutorial", "drag_mid", "landed", "win", "pause", "exit_confirm", "level_start_window",
-            // E3 (GDD §16 v3 block traits): level 5 two-tone, level 7 wrap + scissors, level 9 bonus star, level 99 the showcase
-            "v3_twotone", "v3_wrap", "v3_bonus", "v3_showcase",
+            // P4 (levels v3c, D-103..D-105): the starts of Bölüm 6-10 — 6 wide site, 7 pallet, 8 wrap + scissors, 9 slippery, 10 bonus
+            "v3_wide_6", "v3_pallet_7", "v3_wrap_8", "v3_slippery_9", "v3_bonus_10",
             "lose_offer",
         };
 
@@ -222,15 +222,17 @@ namespace MinikUsta.Presentation.Shots
             Add("play_3", 900f, Once(() => TapHome(HomeView.PlayAction) && RequireScreen(AppScreen.LevelStart)));
             Add("level_start_window", 900f, Once(() => Shot("level_start_window")));
             Add("start_3", hold, Once(() => Panel(AppScreen.LevelStart, PanelAction.Play)));
-            // E3: the v3 block traits on their levels, then back to level 3 for the +5 offer
-            Add("v3_start_5", hold, Once(() => DebugLevel(5)));
-            Add("v3_twotone", 1500f, Once(() => RequireScreen(AppScreen.Level) && Shot("v3_twotone")));
+            // P4: the starts of Bölüm 6-10 (the 9-column board, the pallet, wrap + scissors, slippery, bonus), then back to level 3 for the +5 offer
+            Add("v3_start_6", hold, Once(() => DebugLevel(6)));
+            Add("v3_wide_6", 1500f, Once(() => RequireScreen(AppScreen.Level) && Shot("v3_wide_6")));
             Add("v3_start_7", hold, Once(() => DebugLevel(7)));
-            Add("v3_wrap", 1500f, Once(() => RequireScreen(AppScreen.Level) && Shot("v3_wrap")));
+            Add("v3_pallet_7", 1500f, Once(() => RequireScreen(AppScreen.Level) && Shot("v3_pallet_7")));
+            Add("v3_start_8", hold, Once(() => DebugLevel(8)));
+            Add("v3_wrap_8", 1500f, Once(() => RequireScreen(AppScreen.Level) && Shot("v3_wrap_8")));
             Add("v3_start_9", hold, Once(() => DebugLevel(9)));
-            Add("v3_bonus", 1500f, Once(() => RequireScreen(AppScreen.Level) && Shot("v3_bonus")));
-            Add("v3_start_99", hold, Once(() => DebugLevel(LevelCatalog.Showcase)));
-            Add("v3_showcase", 1500f, Once(() => RequireScreen(AppScreen.Level) && Shot("v3_showcase")));
+            Add("v3_slippery_9", 1500f, Once(() => RequireScreen(AppScreen.Level) && Shot("v3_slippery_9")));
+            Add("v3_start_10", hold, Once(() => DebugLevel(10)));
+            Add("v3_bonus_10", 1500f, Once(() => RequireScreen(AppScreen.Level) && Shot("v3_bonus_10")));
             Add("v3_back_3", hold, Once(() => DebugLevel(3)));
             Add("burn", 1200f, BurnMoves);
             Add("lose_offer", 0f, WaitIdleThen(900f, () => RequireScreen(AppScreen.LoseOffer) && Shot("lose_offer")));
