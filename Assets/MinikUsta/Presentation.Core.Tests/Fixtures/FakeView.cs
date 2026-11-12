@@ -196,6 +196,7 @@ namespace MinikUsta.Presentation.Tests.Fixtures
         /// <summary>P4: the "+n" burst text now (null = hidden) and every text it showed.</summary>
         public string? MovesBurstText;
         public readonly List<string> MovesBurstShown = new List<string>();
+        public bool MovesBurstOn => MovesBurstText != null;
         public void SetMovesBurst(string? text)
         {
             MovesBurstText = string.IsNullOrEmpty(text) ? null : text;

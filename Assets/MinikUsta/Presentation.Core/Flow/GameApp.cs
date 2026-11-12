@@ -417,6 +417,15 @@ namespace MinikUsta.Presentation.Flow
             StartLevel(n);
         }
 
+        /// <summary>Development builds only (CL-V3C-08): opens the level start window of level `n` from the home screen (the CI shots).</summary>
+        public bool DebugOpenLevelStart(int n)
+        {
+            if (Flow.Current != AppScreen.Home) return false;
+            Flow.Fire(FlowEvent.PlayWindow);
+            OpenLevelStart(n);
+            return true;
+        }
+
         // --- home -----------------------------------------------------------------------------------------------------------
 
         /// <summary>The level the home button plays: the first not won; once all are won the 1–10 loop after the last one played.</summary>

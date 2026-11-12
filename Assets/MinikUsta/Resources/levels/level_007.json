@@ -57,5 +57,5 @@
       "done": { "event": "placementCorrect", "count": 1, "piece": "piece:17" }
     }
   ],
-  "targets": { "min": [20, 20], "deadRate": [0, 0] }
+  "targets": { "min": [20, 20], "deadRate": [0, 0], "policyWin": [0.8, 0.9] }
 }

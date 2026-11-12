@@ -328,6 +328,8 @@ namespace MinikUsta.Presentation.Game
         /// <summary>P4 (D-105): the gold "+n" on the moves plate (a bonus block placed correctly); `SetMovesBurst(null)` hides it.</summary>
         ITweenTarget MovesBurst { get; }
         void SetMovesBurst(string? text);
+        /// <summary>CL-V3C-08: the "+n" burst is showing now (the CI shot waits for it).</summary>
+        bool MovesBurstOn { get; }
 
         /// <summary>Shows a window (null hides); a button press calls `onAction`.</summary>
         void ShowPanel(PanelModel? panel, Action<PanelAction> onAction);

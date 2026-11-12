@@ -306,3 +306,21 @@ yok. Kapanması gerekenler: zorluk bantlarının gerçek bir orta vekille ölç�
 (01, 02), 2 sütunlu bölümlerdeki tuzaklar (03), blok sayısı gerekçesinin düzeltilmesi (04), doğrulayıcı açıkları (05),
 palet tanıtımı (06), kapının önbellekten bağımsızlığı (07), eksik görsel kanıt (08), atlanan belge testleri (09) ve
 palet görünümünün kabul edilmiş K-65 madde 4 ile eşitlenmesi (10).
+
+## 12. Kapanışlar (code-lead, Paket F, 2026-11-12)
+
+Web `wip/phase-2r` + Unity `main` aynı turda (D-091). Önbelleksiz `node tools/solve.ts --check --no-cache --jobs 4`
+(605 sn, 4 işçi, 10/10 çözüldü, 0 hata, 2 bant uyarısı + Bölüm 4/5 plan_trap uyarıları) yeşil; Unity `dotnet build -warnaserror` 0 uyarı, `dotnet test` 595 + 1275 geçti, stub kapısı 4/4.
+
+| Kimlik | Durum | Kapanış |
+|---|---|---|
+| CL-V3C-01 | **Kısmen kapandı** | `walks.ts policyWinRate` artık `lookahead` (1 adım ileri bakış) + `eps` destekliyor; `targets.policyWin` (şema, C# eşi) bandı ε = 0,1 ve `moves` bütçesinde kapıya bağlı (`metric_out_of_band`, uyarı). Ölçüm (her hamlede 24 rastgele kaydırma adayı puanlanır; tam tarama Bölüm 10'da 218 sn sürüyordu, örneklemeyle 18 sn): 6/7/8/9/10 = 0,88 / 0,76 / 0,89 / 0,86 / 0,62. Bantlar (6–9: 0,80–0,90; 10: 0,50–0,60) level_006…010 `targets.policyWin` alanına yazıldı. **Bölüm 7 (0,76) ve 10 (0,62) bant dışı** → 2 uyarı. Final için A ya da B kararı product-lead'in; kapı kırmızıya dönmesin diye şimdilik uyarı. |
+| CL-V3C-02 | **Kapandı** | `Expander.lastRawCost` (kırpılmamış maliyet, bonus = 1 − 2 = −1); politika `spent` bunu kullanıyor. Test `K-62 play proxy credits the bonus`. Bölüm 10 etkin payı artık ölçüme giriyor. LEVELS §8.14.3 vekil sütunu product-lead'in yeniden üretmesi için hazır (rapor notu `lookahead proxy`). |
+| CL-V3C-03 | **Kod kapandı, veri açık** | `plan_trap` taraması `Ws = 2`'de de koşuyor (yalnız `schemaVersion 3`; arşivler etkilenmez): Kolay = error, Normal+ = warn. Bölüm 4'ün bilinen tuzağı `NARROW_PLAN_TRAP_OPEN = {4}` ile uyarı (Bölüm 5 Normal → uyarı). **Açık: product-lead 4 ve 5'i yeniden boyayınca `{4}` kümesi boşaltılır** (C# eşi `Logic.NarrowPlanTrapOpen`). |
+| CL-V3C-04 | product-lead | Veri/gerekçe işi; code-lead eylemi yok. Öneri: K-58 madde 10 yazılırsa `palletStuck` C3'ü açacak biçimde gevşetilir. |
+| CL-V3C-05 | **Kapandı** | (a) `siteColsRange(6…10) = [3, 3]` (yalnız `schemaVersion 3`; arşiv v1/v2 [2, 3] kalır) + `K-49 item 2 levels 6-10 require Ws = 3`; (b) `pallet_stuck` (L-41, error): paletin dört birim ötelemesinin hepsi kendi ayak iziyle kesişirse (C3/O4/L4/J4/T4) + `K-58 item 10`; (c) L-16/L-22 Y12'yi saymaz, `Y12 firstLevel 7`. C# eşleri aynı turda (`Logic.SiteColsRange`, `PalletStuck`, `CheckMechanics`, `Mechanics.TraitTable`), `PackageFTests.cs`. |
+| CL-V3C-06 | design-lead / product-lead | i18n anahtarları STORY §6A'ya eklenince sayım testi güncellenir; şimdi eklenecek anahtar yok. |
+| CL-V3C-07 | **Kapandı** | (1) Çözücü önbellek anahtarına `src/core/**` + `tools/solver/**` kaynak karması eklendi (sürüm artırmadan değişen kod eski sonucu geçiremez). (2) CI'a `levels-nocache` işi: `levels/`, `tools/solver/`, `src/core/` ya da `tools/solve.ts` değişince (PR'larda her zaman) `node tools/solve.ts --check --no-cache --jobs 4`. Bu rapordaki "levels:check yeşil" önbelleksiz koşuya dayanır. |
+| CL-V3C-08 | **Kod kapandı, görüntü CI'da** | `shots.json` + `ShotScenario`: `v3_info_7` (Bölüm 7 başlangıç penceresi, `GameApp.DebugOpenLevelStart`), `v3_bonus_burst_10` (golden çözüm bonus ödemesine kadar, patlamanın %45'inde; `ILevelView.MovesBurstOn`), FIT çekimi `--only ...,v3_wide_6`. Görüntüler ana dal CI'ından sonra `ci-shots` dalında; **ben görmedim**, puanlama o görüntülerle yapılacak. |
+| CL-V3C-09 | product-lead | LEVELS §2 kartları çekilince `LEVELS_2_CURRENT` açılır; code-lead bekliyor. |
+| CL-V3C-10 | design-lead / product-lead | Karar (rakam B, taban A) onların; Unity sanat tarafı kararla birlikte. |

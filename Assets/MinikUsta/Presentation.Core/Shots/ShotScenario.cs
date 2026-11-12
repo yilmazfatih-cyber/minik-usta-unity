@@ -89,9 +89,10 @@ namespace MinikUsta.Presentation.Shots
         /// <summary>The shots in the order they are signalled (`shot:&lt;name&gt;`); the CI manifest lists the same names.</summary>
         public static readonly string[] ShotNames =
         {
-            "home", "settings", "level_start", "tutorial", "drag_mid", "landed", "win", "pause", "exit_confirm", "level_start_window",
+            "home", "settings", "level_start", "tutorial", "drag_mid", "landed", "win", "v3_info_7", "pause", "exit_confirm", "level_start_window",
             // P4 (levels v3c, D-103..D-105): the starts of Bölüm 6-10 — 6 wide site, 7 pallet, 8 wrap + scissors, 9 slippery, 10 bonus
-            "v3_wide_6", "v3_pallet_7", "v3_wrap_8", "v3_slippery_9", "v3_bonus_10",
+            "v3_wide_6", "v3_pallet_7", "v3_wrap_8", "v3_slippery_9", "v3_bonus_10", "v3_bonus_burst_10",
+            // CL-V3C-08: the level start window of Bölüm 7 (info card + card.y10.site) and the "+2" burst at 45 % of its pop
             "lose_offer",
         };
 
@@ -206,6 +207,10 @@ namespace MinikUsta.Presentation.Shots
             // the Playwright script analyses the king_big_cheer pictures (tens of seconds on software GL) BEFORE it photographs "win", while
             // the game keeps running: after a motion window the scenario stands still much longer, or "win" would show the home screen
             Add("win_continue", options.MotionScale > 0f ? Math.Max(hold, AfterMotionHoldMs) : hold, Once(() => Panel(AppScreen.Win, PanelAction.Continue)));
+            // CL-V3C-08: the info card of the Bölüm 7 level start window (the pallet rule), shown from home and closed again
+            Add("v3_info_open", 600f, Once(() => app.DebugOpenLevelStart(7) && RequireScreen(AppScreen.LevelStart)));
+            Add("v3_info_7", 900f, Once(() => Shot("v3_info_7")));
+            Add("v3_info_close", hold, Once(() => Panel(AppScreen.LevelStart, PanelAction.Close)));
             Add("play_2", 900f, Once(() => TapHome(HomeView.PlayAction)));
             Add("pause_open", 1500f, WaitIdleThen(300f, () =>
             {
@@ -233,6 +238,10 @@ namespace MinikUsta.Presentation.Shots
             Add("v3_slippery_9", 1500f, Once(() => RequireScreen(AppScreen.Level) && Shot("v3_slippery_9")));
             Add("v3_start_10", hold, Once(() => DebugLevel(10)));
             Add("v3_bonus_10", 1500f, Once(() => RequireScreen(AppScreen.Level) && Shot("v3_bonus_10")));
+            // CL-V3C-08: the golden solution of Bölüm 10 is played until the bonus block pays; 140 ms into the burst (its pop starts at
+            // 0.45 of the step, 320 ms long: the burst is at about 45 %) the picture is taken
+            Add("v3_bonus_play", hold, BonusPlay);
+            Add("v3_bonus_burst_10", 140f, Once(() => Shot("v3_bonus_burst_10")));
             Add("v3_back_3", hold, Once(() => DebugLevel(3)));
             Add("burn", 1200f, BurnMoves);
             Add("lose_offer", 0f, WaitIdleThen(900f, () => RequireScreen(AppScreen.LoseOffer) && Shot("lose_offer")));
@@ -508,6 +517,22 @@ namespace MinikUsta.Presentation.Shots
         }
 
         private bool Idle() => !app.Player.Queue.Busy && app.Player.Clock.Count == 0 && app.Player.CoinsInFlight == 0;
+
+        /// <summary>Commits golden moves one per settled board until the "+n" burst of a bonus placement shows (the burst needs no idle board).</summary>
+        private bool BonusPlay(float dtMs)
+        {
+            var p = app.Player;
+            var session = p.Session;
+            if (session == null) return Fail2("no session");
+            if (p.View.MovesBurstOn) return true;
+            if (session.Outcome != BoosterOutcomes.Playing) return Fail2("the level ended before the bonus paid");
+            if (!Idle() || sinceCommit < 350f || p.Panel != PanelKind.None) return false;
+            var move = DebugSolver.Next(session, Sol());
+            if (move == null) return Fail2("no move left");
+            p.Commit(move);
+            sinceCommit = 0f;
+            return false;
+        }
 
         /// <summary>Waits until the board is idle for `settleMs`, then runs `then` once.</summary>
         private Run WaitIdleThen(float settleMs, Func<bool> then) => _ =>

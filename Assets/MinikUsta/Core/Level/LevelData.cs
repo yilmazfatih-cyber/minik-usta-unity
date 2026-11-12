@@ -672,10 +672,12 @@ namespace MinikUsta.Core.Level
         public readonly double[]? GreedyWin;
         public readonly int[]? AhaMin;
         public readonly double[]? Branch3;
+        /// <summary>CL-V3C-01: win rate band of the one-step-lookahead play proxy (eps 0.1, large levels; tools/solver/walks.ts).</summary>
+        public readonly double[]? PolicyWin;
 
         public TargetsData(int[]? minShifts, int[]? firstNeedDepth, int[]? choices0, double[]? deadRate,
             int[]? min = null, int[]? maxCover = null, int[]? depLater = null, int[]? crossDeps = null, double[]? parkSlack = null,
-            int[]? forced = null, int[]? greedyExcess = null, double[]? greedyWin = null, int[]? ahaMin = null, double[]? branch3 = null)
+            int[]? forced = null, int[]? greedyExcess = null, double[]? greedyWin = null, int[]? ahaMin = null, double[]? branch3 = null, double[]? policyWin = null)
         {
             MinShifts = minShifts;
             FirstNeedDepth = firstNeedDepth;
@@ -691,6 +693,7 @@ namespace MinikUsta.Core.Level
             GreedyWin = greedyWin;
             AhaMin = ahaMin;
             Branch3 = branch3;
+            PolicyWin = policyWin;
         }
 
         private static void SetBand(JsonValue o, string key, int[]? band)
@@ -720,6 +723,7 @@ namespace MinikUsta.Core.Level
             SetBand(o, "greedyWin", GreedyWin);
             SetBand(o, "ahaMin", AhaMin);
             SetBand(o, "branch3", Branch3);
+            SetBand(o, "policyWin", PolicyWin);
             return o;
         }
     }

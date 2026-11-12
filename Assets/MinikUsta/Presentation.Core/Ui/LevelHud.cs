@@ -91,6 +91,8 @@ namespace MinikUsta.Presentation.Ui
         public ITweenTarget BlocksChip => blocks;
         /// <summary>P4 (D-105): the gold "+n" of a bonus placement on the moves plate (scale pops; shown only while `SetMovesBurst` has a text).</summary>
         public ITweenTarget MovesBurst => movesBurst;
+        /// <summary>The "+n" burst is showing (CL-V3C-08).</summary>
+        public bool MovesBurstOn { get; private set; }
         public ITweenTarget TrowelIcon => trowel;
         public ITweenTarget GoldChip => gold;
         public ITweenTarget PanelTarget => panel;
@@ -287,6 +289,7 @@ namespace MinikUsta.Presentation.Ui
         public void SetMovesBurst(string? textOrNull)
         {
             bool on = !string.IsNullOrEmpty(textOrNull);
+            MovesBurstOn = on;
             if (on) Set("hud.moves.burst", textOrNull!);
             SetVisible("hud.moves.burst", on);
         }

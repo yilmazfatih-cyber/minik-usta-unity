@@ -1054,7 +1054,7 @@ namespace MinikUsta.Core.Level
             private static readonly string[] TargetsKeys =
             {
                 "minShifts", "firstNeedDepth", "choices0", "deadRate",
-                "min", "maxCover", "depLater", "crossDeps", "parkSlack", "forced", "greedyExcess", "greedyWin", "ahaMin", "branch3",
+                "min", "maxCover", "depLater", "crossDeps", "parkSlack", "forced", "greedyExcess", "greedyWin", "ahaMin", "branch3", "policyWin",
             };
 
             private TargetsData? Targets(JsonValue? v, object[] path)
@@ -1091,9 +1091,10 @@ namespace MinikUsta.Core.Level
                 var greedyWin = RateBand("greedyWin", 1);
                 var ahaMin = IntBand("ahaMin");
                 var branch3 = RateBand("branch3", 1);
+                var policyWin = RateBand("policyWin", 1);
                 return ok
                     ? new TargetsData(minShifts, firstNeedDepth, choices0, deadRate, min, maxCover, depLater, crossDeps, parkSlack,
-                        forced, greedyExcess, greedyWin, ahaMin, branch3)
+                        forced, greedyExcess, greedyWin, ahaMin, branch3, policyWin)
                     : null;
             }
         }

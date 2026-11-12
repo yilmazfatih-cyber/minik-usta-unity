@@ -3220,7 +3220,16 @@
       "name": "level_004",
       "ctx": "default",
       "schema": false,
-      "issues": [],
+      "issues": [
+        {
+          "code": "plan_trap",
+          "rule": "GDD 16",
+          "check": "L-41",
+          "severity": "warn",
+          "path": "build.segments",
+          "message": "4 correct placement(s) leave a plan the remaining blocks cannot tile, e.g. D2_0 at site (1, 2) of segment 2 (K-63 D-103 annex; trap-free plans are a generator constraint)"
+        }
+      ],
       "tile": "ok",
       "colors": [
         "W",
@@ -3233,7 +3242,16 @@
       "name": "level_004",
       "ctx": "full",
       "schema": false,
-      "issues": [],
+      "issues": [
+        {
+          "code": "plan_trap",
+          "rule": "GDD 16",
+          "check": "L-41",
+          "severity": "warn",
+          "path": "build.segments",
+          "message": "4 correct placement(s) leave a plan the remaining blocks cannot tile, e.g. D2_0 at site (1, 2) of segment 2 (K-63 D-103 annex; trap-free plans are a generator constraint)"
+        }
+      ],
       "tile": "ok",
       "colors": [
         "W",
@@ -3247,6 +3265,14 @@
       "ctx": "default",
       "schema": false,
       "issues": [
+        {
+          "code": "plan_trap",
+          "rule": "GDD 16",
+          "check": "L-41",
+          "severity": "warn",
+          "path": "build.segments",
+          "message": "3 correct placement(s) leave a plan the remaining blocks cannot tile, e.g. L4_0 at site (0, 0) of segment 1 (K-63 D-103 annex; trap-free plans are a generator constraint)"
+        },
         {
           "code": "tile_family_mix",
           "rule": "GDD 16",
@@ -3276,6 +3302,14 @@
           "severity": "error",
           "path": "tutorial[0].textKey",
           "message": "tut.m.twotone missing in tr, en.json"
+        },
+        {
+          "code": "plan_trap",
+          "rule": "GDD 16",
+          "check": "L-41",
+          "severity": "warn",
+          "path": "build.segments",
+          "message": "3 correct placement(s) leave a plan the remaining blocks cannot tile, e.g. L4_0 at site (0, 0) of segment 1 (K-63 D-103 annex; trap-free plans are a generator constraint)"
         },
         {
           "code": "tile_family_mix",
@@ -4271,7 +4305,7 @@
     {
       "level": 6,
       "archive": false,
-      "levelHash": "3f42b16fe39abd39",
+      "levelHash": "69d3a034584cdf30",
       "states": [
         {
           "name": "level 6 start",
@@ -4398,7 +4432,7 @@
     {
       "level": 7,
       "archive": false,
-      "levelHash": "818916baed216a7c",
+      "levelHash": "e4daea16e55dd873",
       "states": [
         {
           "name": "level 7 start",
@@ -4531,7 +4565,7 @@
     {
       "level": 8,
       "archive": false,
-      "levelHash": "53ef7521544544f6",
+      "levelHash": "01d68b426c448f9f",
       "states": [
         {
           "name": "level 8 start",
@@ -4664,7 +4698,7 @@
     {
       "level": 9,
       "archive": false,
-      "levelHash": "530bc0384d7a482c",
+      "levelHash": "dc41f4aeac3f9729",
       "states": [
         {
           "name": "level 9 start",
@@ -4791,7 +4825,7 @@
     {
       "level": 10,
       "archive": false,
-      "levelHash": "b903ba2775564619",
+      "levelHash": "61257a35d615eec2",
       "states": [
         {
           "name": "level 10 start",

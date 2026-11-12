@@ -204,7 +204,16 @@ namespace MinikUsta.Core.Level
         public const int MaxBoardCols = Geometry.MaxCols;
 
         /// <summary>Site width Ws (K-49 items 1–2, D-103): exactly 2 in levels 1–5, 2–3 from level 6 on.</summary>
-        public static int[] SiteColsRange(int levelId) => levelId <= NarrowSiteLastLevel ? new[] { 2, 2 } : new[] { 2, Math.Min(WideSiteCols, Geometry.MaxSiteCols) };
+        public static int[] SiteColsRange(int levelId, int schemaVersion = 3)
+        {
+            // CL-V3C-05 (a): levels 6-10 require Ws = 3 (K-49 item 2, D-103); the requirement is a v3 rule (archives keep 2-3)
+            if (levelId <= NarrowSiteLastLevel) return new[] { 2, 2 };
+            int wide = Math.Min(WideSiteCols, Geometry.MaxSiteCols);
+            return levelId <= WideSiteLastRequiredLevel && schemaVersion >= 3 ? new[] { wide, wide } : new[] { 2, wide };
+        }
+
+        /// <summary>K-49 item 2 (D-103): the last level id that must have the 3-column site (6-10).</summary>
+        public const int WideSiteLastRequiredLevel = 10;
 
         /// <summary>Free yard cells at the start (K-02): `2 ≤ E ≤ ⌊0,4·C⌋`.</summary>
         public const int YardEmptyMin = 2;
@@ -565,6 +574,7 @@ namespace MinikUsta.Core.Level
                 RateBand("greedyWin", t.GreedyWin);
                 Band("ahaMin", t.AhaMin);
                 RateBand("branch3", t.Branch3);
+                RateBand("policyWin", t.PolicyWin);
             }
         }
 
@@ -583,7 +593,7 @@ namespace MinikUsta.Core.Level
             }
             Out("yard.cols", "Wy", z.Wy, YardColsRange);
             Out("yard.rows", "Hy", z.Hy, YardRowsRange);
-            Out("site.cols", "Ws", z.Ws, SiteColsRange(level.Id), " in level " + level.Id);
+            Out("site.cols", "Ws", z.Ws, SiteColsRange(level.Id, LevelSchema.SchemaVersionOf(level)), " in level " + level.Id);
             Out("site.rows", "Hs", z.Hs, SiteRowsRange);
             if (z.Wy + z.Ws > MaxBoardCols)
                 push("L-28", "board_too_wide", "site.cols", "Wy + Ws = " + z.Wy + " + " + z.Ws + " > " + MaxBoardCols + " (K-49, D-103: 108 px cells at 9 columns)");
@@ -1137,11 +1147,31 @@ namespace MinikUsta.Core.Level
         /// K-63 D-103 annex: `plan_trap` on a 3-column site — error in levels 1–10 (story 1) and on Easy / Normal later, warn on
         /// Hard / Very Hard; a scan that spends its budget gives the `plan_trap_unknown` warning (no proof).
         /// </summary>
+        public static readonly ISet<int> NarrowPlanTrapOpen = new HashSet<int> { 4 };
+
+        /// <summary>K-58 item 10: all four one-unit translations of the shape intersect the shape itself.</summary>
+        public static bool PalletStuck(string shapeId)
+        {
+            var cells = Shapes.ShapeById(shapeId).Cells;
+            var own = new HashSet<(int, int)>();
+            foreach (var c in cells) own.Add((c.X, c.Y));
+            foreach (var (dx, dy) in new[] { (1, 0), (-1, 0), (0, 1), (0, -1) })
+            {
+                bool hit = false;
+                foreach (var c in cells) if (own.Contains((c.X + dx, c.Y + dy))) hit = true;
+                if (!hit) return false;
+            }
+            return true;
+        }
+
         private static void CheckPlanTraps(LevelData level, SegmentPlan[] plans, BoardGeo geo, Push push)
         {
             var res = PlanTrapScan(level, plans, geo);
             if (!res.Tileable && res.Status == "done") return; // L-11 `untileable` reports a plan that cannot be tiled at all
-            bool strict = level.Chapter == 1 || level.Difficulty == "easy" || level.Difficulty == "normal";
+            // CL-V3C-03: on a 2-column site Easy = error, Normal and above = warn; NarrowPlanTrapOpen = known open levels (warn)
+            bool strict = geo.Ws >= WideSiteCols
+                ? level.Chapter == 1 || level.Difficulty == "easy" || level.Difficulty == "normal"
+                : level.Difficulty == "easy" && !NarrowPlanTrapOpen.Contains(level.Id);
             if (res.Traps > 0)
             {
                 push("L-41", "plan_trap", "build.segments",
@@ -1495,7 +1525,8 @@ namespace MinikUsta.Core.Level
         /// <summary>L-16 teaches_mismatch, L-22 too_many_new_mechanics (K-45/10, OBSTACLES "Veri imzası" Faz 2R).</summary>
         private static void CheckMechanics(LevelData level, ISet<string> previous, Push push)
         {
-            var fresh = Mechanics.NewMechanics(level, previous);
+            // CL-V3C-05 (c): the bonus block (Y12) is a reward moment, not a new idea (K-60 item 6)
+            var fresh = Array.FindAll(Mechanics.NewMechanics(level, previous), m => m != "Y12");
             if (fresh.Length > 1)
                 push("L-22", "too_many_new_mechanics", "level", fresh.Length + " new mechanics (" + string.Join(", ", fresh) + "); at most 1");
             if (level.Teaches != null)
@@ -2222,6 +2253,9 @@ namespace MinikUsta.Core.Level
                 foreach (var l in layers) if (l.Piece.Shape != first.Shape || l.Piece.X != first.X || l.Piece.Y != first.Y) differs = true;
                 if (differs) push("L-40", "stack_invalid", path, "pallet " + id + ": every layer has the same shape and anchor (K-58 item 1)");
                 if (level.Gravity.Yard) push("L-40", "stack_invalid", path, "a pallet in a yard-gravity level (Y6) is not defined (OBSTACLES v3 table)");
+                // K-58 item 10 (CL-V3C-05 b): a lower layer must be able to leave its pallet's footprint
+                if (layers.Count >= 2 && PalletStuck(first.Shape))
+                    push("L-41", "pallet_stuck", path, "pallet " + id + " (" + first.Shape + "): every one-unit shift overlaps the own footprint; the lower layers can never leave (K-58 item 10)");
             }
             if (level.Chapter >= 2)
             {
@@ -2342,6 +2376,7 @@ namespace MinikUsta.Core.Level
             }
             else if (level.Difficulty == "easy" || level.Difficulty == "normal")
             {
+                if (plansUsable && LevelSchema.SchemaVersionOf(level) >= 3) CheckPlanTraps(level, plans, geo, push); // CL-V3C-03
                 var famOrder = new List<string>();
                 var bottomInsertion = new Dictionary<string, List<string>>();
                 var columnInsertion = new Dictionary<string, List<string>>();

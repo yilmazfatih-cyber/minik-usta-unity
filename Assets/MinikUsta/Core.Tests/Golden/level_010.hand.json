@@ -1,7 +1,7 @@
 {
   "level": 10,
   "source": "docs/LEVELS.md §2 Bölüm 10 — Kanonik çözüm (solver, GDD K-50 madde 4)",
-  "levelHash": "b903ba2775564619",
+  "levelHash": "61257a35d615eec2",
   "rulesVersion": 5,
   "geo": { "yard": [6, 8], "site": [3, 4], "H": 8, "wall": 6 },
   "budget": 23,

@@ -134,6 +134,7 @@ namespace MinikUsta.Unity
         public ITweenTarget MovesBurst => Hud.MovesBurst;
 
         public void SetMovesBurst(string? text) => Hud.SetMovesBurst(text);
+        public bool MovesBurstOn => Hud.MovesBurstOn;
 
         public void ShowPanel(PanelModel? panel, Action<PanelAction> onAction) => Hud.ShowPanel(panel, onAction);
 

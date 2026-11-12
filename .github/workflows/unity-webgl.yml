@@ -254,7 +254,7 @@ jobs:
         id: shoot_fit
         if: steps.shoot.outcome == 'success'
         continue-on-error: true
-        run: node tools/ci-shots/shoot.mjs --dir player --out artifacts/shots/fit --sha "$GITHUB_SHA" --query scale=fit --only level_start,tutorial,win --no-motion
+        run: node tools/ci-shots/shoot.mjs --dir player --out artifacts/shots/fit --sha "$GITHUB_SHA" --query scale=fit --only level_start,tutorial,win,v3_wide_6 --no-motion
       - name: Upload screenshots (artifact)
         if: always() && hashFiles('artifacts/shots/manifest.json') != ''
         uses: actions/upload-artifact@v4
