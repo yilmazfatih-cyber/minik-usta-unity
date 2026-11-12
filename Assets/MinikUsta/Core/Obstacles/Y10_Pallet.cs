@@ -3,7 +3,9 @@
 namespace MinikUsta.Core.Obstacles
 {
     /// <summary>
-    /// Y10 Palet — pallet (GDD §16 K-58): stacked layers on the same cells, only the top one can be held (core: Grid.LayerBelow / IsCovered / OwnCellCode, Movement `covered`).
+    /// Y10 Palet — pallet (GDD §16 K-58): stacked layers on the same cells, only the top one can be held (core: Grid.LayerBelow /
+    /// IsCovered, Movement `covered` / IsPalletLayer). D-106 (K-58 item 10, RulesVersion 6): the held layer does not collide with its
+    /// own pallet's remaining layers, so it rises out of the stack whatever its shape; its yard releases still cancel (palletSiteOnly).
     /// Core model (no hook): this plugin declares the rule for the level and its info card.
     /// </summary>
     public static class Y10_Pallet

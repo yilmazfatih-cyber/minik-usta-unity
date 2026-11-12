@@ -14,8 +14,8 @@
     "mode": "segments",
     "segments": [
       { "name": { "tr": "Kat 1", "en": "Floor 1" }, "rows": ["WW", "RY", "WW", "RW", "RR"] },
-      { "name": { "tr": "Kat 2", "en": "Floor 2" }, "rows": ["WW", "YY", "RY", "RR", "RR"] },
-      { "name": { "tr": "Kat 3", "en": "Floor 3" }, "rows": ["WR", "WY", "RY", "RW", "RR"] }
+      { "name": { "tr": "Kat 2", "en": "Floor 2" }, "rows": ["WW", "YY", "RY", "RR", "WW"] },
+      { "name": { "tr": "Kat 3", "en": "Floor 3" }, "rows": ["YR", "YY", "RY", "RW", "RR"] }
     ]
   },
   "yard": {
@@ -28,7 +28,7 @@
           { "shape": "D2_90", "color": "W", "x": 1, "y": 5 },
           { "shape": "C3_0", "color": "R", "x": 0, "y": 4 },
           { "shape": "C3_180", "color": "W", "x": 3, "y": 4 },
-          { "shape": "D2_90", "color": "R", "x": 0, "y": 3 },
+          { "shape": "D2_90", "color": "W", "x": 0, "y": 3 },
           { "shape": "O4_0", "color": "R", "x": 2, "y": 3, "colors": "RRRY" },
           { "shape": "D2_90", "color": "R", "x": 4, "y": 3, "colors": "RY" },
           { "shape": "D2_90", "color": "W", "x": 0, "y": 2 },
@@ -36,7 +36,7 @@
           { "shape": "D2_0", "color": "W", "x": 0, "y": 0, "colors": "WY" },
           { "shape": "D2_0", "color": "Y", "x": 1, "y": 0, "colors": "YR" },
           { "shape": "L4_0", "color": "R", "x": 3, "y": 0 },
-          { "shape": "D2_0", "color": "W", "x": 5, "y": 0 }
+          { "shape": "D2_0", "color": "Y", "x": 5, "y": 0 }
         ]
       }
     ]

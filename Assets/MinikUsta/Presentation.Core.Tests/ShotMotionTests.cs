@@ -40,6 +40,15 @@ namespace MinikUsta.Presentation.Tests
             return (rig, sc, lines, scales);
         }
 
+        /// <summary>C1: the frames of the one stretch where the clock is stopped (the "+2" burst picture, v3_bonus_burst_7); -1 when none.</summary>
+        private static int FrozenRun(List<float> scales)
+        {
+            int first = scales.IndexOf(0f), last = scales.LastIndexOf(0f);
+            if (first < 0) return -1;
+            for (int i = first; i <= last; i++) Assert.AreEqual(0f, scales[i], "one contiguous stop only");
+            return last - first + 1;
+        }
+
         [Test]
         public void P4B08_without_motion_the_scenario_has_no_windows_and_never_changes_the_time_scale()
         {
@@ -47,7 +56,10 @@ namespace MinikUsta.Presentation.Tests
             Assert.IsTrue(sc.Done && !sc.Failed);
             CollectionAssert.IsEmpty(lines.FindAll(l => l.Contains("seq:")));
             CollectionAssert.AreEqual(ShotScenario.ShotNames, sc.Signalled.ToArray());
-            foreach (float s in scales) Assert.AreEqual(1f, s);
+            // no motion window; the only change is the C1 stop of the bonus burst picture (about one hold)
+            int frozen = FrozenRun(scales);
+            Assert.That(frozen * Rig.FrameMs, Is.GreaterThanOrEqualTo(new ShotOptions().HoldMs - Rig.FrameMs).And.LessThan(new ShotOptions().HoldMs + 2 * Rig.FrameMs));
+            foreach (float s in scales) Assert.IsTrue(s == 1f || s == 0f);
         }
 
         [Test]
@@ -75,10 +87,12 @@ namespace MinikUsta.Presentation.Tests
                 for (int i = 1; i < ts.Count; i++) Assert.That(ts[i], Is.GreaterThanOrEqualTo(ts[i - 1]), "game time never goes back");
                 Assert.That(ts[ts.Count - 1], Is.GreaterThanOrEqualTo(1700).And.LessThan(1900), name + " lasts about MotionGameMs (1800)");
             }
-            // inside a window the scale is the asked one, outside it is 1
+            // inside a window the scale is the asked one, outside it is 1 (C1: and 0 while the bonus burst picture is taken)
             int slow = scales.FindAll(s => s == 0.1f).Count;
             int normal = scales.FindAll(s => s == 1f).Count;
-            Assert.AreEqual(scales.Count, slow + normal, "only the two values");
+            int frozen = FrozenRun(scales);
+            Assert.Greater(frozen, 0, "the bonus burst stop");
+            Assert.AreEqual(scales.Count, slow + normal + frozen, "only the two values and the stop");
             Assert.That(slow, Is.GreaterThan(400), "two windows of 1800 game ms at 0.1 = about 216 frames at 16.7 ms: " + slow);
         }
 

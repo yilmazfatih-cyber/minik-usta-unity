@@ -417,6 +417,40 @@ namespace MinikUsta.Presentation.Flow
             StartLevel(n);
         }
 
+        /// <summary>
+        /// Development builds only (C1, the CI shots): a new attempt of level `n` with `moves` already played — the session is replayed
+        /// (`GameSession.Replay`, like a K-43 resume) and the board appears at that point without any animation, so a late moment of a
+        /// level (the bonus "+2" of Bölüm 7, the 20th of 21 golden moves) is reached at once even on a slow software-GL browser.
+        /// False (nothing changes) when the level does not start or a move does not replay.
+        /// </summary>
+        public bool DebugStartLevelAt(int n, IReadOnlyList<SessionAction> moves)
+        {
+            DebugStartLevel(n);
+            var started = Player.Session;
+            if (started == null || Player.LevelNumber != n) return false;
+            var log = new List<SessionAction>(started.Log);
+            log.AddRange(moves);
+            GameSession replayed;
+            try
+            {
+                replayed = GameSession.Replay(started.Lvl, log);
+            }
+            catch (ReplayError e)
+            {
+                this.log("Minik Usta: DebugStartLevelAt(" + n + "): " + e.Message);
+                return false;
+            }
+            if (Save.InLevel != null)
+            {
+                Save.InLevel.Actions.Clear();
+                Save.InLevel.Actions.AddRange(replayed.Log);
+                Write();
+            }
+            Player.StartSession(replayed, n);
+            ShowBoard();
+            return true;
+        }
+
         /// <summary>Development builds only (CL-V3C-08): opens the level start window of level `n` from the home screen (the CI shots).</summary>
         public bool DebugOpenLevelStart(int n)
         {

@@ -120,10 +120,10 @@ namespace MinikUsta.Core.Tests
             CollectionAssert.DoesNotContain(One(6, 3, "L4_90"), "piece_too_wide");
         }
 
-        [Test(Description = "K-49 RULES_VERSION 5 (D-103…D-105 change the replay of saved logs)")]
+        [Test(Description = "K-49 RULES_VERSION 5 (D-103…D-105 change the replay of saved logs; D-106 made it 6)")]
         public void K49_RULES_VERSION_5()
         {
-            Assert.AreEqual(5, GameSession.RulesVersion);
+            Assert.GreaterOrEqual(GameSession.RulesVersion, 5);
         }
 
         // --- K-58 item 9 D-104 pallet layers on the site only -------------------------------------------------------------------

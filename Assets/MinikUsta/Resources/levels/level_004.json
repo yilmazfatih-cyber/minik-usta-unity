@@ -2,68 +2,19 @@
   "schemaVersion": 3,
   "id": 4,
   "chapter": 1,
-  "name": {
-    "tr": "Ön Duvar",
-    "en": "Front Wall"
-  },
+  "name": { "tr": "Ön Duvar", "en": "Front Wall" },
   "difficulty": "easy",
   "moves": 16,
-  "goals": [
-    {
-      "type": "build"
-    }
-  ],
-  "gravity": {
-    "build": "normal",
-    "yard": false
-  },
-  "wall": {
-    "height": 4,
-    "gaps": []
-  },
-  "site": {
-    "cols": 2,
-    "rows": 4
-  },
+  "goals": [{ "type": "build" }],
+  "gravity": { "build": "normal", "yard": false },
+  "wall": { "height": 4, "gaps": [] },
+  "site": { "cols": 2, "rows": 4 },
   "build": {
     "mode": "segments",
     "segments": [
-      {
-        "name": {
-          "tr": "Kat 1",
-          "en": "Floor 1"
-        },
-        "rows": [
-          "WW",
-          "RR",
-          "RR",
-          "RR"
-        ]
-      },
-      {
-        "name": {
-          "tr": "Kat 2",
-          "en": "Floor 2"
-        },
-        "rows": [
-          "RR",
-          "RR",
-          "WW",
-          "WW"
-        ]
-      },
-      {
-        "name": {
-          "tr": "Kat 3",
-          "en": "Floor 3"
-        },
-        "rows": [
-          "WW",
-          "WW",
-          "WY",
-          "YY"
-        ]
-      }
+      { "name": { "tr": "Kat 1", "en": "Floor 1" }, "rows": ["WW", "RR", "RR", "RR"] },
+      { "name": { "tr": "Kat 2", "en": "Floor 2" }, "rows": ["WY", "WY", "YW", "YW"] },
+      { "name": { "tr": "Kat 3", "en": "Floor 3" }, "rows": ["YY", "WY", "WY", "YY"] }
     ]
   },
   "yard": {
@@ -73,79 +24,20 @@
       {
         "forSegment": 0,
         "pieces": [
-          {
-            "shape": "C3_180",
-            "color": "R",
-            "x": 0,
-            "y": 3
-          },
-          {
-            "shape": "D2_0",
-            "color": "W",
-            "x": 2,
-            "y": 3
-          },
-          {
-            "shape": "D2_0",
-            "color": "W",
-            "x": 5,
-            "y": 3
-          },
-          {
-            "shape": "D2_0",
-            "color": "R",
-            "x": 0,
-            "y": 2
-          },
-          {
-            "shape": "D2_90",
-            "color": "W",
-            "x": 1,
-            "y": 2
-          },
-          {
-            "shape": "D2_0",
-            "color": "W",
-            "x": 3,
-            "y": 2
-          },
-          {
-            "shape": "C3_0",
-            "color": "R",
-            "x": 4,
-            "y": 2
-          },
-          {
-            "shape": "D2_0",
-            "color": "R",
-            "x": 0,
-            "y": 0
-          },
-          {
-            "shape": "C3_180",
-            "color": "W",
-            "x": 2,
-            "y": 0
-          },
-          {
-            "shape": "C3_270",
-            "color": "Y",
-            "x": 4,
-            "y": 0
-          }
+          { "shape": "C3_180", "color": "R", "x": 0, "y": 3 },
+          { "shape": "D2_0", "color": "Y", "x": 2, "y": 3 },
+          { "shape": "D2_0", "color": "W", "x": 5, "y": 3 },
+          { "shape": "D2_0", "color": "W", "x": 0, "y": 2 },
+          { "shape": "D2_90", "color": "W", "x": 1, "y": 2 },
+          { "shape": "D2_0", "color": "W", "x": 3, "y": 2 },
+          { "shape": "C3_0", "color": "R", "x": 4, "y": 2 },
+          { "shape": "D2_0", "color": "Y", "x": 0, "y": 0 },
+          { "shape": "C3_180", "color": "Y", "x": 2, "y": 0 },
+          { "shape": "C3_270", "color": "Y", "x": 4, "y": 0 }
         ]
       }
     ]
   },
   "obstacles": [],
-  "targets": {
-    "min": [
-      12,
-      12
-    ],
-    "deadRate": [
-      0,
-      0
-    ]
-  }
+  "targets": { "min": [12, 12], "deadRate": [0, 0] }
 }

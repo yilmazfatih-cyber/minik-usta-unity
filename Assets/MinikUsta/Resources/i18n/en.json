@@ -64,6 +64,11 @@
   "build": {
     "done": "Build complete!"
   },
+  "card": {
+    "y10": {
+      "site": "Layers never rest on the field, only on the site."
+    }
+  },
   "chest": {
     "contains": "Inside:",
     "open": "Open",
@@ -447,14 +452,18 @@
       "lift": "Lift the block over the wall!",
       "match": "Pick the one matching the plan.",
       "narrow": "Narrow gaps take one row.",
+      "pallet": "Take from the top of the pallet.",
+      "palletsite": "Lift a layer, set it on the site.",
       "park": "Park the top one up high.",
       "pattern": "The plan fills bottom up.",
       "rail": "Lift the next one over it.",
       "segments": "Finish a floor, the site moves.",
       "shadow": "{ok} on the shadow: right spot.",
+      "slippery": "Slippery blocks slide into gaps.",
       "truck": "The truck brought new blocks!",
       "twotone": "Both colours must match the plan.",
       "useall": "Every block goes into the plan.",
+      "widesite": "Wider site: flat blocks fit.",
       "wrap": "Place the scissors block first."
     },
     "meta": {

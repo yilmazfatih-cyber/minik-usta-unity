@@ -247,7 +247,7 @@ jobs:
         id: shoot
         if: steps.pw.outcome == 'success'
         continue-on-error: true
-        run: node tools/ci-shots/shoot.mjs --dir player --out artifacts/shots --sha "$GITHUB_SHA" --shot-timeout 300
+        run: node tools/ci-shots/shoot.mjs --dir player --out artifacts/shots --sha "$GITHUB_SHA"
       # U2 (UX_UNITY K1): EXPAND is the default now, so the comparison run is the old FIT (?scale=fit) for three of the shots, saved under
       # artifacts/shots/fit and published with the rest; its failure never matters.
       - name: Capture screenshots (scale=fit)

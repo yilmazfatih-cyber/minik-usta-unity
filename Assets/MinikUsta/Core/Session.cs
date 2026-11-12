@@ -174,9 +174,11 @@ namespace MinikUsta.Core
         /// Core rules version (K-43 item 4): bump it whenever a rule change can change the replay of a saved log. 2 = Faz 2R
         /// (full cover K-47/K-48, sizes K-49, Söküm K-30, new boosters, Zobrist frame positions; TECH §2R.0 item 4). 3 = D-099
         /// (K-55 item 8, K-30: a D1 the rules cannot lift is a Söküm with cause `access`, never a reshuffle; after an accepted
-        /// +5 offer the D1 Söküm goes back to the start of the last action). An attempt saved with 2 is voided (E-67).
+        /// +5 offer the D1 Söküm goes back to the start of the last action). 5 = levels v3c (D-103…D-105). 6 = D-106 (GDD K-58
+        /// item 10: a held pallet layer does not collide with its own pallet's remaining layers, so it rises out of the stack; D1
+        /// tests a pallet layer by its real site releases). An attempt saved with an older version is voided (E-67).
         /// </summary>
-        public const int RulesVersion = 5;
+        public const int RulesVersion = 6;
         /// <summary>K-29: moves of an accepted offer.</summary>
         public const int OfferMoves = 5;
         /// <summary>K-29: offers per attempt (ad or coins).</summary>

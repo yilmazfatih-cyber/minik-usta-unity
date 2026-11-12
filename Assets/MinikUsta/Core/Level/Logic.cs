@@ -1147,27 +1147,18 @@ namespace MinikUsta.Core.Level
         /// K-63 D-103 annex: `plan_trap` on a 3-column site — error in levels 1–10 (story 1) and on Easy / Normal later, warn on
         /// Hard / Very Hard; a scan that spends its budget gives the `plan_trap_unknown` warning (no proof).
         /// </summary>
-        public static readonly ISet<int> NarrowPlanTrapOpen = new HashSet<int> { 4 };
+        public static readonly ISet<int> NarrowPlanTrapOpen = new HashSet<int>(); // C2: level 4 repainted trap-free (B1), the list is empty
 
-        /// <summary>K-58 item 10: all four one-unit translations of the shape intersect the shape itself.</summary>
-        public static bool PalletStuck(string shapeId)
-        {
-            var cells = Shapes.ShapeById(shapeId).Cells;
-            var own = new HashSet<(int, int)>();
-            foreach (var c in cells) own.Add((c.X, c.Y));
-            foreach (var (dx, dy) in new[] { (1, 0), (-1, 0), (0, 1), (0, -1) })
-            {
-                bool hit = false;
-                foreach (var c in cells) if (own.Contains((c.X + dx, c.Y + dy))) hit = true;
-                if (!hit) return false;
-            }
-            return true;
-        }
+        // `pallet_stuck` (K-58 item 10 proposal, L-41) is retired by D-106 (RulesVersion 6), its name kept like `pallet_capacity`:
+        // a held layer no longer collides with its own pallet, so every pallet shape rises out of its stack (C3, O4, L4, J4, T4
+        // included). What is left of "a layer can never leave" has its own code: flag_combo_forbidden (L-40), piece_unreachable,
+        // piece_too_wide, solver `unsolvable` and the D-090 walks. Test "K-58 item 10 pallet_stuck is retired".
 
-        private static void CheckPlanTraps(LevelData level, SegmentPlan[] plans, BoardGeo geo, Push push)
+        /// <summary>Returns true when the scan proved the plan trap-free (status done, 0 traps, tileable).</summary>
+        private static bool CheckPlanTraps(LevelData level, SegmentPlan[] plans, BoardGeo geo, Push push)
         {
             var res = PlanTrapScan(level, plans, geo);
-            if (!res.Tileable && res.Status == "done") return; // L-11 `untileable` reports a plan that cannot be tiled at all
+            if (!res.Tileable && res.Status == "done") return false; // L-11 `untileable` reports a plan that cannot be tiled at all
             // CL-V3C-03: on a 2-column site Easy = error, Normal and above = warn; NarrowPlanTrapOpen = known open levels (warn)
             bool strict = geo.Ws >= WideSiteCols
                 ? level.Chapter == 1 || level.Difficulty == "easy" || level.Difficulty == "normal"
@@ -1185,6 +1176,7 @@ namespace MinikUsta.Core.Level
                 push("L-41", "plan_trap_unknown", "build.segments",
                     "the plan trap scan stopped after " + res.States + " states: no proof of a trap-free plan (K-63 D-103 annex)", Severities.Warn);
             }
+            return res.Status == "done" && res.Traps == 0;
         }
 
         private static string TileSearch(LevelData level, SegmentPlan[] plans, BoardGeo geo, int budget, Func<Placed, bool>? skip, Func<Placed, bool>? target)
@@ -2253,9 +2245,6 @@ namespace MinikUsta.Core.Level
                 foreach (var l in layers) if (l.Piece.Shape != first.Shape || l.Piece.X != first.X || l.Piece.Y != first.Y) differs = true;
                 if (differs) push("L-40", "stack_invalid", path, "pallet " + id + ": every layer has the same shape and anchor (K-58 item 1)");
                 if (level.Gravity.Yard) push("L-40", "stack_invalid", path, "a pallet in a yard-gravity level (Y6) is not defined (OBSTACLES v3 table)");
-                // K-58 item 10 (CL-V3C-05 b): a lower layer must be able to leave its pallet's footprint
-                if (layers.Count >= 2 && PalletStuck(first.Shape))
-                    push("L-41", "pallet_stuck", path, "pallet " + id + " (" + first.Shape + "): every one-unit shift overlaps the own footprint; the lower layers can never leave (K-58 item 10)");
             }
             if (level.Chapter >= 2)
             {
@@ -2376,7 +2365,8 @@ namespace MinikUsta.Core.Level
             }
             else if (level.Difficulty == "easy" || level.Difficulty == "normal")
             {
-                if (plansUsable && LevelSchema.SchemaVersionOf(level) >= 3) CheckPlanTraps(level, plans, geo, push); // CL-V3C-03
+                // CL-V3C-03 (v3 files); a scan that proves 0 traps silences `tile_family_mix` (K-63 (b), C2)
+                bool trapFree = plansUsable && LevelSchema.SchemaVersionOf(level) >= 3 && CheckPlanTraps(level, plans, geo, push);
                 var famOrder = new List<string>();
                 var bottomInsertion = new Dictionary<string, List<string>>();
                 var columnInsertion = new Dictionary<string, List<string>>();
@@ -2396,7 +2386,7 @@ namespace MinikUsta.Core.Level
                 {
                     var bt = bottomInsertion[color];
                     var cl = columnInsertion[color];
-                    if (bt.Count > 1 || cl.Count > 1)
+                    if (!trapFree && (bt.Count > 1 || cl.Count > 1))
                     {
                         var all = new List<string>(bt);
                         all.AddRange(cl);

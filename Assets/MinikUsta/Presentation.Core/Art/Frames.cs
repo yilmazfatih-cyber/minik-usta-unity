@@ -48,9 +48,19 @@ namespace MinikUsta.Presentation.Art
         public const string IcoScissors = "ico_scissors";
         public const string OvlIce = "ovl_ice";
         public const string IcoSlip = "ico_slip";
+        /// <summary>D-108 Y10: the grey-blue metal sled under one lowest-row cell (both ends capped); the run variants join without a seam.</summary>
         public const string PalletCell = "pallet_cell";
-        /// <summary>P4 Y10: one board of a covered pallet layer, seen from the front under the layer above (edge line of the stack depth).</summary>
+        public const string PalletCellL = "pallet_cell_l";
+        public const string PalletCellM = "pallet_cell_m";
+        public const string PalletCellR = "pallet_cell_r";
+        /// <summary>D-108 Y10: the bottom edge band of a covered pallet layer (3 px layerEdge line + a band tinted with the layer's colour).</summary>
         public const string PalletSlab = "pallet_slab";
+
+        /// <summary>The sled frame of a lowest-row cell with / without a lowest-row neighbour on the left and on the right.</summary>
+        public static string PalletSled(bool left, bool right) => left ? (right ? PalletCellM : PalletCellR) : right ? PalletCellL : PalletCell;
+
+        /// <summary>True for every sled frame (single cell or a run piece).</summary>
+        public static bool IsPalletSled(string frame) => frame == PalletCell || frame == PalletCellL || frame == PalletCellM || frame == PalletCellR;
 
         /// <summary>Y12 star badge "+n" (n 1–3).</summary>
         public static string IcoBonus(int n) => "ico_bonus_" + (n < 1 ? 1 : n > 3 ? 3 : n);

@@ -185,12 +185,7 @@ namespace MinikUsta.Presentation.Ui
             root = r;
             surface.Show(UiLayer.Hud, r, OnTap);
             if (King != null) King.BindCorner(surface, kingNode, new Vec2((float)kb.CenterX, (float)(kb.Bottom - 6)), King.SizeFor(King.Corner, kb.H));
-            moves.Inner = surface.Target(N("hud.moves"));
-            movesBurst.Inner = surface.Target(N("hud.moves.burst"));
-            blocks.Inner = surface.Target(N("hud.blocks"));
-            trowel.Inner = surface.Target(N("hud.trowel"));
-            gold.Inner = surface.Target(N("hud.gold"));
-            for (int i = 0; i < Beads; i++) beads[i].Inner = surface.Target(N("hud.bead" + i));
+            RebindTargets();
             if (last != null) SetHudState(last);
             if (Shown != null && onAction != null) ShowPanel(Shown, onAction);
         }
@@ -380,9 +375,15 @@ namespace MinikUsta.Presentation.Ui
             return true;
         }
 
+        /// <summary>
+        /// Binds every tween target of the HUD to the nodes of the tree on screen. Called after EVERY `surface.Show(UiLayer.Hud, …)`: the
+        /// Unity surface destroys the old RectTransforms, so a target left on them throws (C1: `movesBurst` was missing here, the bonus
+        /// "+2" pop after a plan rebuild set the scale of a destroyed RectTransform every frame and froze the level).
+        /// </summary>
         private void RebindTargets()
         {
             moves.Inner = surface.Target(N("hud.moves"));
+            movesBurst.Inner = surface.Target(N("hud.moves.burst"));
             blocks.Inner = surface.Target(N("hud.blocks"));
             trowel.Inner = surface.Target(N("hud.trowel"));
             gold.Inner = surface.Target(N("hud.gold"));

@@ -932,7 +932,7 @@ namespace MinikUsta.Core.Level
                                 hpath = new int[pa.Count][];
                                 for (int i = 0; i < pa.Count; i++)
                                 {
-                                    var t = Tuple(pa[i], At(At(hp, "path"), i), 0, 7, 0, 9);
+                                    var t = Tuple(pa[i], At(At(hp, "path"), i), 0, 8, 0, 9); // x 0-8 (CL-V3C-15, C2)
                                     if (t == null) ok = false;
                                     else hpath[i] = t;
                                 }
@@ -1014,7 +1014,7 @@ namespace MinikUsta.Core.Level
                 {
                     if (v.Has("at"))
                     {
-                        at = Tuple(v["at"], At(path, "at"), 0, 7, 0, 7);
+                        at = Tuple(v["at"], At(path, "at"), 0, 8, 0, 7); // x 0-8: 9-column board (CL-V3C-15, C2)
                         if (at == null) ok = false;
                     }
                     if (v.Has("piece"))

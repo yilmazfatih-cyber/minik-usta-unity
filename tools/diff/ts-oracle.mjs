@@ -31,6 +31,10 @@
  * exit result. Step 0 is the start action. After the sequence: `log` (canonical JSON hash of the session log) and
  * `replay` (GameSession.replay: buffer hash, event hash, outcome).
  *
+ * CL-V3C-11 (C1): crane attempts on a pallet layer aimed at a yard spot (rejected `palletSiteOnly` in both ports), wide boards
+ * (Ws = 3, level id 8) with pallets of every D-106 shape (C3 / O4 / L4 / J4 / T4: the held layer rises through its own
+ * footprint, RULES_VERSION 6) and with the 3-wide shapes P5 / S4 / Z4; gates at the end count each of them.
+ *
  * Usage: node tools/diff/ts-oracle.mjs [/path/to/minik-usta] [--seeds N] [--moves M] [--out DIR]
  *   --seeds N  seeds per real level (default 24; cover boards get N/8, random geometries N/8 levels each)
  *   --moves M  action cap per sequence, prefix included (default 40)
@@ -71,6 +75,7 @@ const { GameSession, levelHash } = await web('src/core/session.ts');
 const { shapeByIndex, shapeById } = await web('src/core/shapes.ts');
 const { mulberry32 } = await web('src/core/rng.ts');
 const { toAscii } = await web('src/core/ascii.ts');
+const { layerBelow } = await web('src/core/grid.ts');
 const boosters = await web('src/core/boosters.ts');
 const { level } = await web('tests/fixtures/builders.ts');
 const { coverLevel } = await web('tests/fixtures/cover.ts');
@@ -262,8 +267,24 @@ function craneAction(game, rng) {
   const P = s.lvl.layout.counts.pieces;
   const ids = [];
   for (let id = 0; id < P; id++) if (boosters.craneSelectable(s, id, game.hooks)) ids.push(id);
-  const id = pick(rng, ids);
+  // CL-V3C-11 (K-58 item 9 e): on a pallet level the crane goes for a pallet layer half the time, and half of those aim at a
+  // yard spot — the core rejects it with `palletSiteOnly` (no move, nothing changes) in both ports
+  const palletIds = s.lvl.hasStacks ? ids.filter((x) => isPalletLayer(s, x)) : [];
+  const id = palletIds.length > 0 && rng.next() < 0.5 ? pick(rng, palletIds) : pick(rng, ids);
   if (id === undefined) return null;
+  if (palletIds.includes(id) && rng.next() < 0.5) {
+    const sh = shapeByIndex(pieceShape(s, id));
+    const m = {
+      kind: 'crane',
+      pieceId: id,
+      to: { zone: 'yard', x: rng.nextInt(Math.max(1, s.lvl.geo.wy - sh.w + 1)), y: rng.nextInt(Math.max(1, s.lvl.geo.hy - sh.h + 1)) },
+      rotation: sh.rotation,
+    };
+    if (boosters.craneRejection(s, m, game.hooks) === 'palletSiteOnly') {
+      totals.cranePalletSiteOnly = (totals.cranePalletSiteOnly ?? 0) + 1;
+      return m;
+    }
+  }
   const valid = (m) => boosters.craneRejection(s, m, game.hooks) === null;
   if (rng.next() < 0.65) {
     const spots = boosters.craneSiteSpots(s, id).map((sp) => ({ kind: 'crane', pieceId: id, to: { zone: 'site', x: sp.at.ix, y: sp.at.iy }, rotation: sp.rotation }));
@@ -325,7 +346,17 @@ function randomAction(game, rng, burn, step) {
 
 // --- one sequence ----------------------------------------------------------------------------------------------------
 
-const totals = { sequences: 0, steps: 0, actions: {}, statuses: {}, events: {}, outcomes: {} };
+const totals = { sequences: 0, steps: 0, actions: {}, statuses: {}, events: {}, outcomes: {}, coverage: {} };
+/** D-106: pallet shapes whose every one-unit shift overlaps the own footprint (the retired pallet_stuck list). */
+const D106_FAMILIES = new Set(['C3', 'O4', 'L4', 'J4', 'T4']);
+/** D-103 K-56 annex: shapes free only on a 3-column site. */
+const WIDE_FAMILIES = new Set(['P5', 'S4', 'Z4']);
+function coverageOf(s, id) {
+  if (id === undefined || id < 0 || id >= s.lvl.layout.counts.pieces) return null;
+  const family = shapeByIndex(pieceShape(s, id)).id.split('_')[0];
+  const d106 = s.lvl.hasStacks && isPalletLayer(s, id) && layerBelow(s, id) >= 0 && D106_FAMILIES.has(family);
+  return { family, d106 };
+}
 const bump = (m, k) => (m[k] = (m[k] ?? 0) + 1);
 
 function sessionFields(game) {
@@ -386,8 +417,14 @@ function playSequence(name, lvl, seed, prefixMoves, burn, script = null, forcePr
       bump(totals.statuses, 'decline');
       break;
     }
+    // CL-V3C-11: a layer of a D-106 shape with a layer below leaves its own stack; a P5 / S4 / Z4 block moves
+    const before = a.kind === 'drag' ? coverageOf(game.state, a.pieceId) : null;
     const r = game.apply(a);
     bump(totals.statuses, `${a.kind}:${r.status}${r.reason ? ':' + r.reason : ''}`);
+    if (before && r.status === 'applied') {
+      if (before.d106) bump(totals.coverage, `d106Exit:${before.family}`);
+      if (WIDE_FAMILIES.has(before.family)) bump(totals.coverage, `wideShape:${before.family}`);
+    }
     steps.push({
       i,
       a,
@@ -551,7 +588,7 @@ const V3_GEOS = [
   { wy: 6, hy: 6, ws: 3, hs: 5 }, // D-103 wide site: 9 columns (pallet, bonus and wrap boards on the wide board)
 ];
 
-function v3LevelData(g, rng, id, variant) {
+function v3LevelData(g, rng, id, variant, opts = {}) {
   const used = new Set();
   const pieces = [];
   const traits = {};
@@ -571,6 +608,38 @@ function v3LevelData(g, rng, id, variant) {
   const colors = ['W', 'Y'];
   const pick = (a) => a[rng.nextInt(a.length)];
   const all = variant === 'mix';
+  // CL-V3C-11 (D-106): a pallet of 2–4 layers of a shape that could never leave its stack before RULES_VERSION 6
+  if (variant === 'palletD106') {
+    const shapeId = opts.palletShape ?? pick(['C3_0', 'C3_90', 'C3_180', 'C3_270', 'O4_0', 'L4_0', 'L4_90', 'J4_0', 'J4_270', 'T4_0', 'T4_180']);
+    const layers = 2 + rng.nextInt(3);
+    const color = pick(colors);
+    const first = place(shapeId, color);
+    if (first >= 0) {
+      traits[first] = { stack: { id: 0, z: 0 } };
+      const [sid, col, x, y] = pieces[first];
+      for (let z = 1; z < layers; z++) {
+        pieces.push([sid, col, x, y, []]);
+        traits[pieces.length - 1] = { stack: { id: 0, z } };
+      }
+    }
+    // a second, D2 pallet half the time (two stacks on one board)
+    if (rng.next() < 0.5) {
+      const second = place(pick(['D2_0', 'D2_90']), pick(colors));
+      if (second >= 0) {
+        traits[second] = { stack: { id: 1, z: 0 } };
+        const [sid, col, x, y] = pieces[second];
+        pieces.push([sid, col, x, y, []]);
+        traits[pieces.length - 1] = { stack: { id: 1, z: 1 } };
+      }
+    }
+  }
+  // CL-V3C-11 (D-103 K-56 annex): the 3-wide shapes of a 3-column site
+  if (variant === 'wideshapes') {
+    place('P5_0', pick(colors));
+    place(pick(['S4_0', 'S4_90']), pick(colors));
+    place(pick(['Z4_0', 'Z4_90']), pick(colors));
+    if (rng.next() < 0.5) place(pick(['S4_0', 'Z4_90', 'P5_0']), pick(colors));
+  }
   if (variant === 'pallet' || all) {
     const shapeId = pick(['B1_0', 'D2_0', 'D2_90']);
     const layers = 2 + rng.nextInt(2);
@@ -663,6 +732,46 @@ for (let vi = 0; vi < V3_VARIANTS.length; vi++) {
   }
 }
 
+// --- CL-V3C-11: wide boards (Ws = 3, level id 8 = levels 6–10 rules) with D-106 pallets and the 3-wide shapes ------------------
+// A separate stream (the boards above stay as they were). One D-106 board per pallet shape (the five retired pallet_stuck
+// families, rotations mixed) and one P5 / S4 / Z4 board per geometry; six seeds each, seeds 3 and 6 burn-biased.
+
+const WIDE_GEOS = [
+  { wy: 6, hy: 6, ws: 3, hs: 5 },
+  { wy: 6, hy: 8, ws: 3, hs: 5 },
+  { wy: 5, hy: 6, ws: 3, hs: 6 },
+];
+const WIDE_BOARDS = [
+  ...['C3_0', 'O4_0', 'L4_90', 'J4_0', 'T4_0', 'C3_270'].map((palletShape, i) => ({ variant: 'palletD106', geo: WIDE_GEOS[i % WIDE_GEOS.length], opts: { palletShape } })),
+  ...WIDE_GEOS.map((geo) => ({ variant: 'wideshapes', geo, opts: {} })),
+];
+const wideRng = mulberry32(0x7633_d106);
+let wideLevels = 0;
+WIDE_BOARDS.forEach(({ variant, geo, opts }, bi) => {
+  let data = null;
+  for (let t = 0; t < 30 && data === null; t++) {
+    let d = null;
+    try {
+      d = v3LevelData(geo, wideRng, 8, variant, opts);
+    } catch {
+      d = null;
+    }
+    if (d && roundTrips(d)) {
+      const res = loadLevel(JSON.parse(JSON.stringify(d)));
+      if (res.ok || !res.issues?.some((i) => i.code === 'schema_version_low' || i.code.startsWith('stack'))) data = d;
+    }
+  }
+  if (data === null) return;
+  const lvl = compile(data);
+  const n = V3_VARIANTS.length * V3_GEOS.length + bi + 1;
+  const tag = opts.palletShape ? ` ${opts.palletShape}` : '';
+  const seqs = [];
+  for (let seed = 1; seed <= 6; seed++)
+    seqs.push(playSequence(`v3 ${variant}${tag} ${geo.wy}x${geo.hy}_${geo.ws}x${geo.hs} seed ${pad(seed, 2)}`, lvl, seed + bi, [], seed % 3 === 0));
+  writeSource(`v3_${pad(n)}.json`, { kind: 'v3', n, label: variant + tag }, data, seqs);
+  wideLevels++;
+});
+
 // --- scripted scenarios (P4 item 3): Söküm / deadlock, +5 offers, Undo, truck queue -----------------------------------
 // Fixed action lists on the fixtures of tests/core/deadlock.test.ts and tests/review/pipeline.review.test.ts (copied:
 // test data, not core). The C# test compares them step by step like the random sequences; ScenarioTests.cs asserts
@@ -738,6 +847,24 @@ const P1_JSON = readJson(join(WEB, 'tests', 'level', 'fixtures', 'v2', 'p1_two_f
 /** The P1 solution of tests/core/fixedYard.test.ts: 9 moves, the segment change on move 6. */
 const P1_SOLUTION = [D(5, 6, 5), D(6, 7, 5), D(3, 4, 3), D(1, 6, 5), D(2, 7, 5), D(3, 6, 5), D(4, 6, 5), D(7, 6, 5), D(0, 6, 5)];
 const shuttle = (n, from = 1) => Array.from({ length: n }, (_, i) => D(5, 5, (from + i) % 2));
+/**
+ * D-106 (tests/core/palletD106.test.ts, copied): a C3_0 pallet x3 at (0, 0) of a 6 × 4 yard, wall 2, 3 × 5 site, plan all W, two
+ * D2 fillers. Script: crane on the top layer aimed at the yard (rejected palletSiteOnly), the top layer one row up (cancel
+ * palletSiteOnly: it rose through its own footprint), the top layer onto the site (correct), the crane on the next layer aimed at the
+ * yard (rejected), Undo (the layer is back on its pallet, K-58 item 6), the same placement again; random valid play after it.
+ */
+const C3_PALLET = {
+  id: 8,
+  schemaVersion: 3,
+  moves: 30,
+  yard: { cols: 6, rows: 4 },
+  site: { cols: 3, rows: 5 },
+  wall: { height: 2 },
+  plan: ['WWW', 'WWW', 'WWW', 'WWW', 'WWW'],
+  pieces: [['C3_0', 'W', 0, 0], ['C3_0', 'W', 0, 0], ['C3_0', 'W', 0, 0], ['D2_90', 'W', 3, 0], ['D2_90', 'W', 3, 2]],
+  traits: { 0: { stack: { id: 0, z: 0 } }, 1: { stack: { id: 0, z: 1 } }, 2: { stack: { id: 0, z: 2 } } },
+};
+const CRANE = (pieceId, zone, x, y, rotation = 0) => ({ kind: 'crane', pieceId, to: { zone, x, y }, rotation });
 
 const SCENARIOS = [
   // K-30 Söküm (tiling dead end) → E-37 Undo → the same Söküm again → the right placement → win
@@ -775,6 +902,14 @@ const SCENARIOS = [
   ...[1, 2, 3, 4, 5, 6].map((k) => ({ name: `K-55 P1 random play ${k}`, json: P1_JSON, actions: [], randomAfter: true, seed: k + 10 })),
   // K-55 + K-29: few moves, the window opens and +5 offers follow, then random valid play
   ...[1, 2].map((k) => ({ name: `K-55 P1 offers ${k}`, json: { ...P1_JSON, moves: 3 }, actions: [P1_SOLUTION[0], P1_SOLUTION[1], P1_SOLUTION[2], COINS], randomAfter: true, seed: k + 20 })),
+  // D-106 / K-58 item 10 + item 9 e: crane yard reject, the top C3 layer rises out of its stack, site placement, crane to the site
+  ...[1, 2, 3].map((k) => ({
+    name: `D-106 C3 pallet leaves its own stack ${k}`,
+    spec: C3_PALLET,
+    actions: [CRANE(2, 'yard', 3, 1), D(2, 0, 1), D(2, 6, 3), CRANE(1, 'yard', 4, 1), UNDO, D(2, 6, 3)],
+    randomAfter: true,
+    seed: k + 30,
+  })),
 ];
 
 const scenarioFiles = [];
@@ -802,15 +937,17 @@ const manifest = {
   statuses: sorted(totals.statuses),
   outcomes: sorted(totals.outcomes),
   events: sorted(totals.events),
+  coverage: sorted({ ...totals.coverage, cranePalletSiteOnly: totals.cranePalletSiteOnly ?? 0, palletSiteOnlyDrags: totals.palletSiteOnly ?? 0, coveredPicks: totals.coveredPicks ?? 0 }),
   files,
 };
 writeFileSync(join(OUT, 'manifest.json'), JSON.stringify(manifest, null, 1) + '\n');
-console.log(`ts-oracle: web ${webCommit}, ${totals.sequences} sequences, ${totals.steps} actions (${geoLevels} random geometry levels, ${truckLevels} truck levels, ${v3Levels} v3 trait levels, ${scenarioFiles.length} scenarios) → ${OUT}`);
+console.log(`ts-oracle: web ${webCommit}, ${totals.sequences} sequences, ${totals.steps} actions (${geoLevels} random geometry levels, ${truckLevels} truck levels, ${v3Levels} v3 trait levels, ${wideLevels} wide D-106 / P5-S4-Z4 levels, ${scenarioFiles.length} scenarios) → ${OUT}`);
 console.log('actions ', JSON.stringify(manifest.actions));
 console.log('statuses', JSON.stringify(manifest.statuses));
 console.log('outcomes', JSON.stringify(manifest.outcomes));
 console.log('events  ', JSON.stringify(manifest.events));
 console.log('coveredPicks', totals.coveredPicks ?? 0, 'familyWins', JSON.stringify(familyWins));
+console.log('coverage', JSON.stringify(manifest.coverage));
 // CL-V3-10 gates: every trait family that a shipped level (or a variant) carries must be won at least once by the
 // oracle, and the event families the traits produce must be seen at least 20 times. Pallet has no shipped level in
 // story 1 (K-58 item 9 later); it is checked only for being played, not won (reported, not failed).
@@ -826,6 +963,22 @@ for (const [k, n] of need) {
 for (const f of ['twotone', 'wrap', 'bonus', 'slippery']) {
   if ((familyWins[f] ?? 0) < 1) {
     console.error(`ts-oracle GATE: trait family ${f} has no won sequence`);
+    gateFail = true;
+  }
+}
+// CL-V3C-11 gates: crane palletSiteOnly rejects, D-106 own-footprint exits (C3 among them) and P5 / S4 / Z4 moves
+const cov = manifest.coverage;
+const d106 = Object.entries(cov).filter(([k]) => k.startsWith('d106Exit:')).reduce((n, [, v]) => n + v, 0);
+for (const [k, have, n] of [
+  ['crane palletSiteOnly rejects', cov.cranePalletSiteOnly ?? 0, 20],
+  ['D-106 own-footprint exits', d106, 20],
+  ...['C3', 'O4', 'L4', 'J4', 'T4'].map((f) => [`D-106 ${f} exits`, cov[`d106Exit:${f}`] ?? 0, 3]),
+  ['P5 moves', cov['wideShape:P5'] ?? 0, 5],
+  ['S4 moves', cov['wideShape:S4'] ?? 0, 5],
+  ['Z4 moves', cov['wideShape:Z4'] ?? 0, 5],
+]) {
+  if (have < n) {
+    console.error(`ts-oracle GATE: ${k} ${have} < ${n}`);
     gateFail = true;
   }
 }

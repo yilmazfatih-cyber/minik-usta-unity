@@ -1,13 +1,17 @@
 {
   "generatedFrom": {
     "webRepo": "yilmazfatih-cyber/minik-usta",
-    "webCommit": "37d5617",
+    "webCommit": "2a08cd2",
     "generator": "tools/gen-p1-vectors.ts"
   },
   "random": {
     "seed": 20261031,
     "perGeometry": 5,
     "levelId": 2
+  },
+  "wide": {
+    "count": 5,
+    "levelId": 8
   },
   "boards": [
     {
@@ -1481,7 +1485,7 @@
       "wallHeight": 4,
       "gaps": [],
       "motions": [],
-      "hashAfterSettle": "6ab72765008f04de",
+      "hashAfterSettle": "7b4caf5a187ad41b",
       "movesLeft": 16,
       "front": [
         "site:6,0,0",
@@ -1601,7 +1605,7 @@
       "wallHeight": 4,
       "gaps": [],
       "motions": [],
-      "hashAfterSettle": "9c48e850b7852377",
+      "hashAfterSettle": "0607da7611807115",
       "movesLeft": 18,
       "front": [
         "site:6,0,0",
@@ -1719,7 +1723,7 @@
       "wallHeight": 7,
       "gaps": [],
       "motions": [],
-      "hashAfterSettle": "a5dfbe37b29af237",
+      "hashAfterSettle": "9156b8ee3c9e73d2",
       "movesLeft": 23,
       "front": [
         "site:6,0,0",
@@ -1738,13 +1742,13 @@
           "cargo": false,
           "canCrossWall": true,
           "canEnterRail": false,
-          "reachableCount": 30,
+          "reachableCount": 35,
           "starts": [
-            "0:0,6"
+            "0:3,7"
           ],
-          "nodes": 33,
-          "hash": "522bb54629b82bc2",
-          "followHash": "af4836c6db218d86"
+          "nodes": 38,
+          "hash": "72480868f62daf86",
+          "followHash": "fe3c9128dc08aeef"
         },
         {
           "id": 1,
@@ -1752,13 +1756,13 @@
           "cargo": false,
           "canCrossWall": true,
           "canEnterRail": false,
-          "reachableCount": 32,
+          "reachableCount": 37,
           "starts": [
-            "0:2,6"
+            "0:0,6"
           ],
-          "nodes": 35,
-          "hash": "dce2c7e829927aad",
-          "followHash": "7c2c11057e26b9b1"
+          "nodes": 40,
+          "hash": "0814c855f7f41af2",
+          "followHash": "7c39c3f9a1c8b595"
         },
         {
           "id": 2,
@@ -1770,17 +1774,7 @@
         },
         {
           "id": 4,
-          "pick": "ok",
-          "cargo": false,
-          "canCrossWall": true,
-          "canEnterRail": false,
-          "reachableCount": 38,
-          "starts": [
-            "0:5,5"
-          ],
-          "nodes": 41,
-          "hash": "3d01c48f79de8e96",
-          "followHash": "cc97e472872ae558"
+          "pick": "immovable"
         },
         {
           "id": 5,
@@ -1792,17 +1786,7 @@
         },
         {
           "id": 7,
-          "pick": "ok",
-          "cargo": false,
-          "canCrossWall": true,
-          "canEnterRail": false,
-          "reachableCount": 38,
-          "starts": [
-            "0:4,4"
-          ],
-          "nodes": 41,
-          "hash": "7b7cbf5b5f7b2fe7",
-          "followHash": "537ed48b96c8f801"
+          "pick": "immovable"
         },
         {
           "id": 8,
@@ -1844,13 +1828,13 @@
     },
     {
       "name": "level_007",
-      "geo": "6x8|3x4",
+      "geo": "6x8|3x6",
       "yardGravity": false,
       "wallHeight": 7,
       "gaps": [],
       "motions": [],
-      "hashAfterSettle": "9e01924ed4e27fbd",
-      "movesLeft": 24,
+      "hashAfterSettle": "20c9a7ab8e474662",
+      "movesLeft": 25,
       "front": [
         "site:6,0,0",
         "site:7,0,0",
@@ -1868,35 +1852,45 @@
           "cargo": false,
           "canCrossWall": true,
           "canEnterRail": false,
-          "reachableCount": 31,
+          "reachableCount": 32,
           "starts": [
-            "0:0,6"
+            "0:3,6"
           ],
-          "nodes": 34,
-          "hash": "b6386e9935076d1c",
-          "followHash": "480dd24e4663560e"
+          "nodes": 35,
+          "hash": "db41ff528267cce9",
+          "followHash": "0fdce44d5431093b"
         },
         {
           "id": 1,
+          "pick": "immovable"
+        },
+        {
+          "id": 2,
           "pick": "ok",
           "cargo": false,
           "canCrossWall": true,
           "canEnterRail": false,
-          "reachableCount": 30,
+          "reachableCount": 40,
           "starts": [
-            "0:3,6"
+            "0:0,5"
           ],
-          "nodes": 33,
-          "hash": "cb45c91f18204f60",
-          "followHash": "867aca21f461ab43"
-        },
-        {
-          "id": 2,
-          "pick": "immovable"
+          "nodes": 43,
+          "hash": "1e3359ffd9536f3b",
+          "followHash": "a257260bbe275e5d"
         },
         {
           "id": 3,
-          "pick": "immovable"
+          "pick": "ok",
+          "cargo": false,
+          "canCrossWall": true,
+          "canEnterRail": false,
+          "reachableCount": 40,
+          "starts": [
+            "0:1,5"
+          ],
+          "nodes": 43,
+          "hash": "244ac224c8390ce6",
+          "followHash": "f91f424f8cf25a3f"
         },
         {
           "id": 4,
@@ -1924,17 +1918,7 @@
         },
         {
           "id": 10,
-          "pick": "ok",
-          "cargo": false,
-          "canCrossWall": false,
-          "canEnterRail": false,
-          "reachableCount": 2,
-          "starts": [
-            "0:2,1"
-          ],
-          "nodes": 5,
-          "hash": "7f4338c2e67f153c",
-          "followHash": "3ec8f31ddfff4096"
+          "pick": "immovable"
         },
         {
           "id": 11,
@@ -1946,11 +1930,11 @@
         },
         {
           "id": 13,
-          "pick": "immovable"
+          "pick": "covered"
         },
         {
           "id": 14,
-          "pick": "immovable"
+          "pick": "covered"
         },
         {
           "id": 15,
@@ -1958,10 +1942,18 @@
         },
         {
           "id": 16,
-          "pick": "covered"
+          "pick": "immovable"
         },
         {
           "id": 17,
+          "pick": "immovable"
+        },
+        {
+          "id": 18,
+          "pick": "immovable"
+        },
+        {
+          "id": 19,
           "pick": "immovable"
         }
       ]
@@ -1973,7 +1965,7 @@
       "wallHeight": 7,
       "gaps": [],
       "motions": [],
-      "hashAfterSettle": "bf8fec4bc6e01c97",
+      "hashAfterSettle": "6ce2f862f277557a",
       "movesLeft": 24,
       "front": [
         "site:6,0,0",
@@ -1992,13 +1984,13 @@
           "cargo": false,
           "canCrossWall": true,
           "canEnterRail": false,
-          "reachableCount": 34,
+          "reachableCount": 38,
           "starts": [
-            "0:0,7"
+            "0:4,7"
           ],
-          "nodes": 37,
-          "hash": "7aee4a277a450a4a",
-          "followHash": "6e6632df6d9442b0"
+          "nodes": 41,
+          "hash": "4f0c94ea3a813500",
+          "followHash": "ac278f901ba87e70"
         },
         {
           "id": 1,
@@ -2010,13 +2002,151 @@
           "cargo": false,
           "canCrossWall": true,
           "canEnterRail": false,
-          "reachableCount": 37,
+          "reachableCount": 39,
           "starts": [
-            "0:5,6"
+            "0:0,5"
           ],
-          "nodes": 40,
-          "hash": "ae4e42463b7909ab",
-          "followHash": "add2001cf06558b8"
+          "nodes": 42,
+          "hash": "a70fa2e521e3d614",
+          "followHash": "9a86cb455e40eb0d"
+        },
+        {
+          "id": 3,
+          "pick": "immovable"
+        },
+        {
+          "id": 4,
+          "pick": "ok",
+          "cargo": false,
+          "canCrossWall": false,
+          "canEnterRail": false,
+          "reachableCount": 7,
+          "starts": [
+            "0:1,4"
+          ],
+          "nodes": 10,
+          "hash": "f6fc18462d5f7928",
+          "followHash": "97f315a39301a9fd"
+        },
+        {
+          "id": 5,
+          "pick": "ok",
+          "cargo": false,
+          "canCrossWall": false,
+          "canEnterRail": false,
+          "reachableCount": 7,
+          "starts": [
+            "0:2,4"
+          ],
+          "nodes": 10,
+          "hash": "4751a28798f65e8a",
+          "followHash": "e0b904291005246c"
+        },
+        {
+          "id": 6,
+          "pick": "immovable"
+        },
+        {
+          "id": 7,
+          "pick": "immovable"
+        },
+        {
+          "id": 8,
+          "pick": "immovable"
+        },
+        {
+          "id": 9,
+          "pick": "immovable"
+        },
+        {
+          "id": 10,
+          "pick": "immovable"
+        },
+        {
+          "id": 11,
+          "pick": "immovable"
+        },
+        {
+          "id": 12,
+          "pick": "immovable"
+        },
+        {
+          "id": 13,
+          "pick": "immovable"
+        },
+        {
+          "id": 14,
+          "pick": "immovable"
+        },
+        {
+          "id": 15,
+          "pick": "immovable"
+        },
+        {
+          "id": 16,
+          "pick": "covered"
+        },
+        {
+          "id": 17,
+          "pick": "covered"
+        },
+        {
+          "id": 18,
+          "pick": "immovable"
+        }
+      ]
+    },
+    {
+      "name": "level_009",
+      "geo": "6x8|3x4",
+      "yardGravity": false,
+      "wallHeight": 7,
+      "gaps": [],
+      "motions": [],
+      "hashAfterSettle": "4c52e908f310c8e2",
+      "movesLeft": 25,
+      "front": [
+        "site:6,0,0",
+        "site:7,0,0",
+        "site:8,0,0"
+      ],
+      "masks": [
+        0,
+        0,
+        0
+      ],
+      "pieces": [
+        {
+          "id": 0,
+          "pick": "ok",
+          "cargo": false,
+          "canCrossWall": true,
+          "canEnterRail": false,
+          "reachableCount": 28,
+          "starts": [
+            "0:0,7"
+          ],
+          "nodes": 31,
+          "hash": "5b3740663e4d8ee2",
+          "followHash": "b27064712daa7b38"
+        },
+        {
+          "id": 1,
+          "pick": "immovable"
+        },
+        {
+          "id": 2,
+          "pick": "ok",
+          "cargo": false,
+          "canCrossWall": true,
+          "canEnterRail": false,
+          "reachableCount": 26,
+          "starts": [
+            "0:3,6"
+          ],
+          "nodes": 29,
+          "hash": "16e718b804518351",
+          "followHash": "bc3c7b40300d781d"
         },
         {
           "id": 3,
@@ -2048,17 +2178,27 @@
           "cargo": false,
           "canCrossWall": false,
           "canEnterRail": false,
-          "reachableCount": 2,
+          "reachableCount": 3,
           "starts": [
             "0:0,2"
           ],
-          "nodes": 5,
-          "hash": "0567ed2a1447fa57",
-          "followHash": "926d335fadc1a08f"
+          "nodes": 6,
+          "hash": "7abc0b3233bf47bd",
+          "followHash": "57b09efed50c49f7"
         },
         {
           "id": 10,
-          "pick": "immovable"
+          "pick": "ok",
+          "cargo": false,
+          "canCrossWall": false,
+          "canEnterRail": false,
+          "reachableCount": 2,
+          "starts": [
+            "0:1,2"
+          ],
+          "nodes": 5,
+          "hash": "d70fd431e3521d0e",
+          "followHash": "290b74e90a978cae"
         },
         {
           "id": 11,
@@ -2066,7 +2206,17 @@
         },
         {
           "id": 12,
-          "pick": "immovable"
+          "pick": "ok",
+          "cargo": false,
+          "canCrossWall": false,
+          "canEnterRail": false,
+          "reachableCount": 2,
+          "starts": [
+            "0:1,1"
+          ],
+          "nodes": 5,
+          "hash": "f80de4fbf577e8e2",
+          "followHash": "96165596f69a895a"
         },
         {
           "id": 13,
@@ -2086,19 +2236,33 @@
         },
         {
           "id": 17,
+          "pick": "ok",
+          "cargo": false,
+          "canCrossWall": false,
+          "canEnterRail": false,
+          "reachableCount": 2,
+          "starts": [
+            "0:4,0"
+          ],
+          "nodes": 5,
+          "hash": "fd477b84d408dce1",
+          "followHash": "f6ba9738ada44641"
+        },
+        {
+          "id": 18,
           "pick": "immovable"
         }
       ]
     },
     {
-      "name": "level_009",
-      "geo": "6x8|3x5",
+      "name": "level_010",
+      "geo": "6x8|3x6",
       "yardGravity": false,
-      "wallHeight": 7,
+      "wallHeight": 6,
       "gaps": [],
       "motions": [],
-      "hashAfterSettle": "05271957396ab5d3",
-      "movesLeft": 23,
+      "hashAfterSettle": "f232e8228e4eba41",
+      "movesLeft": 24,
       "front": [
         "site:6,0,0",
         "site:7,0,0",
@@ -2112,20 +2276,24 @@
       "pieces": [
         {
           "id": 0,
+          "pick": "immovable"
+        },
+        {
+          "id": 1,
           "pick": "ok",
           "cargo": false,
           "canCrossWall": true,
           "canEnterRail": false,
-          "reachableCount": 19,
+          "reachableCount": 30,
           "starts": [
             "0:1,6"
           ],
-          "nodes": 22,
-          "hash": "3c1f33de4950ca9d",
-          "followHash": "6814b293cbbc8bc0"
+          "nodes": 33,
+          "hash": "e0650aabcac533f9",
+          "followHash": "63149969ee6eac2d"
         },
         {
-          "id": 1,
+          "id": 2,
           "pick": "ok",
           "cargo": false,
           "canCrossWall": true,
@@ -2135,146 +2303,12 @@
             "0:4,6"
           ],
           "nodes": 34,
-          "hash": "f8382c28ae767a9a",
-          "followHash": "4776e0272598f6fd"
-        },
-        {
-          "id": 2,
-          "pick": "immovable"
+          "hash": "782983c9499e9f56",
+          "followHash": "137e38211b3c0af4"
         },
         {
           "id": 3,
-          "pick": "ok",
-          "cargo": false,
-          "canCrossWall": true,
-          "canEnterRail": false,
-          "reachableCount": 39,
-          "starts": [
-            "0:0,4"
-          ],
-          "nodes": 42,
-          "hash": "27c9eecbf12319e2",
-          "followHash": "1f785af2d4d89db8"
-        },
-        {
-          "id": 4,
           "pick": "immovable"
-        },
-        {
-          "id": 5,
-          "pick": "immovable"
-        },
-        {
-          "id": 6,
-          "pick": "immovable"
-        },
-        {
-          "id": 7,
-          "pick": "immovable"
-        },
-        {
-          "id": 8,
-          "pick": "immovable"
-        },
-        {
-          "id": 9,
-          "pick": "immovable"
-        },
-        {
-          "id": 10,
-          "pick": "immovable"
-        },
-        {
-          "id": 11,
-          "pick": "immovable"
-        },
-        {
-          "id": 12,
-          "pick": "immovable"
-        },
-        {
-          "id": 13,
-          "pick": "immovable"
-        },
-        {
-          "id": 14,
-          "pick": "covered"
-        },
-        {
-          "id": 15,
-          "pick": "covered"
-        },
-        {
-          "id": 16,
-          "pick": "immovable"
-        }
-      ]
-    },
-    {
-      "name": "level_010",
-      "geo": "6x8|3x4",
-      "yardGravity": false,
-      "wallHeight": 6,
-      "gaps": [],
-      "motions": [],
-      "hashAfterSettle": "b774e7464e0163dc",
-      "movesLeft": 23,
-      "front": [
-        "site:6,0,0",
-        "site:7,0,0",
-        "site:8,0,0"
-      ],
-      "masks": [
-        0,
-        0,
-        0
-      ],
-      "pieces": [
-        {
-          "id": 0,
-          "pick": "ok",
-          "cargo": false,
-          "canCrossWall": true,
-          "canEnterRail": false,
-          "reachableCount": 36,
-          "starts": [
-            "0:1,7"
-          ],
-          "nodes": 39,
-          "hash": "c54d3d28b7120091",
-          "followHash": "4d734d1b53c7b987"
-        },
-        {
-          "id": 1,
-          "pick": "immovable"
-        },
-        {
-          "id": 2,
-          "pick": "ok",
-          "cargo": false,
-          "canCrossWall": true,
-          "canEnterRail": false,
-          "reachableCount": 38,
-          "starts": [
-            "0:3,6"
-          ],
-          "nodes": 41,
-          "hash": "8f6e45b1bd733d21",
-          "followHash": "bc7af8e97a799a55"
-        },
-        {
-          "id": 3,
-          "pick": "ok",
-          "cargo": false,
-          "canCrossWall": true,
-          "canEnterRail": false,
-          "reachableCount": 36,
-          "starts": [
-            "0:4,6"
-          ],
-          "nodes": 39,
-          "hash": "f7596216209d9989",
-          "followHash": "a410cd301a247f23"
         },
         {
           "id": 4,
@@ -2322,7 +2356,7 @@
         },
         {
           "id": 15,
-          "pick": "covered"
+          "pick": "immovable"
         },
         {
           "id": 16,
@@ -2330,10 +2364,14 @@
         },
         {
           "id": 17,
-          "pick": "immovable"
+          "pick": "covered"
         },
         {
           "id": 18,
+          "pick": "covered"
+        },
+        {
+          "id": 19,
           "pick": "immovable"
         }
       ]
@@ -9658,6 +9696,939 @@
           "pick": "notOnBoard"
         }
       ]
+    },
+    {
+      "name": "wide P5_0 S4_0 Z4_90",
+      "geo": "6x8|3x5",
+      "yardGravity": false,
+      "wallHeight": 2,
+      "gaps": [],
+      "motions": [],
+      "hashAfterSettle": "4ce0841f5eee1e8b",
+      "movesLeft": 40,
+      "front": [
+        "site:6,0,0",
+        "site:7,0,0",
+        "site:8,0,0"
+      ],
+      "masks": [
+        0,
+        0,
+        0
+      ],
+      "pieces": [
+        {
+          "id": 0,
+          "pick": "ok",
+          "cargo": false,
+          "canCrossWall": false,
+          "canEnterRail": false,
+          "reachableCount": 4,
+          "starts": [
+            "0:0,0"
+          ],
+          "nodes": 7,
+          "hash": "3e0d94dafcef9ef5",
+          "followHash": "50d02198d6cea1bc"
+        },
+        {
+          "id": 1,
+          "pick": "ok",
+          "cargo": false,
+          "canCrossWall": true,
+          "canEnterRail": false,
+          "reachableCount": 43,
+          "starts": [
+            "0:3,0"
+          ],
+          "nodes": 46,
+          "hash": "7646a4060140d542",
+          "followHash": "d405060d46c82750"
+        },
+        {
+          "id": 2,
+          "pick": "ok",
+          "cargo": false,
+          "canCrossWall": true,
+          "canEnterRail": false,
+          "reachableCount": 45,
+          "starts": [
+            "0:3,3"
+          ],
+          "nodes": 48,
+          "hash": "b2db313fd0f59269",
+          "followHash": "87c20c36f1f82a59"
+        },
+        {
+          "id": 3,
+          "pick": "ok",
+          "cargo": false,
+          "canCrossWall": true,
+          "canEnterRail": false,
+          "reachableCount": 73,
+          "starts": [
+            "0:5,0"
+          ],
+          "nodes": 76,
+          "hash": "9cc106c509ae6710",
+          "followHash": "009acf7d7ad3015a"
+        },
+        {
+          "id": 4,
+          "pick": "ok",
+          "cargo": false,
+          "canCrossWall": true,
+          "canEnterRail": false,
+          "reachableCount": 62,
+          "starts": [
+            "0:0,4"
+          ],
+          "nodes": 65,
+          "hash": "209d7fbf8166e383",
+          "followHash": "6949514fa9b2a103"
+        }
+      ],
+      "level": {
+        "schemaVersion": 3,
+        "id": 8,
+        "chapter": 1,
+        "name": {
+          "tr": "Test",
+          "en": "Test"
+        },
+        "difficulty": "easy",
+        "moves": 40,
+        "goals": [
+          {
+            "type": "build"
+          }
+        ],
+        "gravity": {
+          "build": "normal",
+          "yard": false
+        },
+        "wall": {
+          "height": 2,
+          "gaps": []
+        },
+        "site": {
+          "cols": 3,
+          "rows": 5
+        },
+        "build": {
+          "mode": "segments",
+          "segments": [
+            {
+              "name": {
+                "tr": "D0",
+                "en": "S0"
+              },
+              "rows": [
+                "WWW",
+                "YYW",
+                "WYW",
+                "YYY",
+                "WWW"
+              ]
+            }
+          ]
+        },
+        "yard": {
+          "cols": 6,
+          "rows": 8,
+          "batches": [
+            {
+              "forSegment": 0,
+              "pieces": [
+                {
+                  "shape": "P5_0",
+                  "color": "W",
+                  "x": 0,
+                  "y": 0
+                },
+                {
+                  "shape": "S4_0",
+                  "color": "Y",
+                  "x": 3,
+                  "y": 0
+                },
+                {
+                  "shape": "Z4_90",
+                  "color": "W",
+                  "x": 3,
+                  "y": 3
+                },
+                {
+                  "shape": "B1_0",
+                  "color": "Y",
+                  "x": 5,
+                  "y": 0
+                },
+                {
+                  "shape": "D2_0",
+                  "color": "W",
+                  "x": 0,
+                  "y": 4
+                }
+              ]
+            }
+          ]
+        },
+        "obstacles": []
+      }
+    },
+    {
+      "name": "wide S4_90 Z4_0 P5_0 yard gravity",
+      "geo": "6x8|3x5",
+      "yardGravity": true,
+      "wallHeight": 4,
+      "gaps": [],
+      "motions": [
+        "piece:2:2,4>2,3:-1",
+        "piece:4:5,6>5,0:-6"
+      ],
+      "hashAfterSettle": "0a18e0818f340818",
+      "movesLeft": 40,
+      "front": [
+        "site:6,0,0",
+        "site:7,0,0",
+        "site:8,0,0"
+      ],
+      "masks": [
+        0,
+        0,
+        0
+      ],
+      "pieces": [
+        {
+          "id": 0,
+          "pick": "ok",
+          "cargo": false,
+          "canCrossWall": false,
+          "canEnterRail": false,
+          "reachableCount": 2,
+          "starts": [
+            "0:0,0"
+          ],
+          "nodes": 5,
+          "hash": "156845b92e627b12",
+          "followHash": "0ca95fd0ea67af99"
+        },
+        {
+          "id": 1,
+          "pick": "ok",
+          "cargo": false,
+          "canCrossWall": false,
+          "canEnterRail": false,
+          "reachableCount": 3,
+          "starts": [
+            "0:3,0"
+          ],
+          "nodes": 6,
+          "hash": "574ce32e075d794f",
+          "followHash": "984007191362adc2"
+        },
+        {
+          "id": 2,
+          "pick": "ok",
+          "cargo": false,
+          "canCrossWall": true,
+          "canEnterRail": false,
+          "reachableCount": 38,
+          "starts": [
+            "0:2,3"
+          ],
+          "nodes": 41,
+          "hash": "d3f6d359cee5339e",
+          "followHash": "83c54ecbec736d8e"
+        },
+        {
+          "id": 3,
+          "pick": "ok",
+          "cargo": false,
+          "canCrossWall": true,
+          "canEnterRail": false,
+          "reachableCount": 45,
+          "starts": [
+            "0:0,2"
+          ],
+          "nodes": 48,
+          "hash": "bb9586e6f7a2d377",
+          "followHash": "16b74a5687adbaa3"
+        },
+        {
+          "id": 4,
+          "pick": "ok",
+          "cargo": false,
+          "canCrossWall": true,
+          "canEnterRail": false,
+          "reachableCount": 68,
+          "starts": [
+            "0:5,0"
+          ],
+          "nodes": 71,
+          "hash": "e7fec35b7245b120",
+          "followHash": "7fb7c210e4ff4cd1"
+        }
+      ],
+      "level": {
+        "schemaVersion": 3,
+        "id": 8,
+        "chapter": 1,
+        "name": {
+          "tr": "Test",
+          "en": "Test"
+        },
+        "difficulty": "easy",
+        "moves": 40,
+        "goals": [
+          {
+            "type": "build"
+          }
+        ],
+        "gravity": {
+          "build": "normal",
+          "yard": true
+        },
+        "wall": {
+          "height": 4,
+          "gaps": []
+        },
+        "site": {
+          "cols": 3,
+          "rows": 5
+        },
+        "build": {
+          "mode": "segments",
+          "segments": [
+            {
+              "name": {
+                "tr": "D0",
+                "en": "S0"
+              },
+              "rows": [
+                "WWW",
+                "YYW",
+                "WYW",
+                "YYY",
+                "WWW"
+              ]
+            }
+          ]
+        },
+        "yard": {
+          "cols": 6,
+          "rows": 8,
+          "batches": [
+            {
+              "forSegment": 0,
+              "pieces": [
+                {
+                  "shape": "S4_90",
+                  "color": "W",
+                  "x": 0,
+                  "y": 0
+                },
+                {
+                  "shape": "Z4_0",
+                  "color": "Y",
+                  "x": 3,
+                  "y": 0
+                },
+                {
+                  "shape": "P5_0",
+                  "color": "W",
+                  "x": 2,
+                  "y": 4
+                },
+                {
+                  "shape": "O4_0",
+                  "color": "Y",
+                  "x": 0,
+                  "y": 2
+                },
+                {
+                  "shape": "B1_0",
+                  "color": "Y",
+                  "x": 5,
+                  "y": 6
+                }
+              ]
+            }
+          ]
+        },
+        "obstacles": []
+      }
+    },
+    {
+      "name": "wide Z4_90 S4_0 P5_0 static gap",
+      "geo": "6x8|3x5",
+      "yardGravity": false,
+      "wallHeight": 3,
+      "gaps": [
+        "static:0:1"
+      ],
+      "motions": [],
+      "hashAfterSettle": "ed3251cd5b4c2e33",
+      "movesLeft": 40,
+      "front": [
+        "site:6,0,0",
+        "site:7,0,0",
+        "site:8,0,0"
+      ],
+      "masks": [
+        0,
+        0,
+        0
+      ],
+      "pieces": [
+        {
+          "id": 0,
+          "pick": "ok",
+          "cargo": false,
+          "canCrossWall": true,
+          "canEnterRail": false,
+          "reachableCount": 45,
+          "starts": [
+            "0:0,0"
+          ],
+          "nodes": 48,
+          "hash": "5c756b2bc6f4d0e7",
+          "followHash": "c8fe7314e0a70679"
+        },
+        {
+          "id": 1,
+          "pick": "ok",
+          "cargo": false,
+          "canCrossWall": true,
+          "canEnterRail": false,
+          "reachableCount": 46,
+          "starts": [
+            "0:4,0"
+          ],
+          "nodes": 49,
+          "hash": "df6814e4f0162b7e",
+          "followHash": "1f7b8e2aea86afde"
+        },
+        {
+          "id": 2,
+          "pick": "ok",
+          "cargo": false,
+          "canCrossWall": true,
+          "canEnterRail": false,
+          "reachableCount": 44,
+          "starts": [
+            "0:0,3"
+          ],
+          "nodes": 47,
+          "hash": "160e21196eca3016",
+          "followHash": "cb80df0e8dff14d5"
+        },
+        {
+          "id": 3,
+          "pick": "immovable"
+        }
+      ],
+      "level": {
+        "schemaVersion": 3,
+        "id": 8,
+        "chapter": 1,
+        "name": {
+          "tr": "Test",
+          "en": "Test"
+        },
+        "difficulty": "easy",
+        "moves": 40,
+        "goals": [
+          {
+            "type": "build"
+          }
+        ],
+        "gravity": {
+          "build": "normal",
+          "yard": false
+        },
+        "wall": {
+          "height": 3,
+          "gaps": [
+            {
+              "type": "static",
+              "y": 0,
+              "size": 1
+            }
+          ]
+        },
+        "site": {
+          "cols": 3,
+          "rows": 5
+        },
+        "build": {
+          "mode": "segments",
+          "segments": [
+            {
+              "name": {
+                "tr": "D0",
+                "en": "S0"
+              },
+              "rows": [
+                "WWW",
+                "YYW",
+                "WYW",
+                "YYY",
+                "WWW"
+              ]
+            }
+          ]
+        },
+        "yard": {
+          "cols": 6,
+          "rows": 8,
+          "batches": [
+            {
+              "forSegment": 0,
+              "pieces": [
+                {
+                  "shape": "Z4_90",
+                  "color": "Y",
+                  "x": 0,
+                  "y": 0
+                },
+                {
+                  "shape": "S4_0",
+                  "color": "W",
+                  "x": 4,
+                  "y": 0
+                },
+                {
+                  "shape": "P5_0",
+                  "color": "Y",
+                  "x": 0,
+                  "y": 3
+                },
+                {
+                  "shape": "D2_90",
+                  "color": "W",
+                  "x": 2,
+                  "y": 0
+                }
+              ]
+            }
+          ]
+        },
+        "obstacles": []
+      }
+    },
+    {
+      "name": "wide pallets C3_0 x3 L4_90 x2",
+      "geo": "6x8|3x5",
+      "yardGravity": false,
+      "wallHeight": 2,
+      "gaps": [],
+      "motions": [],
+      "hashAfterSettle": "b95e77212280ce95",
+      "movesLeft": 40,
+      "front": [
+        "site:6,0,0",
+        "site:7,0,0",
+        "site:8,0,0"
+      ],
+      "masks": [
+        0,
+        0,
+        0
+      ],
+      "pieces": [
+        {
+          "id": 0,
+          "pick": "covered"
+        },
+        {
+          "id": 1,
+          "pick": "covered"
+        },
+        {
+          "id": 2,
+          "pick": "ok",
+          "cargo": false,
+          "canCrossWall": true,
+          "canEnterRail": false,
+          "reachableCount": 61,
+          "starts": [
+            "0:0,0"
+          ],
+          "nodes": 64,
+          "hash": "ba795cb7b0ee47fe",
+          "followHash": "2f794638c7f3a061"
+        },
+        {
+          "id": 3,
+          "pick": "covered"
+        },
+        {
+          "id": 4,
+          "pick": "ok",
+          "cargo": false,
+          "canCrossWall": true,
+          "canEnterRail": false,
+          "reachableCount": 54,
+          "starts": [
+            "0:3,0"
+          ],
+          "nodes": 57,
+          "hash": "28fd2b9d1928edbd",
+          "followHash": "53c0e10f6ed71c0b"
+        },
+        {
+          "id": 5,
+          "pick": "ok",
+          "cargo": false,
+          "canCrossWall": true,
+          "canEnterRail": false,
+          "reachableCount": 81,
+          "starts": [
+            "0:2,4"
+          ],
+          "nodes": 84,
+          "hash": "222b3931094d79a2",
+          "followHash": "f8da7fb473408686"
+        }
+      ],
+      "level": {
+        "schemaVersion": 3,
+        "id": 8,
+        "chapter": 1,
+        "name": {
+          "tr": "Test",
+          "en": "Test"
+        },
+        "difficulty": "easy",
+        "moves": 40,
+        "goals": [
+          {
+            "type": "build"
+          }
+        ],
+        "gravity": {
+          "build": "normal",
+          "yard": false
+        },
+        "wall": {
+          "height": 2,
+          "gaps": []
+        },
+        "site": {
+          "cols": 3,
+          "rows": 5
+        },
+        "build": {
+          "mode": "segments",
+          "segments": [
+            {
+              "name": {
+                "tr": "D0",
+                "en": "S0"
+              },
+              "rows": [
+                "WWW",
+                "YYW",
+                "WYW",
+                "YYY",
+                "WWW"
+              ]
+            }
+          ]
+        },
+        "yard": {
+          "cols": 6,
+          "rows": 8,
+          "batches": [
+            {
+              "forSegment": 0,
+              "pieces": [
+                {
+                  "shape": "C3_0",
+                  "color": "W",
+                  "x": 0,
+                  "y": 0,
+                  "stack": {
+                    "id": 0,
+                    "z": 0
+                  }
+                },
+                {
+                  "shape": "C3_0",
+                  "color": "W",
+                  "x": 0,
+                  "y": 0,
+                  "stack": {
+                    "id": 0,
+                    "z": 1
+                  }
+                },
+                {
+                  "shape": "C3_0",
+                  "color": "W",
+                  "x": 0,
+                  "y": 0,
+                  "stack": {
+                    "id": 0,
+                    "z": 2
+                  }
+                },
+                {
+                  "shape": "L4_90",
+                  "color": "Y",
+                  "x": 3,
+                  "y": 0,
+                  "stack": {
+                    "id": 1,
+                    "z": 0
+                  }
+                },
+                {
+                  "shape": "L4_90",
+                  "color": "Y",
+                  "x": 3,
+                  "y": 0,
+                  "stack": {
+                    "id": 1,
+                    "z": 1
+                  }
+                },
+                {
+                  "shape": "B1_0",
+                  "color": "W",
+                  "x": 2,
+                  "y": 4
+                }
+              ]
+            }
+          ]
+        },
+        "obstacles": []
+      }
+    },
+    {
+      "name": "wide pallets T4_0 x4 J4_270 x2 O4_0 x2",
+      "geo": "6x8|3x5",
+      "yardGravity": false,
+      "wallHeight": 3,
+      "gaps": [],
+      "motions": [],
+      "hashAfterSettle": "b0d36f9112d55fe2",
+      "movesLeft": 40,
+      "front": [
+        "site:6,0,0",
+        "site:7,0,0",
+        "site:8,0,0"
+      ],
+      "masks": [
+        0,
+        0,
+        0
+      ],
+      "pieces": [
+        {
+          "id": 0,
+          "pick": "covered"
+        },
+        {
+          "id": 1,
+          "pick": "covered"
+        },
+        {
+          "id": 2,
+          "pick": "covered"
+        },
+        {
+          "id": 3,
+          "pick": "ok",
+          "cargo": false,
+          "canCrossWall": true,
+          "canEnterRail": false,
+          "reachableCount": 47,
+          "starts": [
+            "0:0,0"
+          ],
+          "nodes": 50,
+          "hash": "161e77feafc77df2",
+          "followHash": "3100433690d2a7d1"
+        },
+        {
+          "id": 4,
+          "pick": "covered"
+        },
+        {
+          "id": 5,
+          "pick": "ok",
+          "cargo": false,
+          "canCrossWall": true,
+          "canEnterRail": false,
+          "reachableCount": 46,
+          "starts": [
+            "0:3,0"
+          ],
+          "nodes": 49,
+          "hash": "c0f090a56e0e7fb4",
+          "followHash": "f3fc8104f15aafd2"
+        },
+        {
+          "id": 6,
+          "pick": "covered"
+        },
+        {
+          "id": 7,
+          "pick": "ok",
+          "cargo": false,
+          "canCrossWall": true,
+          "canEnterRail": false,
+          "reachableCount": 58,
+          "starts": [
+            "0:2,5"
+          ],
+          "nodes": 61,
+          "hash": "5c562bbaa65af624",
+          "followHash": "a5a94b8534ea4f4f"
+        }
+      ],
+      "level": {
+        "schemaVersion": 3,
+        "id": 8,
+        "chapter": 1,
+        "name": {
+          "tr": "Test",
+          "en": "Test"
+        },
+        "difficulty": "easy",
+        "moves": 40,
+        "goals": [
+          {
+            "type": "build"
+          }
+        ],
+        "gravity": {
+          "build": "normal",
+          "yard": false
+        },
+        "wall": {
+          "height": 3,
+          "gaps": []
+        },
+        "site": {
+          "cols": 3,
+          "rows": 5
+        },
+        "build": {
+          "mode": "segments",
+          "segments": [
+            {
+              "name": {
+                "tr": "D0",
+                "en": "S0"
+              },
+              "rows": [
+                "WWW",
+                "YYW",
+                "WYW",
+                "YYY",
+                "WWW"
+              ]
+            }
+          ]
+        },
+        "yard": {
+          "cols": 6,
+          "rows": 8,
+          "batches": [
+            {
+              "forSegment": 0,
+              "pieces": [
+                {
+                  "shape": "T4_0",
+                  "color": "W",
+                  "x": 0,
+                  "y": 0,
+                  "stack": {
+                    "id": 0,
+                    "z": 0
+                  }
+                },
+                {
+                  "shape": "T4_0",
+                  "color": "W",
+                  "x": 0,
+                  "y": 0,
+                  "stack": {
+                    "id": 0,
+                    "z": 1
+                  }
+                },
+                {
+                  "shape": "T4_0",
+                  "color": "W",
+                  "x": 0,
+                  "y": 0,
+                  "stack": {
+                    "id": 0,
+                    "z": 2
+                  }
+                },
+                {
+                  "shape": "T4_0",
+                  "color": "W",
+                  "x": 0,
+                  "y": 0,
+                  "stack": {
+                    "id": 0,
+                    "z": 3
+                  }
+                },
+                {
+                  "shape": "J4_270",
+                  "color": "Y",
+                  "x": 3,
+                  "y": 0,
+                  "stack": {
+                    "id": 1,
+                    "z": 0
+                  }
+                },
+                {
+                  "shape": "J4_270",
+                  "color": "Y",
+                  "x": 3,
+                  "y": 0,
+                  "stack": {
+                    "id": 1,
+                    "z": 1
+                  }
+                },
+                {
+                  "shape": "O4_0",
+                  "color": "W",
+                  "x": 2,
+                  "y": 5,
+                  "stack": {
+                    "id": 2,
+                    "z": 0
+                  }
+                },
+                {
+                  "shape": "O4_0",
+                  "color": "W",
+                  "x": 2,
+                  "y": 5,
+                  "stack": {
+                    "id": 2,
+                    "z": 1
+                  }
+                }
+              ]
+            }
+          ]
+        },
+        "obstacles": []
+      }
     }
   ]
 }

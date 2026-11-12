@@ -80,12 +80,6 @@ namespace MinikUsta.Core
             return YardOcc(s, PieceX(s, id) + first.X, PieceY(s, id) + first.Y) != id + 1;
         }
 
-        /// <summary>
-        /// K-58 item 4: the cells of the held block count as empty for its drag (its own start), except a pallet layer with a layer
-        /// below it: its cells stay full (the layer below). The occupancy code to skip, or 0 for none.
-        /// </summary>
-        public static int OwnCellCode(GameState s, int id) => LayerBelow(s, id) >= 0 ? 0 : id + 1;
-
         private static void WritePiece(GameState s, int id, int value)
         {
             int zone = PieceZone(s, id);
@@ -160,8 +154,10 @@ namespace MinikUsta.Core
             int h = geo.H;
             int rows = geo.Rows;
             int siteX = geo.SiteX;
-            // K-58 item 4: a pallet layer's own cells stay blocked (the layer below fills them)
-            int skip = exclude >= 0 && s.Lvl.HasStacks ? OwnCellCode(s, exclude) : exclude + 1;
+            // D-106 (GDD K-58 item 10, RulesVersion 6): a held pallet layer does not collide with the remaining layers of its own
+            // pallet. They share its cells and YardOcc holds the held (top) layer's code there, so skipping exclude + 1 frees the
+            // whole footprint and the layer rises out of the stack. Every other block, the wall and the frame still collide.
+            int skip = exclude + 1;
             for (int y = 0; y < rows; y++)
             {
                 int row = 0;

@@ -1,9 +1,10 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 88 88" width="88" height="88" data-scale="1.2" data-pivot="0.5 0.5">
-<defs><linearGradient id="bd" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#FFFFFF"/><stop offset="1" stop-color="#DCE3F2"/></linearGradient></defs>
-<circle cx="44" cy="50" r="38" fill="#221B66" fill-opacity=".45"/>
-<circle cx="44" cy="44" r="38" fill="#221B66"/>
-<circle cx="44" cy="44" r="33" fill="url(#bd)"/>
-<ellipse cx="34" cy="26" rx="16" ry="6" transform="rotate(-28 34 26)" fill="#FFFFFF" fill-opacity=".8"/>
-<rect x="22" y="19" width="44" height="6" rx="2" fill="#4A2C0D"/><rect x="23.5" y="19" width="41" height="4" rx="1.5" fill="#D9A05A"/><rect x="22" y="25" width="44" height="6" rx="2" fill="#4A2C0D"/><rect x="23.5" y="25" width="41" height="4" rx="1.5" fill="#D9A05A"/><rect x="22" y="31" width="44" height="6" rx="2" fill="#4A2C0D"/><rect x="23.5" y="31" width="41" height="4" rx="1.5" fill="#D9A05A"/><rect x="22" y="37" width="44" height="6" rx="2" fill="#4A2C0D"/><rect x="23.5" y="37" width="41" height="4" rx="1.5" fill="#D9A05A"/>
-<g transform="translate(30 56) scale(.9)" stroke-linecap="round" stroke-linejoin="round" fill="none"><path d="M-6 -6 L6 6 M6 -6 L-6 6" stroke="#FFFFFF" stroke-width="10"/><path d="M-6 -6 L6 6 M6 -6 L-6 6" stroke="#4A2C0D" stroke-width="5"/></g><g transform="translate(56 56) scale(.95)" stroke-linecap="round" stroke-linejoin="round" fill="none"><path d="M5 15 V-15 L-10 6 H11" stroke="#FFFFFF" stroke-width="10.5"/><path d="M5 15 V-15 L-10 6 H11" stroke="#4A2C0D" stroke-width="5.4"/></g>
+<!-- D-108 (web ART_DIRECTION 3A.6, tokens check.palletV3c.badge): white circle, 5 px outline #2E3A4B (3 px heavier at the bottom), "×4" in the outline ink. No wood, no planks. -->
+<defs><linearGradient id="bd" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#FFFFFF"/><stop offset="1" stop-color="#DDE3EC"/></linearGradient></defs>
+<circle cx="44" cy="46" r="41" fill="#2E3A4B"/>
+<circle cx="44" cy="43" r="41" fill="#2E3A4B"/>
+<circle cx="44" cy="43" r="36" fill="url(#bd)"/>
+<ellipse cx="30" cy="22" rx="13" ry="4.5" transform="rotate(-30 30 22)" fill="#FFFFFF" fill-opacity=".95"/>
+<g transform="translate(25 48)" stroke-linecap="round" fill="none"><path d="M-7 -7 L7 7 M7 -7 L-7 7" stroke="#2E3A4B" stroke-width="7"/></g>
+<text x="56" y="65" font-family="'Baloo 2', sans-serif" font-weight="800" font-size="58" text-anchor="middle" fill="#2E3A4B">4</text>
 </svg>

@@ -131,7 +131,7 @@ namespace MinikUsta.Presentation.Tests
             Emit(SceneDump.Scene("win", win));
         }
 
-        [Test(Description = "E3/P4: the v3 block traits on their levels (5 two-tone, 6 wide site, 7 pallet, 8 wrap + scissors, 9 slippery, 10 bonus, 99 showcase) as scenes for tools/art/compose.mjs")]
+        [Test(Description = "E3/P4: the v3 block traits on their levels (5 two-tone, 6 wide site, 7 pallet + bonus, 8 wrap + scissors, 9 slippery, 10 finale, 99 showcase) as scenes for tools/art/compose.mjs")]
         public void E3_scenes_v3_levels_show_the_block_traits()
         {
             foreach (int n in new[] { 5, 6, 7, 8, 9, 10, 99 })
@@ -144,14 +144,14 @@ namespace MinikUsta.Presentation.Tests
                 Assert.AreEqual(n, rig.Player.LevelNumber);
                 Emit(SceneDump.Scene("traits-" + n, rig));
             }
-            // P4 (D-105): level 10 the moment its bonus block pays — the gold "+2" over the moves plate, the king cheering
+            // P4 (D-105): the moment the bonus block pays (level 7 since D-107) — the gold "+2" over the moves plate, the king cheering
             var bonus = new AppRig(Store(10, 1250, true));
             bonus.App.Boot();
             bonus.Tap(HomeView.PlayId);
-            bonus.App.DebugStartLevel(10);
+            bonus.App.DebugStartLevel(Play.BonusLevel);
             bonus.Settle();
             bool shown = false;
-            foreach (var m in Play.SolverGolden(10).Drags)
+            foreach (var m in Play.SolverGolden(Play.BonusLevel).Drags)
             {
                 bonus.Settle();
                 var r = bonus.Player.Commit(m);

@@ -59,7 +59,8 @@ namespace MinikUsta.Core.Level
         public static readonly string[] HighlightPatterns =
         {
             "piece:(\\d{1,2}|k[1-9]_\\d{1,2})",
-            "cell:[0-7],[0-9]",
+            // CL-V3C-15: x 0-8 (a 3-column site makes a 9-column board, D-103); the board check is L-17 (Geo.Cols, Geo.H)
+            "cell:[0-8],[0-9]",
             "gap:[0-2]",
             "obstacle:\\d{1,2}",
             "debris:\\d{1,2}",

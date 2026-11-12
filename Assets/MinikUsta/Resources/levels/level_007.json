@@ -4,19 +4,18 @@
   "chapter": 1,
   "name": { "tr": "Palet Yığını", "en": "Pallet Stack" },
   "difficulty": "normal",
-  "moves": 24,
+  "moves": 25,
   "teaches": "Y10",
   "goals": [{ "type": "build" }],
   "gravity": { "build": "normal", "yard": false },
   "wall": { "height": 7, "gaps": [] },
-  "site": { "cols": 3, "rows": 4 },
+  "site": { "cols": 3, "rows": 6 },
   "build": {
     "mode": "segments",
     "segments": [
-      { "name": { "tr": "Kat 1", "en": "Floor 1" }, "rows": ["RRR", "RYY", "WWY", "WRR"] },
-      { "name": { "tr": "Kat 2", "en": "Floor 2" }, "rows": ["WWR", "YWR", "YWW", "YYW"] },
-      { "name": { "tr": "Kat 3", "en": "Floor 3" }, "rows": ["WWY", "YYY", "YWW", "YYW"] },
-      { "name": { "tr": "Kat 4", "en": "Floor 4" }, "rows": ["WWY", "RYY", "RYY", "WWY"] }
+      { "name": { "tr": "Kat 1", "en": "Floor 1" }, "rows": ["RRR", "YYR", "YRW", "RRW", "RYW", "YYW"] },
+      { "name": { "tr": "Kat 2", "en": "Floor 2" }, "rows": ["YYW", "YWW", "YYW", "YYW", "RYY", "RYY"] },
+      { "name": { "tr": "Kat 3", "en": "Floor 3" }, "rows": ["WYY", "WWY", "YYR", "YYR", "YYR", "YYR"] }
     ]
   },
   "yard": {
@@ -26,24 +25,26 @@
       {
         "forSegment": 0,
         "pieces": [
-          { "shape": "C3_180", "color": "W", "x": 0, "y": 6 },
-          { "shape": "C3_90", "color": "W", "x": 3, "y": 6 },
-          { "shape": "D2_90", "color": "R", "x": 4, "y": 6 },
-          { "shape": "D2_90", "color": "R", "x": 4, "y": 5 },
-          { "shape": "L4_0", "color": "Y", "x": 0, "y": 4 },
-          { "shape": "C3_180", "color": "W", "x": 1, "y": 4 },
-          { "shape": "L4_0", "color": "Y", "x": 3, "y": 3 },
-          { "shape": "C3_180", "color": "Y", "x": 4, "y": 3 },
-          { "shape": "C3_180", "color": "Y", "x": 0, "y": 2 },
-          { "shape": "D2_0", "color": "R", "x": 0, "y": 1 },
-          { "shape": "D2_0", "color": "R", "x": 2, "y": 1 },
-          { "shape": "C3_180", "color": "W", "x": 3, "y": 1 },
-          { "shape": "D2_0", "color": "R", "x": 5, "y": 1 },
-          { "shape": "C3_270", "color": "Y", "x": 0, "y": 0 },
-          { "shape": "C3_270", "color": "Y", "x": 2, "y": 0 },
-          { "shape": "D2_90", "color": "W", "x": 4, "y": 0, "stack": { "id": 0, "z": 0 } },
-          { "shape": "D2_90", "color": "W", "x": 4, "y": 0, "stack": { "id": 0, "z": 1 } },
-          { "shape": "D2_90", "color": "W", "x": 4, "y": 0, "stack": { "id": 0, "z": 2 } }
+          { "shape": "C3_90", "color": "Y", "x": 3, "y": 6 },
+          { "shape": "C3_270", "color": "Y", "x": 4, "y": 6 },
+          { "shape": "D2_0", "color": "R", "x": 0, "y": 5 },
+          { "shape": "D2_0", "color": "R", "x": 1, "y": 5 },
+          { "shape": "D2_90", "color": "R", "x": 0, "y": 4 },
+          { "shape": "C3_270", "color": "W", "x": 2, "y": 4 },
+          { "shape": "D2_0", "color": "W", "x": 4, "y": 4 },
+          { "shape": "D2_0", "color": "W", "x": 5, "y": 4 },
+          { "shape": "D2_0", "color": "R", "x": 0, "y": 2 },
+          { "shape": "D2_0", "color": "W", "x": 1, "y": 2 },
+          { "shape": "D2_0", "color": "R", "x": 2, "y": 2 },
+          { "shape": "C3_90", "color": "Y", "x": 3, "y": 2 },
+          { "shape": "D2_0", "color": "R", "x": 5, "y": 2, "flags": ["bonus"], "bonusMoves": 2 },
+          { "shape": "O4_0", "color": "Y", "x": 0, "y": 0, "stack": { "id": 0, "z": 0 } },
+          { "shape": "O4_0", "color": "Y", "x": 0, "y": 0, "stack": { "id": 0, "z": 1 } },
+          { "shape": "O4_0", "color": "Y", "x": 0, "y": 0, "stack": { "id": 0, "z": 2 } },
+          { "shape": "O4_0", "color": "Y", "x": 0, "y": 0, "stack": { "id": 0, "z": 3 } },
+          { "shape": "D2_0", "color": "R", "x": 2, "y": 0 },
+          { "shape": "C3_0", "color": "W", "x": 3, "y": 0 },
+          { "shape": "C3_180", "color": "Y", "x": 4, "y": 0 }
         ]
       }
     ]
@@ -52,10 +53,18 @@
   "tutorial": [
     {
       "step": 1,
-      "highlight": ["piece:17"],
-      "textKey": "tut.m.useall",
-      "done": { "event": "placementCorrect", "count": 1, "piece": "piece:17" }
+      "startOn": { "event": "segmentDone", "count": 1 },
+      "highlight": ["piece:16"],
+      "hand": { "kind": "tap" },
+      "textKey": "tut.m.pallet",
+      "done": { "event": "overWall", "count": 1 }
+    },
+    {
+      "step": 2,
+      "highlight": ["piece:16"],
+      "textKey": "tut.m.palletsite",
+      "done": { "event": "placementCorrect", "count": 1, "piece": "piece:16" }
     }
   ],
-  "targets": { "min": [20, 20], "deadRate": [0, 0], "policyWin": [0.8, 0.9] }
+  "targets": { "min": [21, 21], "deadRate": [0, 0], "policyWin": [0.8, 0.9] }
 }

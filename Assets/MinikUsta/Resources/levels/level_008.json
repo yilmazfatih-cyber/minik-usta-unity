@@ -2,81 +2,21 @@
   "schemaVersion": 3,
   "id": 8,
   "chapter": 1,
-  "name": {
-    "tr": "Paketli Kat",
-    "en": "Wrapped Floor"
-  },
+  "name": { "tr": "Paketli Kat", "en": "Wrapped Floor" },
   "difficulty": "normal",
   "moves": 24,
   "teaches": "Y11",
-  "goals": [
-    {
-      "type": "build"
-    }
-  ],
-  "gravity": {
-    "build": "normal",
-    "yard": false
-  },
-  "wall": {
-    "height": 7,
-    "gaps": []
-  },
-  "site": {
-    "cols": 3,
-    "rows": 4
-  },
+  "goals": [{ "type": "build" }],
+  "gravity": { "build": "normal", "yard": false },
+  "wall": { "height": 7, "gaps": [] },
+  "site": { "cols": 3, "rows": 4 },
   "build": {
     "mode": "segments",
     "segments": [
-      {
-        "name": {
-          "tr": "Kat 1",
-          "en": "Floor 1"
-        },
-        "rows": [
-          "WWW",
-          "YWG",
-          "YYW",
-          "WWW"
-        ]
-      },
-      {
-        "name": {
-          "tr": "Kat 2",
-          "en": "Floor 2"
-        },
-        "rows": [
-          "GGG",
-          "YYG",
-          "YYG",
-          "YYG"
-        ]
-      },
-      {
-        "name": {
-          "tr": "Kat 3",
-          "en": "Floor 3"
-        },
-        "rows": [
-          "GGY",
-          "GYY",
-          "WYG",
-          "YYG"
-        ]
-      },
-      {
-        "name": {
-          "tr": "Kat 4",
-          "en": "Floor 4"
-        },
-        "rows": [
-          "GGY",
-          "YYY",
-          "YYY",
-          "YGG"
-        ]
-      }
+      { "name": { "tr": "Kat 1", "en": "Floor 1" }, "rows": ["YYG", "YWG", "YWW", "YWG"] },
+      { "name": { "tr": "Kat 2", "en": "Floor 2" }, "rows": ["GGG", "GGY", "WGY", "WWY"] },
+      { "name": { "tr": "Kat 3", "en": "Floor 3" }, "rows": ["WGG", "YYY", "GWY", "GWW"] },
+      { "name": { "tr": "Kat 4", "en": "Floor 4" }, "rows": ["WYY", "WWY", "WYY", "WWY"] }
     ]
   },
   "yard": {
@@ -86,137 +26,25 @@
       {
         "forSegment": 0,
         "pieces": [
-          {
-            "shape": "D2_90",
-            "color": "G",
-            "x": 0,
-            "y": 7
-          },
-          {
-            "shape": "L4_270",
-            "color": "W",
-            "x": 0,
-            "y": 6
-          },
-          {
-            "shape": "D2_0",
-            "color": "G",
-            "x": 5,
-            "y": 6,
-            "colors": "GW"
-          },
-          {
-            "shape": "C3_270",
-            "color": "Y",
-            "x": 2,
-            "y": 5,
-            "flags": [
-              "scissors"
-            ]
-          },
-          {
-            "shape": "C3_0",
-            "color": "Y",
-            "x": 4,
-            "y": 5
-          },
-          {
-            "shape": "C3_180",
-            "color": "W",
-            "x": 0,
-            "y": 4
-          },
-          {
-            "shape": "C3_90",
-            "color": "Y",
-            "x": 2,
-            "y": 3
-          },
-          {
-            "shape": "C3_270",
-            "color": "Y",
-            "x": 3,
-            "y": 3
-          },
-          {
-            "shape": "D2_0",
-            "color": "G",
-            "x": 5,
-            "y": 3
-          },
-          {
-            "shape": "D2_0",
-            "color": "G",
-            "x": 0,
-            "y": 2
-          },
-          {
-            "shape": "D2_0",
-            "color": "G",
-            "x": 1,
-            "y": 2
-          },
-          {
-            "shape": "C3_270",
-            "color": "Y",
-            "x": 1,
-            "y": 1,
-            "flags": [
-              "wrapped"
-            ]
-          },
-          {
-            "shape": "L4_90",
-            "color": "Y",
-            "x": 3,
-            "y": 1
-          },
-          {
-            "shape": "D2_0",
-            "color": "W",
-            "x": 0,
-            "y": 0,
-            "colors": "WG"
-          },
-          {
-            "shape": "D2_90",
-            "color": "G",
-            "x": 1,
-            "y": 0,
-            "stack": {
-              "id": 0,
-              "z": 0
-            }
-          },
-          {
-            "shape": "D2_90",
-            "color": "G",
-            "x": 1,
-            "y": 0,
-            "stack": {
-              "id": 0,
-              "z": 1
-            }
-          },
-          {
-            "shape": "D2_90",
-            "color": "G",
-            "x": 1,
-            "y": 0,
-            "stack": {
-              "id": 0,
-              "z": 2
-            }
-          },
-          {
-            "shape": "L4_270",
-            "color": "Y",
-            "x": 3,
-            "y": 0,
-            "flags": [
-              "wrapped"
-            ]
-          }
+          { "shape": "D2_90", "color": "Y", "x": 4, "y": 7 },
+          { "shape": "D2_90", "color": "W", "x": 4, "y": 6, "colors": "WG" },
+          { "shape": "D2_0", "color": "G", "x": 0, "y": 5 },
+          { "shape": "C3_0", "color": "W", "x": 3, "y": 5, "flags": ["scissors"] },
+          { "shape": "I3_0", "color": "Y", "x": 1, "y": 4 },
+          { "shape": "I3_0", "color": "Y", "x": 2, "y": 4 },
+          { "shape": "D2_0", "color": "G", "x": 5, "y": 4 },
+          { "shape": "D2_0", "color": "Y", "x": 0, "y": 3, "colors": "YW" },
+          { "shape": "D2_0", "color": "G", "x": 3, "y": 3 },
+          { "shape": "C3_0", "color": "W", "x": 4, "y": 3, "flags": ["wrapped"] },
+          { "shape": "D2_90", "color": "G", "x": 0, "y": 2, "flags": ["wrapped"] },
+          { "shape": "C3_180", "color": "Y", "x": 1, "y": 2 },
+          { "shape": "D2_90", "color": "G", "x": 3, "y": 2 },
+          { "shape": "D2_0", "color": "G", "x": 5, "y": 1 },
+          { "shape": "C3_180", "color": "Y", "x": 0, "y": 0 },
+          { "shape": "C3_180", "color": "Y", "x": 2, "y": 0 },
+          { "shape": "C3_0", "color": "W", "x": 4, "y": 0, "stack": { "id": 0, "z": 0 } },
+          { "shape": "C3_0", "color": "W", "x": 4, "y": 0, "stack": { "id": 0, "z": 1 } },
+          { "shape": "C3_0", "color": "W", "x": 4, "y": 0, "stack": { "id": 0, "z": 2 } }
         ]
       }
     ]
@@ -225,29 +53,10 @@
   "tutorial": [
     {
       "step": 1,
-      "highlight": [
-        "piece:3"
-      ],
+      "highlight": ["piece:3"],
       "textKey": "tut.m.wrap",
-      "done": {
-        "event": "placementCorrect",
-        "count": 1,
-        "piece": "piece:3"
-      }
+      "done": { "event": "placementCorrect", "count": 1, "piece": "piece:3" }
     }
   ],
-  "targets": {
-    "min": [
-      20,
-      20
-    ],
-    "deadRate": [
-      0,
-      0
-    ],
-    "policyWin": [
-      0.8,
-      0.9
-    ]
-  }
+  "targets": { "min": [20, 20], "deadRate": [0, 0], "policyWin": [0.8, 0.9] }
 }

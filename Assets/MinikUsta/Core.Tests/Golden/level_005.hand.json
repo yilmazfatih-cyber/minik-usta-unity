@@ -1,8 +1,8 @@
 {
   "level": 5,
   "source": "docs/LEVELS.md §2 Bölüm 5 — Kanonik çözüm (solver, GDD K-50 madde 4)",
-  "levelHash": "e2b320f55b2b27c0",
-  "rulesVersion": 5,
+  "levelHash": "d0b57aa9cd702b87",
+  "rulesVersion": 6,
   "geo": { "yard": [6, 6], "site": [2, 5], "H": 6, "wall": 4 },
   "budget": 18,
   "minMoves": 14,
@@ -68,7 +68,7 @@
       "piece": "d",
       "ref": "piece:3",
       "shape": "D2_90",
-      "color": "R",
+      "color": "W",
       "from": [0, 3],
       "kind": "overWall",
       "to": [6, 0]
@@ -132,7 +132,7 @@
       "piece": "l",
       "ref": "piece:11",
       "shape": "D2_0",
-      "color": "W",
+      "color": "Y",
       "from": [5, 0],
       "kind": "overWall",
       "to": [6, 3],
@@ -164,12 +164,12 @@
     " 7  . . . . . . | : | . .",
     " 6  . . . . . . | : | . .",
     " 5  . . . . . . | : | · ·",
-    " 4  . . . . . . | : | W R",
-    " 3  . . . . . . | # | W Y",
+    " 4  . . . . . . | : | Y R",
+    " 3  . . . . . . | # | Y Y",
     " 2  . . . . . . | # | R Y",
     " 1  . . . . . . | # | R W",
     " 0  . . . . . . | # | R R",
-    "plan seg2 (top→bottom): WR WY RY RW RR",
+    "plan seg2 (top→bottom): YR YY RY RW RR",
     "traits: -"
   ]
 }

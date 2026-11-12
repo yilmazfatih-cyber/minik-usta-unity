@@ -2,80 +2,19 @@
   "schemaVersion": 3,
   "id": 10,
   "chapter": 1,
-  "name": {
-    "tr": "Ağaç Ev Tamam!",
-    "en": "Treehouse Done!"
-  },
+  "name": { "tr": "Ağaç Ev Tamam!", "en": "Treehouse Done!" },
   "difficulty": "hard",
-  "moves": 23,
-  "goals": [
-    {
-      "type": "build"
-    }
-  ],
-  "gravity": {
-    "build": "normal",
-    "yard": false
-  },
-  "wall": {
-    "height": 6,
-    "gaps": []
-  },
-  "site": {
-    "cols": 3,
-    "rows": 4
-  },
+  "moves": 24,
+  "goals": [{ "type": "build" }],
+  "gravity": { "build": "normal", "yard": false },
+  "wall": { "height": 6, "gaps": [] },
+  "site": { "cols": 3, "rows": 6 },
   "build": {
     "mode": "segments",
     "segments": [
-      {
-        "name": {
-          "tr": "Kat 1",
-          "en": "Floor 1"
-        },
-        "rows": [
-          "YWW",
-          "YWW",
-          "GGW",
-          "YYY"
-        ]
-      },
-      {
-        "name": {
-          "tr": "Kat 2",
-          "en": "Floor 2"
-        },
-        "rows": [
-          "WGW",
-          "GWY",
-          "YYW",
-          "YWW"
-        ]
-      },
-      {
-        "name": {
-          "tr": "Kat 3",
-          "en": "Floor 3"
-        },
-        "rows": [
-          "GGG",
-          "WWG",
-          "WYY",
-          "GGY"
-        ]
-      },
-      {
-        "name": {
-          "tr": "Kat 4",
-          "en": "Floor 4"
-        },
-        "rows": [
-          "GGG",
-          "GWG",
-          "WWW",
-          "GGW"
-        ]
-      }
+      { "name": { "tr": "Kat 1", "en": "Floor 1" }, "rows": ["GWW", "GGW", "YGG", "YWG", "WWY", "WWY"] },
+      { "name": { "tr": "Kat 2", "en": "Floor 2" }, "rows": ["YWG", "WGG", "WGG", "WWG", "WYY", "WWY"] },
+      { "name": { "tr": "Kat 3", "en": "Floor 3" }, "rows": ["GGG", "YYG", "YWG", "WWW", "WWY", "YYY"] }
     ]
   },
   "yard": {
@@ -85,151 +24,26 @@
       {
         "forSegment": 0,
         "pieces": [
-          {
-            "shape": "D2_90",
-            "color": "G",
-            "x": 1,
-            "y": 7
-          },
-          {
-            "shape": "I3_90",
-            "color": "Y",
-            "x": 0,
-            "y": 6
-          },
-          {
-            "shape": "D2_0",
-            "color": "Y",
-            "x": 3,
-            "y": 6
-          },
-          {
-            "shape": "D2_90",
-            "color": "G",
-            "x": 4,
-            "y": 6
-          },
-          {
-            "shape": "D2_90",
-            "color": "W",
-            "x": 2,
-            "y": 5,
-            "flags": [
-              "scissors"
-            ]
-          },
-          {
-            "shape": "C3_180",
-            "color": "W",
-            "x": 0,
-            "y": 4,
-            "flags": [
-              "bonus"
-            ],
-            "bonusMoves": 2
-          },
-          {
-            "shape": "C3_180",
-            "color": "Y",
-            "x": 4,
-            "y": 4
-          },
-          {
-            "shape": "D2_0",
-            "color": "G",
-            "x": 0,
-            "y": 3,
-            "flags": [
-              "slippery"
-            ]
-          },
-          {
-            "shape": "C3_270",
-            "color": "W",
-            "x": 1,
-            "y": 3
-          },
-          {
-            "shape": "C3_90",
-            "color": "G",
-            "x": 3,
-            "y": 3,
-            "colors": "GWG"
-          },
-          {
-            "shape": "C3_180",
-            "color": "W",
-            "x": 4,
-            "y": 2
-          },
-          {
-            "shape": "C3_90",
-            "color": "Y",
-            "x": 0,
-            "y": 1
-          },
-          {
-            "shape": "D2_0",
-            "color": "G",
-            "x": 2,
-            "y": 1,
-            "flags": [
-              "wrapped"
-            ]
-          },
-          {
-            "shape": "C3_90",
-            "color": "W",
-            "x": 3,
-            "y": 1,
-            "flags": [
-              "wrapped"
-            ]
-          },
-          {
-            "shape": "C3_270",
-            "color": "W",
-            "x": 0,
-            "y": 0,
-            "colors": "WYW"
-          },
-          {
-            "shape": "D2_90",
-            "color": "G",
-            "x": 2,
-            "y": 0,
-            "stack": {
-              "id": 0,
-              "z": 0
-            }
-          },
-          {
-            "shape": "D2_90",
-            "color": "G",
-            "x": 2,
-            "y": 0,
-            "stack": {
-              "id": 0,
-              "z": 1
-            }
-          },
-          {
-            "shape": "D2_90",
-            "color": "G",
-            "x": 2,
-            "y": 0,
-            "stack": {
-              "id": 0,
-              "z": 2
-            }
-          },
-          {
-            "shape": "C3_90",
-            "color": "W",
-            "x": 4,
-            "y": 0,
-            "colors": "WGW"
-          }
+          { "shape": "C3_0", "color": "W", "x": 0, "y": 6 },
+          { "shape": "C3_180", "color": "Y", "x": 1, "y": 6 },
+          { "shape": "C3_180", "color": "Y", "x": 4, "y": 6, "colors": "YWY" },
+          { "shape": "C3_0", "color": "Y", "x": 4, "y": 5, "colors": "YWY" },
+          { "shape": "D2_0", "color": "G", "x": 0, "y": 4 },
+          { "shape": "D2_0", "color": "G", "x": 1, "y": 4 },
+          { "shape": "C3_90", "color": "W", "x": 2, "y": 4, "colors": "WYW" },
+          { "shape": "L4_270", "color": "Y", "x": 1, "y": 3 },
+          { "shape": "D2_0", "color": "G", "x": 4, "y": 3 },
+          { "shape": "D2_0", "color": "G", "x": 5, "y": 3, "flags": ["scissors"] },
+          { "shape": "D2_0", "color": "G", "x": 0, "y": 2, "flags": ["slippery"] },
+          { "shape": "C3_90", "color": "Y", "x": 1, "y": 1 },
+          { "shape": "D2_0", "color": "G", "x": 3, "y": 1, "flags": ["wrapped"] },
+          { "shape": "C3_180", "color": "W", "x": 4, "y": 1 },
+          { "shape": "D2_0", "color": "G", "x": 0, "y": 0 },
+          { "shape": "I3_90", "color": "G", "x": 1, "y": 0, "flags": ["wrapped"] },
+          { "shape": "C3_0", "color": "W", "x": 4, "y": 0, "stack": { "id": 0, "z": 0 } },
+          { "shape": "C3_0", "color": "W", "x": 4, "y": 0, "stack": { "id": 0, "z": 1 } },
+          { "shape": "C3_0", "color": "W", "x": 4, "y": 0, "stack": { "id": 0, "z": 2 } },
+          { "shape": "C3_0", "color": "W", "x": 4, "y": 0, "stack": { "id": 0, "z": 3 } }
         ]
       }
     ]
@@ -238,34 +52,12 @@
   "tutorial": [
     {
       "step": 1,
-      "startOn": {
-        "event": "segmentDone"
-      },
-      "highlight": [
-        "booster:crane"
-      ],
-      "hand": {
-        "kind": "tap"
-      },
+      "startOn": { "event": "segmentDone" },
+      "highlight": ["booster:crane"],
+      "hand": { "kind": "tap" },
       "textKey": "tut.m.cranebooster",
-      "done": {
-        "event": "boosterUsed",
-        "count": 1
-      }
+      "done": { "event": "boosterUsed", "count": 1 }
     }
   ],
-  "targets": {
-    "min": [
-      22,
-      22
-    ],
-    "deadRate": [
-      0,
-      0
-    ],
-    "policyWin": [
-      0.5,
-      0.6
-    ]
-  }
+  "targets": { "min": [21, 21], "deadRate": [0, 0], "policyWin": [0.5, 0.6] }
 }

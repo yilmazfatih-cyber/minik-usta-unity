@@ -165,14 +165,17 @@ namespace MinikUsta.Core
         // --- D1 ------------------------------------------------------------------------------------------------------------
 
         /// <summary>
-        /// Cheap sufficient test of K-09 (a)–(d) for a yard block (µs, no BFS): unlocked, allowed by the rules and free to move
-        /// one cell up (every column's top cell has an empty cell above it, inside the frame; Ağır Yük inside the yard). A
-        /// vertical step inside the yard columns never crosses the wall boundary or the site's open sky, so that node is valid.
+        /// Cheap sufficient test of K-09 (a)–(d) plus a non-cancel release (v3 D1 widening) for a yard block (µs, no BFS):
+        /// unlocked, allowed by the rules, not a pallet layer and free to move one cell up (every column's top cell has an empty
+        /// cell above it, inside the frame; Ağır Yük inside the yard). A vertical step inside the yard columns never crosses the
+        /// wall boundary or the site's open sky, so that node is valid. A pallet layer releases on the site only (D-106).
         /// </summary>
         public static bool QuickHoldable(GameState s, int id, DragRules? rules = null)
         {
             if (PieceZone(s, id) != Zone.Yard || (PieceFlagBits(s, id) & FlagBit.Locked) != 0) return false;
-            if (s.Lvl.HasStacks && (Grid.IsCovered(s, id) || Grid.LayerBelow(s, id) >= 0)) return false;
+            // D-106 (RulesVersion 6): a pallet layer, the last one too, releases on the site only (K-58 item 9 c: its yard nodes
+            // cancel with palletSiteOnly), so it always takes the BFS of HasRelease.
+            if (s.Lvl.HasStacks && Movement.IsPalletLayer(s, id)) return false;
             if (rules?.CanPick != null && !rules.CanPick(s, id)) return false;
             var shape = Shapes.ShapeByIndex(PieceShape(s, id));
             int x0 = PieceX(s, id);

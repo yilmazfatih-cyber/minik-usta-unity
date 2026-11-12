@@ -2,72 +2,21 @@
   "schemaVersion": 3,
   "id": 9,
   "chapter": 1,
-  "name": {
-    "tr": "Kaygan Çatı",
-    "en": "Slippery Roof"
-  },
+  "name": { "tr": "Kaygan Çatı", "en": "Slippery Roof" },
   "difficulty": "normal",
-  "moves": 23,
+  "moves": 25,
   "teaches": "Y13",
-  "goals": [
-    {
-      "type": "build"
-    }
-  ],
-  "gravity": {
-    "build": "normal",
-    "yard": false
-  },
-  "wall": {
-    "height": 7,
-    "gaps": []
-  },
-  "site": {
-    "cols": 3,
-    "rows": 5
-  },
+  "goals": [{ "type": "build" }],
+  "gravity": { "build": "normal", "yard": false },
+  "wall": { "height": 7, "gaps": [] },
+  "site": { "cols": 3, "rows": 4 },
   "build": {
     "mode": "segments",
     "segments": [
-      {
-        "name": {
-          "tr": "Kat 1",
-          "en": "Floor 1"
-        },
-        "rows": [
-          "YYW",
-          "YGW",
-          "GGG",
-          "YYG",
-          "YGG"
-        ]
-      },
-      {
-        "name": {
-          "tr": "Kat 2",
-          "en": "Floor 2"
-        },
-        "rows": [
-          "WWW",
-          "WGG",
-          "GGG",
-          "GYW",
-          "YYY"
-        ]
-      },
-      {
-        "name": {
-          "tr": "Kat 3",
-          "en": "Floor 3"
-        },
-        "rows": [
-          "WWW",
-          "YGG",
-          "YYG",
-          "YYY",
-          "WWY"
-        ]
-      }
+      { "name": { "tr": "Kat 1", "en": "Floor 1" }, "rows": ["YYY", "GGG", "YYY", "GGG"] },
+      { "name": { "tr": "Kat 2", "en": "Floor 2" }, "rows": ["GGG", "YWG", "YGW", "GGW"] },
+      { "name": { "tr": "Kat 3", "en": "Floor 3" }, "rows": ["WWY", "GGY", "WGG", "YGG"] },
+      { "name": { "tr": "Kat 4", "en": "Floor 4" }, "rows": ["WWG", "WGG", "WGW", "GGW"] }
     ]
   },
   "yard": {
@@ -77,145 +26,37 @@
       {
         "forSegment": 0,
         "pieces": [
-          {
-            "shape": "T4_270",
-            "color": "G",
-            "x": 1,
-            "y": 6
-          },
-          {
-            "shape": "C3_90",
-            "color": "Y",
-            "x": 4,
-            "y": 6
-          },
-          {
-            "shape": "C3_270",
-            "color": "G",
-            "x": 4,
-            "y": 5
-          },
-          {
-            "shape": "D2_0",
-            "color": "Y",
-            "x": 0,
-            "y": 4,
-            "colors": "YW"
-          },
-          {
-            "shape": "C3_90",
-            "color": "Y",
-            "x": 1,
-            "y": 4
-          },
-          {
-            "shape": "C3_270",
-            "color": "Y",
-            "x": 2,
-            "y": 4
-          },
-          {
-            "shape": "D2_0",
-            "color": "Y",
-            "x": 4,
-            "y": 3,
-            "colors": "YW"
-          },
-          {
-            "shape": "D2_0",
-            "color": "W",
-            "x": 5,
-            "y": 3,
-            "flags": [
-              "slippery"
-            ]
-          },
-          {
-            "shape": "C3_90",
-            "color": "G",
-            "x": 0,
-            "y": 2
-          },
-          {
-            "shape": "C3_180",
-            "color": "Y",
-            "x": 2,
-            "y": 2
-          },
-          {
-            "shape": "C3_90",
-            "color": "Y",
-            "x": 1,
-            "y": 1
-          },
-          {
-            "shape": "C3_180",
-            "color": "G",
-            "x": 4,
-            "y": 1
-          },
-          {
-            "shape": "D2_0",
-            "color": "W",
-            "x": 0,
-            "y": 0,
-            "flags": [
-              "slippery"
-            ]
-          },
-          {
-            "shape": "C3_180",
-            "color": "G",
-            "x": 2,
-            "y": 0
-          },
-          {
-            "shape": "D2_90",
-            "color": "W",
-            "x": 4,
-            "y": 0,
-            "stack": {
-              "id": 0,
-              "z": 0
-            }
-          },
-          {
-            "shape": "D2_90",
-            "color": "W",
-            "x": 4,
-            "y": 0,
-            "stack": {
-              "id": 0,
-              "z": 1
-            }
-          },
-          {
-            "shape": "D2_90",
-            "color": "W",
-            "x": 4,
-            "y": 0,
-            "stack": {
-              "id": 0,
-              "z": 2
-            }
-          }
+          { "shape": "I3_90", "color": "Y", "x": 0, "y": 7 },
+          { "shape": "I3_90", "color": "G", "x": 0, "y": 6 },
+          { "shape": "I3_90", "color": "Y", "x": 3, "y": 6 },
+          { "shape": "I3_90", "color": "G", "x": 0, "y": 5 },
+          { "shape": "C3_270", "color": "G", "x": 2, "y": 4 },
+          { "shape": "D2_0", "color": "Y", "x": 4, "y": 4 },
+          { "shape": "D2_0", "color": "Y", "x": 5, "y": 4, "flags": ["slippery"] },
+          { "shape": "D2_0", "color": "W", "x": 1, "y": 3, "flags": ["slippery"] },
+          { "shape": "D2_90", "color": "W", "x": 2, "y": 3, "colors": "WG" },
+          { "shape": "D2_0", "color": "Y", "x": 0, "y": 2, "colors": "YW" },
+          { "shape": "I3_90", "color": "G", "x": 1, "y": 2 },
+          { "shape": "C3_180", "color": "G", "x": 4, "y": 2 },
+          { "shape": "D2_90", "color": "W", "x": 1, "y": 1 },
+          { "shape": "D2_90", "color": "W", "x": 0, "y": 0 },
+          { "shape": "C3_270", "color": "G", "x": 2, "y": 0, "stack": { "id": 0, "z": 0 } },
+          { "shape": "C3_270", "color": "G", "x": 2, "y": 0, "stack": { "id": 0, "z": 1 } },
+          { "shape": "C3_270", "color": "G", "x": 2, "y": 0, "stack": { "id": 0, "z": 2 } },
+          { "shape": "D2_0", "color": "W", "x": 4, "y": 0 },
+          { "shape": "D2_0", "color": "W", "x": 5, "y": 0 }
         ]
       }
     ]
   },
   "obstacles": [],
-  "targets": {
-    "min": [
-      19,
-      19
-    ],
-    "deadRate": [
-      0,
-      0
-    ],
-    "policyWin": [
-      0.8,
-      0.9
-    ]
-  }
+  "tutorial": [
+    {
+      "step": 1,
+      "highlight": ["piece:7"],
+      "textKey": "tut.m.slippery",
+      "done": { "event": "placementCorrect", "count": 1, "piece": "piece:7" }
+    }
+  ],
+  "targets": { "min": [21, 21], "deadRate": [0, 0], "policyWin": [0.8, 0.9] }
 }

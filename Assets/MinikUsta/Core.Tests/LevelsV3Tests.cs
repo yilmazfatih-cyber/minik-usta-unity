@@ -37,7 +37,7 @@ namespace MinikUsta.Core.Tests
         private static JsonValue StackOf(int id, int z) => J.O("stack", J.O("id", id, "z", z));
 
         [Test(Description = "K-43 RULES_VERSION 5 (levels v3c, D-103..D-105): a client voids an attempt saved with an older rules version")]
-        public void K43_rules_version_is_5_for_levels_v3c() => Assert.AreEqual(5, GameSession.RulesVersion);
+        public void K43_rules_version_is_5_for_levels_v3c() => Assert.GreaterOrEqual(GameSession.RulesVersion, 5); // D-106 made it 6
 
         // --- K-56 shapes --------------------------------------------------------------------------------------------------
 

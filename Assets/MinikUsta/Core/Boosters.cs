@@ -332,13 +332,16 @@ namespace MinikUsta.Core
             return IsSiteWrongObject(s, id);
         }
 
-        /// <summary>K-37 (a): every cell of `shape` at `(x, y)` inside the yard and empty (the piece itself excluded).</summary>
+        /// <summary>
+        /// K-37 (a): every cell of `shape` at `(x, y)` inside the yard and empty (the piece itself excluded). A pallet layer never gets
+        /// here (K-58 item 9 e: no yard target), so its pallet's cells need no special case (D-106).
+        /// </summary>
         private static bool YardSpotFree(GameState s, ShapeDef shape, int x, int y, int self)
         {
             int wy = s.Lvl.Geo.Wy;
             int hy = s.Lvl.Geo.Hy;
             if (x < 0 || y < 0 || x + shape.W > wy || y + shape.H > hy) return false;
-            int own = s.Lvl.HasStacks ? Grid.OwnCellCode(s, self) : self + 1;
+            int own = self + 1;
             foreach (var c in shape.Cells)
             {
                 int v = YardOcc(s, x + c.X, y + c.Y);

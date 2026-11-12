@@ -15,6 +15,11 @@
  *
  * The random boards reuse the helpers of tests/core/geometry.test.ts (G, planRows, yardPieces, randomLevel) copied
  * verbatim: the RNG call order is part of the contract with GeometryTests.RandomLevel.
+ *
+ * CL-V3C-11 (C1): after the archive levels, `wide` boards on a 6 × 8 | 3 × 5 frame (level id 8, schemaVersion 3) carry their
+ * level data (`level`), so C# compiles the very same board: the 3-wide shapes P5 / S4 / Z4 of a 3-column site (D-103 K-56
+ * annex; yard gravity and a static gap on two of them) and pallets of the D-106 shapes (C3, L4, T4, J4, O4: the held layer
+ * rises through its own footprint, RULES_VERSION 6).
  */
 import { readFileSync, writeFileSync } from 'node:fs';
 import { dirname, join, resolve } from 'node:path';
@@ -238,6 +243,60 @@ for (const c of G) {
 }
 for (let n = 1; n <= 10; n++) boards.push(boardVector(`archive_level_${String(n).padStart(3, '0')}`, compile(LevelSchema.parse(archiveLevel(n))), false));
 
+// --- CL-V3C-11: wide-shape and D-106 pallet boards (level data stored with the vector) ----------------------------------
+const WIDE_PLAN = ['WWW', 'YYW', 'WYW', 'YYY', 'WWW'];
+const stackTraits = (stacks: readonly (readonly [number, number, number])[]): Record<number, unknown> =>
+  Object.fromEntries(stacks.map(([idx, id, z]) => [idx, { stack: { id, z } }]));
+const WIDE_BOARDS: readonly { readonly name: string; readonly spec: any }[] = [
+  {
+    name: 'wide P5_0 S4_0 Z4_90',
+    spec: { wall: { height: 2 }, pieces: [['P5_0', 'W', 0, 0], ['S4_0', 'Y', 3, 0], ['Z4_90', 'W', 3, 3], ['B1_0', 'Y', 5, 0], ['D2_0', 'W', 0, 4]] },
+  },
+  {
+    name: 'wide S4_90 Z4_0 P5_0 yard gravity',
+    spec: { wall: { height: 4 }, gravity: { yard: true }, pieces: [['S4_90', 'W', 0, 0], ['Z4_0', 'Y', 3, 0], ['P5_0', 'W', 2, 4], ['O4_0', 'Y', 0, 2], ['B1_0', 'Y', 5, 6]] },
+  },
+  {
+    name: 'wide Z4_90 S4_0 P5_0 static gap',
+    spec: { wall: { height: 3, gaps: [{ type: 'static', y: 0, size: 1 }] }, pieces: [['Z4_90', 'Y', 0, 0], ['S4_0', 'W', 4, 0], ['P5_0', 'Y', 0, 3], ['D2_90', 'W', 2, 0]] },
+  },
+  {
+    name: 'wide pallets C3_0 x3 L4_90 x2',
+    spec: {
+      wall: { height: 2 },
+      pieces: [['C3_0', 'W', 0, 0], ['C3_0', 'W', 0, 0], ['C3_0', 'W', 0, 0], ['L4_90', 'Y', 3, 0], ['L4_90', 'Y', 3, 0], ['B1_0', 'W', 2, 4]],
+      traits: stackTraits([[0, 0, 0], [1, 0, 1], [2, 0, 2], [3, 1, 0], [4, 1, 1]]),
+    },
+  },
+  {
+    name: 'wide pallets T4_0 x4 J4_270 x2 O4_0 x2',
+    spec: {
+      wall: { height: 3 },
+      pieces: [
+        ['T4_0', 'W', 0, 0], ['T4_0', 'W', 0, 0], ['T4_0', 'W', 0, 0], ['T4_0', 'W', 0, 0],
+        ['J4_270', 'Y', 3, 0], ['J4_270', 'Y', 3, 0], ['O4_0', 'W', 2, 5], ['O4_0', 'W', 2, 5],
+      ],
+      traits: stackTraits([[0, 0, 0], [1, 0, 1], [2, 0, 2], [3, 0, 3], [4, 1, 0], [5, 1, 1], [6, 2, 0], [7, 2, 1]]),
+    },
+  },
+];
+const WIDE_LEVEL_ID = 8;
+for (const { name, spec } of WIDE_BOARDS) {
+  // no two blocks share a cell except the layers of one pallet (same stack id, same anchor)
+  const owner = new Map<string, string>();
+  spec.pieces.forEach((p: any[], i: number) => {
+    const tag = spec.traits?.[i]?.stack ? `stack${spec.traits[i].stack.id}` : `piece${i}`;
+    for (const [cx, cy] of cellsOf(shapeById(p[0]), { ix: p[2], iy: p[3] })) {
+      const k = `${cx},${cy}`;
+      if (owner.has(k) && owner.get(k) !== tag) throw new Error(`${name}: blocks overlap at ${k}`);
+      owner.set(k, tag);
+    }
+  });
+  const data = level({ id: WIDE_LEVEL_ID, schemaVersion: 3, moves: 40, yard: { cols: 6, rows: 8 }, site: { cols: 3, rows: 5 }, plan: WIDE_PLAN, ...spec });
+  const parsed = LevelSchema.parse(JSON.parse(JSON.stringify(data)));
+  boards.push({ ...boardVector(name, compile(parsed), false), level: JSON.parse(JSON.stringify(data)) });
+}
+
 let webCommit = '?';
 try {
   webCommit = execSync('git rev-parse --short HEAD', { cwd: WEB }).toString().trim();
@@ -247,6 +306,7 @@ try {
 const out = {
   generatedFrom: { webRepo: 'yilmazfatih-cyber/minik-usta', webCommit, generator: 'tools/gen-p1-vectors.ts' },
   random: { seed: RANDOM_SEED, perGeometry: RANDOM_PER_GEO, levelId: 2 },
+  wide: { count: WIDE_BOARDS.length, levelId: WIDE_LEVEL_ID },
   boards,
 };
 const target = join(ROOT, 'Assets', 'MinikUsta', 'Core.Tests', 'Golden', 'p1_vectors.json');

@@ -30,8 +30,8 @@
   },
   {
    "file": "art/atlas_3",
-   "w": 928,
-   "h": 264
+   "w": 996,
+   "h": 220
   }
  ],
  "frames": {
@@ -7381,7 +7381,7 @@
   },
   "ico_bonus_1": {
    "atlas": 3,
-   "x": 489,
+   "x": 310,
    "y": 2,
    "w": 106,
    "h": 106,
@@ -7395,7 +7395,7 @@
   },
   "ico_bonus_2": {
    "atlas": 3,
-   "x": 599,
+   "x": 420,
    "y": 2,
    "w": 106,
    "h": 106,
@@ -7409,7 +7409,7 @@
   },
   "ico_bonus_3": {
    "atlas": 3,
-   "x": 709,
+   "x": 530,
    "y": 2,
    "w": 106,
    "h": 106,
@@ -7423,7 +7423,7 @@
   },
   "ico_layers_2": {
    "atlas": 3,
-   "x": 819,
+   "x": 640,
    "y": 2,
    "w": 106,
    "h": 106,
@@ -7437,8 +7437,8 @@
   },
   "ico_layers_3": {
    "atlas": 3,
-   "x": 489,
-   "y": 112,
+   "x": 750,
+   "y": 2,
    "w": 106,
    "h": 106,
    "pivotX": 0.5,
@@ -7451,8 +7451,8 @@
   },
   "ico_layers_4": {
    "atlas": 3,
-   "x": 599,
-   "y": 112,
+   "x": 860,
+   "y": 2,
    "w": 106,
    "h": 106,
    "pivotX": 0.5,
@@ -7465,7 +7465,7 @@
   },
   "ico_scissors": {
    "atlas": 3,
-   "x": 709,
+   "x": 310,
    "y": 112,
    "w": 106,
    "h": 106,
@@ -7479,7 +7479,7 @@
   },
   "ico_slip": {
    "atlas": 3,
-   "x": 819,
+   "x": 420,
    "y": 112,
    "w": 106,
    "h": 106,
@@ -7493,7 +7493,7 @@
   },
   "ovl_ice": {
    "atlas": 3,
-   "x": 181,
+   "x": 2,
    "y": 2,
    "w": 150,
    "h": 150,
@@ -7507,7 +7507,7 @@
   },
   "ovl_wrap": {
    "atlas": 3,
-   "x": 335,
+   "x": 156,
    "y": 2,
    "w": 150,
    "h": 150,
@@ -7521,8 +7521,8 @@
   },
   "ovl_wrap_knot": {
    "atlas": 3,
-   "x": 181,
-   "y": 156,
+   "x": 530,
+   "y": 112,
    "w": 106,
    "h": 106,
    "pivotX": 0.5,
@@ -7535,10 +7535,52 @@
   },
   "pallet_cell": {
    "atlas": 3,
-   "x": 2,
-   "y": 2,
+   "x": 640,
+   "y": 112,
    "w": 175,
-   "h": 163,
+   "h": 30,
+   "pivotX": 0.5,
+   "pivotY": 1,
+   "borderL": 0,
+   "borderT": 0,
+   "borderR": 0,
+   "borderB": 0,
+   "scale": 1.25
+  },
+  "pallet_cell_l": {
+   "atlas": 3,
+   "x": 819,
+   "y": 112,
+   "w": 175,
+   "h": 30,
+   "pivotX": 0.5,
+   "pivotY": 1,
+   "borderL": 0,
+   "borderT": 0,
+   "borderR": 0,
+   "borderB": 0,
+   "scale": 1.25
+  },
+  "pallet_cell_m": {
+   "atlas": 3,
+   "x": 640,
+   "y": 146,
+   "w": 175,
+   "h": 30,
+   "pivotX": 0.5,
+   "pivotY": 1,
+   "borderL": 0,
+   "borderT": 0,
+   "borderR": 0,
+   "borderB": 0,
+   "scale": 1.25
+  },
+  "pallet_cell_r": {
+   "atlas": 3,
+   "x": 819,
+   "y": 146,
+   "w": 175,
+   "h": 30,
    "pivotX": 0.5,
    "pivotY": 1,
    "borderL": 0,
@@ -7549,17 +7591,17 @@
   },
   "pallet_slab": {
    "atlas": 3,
-   "x": 291,
+   "x": 2,
    "y": 156,
-   "w": 175,
-   "h": 18,
+   "w": 240,
+   "h": 12,
    "pivotX": 0.5,
    "pivotY": 0.5,
    "borderL": 0,
    "borderT": 0,
    "borderR": 0,
    "borderB": 0,
-   "scale": 1.25
+   "scale": 2
   }
  },
  "extend": {
@@ -7580,6 +7622,9 @@
    "ovl_wrap",
    "ovl_wrap_knot",
    "pallet_cell",
+   "pallet_cell_l",
+   "pallet_cell_m",
+   "pallet_cell_r",
    "pallet_slab"
   ]
  }

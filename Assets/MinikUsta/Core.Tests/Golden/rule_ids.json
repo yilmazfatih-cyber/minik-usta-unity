@@ -1,7 +1,7 @@
 {
  "generatedFrom": {
   "webRepo": "yilmazfatih-cyber/minik-usta",
-  "webCommit": "37d5617",
+  "webCommit": "2a08cd2",
   "generator": "tools/gen-rule-ids.ts",
   "source": "tools/rule-coverage.ts ruleIds"
  },

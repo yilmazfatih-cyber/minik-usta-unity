@@ -64,6 +64,11 @@
   "build": {
     "done": "Yapı tamam!"
   },
+  "card": {
+    "y10": {
+      "site": "Katman sahaya inmez, yalnız şantiyeye gider."
+    }
+  },
   "chest": {
     "contains": "İçinde:",
     "open": "Aç",
@@ -447,14 +452,18 @@
       "lift": "Bloğu duvarın üstünden taşı!",
       "match": "Plandaki renge uyanı seç.",
       "narrow": "Dar geçitten tek sıra geçer.",
+      "pallet": "Paletten hep en üstteki alınır.",
+      "palletsite": "Katmanı kaldır, şantiyeye bırak.",
       "park": "Üsttekini yükseğe park et.",
       "pattern": "Plan alttan üste dolar.",
       "rail": "Sıradakini raydakinin üstünden aşır.",
       "segments": "Kat bitince şantiye kayar.",
       "shadow": "Gölgede {ok} varsa yer doğru.",
+      "slippery": "Kaygan blok boşlukta durmaz, kayar.",
       "truck": "Kamyon yeni blok getirdi!",
       "twotone": "İki renk de plana otursun.",
       "useall": "Bütün bloklar plana girecek.",
+      "widesite": "Şantiye genişledi: yatay blok sığar.",
       "wrap": "Önce makaslı bloğu yerleştir."
     },
     "meta": {

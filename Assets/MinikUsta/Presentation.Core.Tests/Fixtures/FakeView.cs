@@ -190,9 +190,12 @@ namespace MinikUsta.Presentation.Tests.Fixtures
         /// <summary>The largest camera offset ever seen (tests: the shake moved the rig).</summary>
         public float MaxCameraOffset;
 
-        public ITweenTarget MovesChip { get; } = new FakeTarget();
-        public ITweenTarget BlocksChip { get; } = new FakeTarget();
-        public ITweenTarget MovesBurst { get; } = new FakeTarget();
+        // C1: with a real HUD (AppRig) the moves plate, the blocks chip and the "+n" burst are the HUD's own targets, like UnityLevelView
+        // (a HUD that forgets to rebind one after a rebuild then fails on FakeSurface's destroyed target, as Unity does)
+        private readonly FakeTarget movesChip = new FakeTarget(), blocksChip = new FakeTarget(), movesBurst = new FakeTarget();
+        public ITweenTarget MovesChip => Hud?.MovesChip ?? movesChip;
+        public ITweenTarget BlocksChip => Hud?.BlocksChip ?? blocksChip;
+        public ITweenTarget MovesBurst => Hud?.MovesBurst ?? movesBurst;
         /// <summary>P4: the "+n" burst text now (null = hidden) and every text it showed.</summary>
         public string? MovesBurstText;
         public readonly List<string> MovesBurstShown = new List<string>();

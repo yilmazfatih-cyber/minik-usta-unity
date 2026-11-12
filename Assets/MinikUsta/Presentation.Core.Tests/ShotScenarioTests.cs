@@ -200,6 +200,56 @@ namespace MinikUsta.Presentation.Tests
             CollectionAssert.AreEqual(new[] { "390x844", "360x800" }, vps.ToArray());
         }
 
+        [Test(Description = "C1 CL-V3C-08 K-60 item 7 the scenario jumps to the bonus move of Bölüm 7, signals v3_bonus_burst_7 with the \"+2\" on screen and the game clock stopped, then thaws it and goes on")]
+        public void C1_CL_V3C_08_K60_item_7_the_bonus_burst_shot_freezes_the_clock_on_the_burst()
+        {
+            Assert.AreEqual(Play.BonusLevel, ShotScenario.BonusShotLevel, "the scenario's bonus level is the shipped one (D-107)");
+            var (rig, sc, lines) = Start();
+            float t = 0, frozenMs = 0;
+            bool shot = false, burstAtShot = false;
+            int level = -1;
+            while (!sc.Done && t < ShotScenario.TimeoutMs)
+            {
+                // like GameRunner.Update: the app runs at the scenario's time scale, the scenario at real time
+                rig.App.Tick(Fixtures.Rig.FrameMs * sc.TimeScale);
+                sc.Tick(Fixtures.Rig.FrameMs);
+                t += Fixtures.Rig.FrameMs;
+                if (!shot && sc.Signalled.Contains("v3_bonus_burst_7"))
+                {
+                    shot = true;
+                    burstAtShot = rig.View.MovesBurstOn;
+                    level = rig.Player.LevelNumber;
+                }
+                if (shot && sc.TimeScale == 0f)
+                {
+                    frozenMs += Fixtures.Rig.FrameMs;
+                    Assert.IsTrue(rig.View.MovesBurstOn, "the burst stays on screen while the clock is stopped");
+                }
+            }
+            Assert.IsFalse(sc.Failed, string.Join(" | ", lines));
+            Assert.IsTrue(shot, "v3_bonus_burst_7 was signalled");
+            Assert.IsTrue(burstAtShot, "the \"+2\" was on screen when the picture was asked for");
+            Assert.AreEqual(ShotScenario.BonusShotLevel, level);
+            Assert.GreaterOrEqual(frozenMs, new ShotOptions().HoldMs - Fixtures.Rig.FrameMs, "the clock stays stopped for the whole hold");
+            Assert.AreEqual(1f, sc.TimeScale, "thawed afterwards");
+            CollectionAssert.Contains(rig.View.MovesBurstShown, "+2");
+            CollectionAssert.AreEqual(ShotScenario.ShotNames, sc.Signalled.ToArray());
+        }
+
+        [Test(Description = "C1 CL-V3C-08 an exception of the app's frame reported through Fault ends the scenario at once with error:exception (no silent wait for a shot)")]
+        public void C1_CL_V3C_08_a_frame_exception_ends_the_scenario_with_an_error_line()
+        {
+            var (rig, sc, lines) = Start();
+            rig.App.Tick(Fixtures.Rig.FrameMs);
+            sc.Tick(Fixtures.Rig.FrameMs);
+            sc.Fault("NullReferenceException: Object reference not set to an instance of an object.");
+            Assert.IsTrue(sc.Done && sc.Failed);
+            StringAssert.StartsWith(ShotScenario.Tag + " error:exception:NullReferenceException", lines[lines.Count - 1]);
+            StringAssert.Contains(" in ", lines[lines.Count - 1]);
+            sc.Fault("a second one");
+            Assert.AreEqual(1, lines.FindAll(l => l.Contains("error:")).Count, "only the first fault is reported");
+        }
+
         [TestCase("https://x.github.io/minik-usta-unity/?shots=1", true)]
         [TestCase("https://x.github.io/minik-usta-unity/index.html?a=2&shots=1#top", true)]
         [TestCase("https://x.github.io/minik-usta-unity/?shots=0", false)]

@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 140 24" width="140" height="24" data-scale="1.25" data-pivot="0.5 1">
+<!-- D-108 (web ART_DIRECTION 3A.6, tokens check.palletV3c.sled): grey-blue metal sled, no wood. Drawn under each lowest-row cell of the
+     lowest pallet layer: the cell spans x 10..130 and ends at y 8, so 8 px hide under the block and the 16 px lip shows (y 8..24), 2 rivets per cell.
+     the right end of a run: open on the left -->
+<defs><linearGradient id="sl" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#C2CFDD"/><stop offset=".55" stop-color="#8A9BB0"/><stop offset="1" stop-color="#8A9BB0"/></linearGradient></defs>
+<rect x="-20" y="0" width="156" height="24" rx="6" fill="#2E3A4B"/>
+<rect x="-16" y="3" width="148" height="17" rx="4" fill="url(#sl)"/>
+<rect x="-16" y="16" width="148" height="4" rx="2" fill="#5A6B80"/>
+<rect x="-12" y="9" width="140" height="2" rx="1" fill="#FFFFFF" fill-opacity=".45"/>
+<circle cx="30" cy="14" r="4" fill="#2E3A4B"/><circle cx="30" cy="13.5" r="3" fill="#E4ECF5"/>
+<circle cx="110" cy="14" r="4" fill="#2E3A4B"/><circle cx="110" cy="13.5" r="3" fill="#E4ECF5"/>
+</svg>

@@ -1,5 +1,5 @@
 {
-  "_doc": "Unity-only keys (paket V1): merged on top of the web copy i18n/tr.json by MinikUsta.Presentation.I18n.Localizer. Keep the same keys in unity_en.json. P4B-07: the web source now carries Usta Kral (lose.offer.gift, story.prologue.p2.king), so the B2 override of lose.offer.gift was removed; U2 (UX_UNITY §11, P0-10) overrides two web keys until the web copy drops the old form of address: tut.ctx.resume and tut.ctx.support (no \"evlat\" / \"kiddo\"); new keys app.quit.title and booster.lockedAt.",
+  "_doc": "Unity-only keys (paket V1): merged on top of the web copy i18n/tr.json by MinikUsta.Presentation.I18n.Localizer. Keep the same keys in unity_en.json. P4B-07: the web source now carries Usta Kral (lose.offer.gift, story.prologue.p2.king), so the B2 override of lose.offer.gift was removed; U2 (UX_UNITY §11, P0-10) overrides two web keys until the web copy drops the old form of address: tut.ctx.resume and tut.ctx.support (no \"evlat\" / \"kiddo\"); new keys app.quit.title and booster.lockedAt. C1: card.y10.site now comes from the web copy (STORY 6A), removed here. C1: tut.m.pallet and tut.m.palletsite are overridden in both languages until the web EN copy (7 and 8 words) meets STORY 0-4 (TR and EN <= 6 words); the TR values equal the web copy.",
   "home": {
     "playLevel": "Oyna · Bölüm {n}"
   },
@@ -29,11 +29,10 @@
     "ctx": {
       "resume": "Tahta bıraktığın gibi duruyor.",
       "support": "Önce alttaki boşluğu doldur."
-    }
-  },
-  "card": {
-    "y10": {
-      "site": "Katman yalnız şantiyeye bırakılır."
+    },
+    "m": {
+      "pallet": "Paletten hep en üstteki alınır.",
+      "palletsite": "Katmanı kaldır, şantiyeye bırak."
     }
   }
 }

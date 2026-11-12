@@ -62,6 +62,21 @@ namespace MinikUsta.Presentation.Tests.Fixtures
         /// <summary>Faz 2R vertical slice: levels 1–10 (EN-2R-17).</summary>
         public static readonly int[] Levels = { 1, 2, 3, 4, 5, 6, 7, 8, 9, 10 };
 
+        /// <summary>
+        /// The shipped level that holds the story-1 bonus block (D-105 reward moment; D-107 moved it from level 10 to level 7, the
+        /// pallet introduction). Read from the data, so a later move of the bonus does not break the tests that play it.
+        /// </summary>
+        public static int BonusLevel
+        {
+            get
+            {
+                foreach (int n in Levels)
+                    foreach (var p in LevelFile(n).Pieces)
+                        if ((p.Flags & MinikUsta.Core.FlagBit.Bonus) != 0) return n;
+                throw new System.InvalidOperationException("no shipped level holds a bonus block");
+            }
+        }
+
         /// <summary>A shipped level (D-099: `schemaVersion` 2, fixed yard) loaded like the game does; `archive` = the Faz 2R level (`schemaVersion` 1, truck batches).</summary>
         public static CompiledLevel LevelFile(int n, bool archive = false) =>
             Compiler.LoadLevel(archive ? PresentationPaths.LoadArchiveLevelJson(n) : PresentationPaths.LoadLevelJson(n)).LevelOrThrow();

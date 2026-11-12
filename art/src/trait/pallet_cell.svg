@@ -1,13 +1,12 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 140 130" width="140" height="130" data-scale="1.25" data-pivot="0.5 1">
-<defs>
-<linearGradient id="wd" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#D9A05A"/><stop offset="1" stop-color="#A56B33"/></linearGradient>
-</defs>
-<rect x="0" y="6" width="140" height="124" rx="12" fill="#3B220B" fill-opacity=".55"/>
-<rect x="0" y="0" width="140" height="124" rx="12" fill="#6B4116"/>
-<rect x="2" y="2" width="136" height="118" rx="10" fill="url(#wd)"/>
-<g fill="#6B4116" fill-opacity=".8"><rect x="0" y="116" width="140" height="14" rx="4"/></g>
-<g fill="#8C5A28"><rect x="6" y="118" width="22" height="10" rx="3"/><rect x="59" y="118" width="22" height="10" rx="3"/><rect x="112" y="118" width="22" height="10" rx="3"/></g>
-<g stroke="#6B4116" stroke-width="3" stroke-opacity=".85"><path d="M35 4 V114 M70 4 V114 M105 4 V114"/></g>
-<g fill="#4A2C0D"><circle cx="8" cy="108" r="2.4"/><circle cx="132" cy="108" r="2.4"/><circle cx="62" cy="108" r="2.4"/><circle cx="78" cy="108" r="2.4"/></g>
-<rect x="5" y="4" width="130" height="4" rx="2" fill="#FFFFFF" fill-opacity=".28"/>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 140 24" width="140" height="24" data-scale="1.25" data-pivot="0.5 1">
+<!-- D-108 (web ART_DIRECTION 3A.6, tokens check.palletV3c.sled): grey-blue metal sled, no wood. Drawn under each lowest-row cell of the
+     lowest pallet layer: the cell spans x 10..130 and ends at y 8, so 8 px hide under the block and the 16 px lip shows (y 8..24), 2 rivets per cell.
+     a single cell: both ends capped -->
+<defs><linearGradient id="sl" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#C2CFDD"/><stop offset=".55" stop-color="#8A9BB0"/><stop offset="1" stop-color="#8A9BB0"/></linearGradient></defs>
+<rect x="4" y="0" width="132" height="24" rx="6" fill="#2E3A4B"/>
+<rect x="8" y="3" width="124" height="17" rx="4" fill="url(#sl)"/>
+<rect x="8" y="16" width="124" height="4" rx="2" fill="#5A6B80"/>
+<rect x="12" y="9" width="116" height="2" rx="1" fill="#FFFFFF" fill-opacity=".45"/>
+<circle cx="30" cy="14" r="4" fill="#2E3A4B"/><circle cx="30" cy="13.5" r="3" fill="#E4ECF5"/>
+<circle cx="110" cy="14" r="4" fill="#2E3A4B"/><circle cx="110" cy="13.5" r="3" fill="#E4ECF5"/>
 </svg>

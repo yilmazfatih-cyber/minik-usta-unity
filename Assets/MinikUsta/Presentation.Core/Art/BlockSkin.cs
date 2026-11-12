@@ -10,6 +10,7 @@
 // Shadow (§4.2): per cell `shadow_fill_<mm>` tinted with the block colour (α 0,28) + the outline `shadow_line_<mm>` (#5CF59A,
 // correct) or `shadow_dash_<mm>` (#FF4A3D wrong, white α 0,6 neutral); the shadow tiles assume the diagonal is present, so a
 // concave corner (two neighbours, no diagonal) adds `shadow_<line|dash>_<mm>_cc_<k>`.
+using System;
 using System.Collections.Generic;
 using MinikUsta.Core;
 using MinikUsta.Presentation.Game;
@@ -114,19 +115,37 @@ namespace MinikUsta.Presentation.Art
         public const double BadgePx = 70;
         public const double BadgeDx = -8;
         public const double BadgeDy = -12;
-        /// <summary>Badge slots go right along the top edge, this far apart (design px at a 120 px cell).</summary>
+        /// <summary>Badge slots go right along the top edge: the next slot starts this far right per design px of the previous badge (54 / 70).</summary>
         public const double BadgeStep = 54;
-        /// <summary>Pallet planks rim (design px at a 120 px cell) and the frame size `pallet_cell` was drawn for (140 × 130).</summary>
+        /// <summary>
+        /// CL-V3C-12 / D-108: no badge frame is drawn smaller than this (design px, whatever the cell size): the round badges fill 76 of their
+        /// 88 px frame, so their visible disc stays ≥ 56 design px on a 9-column board at 360 px (cell 108, k 0.9).
+        /// </summary>
+        public const double BadgeMinPx = 66;
+        /// <summary>
+        /// D-108 (web ART_DIRECTION §3A.6, tokens <c>check.palletV3c.badge</c>): the "×n" white circle fills 82 of its 88 px frame, so this
+        /// frame size shows the specified Ø 76 at a 120 px cell; never under <see cref="PalletBadgeMinPx"/> (visible Ø 56). The digit is
+        /// 58 px Baloo 2 in the 88 px frame: ≥ kit.badge.fontPx (36) × k at every cell size ≥ 100.
+        /// </summary>
+        public const double PalletBadgePx = 82;
+        public const double PalletBadgeMinPx = 61;
+        /// <summary>
+        /// D-108 sled: the frames `pallet_cell[_l|_m|_r]` (140 × 24): the 120 px cell spans x 10..130 and ends at y 8, so 8 px tuck under the
+        /// block and the 16 px metal lip (tokens <c>check.palletV3c.sled.lipPx</c>) shows below it.
+        /// </summary>
         public const double PalletRim = 10;
         public const double PalletW = 140;
-        public const double PalletH = 130;
+        public const double PalletH = 24;
+        public const double PalletTuck = 8;
         /// <summary>
-        /// P4 Y10: a covered layer under `d` layers above it shows ONE board under the bottom edge of the layer above, `PalletSlabStep`
-        /// further down per layer (design px at a 120 px cell); the planks sit under the last board. Every layer keeps the state pose
-        /// (no offset): the stack depth is read from these edge lines and the "×n" badge of the top layer.
+        /// D-108 (tokens <c>check.palletV3c.sled</c> layerRisePx 6, layerEdgePx 3): a covered layer under `d` layers above it shows its
+        /// bottom edge as one band (`pallet_slab`, 120 × 6: a 3 px layerEdge line over a band tinted with the layer's colour) under the
+        /// bottom edge of the layer above, `PalletSlabStep` further down per layer; the metal sled lip sits under the last band. Every
+        /// layer keeps the state pose (no offset): the stack depth is read from these bands and the "×n" badge of the top layer. Only the
+        /// shape's lowest row carries bands and sled (a T4 / J4 overhang does not float a sled in the air).
         /// </summary>
-        public const double PalletSlabStep = 12;
-        public const double PalletSlabH = 14;
+        public const double PalletSlabStep = 6;
+        public const double PalletSlabH = 6;
         /// <summary>Sorting: planks under the body, overlays and badges above it (added to the visual's base order).</summary>
         public const int PlanksOrder = -3;
         public const int OverlayOrder = 3;
@@ -145,16 +164,30 @@ namespace MinikUsta.Presentation.Art
             return best;
         }
 
-        /// <summary>The badge frames of `traits`, left to right (knot, scissors, bonus star, snowflake, layer count).</summary>
+        /// <summary>The badge frames of `traits`, left to right (D-108: the layer count first, then knot, scissors, bonus star, snowflake).</summary>
         public static List<string> BadgeFrames(BlockTraits traits)
         {
             var o = new List<string>(3);
+            if (traits.PalletLayers >= 2) o.Add(Frames.IcoLayers(traits.PalletLayers));
             if (traits.Wrapped) o.Add(Frames.WrapKnot);
             if (traits.Scissors) o.Add(Frames.IcoScissors);
             if (traits.Bonus > 0) o.Add(Frames.IcoBonus(traits.Bonus));
             if (traits.Slippery) o.Add(Frames.IcoSlip);
-            if (traits.PalletLayers >= 2) o.Add(Frames.IcoLayers(traits.PalletLayers));
             return o;
+        }
+
+        /// <summary>The drawn frame size of badge `frame` at `cellPx` (design px): D-108 / CL-V3C-12 floors, never under the minimum.</summary>
+        public static double BadgeSize(string frame, double cellPx)
+        {
+            double k = cellPx / 120.0;
+            return frame.StartsWith("ico_layers_", StringComparison.Ordinal) ? Math.Max(PalletBadgeMinPx, PalletBadgePx * k) : Math.Max(BadgeMinPx, BadgePx * k);
+        }
+
+        /// <summary>The shape's lowest row cells (the ones a pallet sled and the covered-layer bands sit under).</summary>
+        private static bool LowestRow(ShapeDef shape, Cell c)
+        {
+            foreach (var o in shape.Cells) if (o.Y < c.Y) return false;
+            return true;
         }
 
         /// <summary>The parts of a block (body tiles, corner fills, gloss or mortar, v3 trait overlays and badges), back to front.</summary>
@@ -167,7 +200,7 @@ namespace MinikUsta.Presentation.Art
             // P4 Y10: a covered pallet layer lies exactly under the layer above it (same pose, drawn under it), so lifting the top layer
             // shows it in place; besides its (dim) body it draws its board — the edge line that shows the stack depth — and, when it is
             // the lowest, the planks
-            if (traits != null && traits.PalletDepth > 0) CoveredLayerParts(o, shape, traits, cellPx);
+            if (traits != null && traits.PalletDepth > 0) CoveredLayerParts(o, shape, colorIndex, traits, cellPx);
             for (int i = 0; i < shape.Cells.Length; i++)
             {
                 var c = shape.Cells[i];
@@ -194,32 +227,40 @@ namespace MinikUsta.Presentation.Art
                 {
                     o.Add(new SpritePart(Frames.Locked, PartRole.Locked, i, r, Rgba.White, 2));
                 }
-                if (traits != null && !traits.IsNone) CellTraitParts(o, traits, i, r, cellPx);
+                if (traits != null && !traits.IsNone) CellTraitParts(o, shape, c, traits, i, r, cellPx);
             }
             if (traits != null && !traits.IsNone) BadgeParts(o, shape, traits, cellPx);
             return o;
         }
 
-        /// <summary>Extra parts of a covered pallet layer (`PalletDepth` &gt; 0): per bottom cell one board (the planks of the lowest layer are `CellTraitParts`).</summary>
-        private static void CoveredLayerParts(List<SpritePart> o, ShapeDef shape, BlockTraits traits, double cellPx)
+        /// <summary>
+        /// Extra parts of a covered pallet layer (`PalletDepth` &gt; 0): under each lowest-row cell one band in the layer's own colour (D-108;
+        /// the sled of the lowest layer is `CellTraitParts`).
+        /// </summary>
+        private static void CoveredLayerParts(List<SpritePart> o, ShapeDef shape, int colorIndex, BlockTraits traits, double cellPx)
         {
             double k = cellPx / 120.0;
             for (int i = 0; i < shape.Cells.Length; i++)
             {
                 var c = shape.Cells[i];
-                if (Has(shape, c.X, c.Y - 1)) continue; // only the bottom edge of the block shows a board
+                if (!LowestRow(shape, c)) continue; // only the stack's bottom edge shows the layer bands
                 var r = CellRect(shape, c, cellPx);
+                int ci = traits.CellColors != null && i < traits.CellColors.Length ? traits.CellColors[i] : colorIndex;
                 double y = r.Bottom + (traits.PalletDepth - 1) * PalletSlabStep * k;
-                o.Add(new SpritePart(Frames.PalletSlab, PartRole.Planks, i, new PxRect(r.X - PalletRim * k, y, PalletW * k, PalletSlabH * k), Rgba.White, PlanksOrder + 1));
+                o.Add(new SpritePart(Frames.PalletSlab, PartRole.Planks, i, new PxRect(r.X, y, r.W, PalletSlabH * k), Palette.Block(ci), PlanksOrder + 1));
             }
         }
 
-        private static void CellTraitParts(List<SpritePart> o, BlockTraits traits, int cell, PxRect r, double cellPx)
+        private static void CellTraitParts(List<SpritePart> o, ShapeDef shape, Cell c, BlockTraits traits, int cell, PxRect r, double cellPx)
         {
             double k = cellPx / 120.0;
-            // the planks sit under the last board: `PalletDepth` boards further down (0 when the lowest layer is also the top)
-            if (traits.PalletBase)
-                o.Add(new SpritePart(Frames.PalletCell, PartRole.Planks, cell, new PxRect(r.X - PalletRim * k, r.Y + traits.PalletDepth * PalletSlabStep * k, PalletW * k, PalletH * k), Rgba.White, PlanksOrder));
+            // the metal sled sits under the last band: `PalletDepth` bands further down (0 when the lowest layer is also the top); one
+            // run along the lowest row (end caps on the outer cells only)
+            if (traits.PalletBase && LowestRow(shape, c))
+            {
+                string sled = Frames.PalletSled(Has(shape, c.X - 1, c.Y), Has(shape, c.X + 1, c.Y));
+                o.Add(new SpritePart(sled, PartRole.Planks, cell, new PxRect(r.X - PalletRim * k, r.Bottom + (traits.PalletDepth * PalletSlabStep - PalletTuck) * k, PalletW * k, PalletH * k), Rgba.White, PlanksOrder));
+            }
             if (traits.Wrapped) o.Add(new SpritePart(Frames.OvlWrap, PartRole.Overlay, cell, r, Rgba.White, OverlayOrder));
             if (traits.Slippery) o.Add(new SpritePart(Frames.OvlIce, PartRole.Overlay, cell, r, Rgba.White, OverlayOrder));
         }
@@ -231,10 +272,19 @@ namespace MinikUsta.Presentation.Art
             int bc = BadgeCell(shape);
             var r = CellRect(shape, shape.Cells[bc], cellPx);
             double k = cellPx / 120.0;
+            // every badge keeps its centre on the line of a BadgePx badge at (BadgeDx, BadgeDy); a larger first badge (the D-108 "×n")
+            // grows around that centre, and each next slot starts BadgeStep / BadgePx of the previous badge's size further right
+            double cy = r.Y + (BadgeDy + BadgePx / 2) * k;
+            double cx = r.X + (BadgeDx + BadgePx / 2) * k;
             for (int slot = 0; slot < frames.Count; slot++)
             {
-                double s = BadgePx * k;
-                o.Add(new SpritePart(frames[slot], PartRole.Badge, bc, new PxRect(r.X + (BadgeDx + slot * BadgeStep) * k, r.Y + BadgeDy * k, s, s), Rgba.White, BadgeOrder));
+                double s = BadgeSize(frames[slot], cellPx);
+                if (slot > 0)
+                {
+                    double prev = BadgeSize(frames[slot - 1], cellPx);
+                    cx += (prev + s) / 2 * BadgeStep / BadgePx;
+                }
+                o.Add(new SpritePart(frames[slot], PartRole.Badge, bc, new PxRect(cx - s / 2, cy - s / 2, s, s), Rgba.White, BadgeOrder));
             }
         }
 

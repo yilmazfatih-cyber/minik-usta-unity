@@ -1,223 +1,223 @@
 {
   "level": 8,
   "source": "docs/LEVELS.md §2 Bölüm 8 — Kanonik çözüm (solver, GDD K-50 madde 4)",
-  "levelHash": "01d68b426c448f9f",
-  "rulesVersion": 5,
+  "levelHash": "53f5c15112515f9b",
+  "rulesVersion": 6,
   "geo": { "yard": [6, 8], "site": [3, 4], "H": 8, "wall": 7 },
   "budget": 24,
   "minMoves": 20,
   "movesLeft": 4,
-  "yao": { "overWall": 18, "rail": 0 },
+  "yao": { "overWall": 19, "rail": 0 },
   "steps": [
     {
       "piece": "a",
       "ref": "piece:0",
       "shape": "D2_90",
-      "color": "G",
-      "from": [0, 7],
+      "color": "Y",
+      "from": [4, 7],
       "kind": "shift",
-      "to": [3, 7]
+      "to": [0, 7]
     },
     {
       "piece": "b",
       "ref": "piece:1",
-      "shape": "L4_270",
+      "shape": "D2_90",
       "color": "W",
-      "from": [0, 6],
+      "from": [4, 6],
       "kind": "overWall",
-      "to": [6, 0]
+      "to": [7, 0]
     },
     {
-      "piece": "c",
-      "ref": "piece:2",
-      "shape": "D2_0",
-      "color": "G",
-      "from": [5, 6],
+      "piece": "d",
+      "ref": "piece:3",
+      "shape": "C3_0",
+      "color": "W",
+      "from": [3, 5],
       "kind": "overWall",
-      "to": [8, 2]
+      "to": [7, 1]
+    },
+    {
+      "piece": "f",
+      "ref": "piece:5",
+      "shape": "I3_0",
+      "color": "Y",
+      "from": [2, 4],
+      "kind": "overWall",
+      "to": [6, 0]
     },
     {
       "piece": "a",
       "ref": "piece:0",
       "shape": "D2_90",
-      "color": "G",
-      "from": [3, 7],
-      "kind": "shift",
-      "to": [2, 7]
-    },
-    {
-      "piece": "e",
-      "ref": "piece:4",
-      "shape": "C3_0",
       "color": "Y",
-      "from": [4, 5],
+      "from": [0, 7],
       "kind": "overWall",
-      "to": [6, 1]
-    },
-    {
-      "piece": "f",
-      "ref": "piece:5",
-      "shape": "C3_180",
-      "color": "W",
-      "from": [0, 4],
-      "kind": "overWall",
-      "to": [6, 2],
-      "segmentCompleted": 0
-    },
-    {
-      "piece": "d",
-      "ref": "piece:3",
-      "shape": "C3_270",
-      "color": "Y",
-      "from": [2, 5],
-      "kind": "overWall",
-      "to": [6, 0]
+      "to": [6, 3]
     },
     {
       "piece": "g",
       "ref": "piece:6",
-      "shape": "C3_90",
-      "color": "Y",
-      "from": [2, 3],
+      "shape": "D2_0",
+      "color": "G",
+      "from": [5, 4],
       "kind": "overWall",
-      "to": [6, 1]
+      "to": [8, 2],
+      "segmentCompleted": 0
+    },
+    {
+      "piece": "j",
+      "ref": "piece:9",
+      "shape": "C3_0",
+      "color": "W",
+      "from": [4, 3],
+      "kind": "overWall",
+      "to": [6, 0]
+    },
+    {
+      "piece": "e",
+      "ref": "piece:4",
+      "shape": "I3_0",
+      "color": "Y",
+      "from": [1, 4],
+      "kind": "overWall",
+      "to": [8, 0]
     },
     {
       "piece": "i",
       "ref": "piece:8",
       "shape": "D2_0",
       "color": "G",
-      "from": [5, 3],
-      "kind": "overWall",
-      "to": [8, 0]
-    },
-    {
-      "piece": "a",
-      "ref": "piece:0",
-      "shape": "D2_90",
-      "color": "G",
-      "from": [2, 7],
-      "kind": "overWall",
-      "to": [6, 3]
-    },
-    {
-      "piece": "k",
-      "ref": "piece:10",
-      "shape": "D2_0",
-      "color": "G",
-      "from": [1, 2],
-      "kind": "overWall",
-      "to": [8, 2],
-      "segmentCompleted": 1
-    },
-    {
-      "piece": "j",
-      "ref": "piece:9",
-      "shape": "D2_0",
-      "color": "G",
-      "from": [0, 2],
-      "kind": "overWall",
-      "to": [8, 0]
-    },
-    {
-      "piece": "h",
-      "ref": "piece:7",
-      "shape": "C3_270",
-      "color": "Y",
       "from": [3, 3],
       "kind": "overWall",
-      "to": [6, 0]
+      "to": [7, 1]
     },
     {
-      "piece": "l",
-      "ref": "piece:11",
-      "shape": "C3_270",
-      "color": "Y",
-      "from": [1, 1],
+      "piece": "m",
+      "ref": "piece:12",
+      "shape": "D2_90",
+      "color": "G",
+      "from": [3, 2],
       "kind": "overWall",
-      "to": [7, 2]
+      "to": [7, 3]
     },
     {
       "piece": "n",
       "ref": "piece:13",
       "shape": "D2_0",
+      "color": "G",
+      "from": [5, 1],
+      "kind": "overWall",
+      "to": [6, 2],
+      "segmentCompleted": 1
+    },
+    {
+      "piece": "s",
+      "ref": "piece:18",
+      "shape": "C3_0",
       "color": "W",
-      "from": [0, 0],
-      "kind": "overWall",
-      "to": [6, 1]
-    },
-    {
-      "piece": "q",
-      "ref": "piece:16",
-      "shape": "D2_90",
-      "color": "G",
-      "from": [1, 0],
-      "kind": "overWall",
-      "to": [6, 3],
-      "segmentCompleted": 2
-    },
-    {
-      "piece": "p",
-      "ref": "piece:15",
-      "shape": "D2_90",
-      "color": "G",
-      "from": [1, 0],
+      "from": [4, 0],
       "kind": "overWall",
       "to": [7, 0]
     },
     {
-      "piece": "m",
-      "ref": "piece:12",
-      "shape": "L4_90",
-      "color": "Y",
-      "from": [3, 1],
+      "piece": "c",
+      "ref": "piece:2",
+      "shape": "D2_0",
+      "color": "G",
+      "from": [0, 5],
       "kind": "overWall",
       "to": [6, 0]
     },
     {
-      "piece": "r",
-      "ref": "piece:17",
-      "shape": "L4_270",
+      "piece": "h",
+      "ref": "piece:7",
+      "shape": "D2_0",
       "color": "Y",
-      "from": [3, 0],
+      "from": [0, 3],
       "kind": "overWall",
       "to": [6, 2]
     },
     {
-      "piece": "o",
-      "ref": "piece:14",
+      "piece": "l",
+      "ref": "piece:11",
+      "shape": "C3_180",
+      "color": "Y",
+      "from": [1, 2],
+      "kind": "overWall",
+      "to": [7, 1]
+    },
+    {
+      "piece": "k",
+      "ref": "piece:10",
       "shape": "D2_90",
       "color": "G",
-      "from": [1, 0],
+      "from": [0, 2],
       "kind": "overWall",
-      "to": [6, 3],
+      "to": [7, 3],
+      "segmentCompleted": 2
+    },
+    {
+      "piece": "r",
+      "ref": "piece:17",
+      "shape": "C3_0",
+      "color": "W",
+      "from": [4, 0],
+      "kind": "overWall",
+      "to": [6, 0]
+    },
+    {
+      "piece": "o",
+      "ref": "piece:14",
+      "shape": "C3_180",
+      "color": "Y",
+      "from": [0, 0],
+      "kind": "overWall",
+      "to": [7, 0]
+    },
+    {
+      "piece": "q",
+      "ref": "piece:16",
+      "shape": "C3_0",
+      "color": "W",
+      "from": [4, 0],
+      "kind": "overWall",
+      "to": [6, 2]
+    },
+    {
+      "piece": "p",
+      "ref": "piece:15",
+      "shape": "C3_180",
+      "color": "Y",
+      "from": [2, 0],
+      "kind": "overWall",
+      "to": [7, 2],
       "segmentCompleted": 3
     }
   ],
   "log": [
     { "kind": "start", "preBoosters": [], "streakTier": 0 },
-    { "kind": "drag", "pieceId": 0, "to": { "ix": 3, "iy": 7, "mode": 0 } },
-    { "kind": "drag", "pieceId": 1, "to": { "ix": 6, "iy": 0, "mode": 0 } },
-    { "kind": "drag", "pieceId": 2, "to": { "ix": 8, "iy": 2, "mode": 0 } },
-    { "kind": "drag", "pieceId": 0, "to": { "ix": 2, "iy": 7, "mode": 0 } },
-    { "kind": "drag", "pieceId": 4, "to": { "ix": 6, "iy": 1, "mode": 0 } },
-    { "kind": "drag", "pieceId": 5, "to": { "ix": 6, "iy": 2, "mode": 0 } },
-    { "kind": "drag", "pieceId": 3, "to": { "ix": 6, "iy": 0, "mode": 0 } },
-    { "kind": "drag", "pieceId": 6, "to": { "ix": 6, "iy": 1, "mode": 0 } },
-    { "kind": "drag", "pieceId": 8, "to": { "ix": 8, "iy": 0, "mode": 0 } },
+    { "kind": "drag", "pieceId": 0, "to": { "ix": 0, "iy": 7, "mode": 0 } },
+    { "kind": "drag", "pieceId": 1, "to": { "ix": 7, "iy": 0, "mode": 0 } },
+    { "kind": "drag", "pieceId": 3, "to": { "ix": 7, "iy": 1, "mode": 0 } },
+    { "kind": "drag", "pieceId": 5, "to": { "ix": 6, "iy": 0, "mode": 0 } },
     { "kind": "drag", "pieceId": 0, "to": { "ix": 6, "iy": 3, "mode": 0 } },
-    { "kind": "drag", "pieceId": 10, "to": { "ix": 8, "iy": 2, "mode": 0 } },
-    { "kind": "drag", "pieceId": 9, "to": { "ix": 8, "iy": 0, "mode": 0 } },
-    { "kind": "drag", "pieceId": 7, "to": { "ix": 6, "iy": 0, "mode": 0 } },
-    { "kind": "drag", "pieceId": 11, "to": { "ix": 7, "iy": 2, "mode": 0 } },
-    { "kind": "drag", "pieceId": 13, "to": { "ix": 6, "iy": 1, "mode": 0 } },
-    { "kind": "drag", "pieceId": 16, "to": { "ix": 6, "iy": 3, "mode": 0 } },
-    { "kind": "drag", "pieceId": 15, "to": { "ix": 7, "iy": 0, "mode": 0 } },
-    { "kind": "drag", "pieceId": 12, "to": { "ix": 6, "iy": 0, "mode": 0 } },
-    { "kind": "drag", "pieceId": 17, "to": { "ix": 6, "iy": 2, "mode": 0 } },
-    { "kind": "drag", "pieceId": 14, "to": { "ix": 6, "iy": 3, "mode": 0 } }
+    { "kind": "drag", "pieceId": 6, "to": { "ix": 8, "iy": 2, "mode": 0 } },
+    { "kind": "drag", "pieceId": 9, "to": { "ix": 6, "iy": 0, "mode": 0 } },
+    { "kind": "drag", "pieceId": 4, "to": { "ix": 8, "iy": 0, "mode": 0 } },
+    { "kind": "drag", "pieceId": 8, "to": { "ix": 7, "iy": 1, "mode": 0 } },
+    { "kind": "drag", "pieceId": 12, "to": { "ix": 7, "iy": 3, "mode": 0 } },
+    { "kind": "drag", "pieceId": 13, "to": { "ix": 6, "iy": 2, "mode": 0 } },
+    { "kind": "drag", "pieceId": 18, "to": { "ix": 7, "iy": 0, "mode": 0 } },
+    { "kind": "drag", "pieceId": 2, "to": { "ix": 6, "iy": 0, "mode": 0 } },
+    { "kind": "drag", "pieceId": 7, "to": { "ix": 6, "iy": 2, "mode": 0 } },
+    { "kind": "drag", "pieceId": 11, "to": { "ix": 7, "iy": 1, "mode": 0 } },
+    { "kind": "drag", "pieceId": 10, "to": { "ix": 7, "iy": 3, "mode": 0 } },
+    { "kind": "drag", "pieceId": 17, "to": { "ix": 6, "iy": 0, "mode": 0 } },
+    { "kind": "drag", "pieceId": 14, "to": { "ix": 7, "iy": 0, "mode": 0 } },
+    { "kind": "drag", "pieceId": 16, "to": { "ix": 6, "iy": 2, "mode": 0 } },
+    { "kind": "drag", "pieceId": 15, "to": { "ix": 7, "iy": 2, "mode": 0 } }
   ],
-  "eventLogHash": "a6662dc3ff2bfaa5",
+  "eventLogHash": "df7dbf56f548b83f",
   "finalAscii": [
     "L8 turn 20 moves 4 seg 4/4 elev 0",
     "size 6x8|3x4 H8",
@@ -228,11 +228,11 @@
     " 6  . . . . . . | # | · · ·",
     " 5  . . . . . . | # | · · ·",
     " 4  . . . . . . | # | · · ·",
-    " 3  . . . . . . | # | G G Y",
-    " 2  . . . . . . | # | Y Y Y",
-    " 1  . . . . . . | # | Y Y Y",
-    " 0  . . . . . . | # | Y G G",
-    "plan seg3 (top→bottom): GGY YYY YYY YGG",
+    " 3  . . . . . . | # | W Y Y",
+    " 2  . . . . . . | # | W W Y",
+    " 1  . . . . . . | # | W Y Y",
+    " 0  . . . . . . | # | W W Y",
+    "plan seg3 (top→bottom): WYY WWY WYY WWY",
     "traits: -"
   ]
 }

@@ -6,6 +6,7 @@
 // (TECH Appendix A), S play the next move of the level's golden solution.
 // U2 (UX_UNITY P0-2): the Android back key (KeyCode.Escape in the legacy Input Manager; Esc on desktop) → `GameApp.Back` (the back
 // stack); "Çık" in the quit confirmation → `Application.Quit`. The design canvas is drawn into `Screen.safeArea` (notch, gesture bar).
+using System;
 using MinikUsta.Core;
 using MinikUsta.Presentation.Anim;
 using MinikUsta.Presentation.Audio;
@@ -111,7 +112,17 @@ namespace MinikUsta.Unity
             if (Debug.isDebugBuild) DebugKeys(a);
             float dtMs = Mathf.Min(Time.unscaledDeltaTime * 1000f, MaxFrameMs);
             warmup?.Tick(dtMs, a.Flow.Current);
-            a.Tick(shots != null ? dtMs * shots.TimeScale : dtMs);
+            try
+            {
+                a.Tick(shots != null ? dtMs * shots.TimeScale : dtMs);
+            }
+            catch (Exception e) when (shots != null)
+            {
+                // C1: an exception in the app's frame would starve the CI shot scenario (ticked below) for good and the Playwright script
+                // would only time out; the scenario reports it at once as `error:exception:…` (first one only) and the frame rethrows
+                shots.Fault(e.GetType().Name + ": " + e.Message);
+                throw;
+            }
             shots?.Tick(dtMs);
         }
 

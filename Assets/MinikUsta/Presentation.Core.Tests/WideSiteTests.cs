@@ -137,11 +137,12 @@ namespace MinikUsta.Presentation.Tests
         [Test(Description = "K-60 K-62 D-105: the bonus placement shows a gold \"+2\" burst on the moves plate (<= 900 ms, hidden after), cheers the king and plays the moves jingle; the HUD keeps the bonus count")]
         public void Y12_bonus_placement_shows_the_plus_two_burst_and_the_king_cheers()
         {
+            Assert.AreEqual(7, Play.BonusLevel, "D-107: the bonus is the reward of the pallet introduction (level 7)");
             var rig = new Rig();
-            rig.Load(10);
+            rig.Load(Play.BonusLevel);
             rig.Settle();
             bool burst = false;
-            foreach (var m in Play.SolverGolden(10).Drags)
+            foreach (var m in Play.SolverGolden(Play.BonusLevel).Drags)
             {
                 rig.Settle();
                 var r = rig.Player.Commit(m);
@@ -168,7 +169,7 @@ namespace MinikUsta.Presentation.Tests
                 }
                 else Assert.AreEqual(shownBefore, rig.View.MovesBurstShown.Count, "no burst without a bonus");
             }
-            Assert.IsTrue(burst, "level 10 holds a bonus block (the finale's reward moment)");
+            Assert.IsTrue(burst, "level 7 holds a bonus block (the pallet introduction's reward moment, D-107)");
         }
 
         [Test(Description = "K-53 P4: the level start window of a level that teaches a mechanic shows its info card (obs.*.desc, 34 px, <= 2 lines) in TR and EN; Y10 adds the D-104 rule; a level without `teaches` shows none")]

@@ -29,11 +29,10 @@
     "ctx": {
       "resume": "Just as you left it.",
       "support": "Fill the gap below first."
-    }
-  },
-  "card": {
-    "y10": {
-      "site": "Layers are dropped on the site only."
+    },
+    "m": {
+      "pallet": "Always take the pallet's top layer.",
+      "palletsite": "Lift a layer onto the site."
     }
   }
 }

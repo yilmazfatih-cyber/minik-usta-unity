@@ -142,12 +142,14 @@ namespace MinikUsta.Core.Tests
             }
         }
 
-        [Test(Description = "P1 vectors: the file comes from the same web commit as the P0 vectors and covers 10 shipped levels + 10 geometries × 5 random boards + 10 Faz 2R archive levels")]
+        private static int WideStart => 10 + GeometryTests.G.Length * Vectors["random"]!["perGeometry"]!.AsInt + 10;
+
+        [Test(Description = "P1 vectors: the file comes from the same web commit as the P0 vectors and covers 10 shipped levels + 10 geometries × 5 random boards + 10 Faz 2R archive levels + the CL-V3C-11 wide boards")]
         public void P1_vectors_file_is_consistent()
         {
             Assert.AreEqual(TestPaths.Vectors["generatedFrom"]!["webCommit"]!.AsString, Vectors["generatedFrom"]!["webCommit"]!.AsString, "p0 and p1 vectors from different web commits");
             Assert.AreEqual("tools/gen-p1-vectors.ts", Vectors["generatedFrom"]!["generator"]!.AsString);
-            Assert.AreEqual(10 + GeometryTests.G.Length * Vectors["random"]!["perGeometry"]!.AsInt + 10, Vectors["boards"]!.Items.Count());
+            Assert.AreEqual(WideStart + Vectors["wide"]!["count"]!.AsInt, Vectors["boards"]!.Items.Count());
             Assert.IsNotNull(Vectors["boards"]![0]["pieces"]![0]["lines"], "level 1 keeps the full lines as the format anchor");
         }
 
@@ -168,6 +170,29 @@ namespace MinikUsta.Core.Tests
             var b = Vectors["boards"]!.Items.ElementAt(index);
             Assert.AreEqual("archive_level_" + n.ToString("000"), b["name"]!.AsString);
             CheckBoard(b, Compiler.Compile(LevelJson.ParseOrThrow(TestPaths.LoadLevelJson(n))));
+        }
+
+        [Test(Description = "K-56 K-58 item 10 CL-V3C-11 the same on the wide boards (level data in the vector): P5, S4 and Z4 on a 3-column site and D-106 pallets of C3, L4, T4, J4 and O4")]
+        public void K56_K58_item_10_wide_shape_and_D106_pallet_boards_equal_the_TypeScript_core()
+        {
+            var wide = Vectors["boards"]!.Items.Skip(WideStart).ToArray();
+            Assert.AreEqual(Vectors["wide"]!["count"]!.AsInt, wide.Length);
+            Assert.GreaterOrEqual(wide.Length, 5);
+            var families = new HashSet<string>();
+            int palletPicks = 0;
+            foreach (var b in wide)
+            {
+                StringAssert.StartsWith("wide ", b["name"]!.AsString);
+                var lvl = Compiler.Compile(LevelJson.ParseOrThrow(b["level"]!));
+                Assert.AreEqual(3, lvl.Geo.Ws, b["name"]!.AsString);
+                foreach (var p in lvl.Pieces) families.Add(Shapes.ShapeByIndex(p.ShapeIndex).Id.Split('_')[0]);
+                var s = CreateInitialState(lvl);
+                for (int id = 0; id < lvl.Pieces.Length; id++)
+                    if (lvl.HasStacks && Movement.IsPalletLayer(s, id) && !Grid.IsCovered(s, id) && Grid.LayerBelow(s, id) >= 0 && Movement.TryBeginDrag(s, id).Ok) palletPicks++;
+                CheckBoard(b, lvl);
+            }
+            CollectionAssert.IsSubsetOf(new[] { "P5", "S4", "Z4", "C3", "L4", "T4", "J4", "O4" }, families.ToArray());
+            Assert.GreaterOrEqual(palletPicks, 3, "top layers with a layer below that can be held (D-106)");
         }
 
         [Test(Description = "K-49 K-08 K-17 K-19 the same on 50 seeded random boards of the 10 geometries (yard gravity settle included): GeometryTests.RandomLevel draws the TS randomLevel sequence")]

@@ -15,6 +15,10 @@
 //   U2 (UX_UNITY P0-11): → Devam → home → Bölüm 2 (direct) → pause (the pause window) → exit_confirm (Ana sayfa → the exit confirmation)
 //   → Kal → Devam → the golden solution of Bölüm 2 → Devam → home → level_start_window (Bölüm 3: the first level start window) → Oyna →
 //   yard moves only until the moves run out → lose_offer (the +5 offer window) → done
+//   P4 / C1 (levels v3c): after level_start_window the starts of Bölüm 6-10 (v3_wide_6 … v3_final_10), then v3_bonus_burst_7: Bölüm 7
+//   replayed without animation up to the golden move that pays the bonus, that move played, the clock stopped 144 ms into the "+2"
+//   burst while the picture is taken (`TimeScale` 0), then Bölüm 3 for the +5 offer. An exception in the app's frame is reported by
+//   the Unity layer through `Fault` as `error:exception:…` (CL-V3C-08: a frozen frame used to starve this scenario silently).
 //
 // Motion windows (P4B-08; only with `?shots=1&motion=<scale>`, CI uses 0.0125): two stretches of game time are played in slow motion so that a software-GL
 // browser, which draws a few frames per second, can still photograph every frame of the animation: `seq:king_wave` (the home king's
@@ -90,9 +94,10 @@ namespace MinikUsta.Presentation.Shots
         public static readonly string[] ShotNames =
         {
             "home", "settings", "level_start", "tutorial", "drag_mid", "landed", "win", "v3_info_7", "pause", "exit_confirm", "level_start_window",
-            // P4 (levels v3c, D-103..D-105): the starts of Bölüm 6-10 — 6 wide site, 7 pallet, 8 wrap + scissors, 9 slippery, 10 bonus
-            "v3_wide_6", "v3_pallet_7", "v3_wrap_8", "v3_slippery_9", "v3_bonus_10",
-            // CL-V3C-08: the level start window of Bölüm 7 is shot as `v3_info_7` (after `win`); the "+2" burst shot is still open (see docs/REVIEW_LEVELS_V3C.md)
+            // P4 (levels v3c, D-103..D-107): the starts of Bölüm 6-10 — 6 wide site, 7 pallet (+ bonus), 8 wrap + scissors, 9 slippery, 10 finale
+            "v3_wide_6", "v3_pallet_7", "v3_wrap_8", "v3_slippery_9", "v3_final_10",
+            // CL-V3C-08 / C1: the "+2" burst of the bonus placement (Bölüm 7 since D-107), frozen at 45 % of its pop
+            "v3_bonus_burst_7",
             "lose_offer",
         };
 
@@ -104,6 +109,15 @@ namespace MinikUsta.Presentation.Shots
 
         /// <summary>Game milliseconds from the start after which the scenario gives up (`error:timeout`).</summary>
         public const float TimeoutMs = 420000f;
+
+        /// <summary>C1 (D-107): the level whose golden solution pays the bonus "+2" (a unit test keeps it equal to the shipped data).</summary>
+        public const int BonusShotLevel = 7;
+
+        /// <summary>C1: game ms from the burst's appearance to the picture: 45 % of its 320 ms pop (StepRunner.BonusMoves).</summary>
+        public const float BurstPopMs = 144f;
+
+        /// <summary>C1: game ms the bonus placement may take to show its burst before the scenario fails (`error:`), never a silent wait.</summary>
+        public const float BurstWaitMs = 8000f;
 
         private readonly GameApp app;
         private readonly Func<int, SessionAction[]?> solutions;
@@ -124,6 +138,11 @@ namespace MinikUsta.Presentation.Shots
         private SessionAction[]? solution;
         private int solutionLevel;
         private float sinceCommit;
+
+        // C1 bonus burst
+        private SessionAction? bonusMove;
+        private bool bonusCommitted;
+        private float burstWait;
 
         /// <summary>The golden solution of the level being played (reloaded when the level changes).</summary>
         private SessionAction[]? Sol()
@@ -237,7 +256,18 @@ namespace MinikUsta.Presentation.Shots
             Add("v3_start_9", hold, Once(() => DebugLevel(9)));
             Add("v3_slippery_9", 1500f, Once(() => RequireScreen(AppScreen.Level) && Shot("v3_slippery_9")));
             Add("v3_start_10", hold, Once(() => DebugLevel(10)));
-            Add("v3_bonus_10", 1500f, Once(() => RequireScreen(AppScreen.Level) && Shot("v3_bonus_10")));
+            Add("v3_final_10", 1500f, Once(() => RequireScreen(AppScreen.Level) && Shot("v3_final_10")));
+            // C1 (CL-V3C-08 root cause, see docs/REVIEW_LEVELS_V3C.md): the bonus level jumps without animation to the golden move that
+            // pays the bonus, plays that move, and the game clock stops 144 ms into the "+2" burst (45 % of its pop) while the picture
+            // is taken: a software-GL browser needs seconds per frame, the burst lives 600 ms
+            Add("v3_bonus_jump", hold, Once(BonusJump));
+            Add("v3_bonus_play", 600f, BonusPlay);
+            Add("v3_bonus_burst_7", BurstPopMs, Once(BurstFreeze));
+            Add("v3_bonus_thaw", hold, Once(() =>
+            {
+                TimeScale = 1f;
+                return true;
+            }));
             Add("v3_back_3", hold, Once(() => DebugLevel(3)));
             Add("burn", 1200f, BurnMoves);
             Add("lose_offer", 0f, WaitIdleThen(900f, () => RequireScreen(AppScreen.LoseOffer) && Shot("lose_offer")));
@@ -292,6 +322,12 @@ namespace MinikUsta.Presentation.Shots
             Say("shot:" + name);
             return true;
         }
+
+        /// <summary>
+        /// C1: the app's frame threw (the Unity layer catches it around `GameApp.Tick`, reports it here and rethrows): the scenario
+        /// stops with `error:exception:&lt;what&gt; in &lt;step&gt;` so the CI script fails at once instead of waiting for a shot that never comes.
+        /// </summary>
+        public void Fault(string what) => Fail("exception:" + what + " in " + Current);
 
         private void Fail(string why)
         {
@@ -513,6 +549,84 @@ namespace MinikUsta.Presentation.Shots
         }
 
         private bool Idle() => !app.Player.Queue.Busy && app.Player.Clock.Count == 0 && app.Player.CoinsInFlight == 0;
+
+        /// <summary>
+        /// C1: no animation and no input pending. Not `Idle()`: a board with looping tweens (the bonus badge pulse) never empties the
+        /// clock, so the moment of the next move is decided by the move queue, the coins in flight and an open window.
+        /// </summary>
+        private bool Quiet() => !app.Player.Queue.Busy && app.Player.CoinsInFlight == 0 && app.Player.Panel == PanelKind.None;
+
+        /// <summary>
+        /// C1: starts the bonus level at the golden move that pays its bonus: the golden log is replayed in a scratch core session to
+        /// find that move, then the level starts with the moves before it already played (`GameApp.DebugStartLevelAt`, no animation).
+        /// </summary>
+        private bool BonusJump()
+        {
+            if (!DebugLevel(BonusShotLevel)) return false;
+            var lvl = app.Player.Session!.Lvl;
+            var sol = Sol();
+            if (sol == null)
+            {
+                Say("note:no golden log for level " + BonusShotLevel);
+                return false;
+            }
+            var scratch = GameSession.Start(lvl);
+            var before = new List<SessionAction>();
+            for (int i = 1; i < sol.Length; i++)
+            {
+                var r = scratch.Apply(sol[i]);
+                if (r.Status != MoveStatuses.Applied) break;
+                if (PaysBonus(r.Events))
+                {
+                    bonusMove = sol[i];
+                    bonusCommitted = false;
+                    burstWait = 0f;
+                    return app.DebugStartLevelAt(BonusShotLevel, before);
+                }
+                before.Add(sol[i]);
+            }
+            Say("note:the golden log of level " + BonusShotLevel + " pays no bonus");
+            return false;
+        }
+
+        private static bool PaysBonus(IReadOnlyList<GameEvent> events)
+        {
+            foreach (var e in events)
+                if (e is MovesChangedEvent mc && mc.Reason == MovesChangedReasons.Bonus) return true;
+            return false;
+        }
+
+        /// <summary>C1: plays the bonus move on a quiet board, then waits (at most `BurstWaitMs` of game time) for the "+n" burst.</summary>
+        private bool BonusPlay(float dtMs)
+        {
+            var p = app.Player;
+            if (p.Session == null || bonusMove == null) return Fail2("no session or no bonus move");
+            if (!bonusCommitted)
+            {
+                if (!Quiet()) return false;
+                var r = p.Commit(bonusMove);
+                if (r.Status != MoveStatuses.Applied) return Fail2("the bonus move was not applied (" + r.Status + ")");
+                if (!PaysBonus(r.Events)) return Fail2("the bonus move paid no bonus");
+                bonusCommitted = true;
+                burstWait = 0f;
+                return false;
+            }
+            if (p.View.MovesBurstOn) return true;
+            burstWait += dtMs;
+            return burstWait > BurstWaitMs && Fail2("the +n burst did not show within " + (int)BurstWaitMs + " ms of game time");
+        }
+
+        /// <summary>C1: the burst is on screen: the game clock stops (`TimeScale` 0 until `v3_bonus_thaw`) and the picture is asked for.</summary>
+        private bool BurstFreeze()
+        {
+            if (!app.Player.View.MovesBurstOn)
+            {
+                Say("note:the +n burst ended before the picture");
+                return false;
+            }
+            TimeScale = 0f;
+            return Shot("v3_bonus_burst_7");
+        }
 
         /// <summary>Waits until the board is idle for `settleMs`, then runs `then` once.</summary>
         private Run WaitIdleThen(float settleMs, Func<bool> then) => _ =>

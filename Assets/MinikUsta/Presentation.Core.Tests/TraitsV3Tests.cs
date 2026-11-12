@@ -69,7 +69,7 @@ namespace MinikUsta.Presentation.Tests
         [Test(Description = "Y12 (K-60): the bonus block carries a star badge with its +n")]
         public void Y12_bonus_star_badge_shows_the_moves()
         {
-            var s = StateOf(10);
+            var s = StateOf(Play.BonusLevel);
             int id = FindPiece(s, p => (p.Flags & FlagBit.Bonus) != 0);
             Assert.AreEqual(2, s.Lvl.Pieces[id].BonusMoves);
             CollectionAssert.AreEqual(new[] { "ico_bonus_2" }, Parts(s, id).Where(p => p.Role == PartRole.Badge).Select(p => p.Frame).ToArray());
@@ -89,11 +89,11 @@ namespace MinikUsta.Presentation.Tests
             Assert.AreEqual(1, shape.Cells[bc].Y, "C3_0: the badge cell is on the top row");
         }
 
-        [Test(Description = "E3 badges of one block go left to right along the top edge in a fixed order and stay on the top-left cell")]
+        [Test(Description = "E3 D-108 badges of one block go left to right along the top edge in a fixed order (the layer count first) and stay on the top-left cell")]
         public void E3_badges_stack_in_a_fixed_order()
         {
             var t = new BlockTraits(null, true, true, 2, true, 3, 0, true);
-            CollectionAssert.AreEqual(new[] { Frames.WrapKnot, Frames.IcoScissors, "ico_bonus_2", Frames.IcoSlip, "ico_layers_3" }, BlockSkin.BadgeFrames(t));
+            CollectionAssert.AreEqual(new[] { "ico_layers_3", Frames.WrapKnot, Frames.IcoScissors, "ico_bonus_2", Frames.IcoSlip }, BlockSkin.BadgeFrames(t));
             var parts = BlockSkin.Block(Shapes.ShapeById("D2_0"), 0, 120, BlockLook.Holdable, null, t).Where(p => p.Role == PartRole.Badge).ToList();
             for (int i = 1; i < parts.Count; i++) Assert.Greater(parts[i].Rect.X, parts[i - 1].Rect.X, "slot " + i + " is right of slot " + (i - 1));
             Assert.IsTrue(parts.All(p => p.Cell == BlockSkin.BadgeCell(Shapes.ShapeById("D2_0"))));
@@ -114,11 +114,11 @@ namespace MinikUsta.Presentation.Tests
             Assert.AreNotEqual(new BlockTraits(new[] { 1, 2 }, false, false, 0, false, 0, 0, false), new BlockTraits(new[] { 2, 1 }, false, false, 0, false, 0, 0, false));
         }
 
-        [Test(Description = "E3 every frame a trait draws exists in the atlas (the 13 extension frames, page 3) and fits the stored contract")]
+        [Test(Description = "E3 every frame a trait draws exists in the atlas (the 16 extension frames, page 3) and fits the stored contract")]
         public void E3_trait_frames_exist_in_the_atlas()
         {
             var a = ArtContractTests.Atlas;
-            var names = new List<string> { Frames.OvlWrap, Frames.WrapKnot, Frames.IcoScissors, Frames.OvlIce, Frames.IcoSlip, Frames.PalletCell, Frames.PalletSlab };
+            var names = new List<string> { Frames.OvlWrap, Frames.WrapKnot, Frames.IcoScissors, Frames.OvlIce, Frames.IcoSlip, Frames.PalletCell, Frames.PalletCellL, Frames.PalletCellM, Frames.PalletCellR, Frames.PalletSlab };
             for (int n = 1; n <= 3; n++) names.Add(Frames.IcoBonus(n));
             for (int n = 2; n <= 4; n++) names.Add(Frames.IcoLayers(n));
             foreach (string name in names)
@@ -127,7 +127,7 @@ namespace MinikUsta.Presentation.Tests
                 Assert.IsNotNull(f, name);
                 Assert.GreaterOrEqual(f.Page, 3, name + " lives in an extension page");
             }
-            Assert.AreEqual(13, names.Distinct().Count());
+            Assert.AreEqual(16, names.Distinct().Count(), "13 E3 frames + the D-108 sled run pieces (pallet_cell_l / _m / _r)");
         }
 
         [Test(Description = "Y10 (K-58, D-104, P4): a pallet draws the layer count on the top layer, one board per covered layer under the top layer's bottom edge, and planks under the last board; every layer keeps the state pose")]
@@ -152,17 +152,18 @@ namespace MinikUsta.Presentation.Tests
             Assert.IsFalse(covered.Any(p => p.Role == PartRole.Gloss), "dim, not holdable: no gloss (K-09, K-58 item 3)");
             var boards = covered.Where(p => p.Frame == Frames.PalletSlab).ToList();
             Assert.AreEqual(2, boards.Count, "one board per bottom cell");
-            var planks = covered.Where(p => p.Frame == Frames.PalletCell).ToList();
+            var planks = covered.Where(p => Frames.IsPalletSled(p.Frame)).ToList();
             Assert.AreEqual(2, planks.Count, "one plank frame per cell");
             Assert.IsTrue(planks.All(p => p.Order < boards[0].Order && p.Order < 0), "planks under the boards and under every body");
-            Assert.IsTrue(planks.All(p => p.Rect.W > 120 && p.Rect.H > 120), "the planks reach past the cell on both sides and below");
+            Assert.IsTrue(planks.All(p => p.Rect.W > 120 && p.Rect.Bottom > 120 / 2.0), "the sled reaches past the cell on both sides and below");
+            CollectionAssert.AreEqual(new[] { Frames.PalletCellL, Frames.PalletCellR }, planks.OrderBy(p => p.Rect.X).Select(p => p.Frame).ToArray(), "D-108: one sled run, end caps outside");
             var cell = BlockSkin.CellRect(shape, shape.Cells[0], 120);
             Assert.AreEqual(cell.Bottom, boards.Min(p => p.Rect.Y), 1e-9, "the first board sits right under the layer above");
             // three layers: the layer under two others shows its board one step lower and the planks two steps lower
             var deep = new BlockTraits(null, false, false, 0, false, 0, 2, true);
             var deepParts = BlockSkin.Block(shape, 0, 120, BlockLook.Dim, null, deep);
             Assert.AreEqual(cell.Bottom + BlockSkin.PalletSlabStep, deepParts.First(p => p.Frame == Frames.PalletSlab).Rect.Y, 1e-9);
-            Assert.AreEqual(cell.Y + 2 * BlockSkin.PalletSlabStep, deepParts.First(p => p.Frame == Frames.PalletCell).Rect.Y, 1e-9);
+            Assert.AreEqual(cell.Bottom + 2 * BlockSkin.PalletSlabStep + BlockSkin.PalletH - BlockSkin.PalletTuck, deepParts.First(p => Frames.IsPalletSled(p.Frame)).Rect.Bottom, 1e-9);
             // the top layer: its body, the "×n" badge, no board of its own
             var topParts = BlockSkin.Block(shape, 0, 120, BlockLook.Holdable, null, top.Traits);
             Assert.IsTrue(topParts.Any(p => p.Role == PartRole.Body));
@@ -196,10 +197,10 @@ namespace MinikUsta.Presentation.Tests
         public void Y12_bonus_placement_plays_the_star_and_rolls_the_counter()
         {
             var rig = new Rig();
-            rig.Load(10);
+            rig.Load(Play.BonusLevel);
             rig.Settle();
             var seen = new List<int>();
-            foreach (var m in Play.SolverGolden(10).Drags)
+            foreach (var m in Play.SolverGolden(Play.BonusLevel).Drags)
             {
                 rig.Settle();
                 int left = rig.Session.MovesLeft;
