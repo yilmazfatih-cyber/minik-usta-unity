@@ -338,3 +338,17 @@ Açık sorular (orkestratöre):
 2. CL-V3C2-03: "Bölüm 1–5 değişmez" notu Bölüm 3–5'in zorluk düzeltmesini (en az Bölüm 4 yerleşimi ve 3–5 bütçeleri)
    kapsıyor mu?
 3. CL-V3C2-04: 8 ve 9'da 19 blok mu, 18 blok + dörtlü şekil mi?
+
+## 13. Paket Fc kapanışları (code-lead, 2026-11-12)
+
+Web `wip/phase-2r` `0ba4d9c` + Fc değişiklikleri (`SOLVER_VERSION` 8) ile eşitlendi: `tools/sync-from-web.sh` (Bölüm 7–9 verisi,
+golden'lar, `en.json` Resources'a), `tools/gen-p0…p3-vectors.ts` ve `tools/review/gen-follow-vectors.ts` yeniden üretildi
+(web `wt` aynı commit). Unity bu turdan önce Bölüm 7–9'un eski (v3c2) verisini taşıyordu; DiffFuzz ve vektör testleri 42 yerde
+kırmızıydı, eşitlemeden sonra yeşil (aşağıda).
+
+| Kimlik | Önem | Durum | Kanıt |
+| --- | --- | --- | --- |
+| CL-V3C2-05 EN öğretici metinleri > 6 kelime | Önemli | **Kapandı** | web `en.json` ve STORY §6A: "Always take the pallet's top layer." (6) / "Lift a layer onto the site." (6); Unity `unity_en.json` / `unity_tr.json` üstyazıları (`tut.m.pallet`, `tut.m.palletsite`) silindi, `K53_every_shipped_tutorial_text_…_at_most_six_words` web kopyasıyla yeşil; web testi `services-theme.review.test.ts` "K-53 STORY 0-4 CL-V3C2-05" TR + EN ≤ 6 (sevkiyattaki her `textKey`) |
+| Fl (i) resmî vekile 2 adım kazı bakışı | İstek | **Yapıldı (web)** | `walks.ts` `lookDepth` 2 (varsayılan), `SOLVER_VERSION` 8; 3 0,93 · 4 0,89 · 5 0,97; 6–10 0,85 / 0,88 / 0,89 / 0,86 / 0,51 (bantlar içinde); test "K-51 item 3 CL-V3C2-03 two dig steps" |
+| Fl (ii) `startOn: { event: 'pieceFree', piece }` | İstek | **Yapıldı (TS + C#)** | C#: `TutEvents.PieceFree`, `LevelJson.TutCond(startOn)`, `Logic.ConditionImpossible`, `TutorialEvents.PieceFreeNow`, `TutorialController.Refresh`; testler `K53_pieceFree_*` (3), web "K-53 pieceFree …" (4); veri bağlama product-lead'de |
+| Unity eşitlemesi (Fl bağımlılığı) | — | **Yapıldı** | `dotnet build -warnaserror` 0 uyarı; `dotnet test` Core.Tests 1 298 geçti / 8 atlandı, Presentation.Core.Tests 612 geçti; `tools/stub-gate-selftest.sh` 4/4; `v3_bonus_burst_7` senaryosu veriden okuyor (19. hamle, `piece:16`) ve `C1_CL_V3C_08_K60_item_7_…` yeşil |

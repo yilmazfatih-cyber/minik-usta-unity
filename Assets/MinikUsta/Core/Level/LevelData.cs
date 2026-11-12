@@ -37,6 +37,9 @@ namespace MinikUsta.Core.Level
             "overWall", "gapPass", "holdOverBuild", "turnEnd", "placementCorrect", "yardMove", "landed", "steered",
             "obstacleHit", "itemCollected", "yardFall", "segmentDone", "deliveryDone", "carouselTurn", "tap", "boosterUsed",
         };
+
+        /// <summary>K-53 item 7: the start-only STATE condition `pieceFree` { piece } (not a `done` event; web `PieceFreeCond`).</summary>
+        public const string PieceFree = "pieceFree";
     }
 
     /// <summary>GDD §14 `schemaVersion` (D-099): 1 = Faz 2R archive (batches, truck, K-25…K-27); 2 = fixed yard (K-55). TS `SCHEMA_VERSIONS`, `schemaVersionOf`, `isFixedYardLevel`.</summary>

@@ -947,17 +947,18 @@ namespace MinikUsta.Core.Level
                 var sv = v["startOn"];
                 if (sv != null)
                 {
-                    startOn = TutCond(sv, At(path, "startOn"));
+                    startOn = TutCond(sv, At(path, "startOn"), true);
                     if (startOn == null) ok = false;
                 }
                 var dv = v["done"];
                 TutCondition? done = null;
                 if (dv == null) Issue(At(path, "done"), "invalid_type", "Invalid input: expected object, received undefined");
-                else done = TutCond(dv, At(path, "done"));
+                else done = TutCond(dv, At(path, "done"), false);
                 if (!ok || step == null || highlight == null || textKey == null || done == null) return null;
                 return new TutorialStepData(step.Value, mode, highlight, hand, textKey, startOn, done);
             }
 
+            private static readonly string[] CondPieceFreeKeys = { "event", "piece" };
             private static readonly string[] CondCountKeys = { "event", "count" };
             private static readonly string[] CondHoldKeys = { "event", "count", "minMs" };
             private static readonly string[] CondPlacementKeys = { "event", "count", "at", "piece", "hidden" };
@@ -967,7 +968,7 @@ namespace MinikUsta.Core.Level
             private static readonly string[] CondDeliveryKeys = { "event", "count", "flag" };
 
             /// <summary>GDD §14.1/3 closed `done` vocabulary: filters may only be written on the event GDD allows.</summary>
-            private TutCondition? TutCond(JsonValue v, object[] path)
+            private TutCondition? TutCond(JsonValue v, object[] path, bool startOn)
             {
                 if (!v.IsObject)
                 {
@@ -975,9 +976,16 @@ namespace MinikUsta.Core.Level
                     return null;
                 }
                 var ev = v["event"];
+                // K-53 item 7: `startOn` also takes the start-only state condition `pieceFree` { piece } (strict: no count)
+                if (startOn && ev != null && ev.IsString && ev.AsString == TutEvents.PieceFree)
+                {
+                    if (!Strict(v, path, CondPieceFreeKeys)) return null;
+                    var pf = Pattern(v["piece"], At(path, "piece"), LevelSchemaPatterns.PieceRef);
+                    return pf == null ? null : new TutCondition(TutEvents.PieceFree, null, null, null, pf, null, null, null, null, null);
+                }
                 if (ev == null || !ev.IsString || Array.IndexOf(TutEvents.All, ev.AsString) < 0)
                 {
-                    Issue(At(path, "event"), "invalid_union", "Invalid input: `event` must be one of " + string.Join("|", TutEvents.All)); // zod 4: the issue sits on the discriminator
+                    Issue(At(path, "event"), "invalid_union", "Invalid input: `event` must be one of " + string.Join("|", TutEvents.All) + (startOn ? "|" + TutEvents.PieceFree : "")); // zod 4: the issue sits on the discriminator
                     return null;
                 }
                 string e = ev.AsString;

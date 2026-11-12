@@ -13,6 +13,7 @@ using System;
 using System.Collections.Generic;
 using MinikUsta.Core;
 using MinikUsta.Core.Level;
+using MinikUsta.Core.Obstacles;
 
 namespace MinikUsta.Presentation.Tutorial
 {
@@ -41,6 +42,17 @@ namespace MinikUsta.Presentation.Tutorial
                 y = Math.Min(y, c.Y);
             }
             return true;
+        }
+
+        /// <summary>
+        /// `startOn: pieceFree` (K-53 item 7): the named block can be held now (K-30 `HoldableIgnoringMoves`, the counter ignored). A STATE
+        /// condition: read at the level start and after each move, never from a move's events. False when the state is unknown or the
+        /// highlight id names no block. Web `pieceFreeNow`.
+        /// </summary>
+        public static bool PieceFreeNow(TutCondition cond, GameState? s)
+        {
+            if (s == null || cond.Piece == null) return false;
+            return s.Lvl.TutorialPieceIds.TryGetValue(cond.Piece, out int id) && Deadlock.HoldableIgnoringMoves(s, id, Registry.LevelHooks(s.Lvl).Drag);
         }
 
         /// <summary>GDD §14.1/3 `piece` filter: no filter, or `pieceId` is the block the highlight id names.</summary>

@@ -420,7 +420,7 @@ namespace MinikUsta.Presentation.Flow
         /// <summary>
         /// Development builds only (C1, the CI shots): a new attempt of level `n` with `moves` already played — the session is replayed
         /// (`GameSession.Replay`, like a K-43 resume) and the board appears at that point without any animation, so a late moment of a
-        /// level (the bonus "+2" of Bölüm 7, the 20th of 21 golden moves) is reached at once even on a slow software-GL browser.
+        /// level (the bonus "+2" of Bölüm 7, the 19th golden move: `piece:16`, v3c3) is reached at once even on a slow software-GL browser.
         /// False (nothing changes) when the level does not start or a move does not replay.
         /// </summary>
         public bool DebugStartLevelAt(int n, IReadOnlyList<SessionAction> moves)

@@ -5,7 +5,9 @@
 using System.Collections.Generic;
 using System.Linq;
 using MinikUsta.Core;
+using MinikUsta.Core.Json;
 using MinikUsta.Core.Level;
+using MinikUsta.Core.Obstacles;
 using MinikUsta.Presentation.Art;
 using MinikUsta.Presentation.Flow;
 using MinikUsta.Presentation.Game;
@@ -159,6 +161,77 @@ namespace MinikUsta.Presentation.Tests
             Assert.IsTrue(tut.Finished);
             Assert.IsNull(tut.Current);
             Assert.AreEqual(new[] { 1 }, host.Ended.ToArray());
+        }
+
+        // --- K-53 item 7: startOn pieceFree (a start-only STATE condition; web tests/scenes/tutorial.test.ts) -------------------------------
+
+        private static string PieceFreeStep(string startOn) =>
+            "[{\"step\":1,\"highlight\":[\"piece:15\"],\"textKey\":\"tut.m.pallet\",\"startOn\":" + startOn + ",\"done\":{\"event\":\"overWall\"}}]";
+
+        private const string Piece15Free = "{\"event\":\"pieceFree\",\"piece\":\"piece:15\"}";
+
+        private static JsonValue Level7With(string tutorialJson)
+        {
+            var j = PresentationPaths.LoadLevelJson(7);
+            j.Set("tutorial", JsonReader.Parse(tutorialJson));
+            return j;
+        }
+
+        [Test]
+        public void K53_pieceFree_waits_while_the_block_is_covered_and_starts_at_the_first_state_where_it_can_be_held()
+        {
+            var lvl = Compiler.LoadLevel(Level7With(PieceFreeStep(Piece15Free))).LevelOrThrow();
+            var session = GameSession.Start(lvl, null, 0, new SessionOptions(strict: true));
+            var host = new Host { State = session.State };
+            var tut = TutorialFactory.Create(lvl, host, false)!;
+            tut.Start(0);
+            int id = lvl.TutorialPieceIds["piece:15"];
+            bool Free() => Deadlock.HoldableIgnoringMoves(session.State, id, session.Hooks.Drag);
+            Assert.IsFalse(Free(), "covered at the start: the step waits");
+            Assert.AreEqual(1, tut.Waiting!.Step);
+            int startedAt = -1;
+            var moves = Play.SolverGolden(7).Drags;
+            for (int i = 0; i < moves.Length && startedAt < 0; i++)
+            {
+                var sink = new ArraySink();
+                session.Commit(moves[i], sink);
+                host.State = session.State;
+                tut.MoveEnded(sink.Events, 10 * (i + 1));
+                bool active = tut.Current != null;
+                Assert.AreEqual(Free(), active, "after move " + (i + 1) + ": never active while covered, active exactly when it can be held");
+                if (active) startedAt = i + 1;
+            }
+            Assert.Greater(startedAt, 0);
+            Assert.AreEqual(1, tut.Current!.Data.Step);
+        }
+
+        [Test]
+        public void K53_pieceFree_starts_at_the_level_start_when_the_block_is_already_free()
+        {
+            var lvl = Play.LevelFile(1);
+            var j = PresentationPaths.LoadLevelJson(1);
+            j.Set("tutorial", JsonReader.Parse(
+                "[{\"step\":1,\"highlight\":[\"piece:1\"],\"textKey\":\"tut.m.useall\",\"startOn\":{\"event\":\"pieceFree\",\"piece\":\"piece:1\"},\"done\":{\"event\":\"placementCorrect\"}}]"));
+            var l1 = Compiler.LoadLevel(j).LevelOrThrow();
+            var host = new Host { State = State.CreateInitialState(l1) };
+            var tut = TutorialFactory.Create(l1, host, false)!;
+            tut.Start(0);
+            Assert.IsTrue(Deadlock.HoldableIgnoringMoves(host.State, l1.TutorialPieceIds["piece:1"], Registry.LevelHooks(l1).Drag));
+            Assert.AreEqual(1, tut.Current!.Data.Step);
+            Assert.IsNull(tut.Waiting);
+            Assert.IsNotNull(lvl);
+        }
+
+        [Test]
+        public void K53_pieceFree_is_a_start_only_state_condition_startOn_with_a_piece_and_no_count_never_done()
+        {
+            System.Collections.Generic.List<string> Codes(string tutorialJson) =>
+                Logic.ValidateLevelJson(Level7With(tutorialJson), new LogicContext(fileId: 7)).Issues.Select(i => i.Code).ToList();
+            CollectionAssert.IsEmpty(Codes(PieceFreeStep(Piece15Free)));
+            CollectionAssert.Contains(Codes(PieceFreeStep("{\"event\":\"pieceFree\"}")), "schema_invalid");
+            CollectionAssert.Contains(Codes(PieceFreeStep("{\"event\":\"pieceFree\",\"piece\":\"piece:15\",\"count\":2}")), "schema_invalid");
+            CollectionAssert.Contains(Codes(PieceFreeStep("{\"event\":\"pieceFree\",\"piece\":\"piece:99\"}")), "tut_done_invalid");
+            CollectionAssert.Contains(Codes("[{\"step\":1,\"highlight\":[\"piece:15\"],\"textKey\":\"tut.m.pallet\",\"done\":" + Piece15Free + "}]"), "schema_invalid");
         }
 
         [Test]
