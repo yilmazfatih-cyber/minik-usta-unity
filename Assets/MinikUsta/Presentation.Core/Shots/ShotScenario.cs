@@ -91,8 +91,8 @@ namespace MinikUsta.Presentation.Shots
         {
             "home", "settings", "level_start", "tutorial", "drag_mid", "landed", "win", "v3_info_7", "pause", "exit_confirm", "level_start_window",
             // P4 (levels v3c, D-103..D-105): the starts of Bölüm 6-10 — 6 wide site, 7 pallet, 8 wrap + scissors, 9 slippery, 10 bonus
-            "v3_wide_6", "v3_pallet_7", "v3_wrap_8", "v3_slippery_9", "v3_bonus_10", "v3_bonus_burst_10",
-            // CL-V3C-08: the level start window of Bölüm 7 (info card + card.y10.site) and the "+2" burst at 45 % of its pop
+            "v3_wide_6", "v3_pallet_7", "v3_wrap_8", "v3_slippery_9", "v3_bonus_10",
+            // CL-V3C-08: the level start window of Bölüm 7 is shot as `v3_info_7` (after `win`); the "+2" burst shot is still open (see docs/REVIEW_LEVELS_V3C.md)
             "lose_offer",
         };
 
@@ -238,10 +238,6 @@ namespace MinikUsta.Presentation.Shots
             Add("v3_slippery_9", 1500f, Once(() => RequireScreen(AppScreen.Level) && Shot("v3_slippery_9")));
             Add("v3_start_10", hold, Once(() => DebugLevel(10)));
             Add("v3_bonus_10", 1500f, Once(() => RequireScreen(AppScreen.Level) && Shot("v3_bonus_10")));
-            // CL-V3C-08: the golden solution of Bölüm 10 is played until the bonus block pays; 140 ms into the burst (its pop starts at
-            // 0.45 of the step, 320 ms long: the burst is at about 45 %) the picture is taken
-            Add("v3_bonus_play", hold, BonusPlay);
-            Add("v3_bonus_burst_10", 140f, Once(() => Shot("v3_bonus_burst_10")));
             Add("v3_back_3", hold, Once(() => DebugLevel(3)));
             Add("burn", 1200f, BurnMoves);
             Add("lose_offer", 0f, WaitIdleThen(900f, () => RequireScreen(AppScreen.LoseOffer) && Shot("lose_offer")));
@@ -517,24 +513,6 @@ namespace MinikUsta.Presentation.Shots
         }
 
         private bool Idle() => !app.Player.Queue.Busy && app.Player.Clock.Count == 0 && app.Player.CoinsInFlight == 0;
-
-        /// <summary>Commits golden moves one per settled board until the "+n" burst of a bonus placement shows (the burst needs no idle board).</summary>
-        private bool BonusPlay(float dtMs)
-        {
-            var p = app.Player;
-            var session = p.Session;
-            if (session == null) return Fail2("no session");
-            if (p.View.MovesBurstOn) return true;
-            if (session.Outcome != BoosterOutcomes.Playing) return Fail2("the level ended before the bonus paid");
-            // not `Idle()`: Bölüm 10 keeps looping tweens alive (the bonus badge pulses), so the clock never empties; the move queue and
-            // the coins in flight are what must be quiet before the next golden move
-            if (p.Queue.Busy || p.CoinsInFlight != 0 || sinceCommit < 250f || p.Panel != PanelKind.None) return false;
-            var move = DebugSolver.Next(session, Sol());
-            if (move == null) return Fail2("no move left");
-            p.Commit(move);
-            sinceCommit = 0f;
-            return false;
-        }
 
         /// <summary>Waits until the board is idle for `settleMs`, then runs `then` once.</summary>
         private Run WaitIdleThen(float settleMs, Func<bool> then) => _ =>
