@@ -120,6 +120,13 @@ namespace MinikUsta.Presentation.Art
         public const double PalletRim = 10;
         public const double PalletW = 140;
         public const double PalletH = 130;
+        /// <summary>
+        /// P4 Y10: a covered layer under `d` layers above it shows ONE board under the bottom edge of the layer above, `PalletSlabStep`
+        /// further down per layer (design px at a 120 px cell); the planks sit under the last board. Every layer keeps the state pose
+        /// (no offset): the stack depth is read from these edge lines and the "×n" badge of the top layer.
+        /// </summary>
+        public const double PalletSlabStep = 12;
+        public const double PalletSlabH = 14;
         /// <summary>Sorting: planks under the body, overlays and badges above it (added to the visual's base order).</summary>
         public const int PlanksOrder = -3;
         public const int OverlayOrder = 3;
@@ -157,6 +164,13 @@ namespace MinikUsta.Presentation.Art
             var tint = look == BlockLook.Placed ? PlacedTint : look == BlockLook.Dim ? DimTint : Rgba.White;
             double k = cellPx / 120.0;
             double cs = CornerPx * k;
+            // P4 Y10: a covered pallet layer lies exactly under the layer above it (same pose): it draws only its board (the edge line
+            // that shows the stack depth) and, when it is the lowest, the planks — no body, nothing a touch could mistake for a block
+            if (traits != null && traits.PalletDepth > 0)
+            {
+                CoveredLayerParts(o, shape, traits, cellPx);
+                return o;
+            }
             for (int i = 0; i < shape.Cells.Length; i++)
             {
                 var c = shape.Cells[i];
@@ -187,6 +201,22 @@ namespace MinikUsta.Presentation.Art
             }
             if (traits != null && !traits.IsNone) BadgeParts(o, shape, traits, cellPx);
             return o;
+        }
+
+        /// <summary>Parts of a covered pallet layer (`PalletDepth` &gt; 0): per bottom cell one board, plus the planks when it is the lowest.</summary>
+        private static void CoveredLayerParts(List<SpritePart> o, ShapeDef shape, BlockTraits traits, double cellPx)
+        {
+            double k = cellPx / 120.0;
+            for (int i = 0; i < shape.Cells.Length; i++)
+            {
+                var c = shape.Cells[i];
+                if (Has(shape, c.X, c.Y - 1)) continue; // only the bottom edge of the block shows a board
+                var r = CellRect(shape, c, cellPx);
+                double y = r.Bottom + (traits.PalletDepth - 1) * PalletSlabStep * k;
+                o.Add(new SpritePart(Frames.PalletSlab, PartRole.Planks, i, new PxRect(r.X - PalletRim * k, y, PalletW * k, PalletSlabH * k), Rgba.White, PlanksOrder + 1));
+                if (traits.PalletBase)
+                    o.Add(new SpritePart(Frames.PalletCell, PartRole.Planks, i, new PxRect(r.X - PalletRim * k, r.Y + traits.PalletDepth * PalletSlabStep * k, PalletW * k, PalletH * k), Rgba.White, PlanksOrder));
+            }
         }
 
         private static void CellTraitParts(List<SpritePart> o, BlockTraits traits, int cell, PxRect r, double cellPx)

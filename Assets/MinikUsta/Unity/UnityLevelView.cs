@@ -131,6 +131,10 @@ namespace MinikUsta.Unity
 
         public ITweenTarget BlocksChip => Hud.BlocksChip;
 
+        public ITweenTarget MovesBurst => Hud.MovesBurst;
+
+        public void SetMovesBurst(string? text) => Hud.SetMovesBurst(text);
+
         public void ShowPanel(PanelModel? panel, Action<PanelAction> onAction) => Hud.ShowPanel(panel, onAction);
 
         public ITweenTarget PanelTarget => Hud.PanelTarget;

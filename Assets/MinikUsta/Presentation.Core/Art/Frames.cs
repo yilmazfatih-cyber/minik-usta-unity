@@ -49,6 +49,8 @@ namespace MinikUsta.Presentation.Art
         public const string OvlIce = "ovl_ice";
         public const string IcoSlip = "ico_slip";
         public const string PalletCell = "pallet_cell";
+        /// <summary>P4 Y10: one board of a covered pallet layer, seen from the front under the layer above (edge line of the stack depth).</summary>
+        public const string PalletSlab = "pallet_slab";
 
         /// <summary>Y12 star badge "+n" (n 1–3).</summary>
         public static string IcoBonus(int n) => "ico_bonus_" + (n < 1 ? 1 : n > 3 ? 3 : n);

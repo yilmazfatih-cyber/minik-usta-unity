@@ -2,43 +2,48 @@
   "schemaVersion": 3,
   "id": 7,
   "chapter": 1,
-  "name": { "tr": "Paketli Malzeme", "en": "Wrapped Supplies" },
+  "name": { "tr": "Palet Yığını", "en": "Pallet Stack" },
   "difficulty": "normal",
-  "moves": 18,
-  "teaches": "Y11",
+  "moves": 24,
+  "teaches": "Y10",
   "goals": [{ "type": "build" }],
   "gravity": { "build": "normal", "yard": false },
-  "wall": { "height": 3, "gaps": [] },
-  "site": { "cols": 2, "rows": 4 },
+  "wall": { "height": 7, "gaps": [] },
+  "site": { "cols": 3, "rows": 4 },
   "build": {
     "mode": "segments",
     "segments": [
-      { "name": { "tr": "Kat 1", "en": "Floor 1" }, "rows": ["YY", "RR", "RG", "GG"] },
-      { "name": { "tr": "Kat 2", "en": "Floor 2" }, "rows": ["YR", "YY", "GG", "GG"] },
-      { "name": { "tr": "Kat 3", "en": "Floor 3" }, "rows": ["YR", "GG", "GR", "GR"] },
-      { "name": { "tr": "Kat 4", "en": "Floor 4" }, "rows": ["GG", "YY", "YY", "YY"] }
+      { "name": { "tr": "Kat 1", "en": "Floor 1" }, "rows": ["RRR", "RYY", "WWY", "WRR"] },
+      { "name": { "tr": "Kat 2", "en": "Floor 2" }, "rows": ["WWR", "YWR", "YWW", "YYW"] },
+      { "name": { "tr": "Kat 3", "en": "Floor 3" }, "rows": ["WWY", "YYY", "YWW", "YYW"] },
+      { "name": { "tr": "Kat 4", "en": "Floor 4" }, "rows": ["WWY", "RYY", "RYY", "WWY"] }
     ]
   },
   "yard": {
     "cols": 6,
-    "rows": 6,
+    "rows": 8,
     "batches": [
       {
         "forSegment": 0,
         "pieces": [
-          { "shape": "C3_90", "color": "R", "x": 1, "y": 4 },
-          { "shape": "C3_270", "color": "G", "x": 2, "y": 4 },
-          { "shape": "D2_90", "color": "Y", "x": 4, "y": 4, "colors": "YR" },
-          { "shape": "D2_90", "color": "G", "x": 2, "y": 3 },
-          { "shape": "D2_90", "color": "Y", "x": 4, "y": 3 },
-          { "shape": "O4_0", "color": "Y", "x": 0, "y": 2, "colors": "YYYR" },
-          { "shape": "D2_90", "color": "G", "x": 2, "y": 2 },
-          { "shape": "D2_90", "color": "G", "x": 2, "y": 1, "flags": ["scissors"] },
-          { "shape": "D2_0", "color": "G", "x": 4, "y": 1 },
+          { "shape": "C3_180", "color": "W", "x": 0, "y": 6 },
+          { "shape": "C3_90", "color": "W", "x": 3, "y": 6 },
+          { "shape": "D2_90", "color": "R", "x": 4, "y": 6 },
+          { "shape": "D2_90", "color": "R", "x": 4, "y": 5 },
+          { "shape": "L4_0", "color": "Y", "x": 0, "y": 4 },
+          { "shape": "C3_180", "color": "W", "x": 1, "y": 4 },
+          { "shape": "L4_0", "color": "Y", "x": 3, "y": 3 },
+          { "shape": "C3_180", "color": "Y", "x": 4, "y": 3 },
+          { "shape": "C3_180", "color": "Y", "x": 0, "y": 2 },
+          { "shape": "D2_0", "color": "R", "x": 0, "y": 1 },
+          { "shape": "D2_0", "color": "R", "x": 2, "y": 1 },
+          { "shape": "C3_180", "color": "W", "x": 3, "y": 1 },
           { "shape": "D2_0", "color": "R", "x": 5, "y": 1 },
-          { "shape": "O4_0", "color": "Y", "x": 0, "y": 0 },
-          { "shape": "D2_90", "color": "Y", "x": 2, "y": 0, "flags": ["wrapped"] },
-          { "shape": "D2_90", "color": "G", "x": 4, "y": 0, "flags": ["wrapped"] }
+          { "shape": "C3_270", "color": "Y", "x": 0, "y": 0 },
+          { "shape": "C3_270", "color": "Y", "x": 2, "y": 0 },
+          { "shape": "D2_90", "color": "W", "x": 4, "y": 0, "stack": { "id": 0, "z": 0 } },
+          { "shape": "D2_90", "color": "W", "x": 4, "y": 0, "stack": { "id": 0, "z": 1 } },
+          { "shape": "D2_90", "color": "W", "x": 4, "y": 0, "stack": { "id": 0, "z": 2 } }
         ]
       }
     ]
@@ -47,10 +52,10 @@
   "tutorial": [
     {
       "step": 1,
-      "highlight": ["piece:7"],
-      "textKey": "tut.m.wrap",
-      "done": { "event": "placementCorrect", "count": 1, "piece": "piece:7" }
+      "highlight": ["piece:17"],
+      "textKey": "tut.m.useall",
+      "done": { "event": "placementCorrect", "count": 1, "piece": "piece:17" }
     }
   ],
-  "targets": { "min": [14, 14], "deadRate": [0, 0] }
+  "targets": { "min": [20, 20], "deadRate": [0, 0] }
 }

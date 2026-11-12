@@ -17,33 +17,34 @@ namespace MinikUsta.Core.Tests
             { "D2_0", ("(0,0)(0,1)", "1x2", false) },
             { "D2_90", ("(0,0)(1,0)", "2x1", false) },
             { "I3_0", ("(0,0)(0,1)(0,2)", "1x3", false) },
-            { "I3_90", ("(0,0)(1,0)(2,0)", "3x1", true) },
+            { "I3_90", ("(0,0)(1,0)(2,0)", "3x1", false) },
             { "I4_0", ("(0,0)(0,1)(0,2)(0,3)", "1x4", false) },
-            { "I4_90", ("(0,0)(1,0)(2,0)(3,0)", "4x1", true) },
+            { "I4_90", ("(0,0)(1,0)(2,0)(3,0)", "4x1", false) },
             { "O4_0", ("(0,0)(1,0)(0,1)(1,1)", "2x2", false) },
             { "C3_0", ("(0,0)(1,0)(0,1)", "2x2", false) },
             { "C3_90", ("(0,0)(0,1)(1,1)", "2x2", false) },
             { "C3_180", ("(1,0)(0,1)(1,1)", "2x2", false) },
             { "C3_270", ("(0,0)(1,0)(1,1)", "2x2", false) },
             { "S4_0", ("(0,0)(0,1)(1,1)(1,2)", "2x3", false) },
-            { "S4_90", ("(1,0)(2,0)(0,1)(1,1)", "3x2", true) },
+            { "S4_90", ("(1,0)(2,0)(0,1)(1,1)", "3x2", false) },
             { "I5_0", ("(0,0)(1,0)(2,0)(3,0)(4,0)", "5x1", true) },
             { "I5_90", ("(0,0)(0,1)(0,2)(0,3)(0,4)", "1x5", true) },
             { "Q9_0", ("(0,0)(1,0)(2,0)(0,1)(1,1)(2,1)(0,2)(1,2)(2,2)", "3x3", true) },
             { "L4_0", ("(0,0)(1,0)(0,1)(0,2)", "2x3", false) },
-            { "L4_90", ("(0,0)(0,1)(1,1)(2,1)", "3x2", true) },
+            { "L4_90", ("(0,0)(0,1)(1,1)(2,1)", "3x2", false) },
             { "L4_180", ("(1,0)(1,1)(0,2)(1,2)", "2x3", false) },
-            { "L4_270", ("(0,0)(1,0)(2,0)(2,1)", "3x2", true) },
+            { "L4_270", ("(0,0)(1,0)(2,0)(2,1)", "3x2", false) },
             { "J4_0", ("(0,0)(1,0)(1,1)(1,2)", "2x3", false) },
-            { "J4_90", ("(0,0)(1,0)(2,0)(0,1)", "3x2", true) },
+            { "J4_90", ("(0,0)(1,0)(2,0)(0,1)", "3x2", false) },
             { "J4_180", ("(0,0)(0,1)(0,2)(1,2)", "2x3", false) },
-            { "J4_270", ("(2,0)(0,1)(1,1)(2,1)", "3x2", true) },
+            { "J4_270", ("(2,0)(0,1)(1,1)(2,1)", "3x2", false) },
             { "T4_0", ("(0,0)(0,1)(1,1)(0,2)", "2x3", false) },
-            { "T4_90", ("(1,0)(0,1)(1,1)(2,1)", "3x2", true) },
+            { "T4_90", ("(1,0)(0,1)(1,1)(2,1)", "3x2", false) },
             { "T4_180", ("(1,0)(0,1)(1,1)(1,2)", "2x3", false) },
-            { "T4_270", ("(0,0)(1,0)(2,0)(1,1)", "3x2", true) },
+            { "T4_270", ("(0,0)(1,0)(2,0)(1,1)", "3x2", false) },
             { "Z4_0", ("(1,0)(0,1)(1,1)(0,2)", "2x3", false) },
-            { "Z4_90", ("(0,0)(1,0)(1,1)(2,1)", "3x2", true) },
+            { "Z4_90", ("(0,0)(1,0)(1,1)(2,1)", "3x2", false) },
+            { "P5_0", ("(1,0)(0,1)(1,1)(2,1)(1,2)", "3x3", false) },
         };
 
         /// <summary>TECH §3.3 "(=…)" aliases: same cell set as the listed canonical id.</summary>
@@ -53,16 +54,18 @@ namespace MinikUsta.Core.Tests
             { "I3_180", "I3_0" }, { "I3_270", "I3_90" }, { "I4_180", "I4_0" }, { "I4_270", "I4_90" }, { "O4_90", "O4_0" },
             { "O4_180", "O4_0" }, { "O4_270", "O4_0" }, { "S4_180", "S4_0" }, { "S4_270", "S4_90" }, { "Z4_180", "Z4_0" },
             { "Z4_270", "Z4_90" }, { "I5_180", "I5_0" }, { "I5_270", "I5_90" }, { "Q9_90", "Q9_0" }, { "Q9_180", "Q9_0" },
-            { "Q9_270", "Q9_0" },
+            { "Q9_270", "Q9_0" }, { "P5_90", "P5_0" }, { "P5_180", "P5_0" }, { "P5_270", "P5_0" },
         };
 
         private static string CellsText(string id) => string.Join("", Shapes.ShapeById(id).Cells.Select(c => "(" + c.X + "," + c.Y + ")"));
 
-        [Test(Description = "K-44 generates 52 shape ids in kind × rotation index order")]
-        public void K44_generates_52_shape_ids_in_kind_x_rotation_index_order()
+        [Test(Description = "K-44 K-56 generates 56 shape ids in kind × rotation index order (P5 appended: older indices unchanged)")]
+        public void K44_generates_56_shape_ids_in_kind_x_rotation_index_order()
         {
-            Assert.AreEqual(52, Shapes.All.Length);
-            Assert.AreEqual(52, Shapes.Ids.Length);
+            Assert.AreEqual(56, Shapes.All.Length);
+            Assert.AreEqual(56, Shapes.Ids.Length);
+            Assert.AreEqual(51, Shapes.ShapeById("Q9_270").Index);
+            Assert.AreEqual(52, Shapes.ShapeById("P5_0").Index);
             for (int i = 0; i < Shapes.All.Length; i++)
             {
                 var s = Shapes.All[i];
@@ -70,7 +73,7 @@ namespace MinikUsta.Core.Tests
                 Assert.AreSame(s, Shapes.ShapeByIndex(i));
                 Assert.AreEqual(ShapeKinds.All[i / 4], s.Kind);
             }
-            Assert.AreEqual(52, new HashSet<string>(Shapes.Ids).Count);
+            Assert.AreEqual(56, new HashSet<string>(Shapes.Ids).Count);
         }
 
         [Test(Description = "K-44 generated table equals TECH_DESIGN §3.3 cell by cell")]
@@ -88,7 +91,7 @@ namespace MinikUsta.Core.Tests
                 Assert.AreEqual(CellsText(kv.Value), CellsText(kv.Key), kv.Key);
                 Assert.AreEqual(kv.Value, Shapes.ShapeById(kv.Key).Canonical, kv.Key);
             }
-            Assert.AreEqual(52, TechTable.Count + TechAliases.Count);
+            Assert.AreEqual(56, TechTable.Count + TechAliases.Count);
         }
 
         [Test(Description = "K-44 0° cells come from BRIEF §5 and rotation is clockwise with bottom-left normalisation")]
@@ -118,14 +121,13 @@ namespace MinikUsta.Core.Tests
         {
             Assert.AreEqual(2, Shapes.ShapeById("D2_90").W);
             Assert.AreEqual(1, Shapes.ShapeById("D2_90").H);
-            Assert.IsTrue(Shapes.ShapeById("I3_90").Heavy && Shapes.ShapeById("I4_90").Heavy);
+            // BRIEF "I3 / I4 yatay hali Ağır" is replaced by K-44 / K-49 item 4 (D-103): width makes no weight
+            Assert.IsFalse(Shapes.ShapeById("I3_90").Heavy || Shapes.ShapeById("I4_90").Heavy);
             Assert.IsFalse(Shapes.ShapeById("I3_0").Heavy || Shapes.ShapeById("I4_0").Heavy);
             foreach (int r in new[] { 0, 90, 180, 270 }) Assert.IsFalse(Shapes.ShapeById("C3_" + r).Heavy);
-            foreach (var k in new[] { "L4", "J4", "T4", "S4", "Z4" })
-            {
-                foreach (int r in new[] { 0, 180 }) Assert.IsFalse(Shapes.ShapeById(k + "_" + r).Heavy, k + "_" + r);
-                foreach (int r in new[] { 90, 270 }) Assert.IsTrue(Shapes.ShapeById(k + "_" + r).Heavy, k + "_" + r);
-            }
+            // D-103: L4/J4/T4/S4/Z4/P5 horizontal orientations are material (3-wide, cross the wall on a 3-column site)
+            foreach (var k in new[] { "L4", "J4", "T4", "S4", "Z4", "P5" })
+                foreach (int r in new[] { 0, 90, 180, 270 }) Assert.IsFalse(Shapes.ShapeById(k + "_" + r).Heavy, k + "_" + r);
             foreach (int r in new[] { 0, 90, 180, 270 })
             {
                 Assert.IsTrue(Shapes.ShapeById("I5_" + r).Heavy);
@@ -134,13 +136,13 @@ namespace MinikUsta.Core.Tests
             Assert.AreEqual(5, Shapes.ShapeById("I5_0").W);
         }
 
-        [Test(Description = "K-44 heavy = width ≥ 3 or kind I5/Q9, so every non-heavy shape is at most 2 wide")]
-        public void K44_heavy_is_width_ge_3_or_kind_I5_Q9_so_every_non_heavy_shape_is_at_most_2_wide()
+        [Test(Description = "K-44 K-49 3-wide material crosses the wall: heavy = kind I5/Q9 only (D-103), every other shape is at most 3 wide")]
+        public void K44_heavy_is_kind_I5_Q9_only_so_3_wide_material_crosses_the_wall()
         {
             foreach (var s in Shapes.All)
             {
-                Assert.AreEqual(s.W >= 3 || Shapes.AlwaysHeavy.Contains(s.Kind), s.Heavy);
-                if (!s.Heavy) Assert.LessOrEqual(s.W, 2);
+                Assert.AreEqual(Shapes.AlwaysHeavy.Contains(s.Kind), s.Heavy);
+                if (!s.Heavy && s.Kind != "I4") Assert.LessOrEqual(s.W, 3);
             }
             Assert.AreEqual(1, Shapes.ShapeById("I5_90").W);
             Assert.IsTrue(Shapes.ShapeById("I5_90").Heavy);
@@ -175,10 +177,12 @@ namespace MinikUsta.Core.Tests
             var expected = new Dictionary<string, int>
             {
                 { "B1", 1 }, { "D2", 1 }, { "O4", 1 }, { "C3", 1 }, { "I3", 2 }, { "L4", 2 }, { "J4", 2 }, { "T4", 3 }, { "S4", 3 },
-                { "Z4", 3 }, { "I4", 4 }, { "I5", 1 }, { "Q9", 1 },
+                { "Z4", 3 }, { "I4", 4 }, { "I5", 1 }, { "Q9", 1 }, { "P5", 2 },
             };
             Assert.AreEqual(expected.Count, Shapes.KindFirstChapter.Count);
             foreach (var kv in expected) Assert.AreEqual(kv.Value, Shapes.KindFirstChapter[kv.Key], kv.Key);
+            Assert.AreEqual(16, Shapes.KindFirstLevelV3["P5"]);
+            CollectionAssert.AreEqual(new[] { "P5", "S4", "Z4" }, Shapes.WideSiteFreeKinds.OrderBy(x => x, StringComparer.Ordinal).ToArray());
             Assert.AreEqual(8, Shapes.HeavyMinLevelId);
         }
 
@@ -210,7 +214,7 @@ namespace MinikUsta.Core.Tests
             Assert.IsTrue(Shapes.IsShapeId("C3_90"));
             Assert.IsFalse(Shapes.IsShapeId("C3_45"));
             Assert.Throws<ArgumentOutOfRangeException>(() => Shapes.ShapeById("X1_0"));
-            Assert.Throws<ArgumentOutOfRangeException>(() => Shapes.ShapeByIndex(52));
+            Assert.Throws<ArgumentOutOfRangeException>(() => Shapes.ShapeByIndex(56));
             Assert.AreEqual("L4_90", Shapes.RotateShapeId("L4_0", 1));
             Assert.AreEqual("L4_0", Shapes.RotateShapeId("L4_270", 1));
             Assert.AreEqual("L4_270", Shapes.RotateShapeId("L4_0", -1));

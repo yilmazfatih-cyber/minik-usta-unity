@@ -122,7 +122,7 @@ namespace MinikUsta.Presentation.Tests
         }
 
         [Test]
-        public void E67_K43_K55_an_attempt_saved_with_rulesVersion_2_is_closed_without_penalty_under_RULES_VERSION_4()
+        public void E67_K43_K55_an_attempt_saved_with_rulesVersion_2_is_closed_without_penalty_under_RULES_VERSION_5()
         {
             var store = new MemorySaveStore();
             var rig = Booted(store);
@@ -135,7 +135,7 @@ namespace MinikUsta.Presentation.Tests
             m.InLevel!.RulesVersion = 2;
             m.InLevel.OfferSpendCoins = 90;
             SaveCodec.Write(store, m);
-            Assert.AreEqual(4, GameSession.RulesVersion, "D-099 (K-55 item 8) bumped the rules version to 3, levels v3 (GDD §16) to 4");
+            Assert.AreEqual(5, GameSession.RulesVersion, "D-099 (K-55 item 8) bumped the rules version to 3, levels v3 (GDD §16) to 4, levels v3c (D-103..D-105) to 5");
             var voided = Booted(store);
             Assert.AreEqual(AppScreen.Home, voided.Screen, "the attempt is not replayed; the player is back on the home screen");
             StringAssert.Contains("voided", voided.App.BootNote);

@@ -3,7 +3,7 @@
 // src/core/**: the source of truth, D-091) plays seeded random VALID action sequences through the TS `GameSession` —
 // drags to reachable, non-cancelling nodes of the `DragSession`, hammer / crane / paint brush / Golden Trowel on valid
 // targets, Undo (K-39), +5 offers (K-29), decline, exit (K-43), pre-level boosters (K-40) — on levels 1–10, the
-// tests/fixtures/cover.ts boards and random levels in the 9 K-49 geometries, and writes after every action the Zobrist
+// tests/fixtures/cover.ts boards and random levels in the 10 K-49 geometries, and writes after every action the Zobrist
 // hash, the buffer hash, the event count + eventLogHash + canonical JSON of every event, the ASCII board and the session
 // fields to tools/diff/out/*.json (git-ignored). This test replays the same actions through the C# `GameSession` and
 // compares every step; the first divergence fails with the step, the action, the field, both ASCII boards side by side

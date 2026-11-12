@@ -165,6 +165,7 @@ namespace MinikUsta.Core
                     break;
                 case MovesChangedEvent x:
                     o.Set("movesLeft", JsonValue.Of(x.MovesLeft)).Set("delta", JsonValue.Of(x.Delta)).Set("reason", JsonValue.Of(x.Reason));
+                    if (x.PieceId >= 0) o.Set("pieceId", JsonValue.Of(x.PieceId));
                     if (x.Cost.HasValue) o.Set("cost", JsonValue.Object().Set("base", JsonValue.Of(x.Cost.Value.Base)).Set("glass", JsonValue.Of(x.Cost.Value.Glass)));
                     break;
                 case CrateDamagedEvent x:

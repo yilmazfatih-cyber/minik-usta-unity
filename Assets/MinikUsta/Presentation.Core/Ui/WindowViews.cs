@@ -295,26 +295,31 @@ namespace MinikUsta.Presentation.Ui
         /// <summary>U4 R-05: the pre-level slot is 150 px, its "Bölüm N" label (34 px) sits under it.</summary>
         public const double PreSlotPx = 150;
 
-        public static PxRect LevelStartPanel(double W, double H, LayoutSettings s, bool hasSlots = true)
+        /// <summary>P4: a level that teaches a mechanic shows its info card (≤ 2 lines of 34 px) under the goal chips; the window is this much taller.</summary>
+        public const double InfoCardH = 112;
+
+        public static PxRect LevelStartPanel(double W, double H, LayoutSettings s, bool hasSlots = true, bool hasInfo = false)
         {
             double bottom = PanelBottom(H, s);
-            double h = hasSlots ? 1040 : 1040 - NoSlotsShorterPx;
+            double h = (hasSlots ? 1040 : 1040 - NoSlotsShorterPx) + (hasInfo ? InfoCardH : 0);
             return new PxRect((W - PanelW) / 2, bottom - h, PanelW, h);
         }
 
-        /// <summary>The rectangle of pre-level slot `i` of `n` (centred as a row on the panel).</summary>
-        public static PxRect PreSlot(PxRect panel, PxRect plate, int i, int n)
+        /// <summary>The rectangle of pre-level slot `i` of `n` (centred as a row on the panel); `infoH` = the info card's height when shown.</summary>
+        public static PxRect PreSlot(PxRect panel, PxRect plate, int i, int n, double infoH = 0)
         {
             const double gap = 82;
             double span = n * PreSlotPx + (n - 1) * gap;
-            return new PxRect(panel.CenterX - span / 2 + i * (PreSlotPx + gap), plate.Y + 350, PreSlotPx, PreSlotPx);
+            return new PxRect(panel.CenterX - span / 2 + i * (PreSlotPx + gap), plate.Y + 350 + infoH, PreSlotPx, PreSlotPx);
         }
 
         private static UiNode LevelStart(PanelModel m, double W, double H, LayoutSettings s, string lang)
         {
             var d = m.Detail ?? new PanelDetail();
             bool hasSlots = d.LockedSlots.Length > 0;
-            var panel = LevelStartPanel(W, H, s, hasSlots);
+            bool hasInfo = !string.IsNullOrEmpty(d.InfoText);
+            double infoH = hasInfo ? InfoCardH : 0;
+            var panel = LevelStartPanel(W, H, s, hasSlots, hasInfo);
             var (root, group) = Shell("LevelStart", W, H, panel, "", DimStrong);
             double y0 = panel.Y;
             // title: titleTwoRing 112 on the panel's top edge, the difficulty pill beside it (hard / superhard only)
@@ -325,7 +330,7 @@ namespace MinikUsta.Presentation.Ui
                 group.Add(UiKit.Image("win.pill", "btn_danger", pill, true));
                 group.Add(UiKit.Label("win.pill.text", d.DifficultyText, new PxRect(pill.X + 10, pill.Y + 4, pill.W - 20, pill.H - 16), TextStyle.Button, 36, TextAlign.Center, null, Rgba.Hex("#7A0A05")));
             }
-            var plate = new PxRect(panel.X + 60, y0 + 100, 880, hasSlots ? 560 : 560 - NoSlotsShorterPx);
+            var plate = new PxRect(panel.X + 60, y0 + 100, 880, (hasSlots ? 560 : 560 - NoSlotsShorterPx) + infoH);
             group.Add(UiKit.Plate("win.plate", plate));
             // U4 R-05 / UX-21: with no slot the picture and the text block sit in the middle of the shorter plate
             double dy = hasSlots ? 0 : 34;
@@ -346,11 +351,24 @@ namespace MinikUsta.Presentation.Ui
                 group.Add(UiKit.Image("win.moves", "capsule_hud", chip, true));
                 group.Add(UiKit.Label("win.moves.text", d.MovesText, new PxRect(chip.X + 10, chip.Y, chip.W - 20, chip.H), TextStyle.Cream, 42));
             }
+            if (hasInfo)
+            {
+                // P4: the info card of the taught mechanic: a cream card under the chips, 34 px ink text, at most two lines (UX_UNITY §4.2)
+                var card = new PxRect(plate.X + 20, plate.Y + 226 + dy, plate.W - 40, InfoCardH - 8);
+                group.Add(UiKit.Image("win.info", "hud_well", card, true));
+                var lines = WrapWords(d.InfoText!, HudLayout.MinTextPx, card.W - 36 - TextFit.Margin);
+                double lh = (card.H - 12) / 2;
+                for (int li = 0; li < lines.Length; li++)
+                {
+                    double top = lines.Length == 1 ? card.Y + 6 + lh / 2 : card.Y + 6 + li * lh;
+                    group.Add(UiKit.Label("win.info.l" + li, lines[li], new PxRect(card.X + 18, top, card.W - 36, lh), TextStyle.Cream, HudLayout.MinTextPx));
+                }
+            }
             if (hasSlots && d.SlotsTitle != null)
-                group.Add(UiKit.Label("win.slots", d.SlotsTitle, new PxRect(plate.X + 20, plate.Y + 280, plate.W - 40, 70), TextStyle.Label, 50));
+                group.Add(UiKit.Label("win.slots", d.SlotsTitle, new PxRect(plate.X + 20, plate.Y + 280 + infoH, plate.W - 40, 70), TextStyle.Label, 50));
             for (int i = 0; i < d.LockedSlots.Length; i++)
             {
-                var r = PreSlot(panel, plate, i, d.LockedSlots.Length);
+                var r = PreSlot(panel, plate, i, d.LockedSlots.Length, infoH);
                 group.Add(UiKit.Image("win.slot" + i, "btn_slot", r, true, null, 0.85f));
                 group.Add(UiKit.Icon("win.slot" + i + ".lock", "icon_lock", r.CenterX, r.CenterY, 64, 74));
                 // R-05: 34 px, under the slot (never on its bevel)
@@ -361,6 +379,26 @@ namespace MinikUsta.Presentation.Ui
             if (d.King != null) group.Add(KingNode(new PxRect(panel.X - 40, panel.Bottom - 44 - 400, 260, 400)));
             if (d.CloseAction != null) Close(group, panel, d.CloseAction.Value);
             return root;
+        }
+
+        /// <summary>
+        /// P4: greedy word wrap of an info card text at `size` px into rooms of `room` px, at most two lines (the rest stays on the second
+        /// line); TR / EN texts have spaces. A text that fits one line stays one line.
+        /// </summary>
+        public static string[] WrapWords(string text, double size, double room)
+        {
+            if (FontMetrics.Width(text, size) <= room) return new[] { text };
+            var words = text.Split(' ');
+            string first = "";
+            int i = 0;
+            for (; i < words.Length; i++)
+            {
+                string next = first.Length == 0 ? words[i] : first + " " + words[i];
+                if (FontMetrics.Width(next, size) > room && first.Length > 0) break;
+                first = next;
+            }
+            if (i >= words.Length) return new[] { first };
+            return new[] { first, string.Join(" ", words, i, words.Length - i) };
         }
 
         /// <summary>B2: the window's king node (`LevelHud.WindowKingId`): the box he stands in (feet at its bottom centre), the v4 still until bound.</summary>

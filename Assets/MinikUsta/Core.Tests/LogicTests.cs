@@ -25,9 +25,12 @@ namespace MinikUsta.Core.Tests
             public readonly string Rule;
             public readonly string Severity;
             public readonly LogicContext? Ctx;
+            /// <summary>Other codes the fixture necessarily raises (sorted together with `Code`).</summary>
+            public readonly string[] Also;
 
-            public Case(string name, string file, string code, string rule, string severity = Severities.Error, LogicContext? ctx = null)
+            public Case(string name, string file, string code, string rule, string severity = Severities.Error, LogicContext? ctx = null, string[]? also = null)
             {
+                Also = also ?? new string[0];
                 Name = name;
                 File = file;
                 Code = code;
@@ -51,7 +54,8 @@ namespace MinikUsta.Core.Tests
             new Case("K-45/1 chapter_mismatch chapter ≠ ceil(id/10)", "chapter_mismatch", "chapter_mismatch", "K-45/1"),
             // K-45/2 sizes and yard
             new Case("K-45/2 K-49 size_out_of_range Ws 1 (Ws 2–3 in story chapters 1–3)", "size_out_of_range", "size_out_of_range", "K-45/2"),
-            new Case("K-45/2 K-49 board_too_wide Wy 6 + Ws 3 > 8", "board_too_wide", "board_too_wide", "K-45/2"),
+            // D-103: Wy + Ws ≤ 9 with Wy ≤ 6 and Ws ≤ 3, so a too-wide board always has an out-of-range size as well
+            new Case("K-45/2 K-49 board_too_wide Wy 6 + Ws 4 > 9 (D-103; Ws 4 is also size_out_of_range)", "board_too_wide", "board_too_wide", "K-45/2", also: new[] { "size_out_of_range" }),
             new Case("K-45/2 overlap two blocks on one cell", "overlap", "overlap", "K-45/2"),
             new Case("K-45/2 out_of_yard a block crosses x = Wy − 1", "out_of_yard", "out_of_yard", "K-45/2"),
             new Case("K-45/2 out_of_yard an obstacle outside Wy × Hy", "out_of_yard_obstacle", "out_of_yard", "K-45/2"),
@@ -139,7 +143,7 @@ namespace MinikUsta.Core.Tests
                 Assert.AreEqual(c.Rule, i.Rule, i.ToString());
                 Assert.AreEqual(c.Severity, i.Severity, i.ToString());
             }
-            CollectionAssert.AreEqual(new[] { c.Code }, Codes(issues), string.Join("\n", issues.Select(i => i.ToString())));
+            CollectionAssert.AreEqual(new[] { c.Code }.Concat(c.Also).OrderBy(x => x, StringComparer.Ordinal).ToArray(), Codes(issues), string.Join("\n", issues.Select(i => i.ToString())));
         }
 
         [Test(Description = "K-45 every invalid fixture file has a case")]
@@ -280,26 +284,31 @@ namespace MinikUsta.Core.Tests
             CollectionAssert.IsEmpty(Only(cargo, "L-03")); // F = 9 + 12, E = 3
         }
 
-        [Test(Description = "K-49 K-45/2 size ranges: Wy 3–6, Hy 4–8, Hs 4–8, Ws 2–3 in story chapters 1–3 and 2–4 in 4–5")]
+        [Test(Description = "K-49 K-45/2 size ranges (D-103): Wy 3–6, Hy 4–8, Hs 4–8, Ws 2 in levels 1–5 and 2–3 from level 6, Wy + Ws ≤ 9")]
         public void K49_K45_2_size_ranges()
         {
             string[] Sizes(int id, int wy, int hy, int ws, int hs) =>
                 Logic.CheckLevel(Builders.Level(new LevelSpec { Id = id, Yard = new SizeSpec(wy, hy), Site = new SizeSpec(ws, hs), Pieces = Ps(Pc("B1_0", "W", 0, 0)) }),
                     new LogicContext(only: new[] { "L-28" })).Select(i => i.Code + "@" + i.Path).ToArray();
             CollectionAssert.IsEmpty(Sizes(1, 4, 4, 2, 5));
-            CollectionAssert.IsEmpty(Sizes(1, 3, 8, 3, 4));
+            // K-49 item 2: levels 1-5 keep the 2-column site (the learning curve)
+            CollectionAssert.AreEqual(new[] { "size_out_of_range@site.cols" }, Sizes(1, 3, 8, 3, 4));
+            CollectionAssert.AreEqual(new[] { "size_out_of_range@site.cols" }, Sizes(5, 6, 8, 3, 5));
+            CollectionAssert.IsEmpty(Sizes(6, 3, 8, 3, 4));
+            // K-49 example (level 6 v3c): Wy 6 + Ws 3 = 9 columns is valid
+            CollectionAssert.IsEmpty(Sizes(6, 6, 8, 3, 5));
+            CollectionAssert.IsEmpty(Sizes(12, 6, 5, 2, 5));
             CollectionAssert.AreEqual(new[] { "size_out_of_range@yard.cols" }, Sizes(1, 2, 4, 2, 5));
             CollectionAssert.AreEqual(new[] { "size_out_of_range@yard.rows" }, Sizes(1, 4, 3, 2, 5));
             CollectionAssert.AreEqual(new[] { "size_out_of_range@site.rows" }, Sizes(1, 4, 4, 2, 3));
+            // Ws 4 is not used in the MVP (any level); K-49 example Wy 6, Ws 4 -> board_too_wide (10 > 9) and size_out_of_range
             CollectionAssert.AreEqual(new[] { "size_out_of_range@site.cols" }, Sizes(30, 4, 4, 4, 5));
-            CollectionAssert.IsEmpty(Sizes(31, 4, 4, 4, 5));
-            CollectionAssert.AreEqual(new[] { "board_too_wide@site.cols" }, Sizes(41, 5, 4, 4, 5));
-            // K-49 example: Wy = 6, Ws = 3 → board_too_wide
-            CollectionAssert.AreEqual(new[] { "board_too_wide@site.cols" }, Sizes(12, 6, 5, 3, 5));
+            CollectionAssert.AreEqual(new[] { "size_out_of_range@site.cols" }, Sizes(41, 4, 4, 4, 5));
+            CollectionAssert.AreEqual(new[] { "size_out_of_range@site.cols", "board_too_wide@site.cols" }, Sizes(41, 6, 4, 4, 5));
         }
 
-        [Test(Description = "K-49 a level outside the 8 × 10 frame stops after L-28: no geometry, no other check")]
-        public void K49_a_level_outside_the_8x10_frame_stops_after_L28()
+        [Test(Description = "K-49 a level outside the 9 × 10 frame stops after L-28: no geometry, no other check")]
+        public void K49_a_level_outside_the_9x10_frame_stops_after_L28()
         {
             var wide = Fixture("valid", "base");
             wide["yard"]!.Set("cols", JsonValue.Of(7));
@@ -473,7 +482,7 @@ namespace MinikUsta.Core.Tests
             CollectionAssert.AreEqual(new[] { "plan_has_window" }, Run("plan_has_window"));
             Assert.IsFalse(Compiler.LoadLevel(Fixture("invalid", "plan_size_rows")).Ok);
             CollectionAssert.AreEqual(new[] { "gap_touches_top" }, Run("gap_touches_top"));
-            CollectionAssert.AreEqual(new[] { "board_too_wide" }, Run("board_too_wide"));
+            CollectionAssert.AreEqual(new[] { "board_too_wide", "size_out_of_range" }, Run("board_too_wide").OrderBy(x => x, StringComparer.Ordinal).ToArray());
             CollectionAssert.AreEqual(new[] { "piece_too_wide" }, Run("piece_too_wide"));
             Assert.IsFalse(Compiler.LoadLevel(Fixture("invalid", "board_too_wide")).Ok);
             Assert.IsTrue(Compiler.LoadLevel(Fixture("valid", "base")).Ok);

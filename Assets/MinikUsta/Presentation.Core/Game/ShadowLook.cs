@@ -97,10 +97,15 @@ namespace MinikUsta.Presentation.Game
             return new ShadowLook(outline, fall.Mode == FallResult.ModeFree, badge, pulse, support, mismatch);
         }
 
-        /// <summary>UX §5.3 cancel preview: K-07 rows 3 (crane area over the yard), 4 (straddling the wall), 5 (site closed, E-27).</summary>
+        /// <summary>
+        /// UX §5.3 cancel preview: K-07 rows 3 (crane area over the yard), 4 (straddling the wall), 5 (site closed, E-27) and, from v3c,
+        /// a lifted pallet layer anywhere off the site (K-58 item 9 c, D-104: it is never parked; the block shows the cancel look and
+        /// goes back onto its pallet, no move spent).
+        /// </summary>
         public static bool CancelPreview(DropClass drop) =>
             drop.Kind == DropKinds.Cancel
-            && (drop.Reason == CancelReasons.CraneOverYard || drop.Reason == CancelReasons.Straddle || drop.Reason == CancelReasons.SiteClosed);
+            && (drop.Reason == CancelReasons.CraneOverYard || drop.Reason == CancelReasons.Straddle || drop.Reason == CancelReasons.SiteClosed
+                || drop.Reason == CancelReasons.PalletSiteOnly);
 
         /// <summary>A release onto the site that the shadow shows (K-07 rows 6 and 7).</summary>
         public static bool ShowsShadow(DropClass drop) => drop.Kind == DropKinds.SiteFree || drop.Kind == DropKinds.SiteRail;

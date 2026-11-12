@@ -69,6 +69,8 @@ namespace MinikUsta.Core
         public static readonly DropClass Yard = new DropClass(DropKinds.Yard, null, 2, -1);
         public static readonly DropClass CraneOverYard = new DropClass(DropKinds.Cancel, CancelReasons.CraneOverYard, 3, -1);
         public static readonly DropClass Straddle = new DropClass(DropKinds.Cancel, CancelReasons.Straddle, 4, -1);
+        /// <summary>K-58 item 9 (c): a lifted pallet layer whose release would park it in the yard (rows 2-4) cancels, cost 0.</summary>
+        public static readonly DropClass PalletSiteOnly = new DropClass(DropKinds.Cancel, CancelReasons.PalletSiteOnly, 2, -1);
         public static readonly DropClass SiteClosed = new DropClass(DropKinds.Cancel, CancelReasons.SiteClosed, 5, -1);
         public static readonly DropClass SiteFree = new DropClass(DropKinds.SiteFree, null, 6, -1);
         /// <summary>Row 7: stays on the rail of gap `gap` (K-12).</summary>
@@ -198,6 +200,13 @@ namespace MinikUsta.Core
         /// </summary>
         public static bool IsCargoShape(ShapeDef shape) => shape.Kind == "I5" || shape.Kind == "Q9";
 
+        /// <summary>
+        /// v3c K-58 item 9 (D-104): the piece is a pallet layer still on its pallet (a layer never lies in the yard elsewhere:
+        /// it cannot be parked, and a wrong placement bounces it back onto its pallet). Its releases go to the site only.
+        /// </summary>
+        public static bool IsPalletLayer(GameState s, int pieceId) =>
+            pieceId >= 0 && pieceId < s.Lvl.Pieces.Length && s.Lvl.Pieces[pieceId].StackId >= 0 && PieceZone(s, pieceId) == Zone.Yard;
+
         /// <summary>K-07 row 5 (E-27): `deliveryCursor` counts completed segments; the site is closed once all S are complete.</summary>
         public static bool IsSiteClosed(GameState s) => Hdr(s, H.DeliveryCursor) >= s.Lvl.Segments.Length;
 
@@ -265,6 +274,8 @@ namespace MinikUsta.Core
         public readonly DragNode Start;
         /// <summary>Ağır Yük (K-44): R holds yard nodes only and `Follow` may emit `blockedCargo`.</summary>
         public readonly bool Cargo;
+        /// <summary>v3c K-58 item 9 (D-104): a lifted pallet layer. Every release off the site cancels with `palletSiteOnly`.</summary>
+        public readonly bool PalletLayer;
         /// <summary>FREE start, plus RAIL(g) for debris whose rows are all inside an open gap (TECH §4.1/3).</summary>
         public readonly DragNode[] StartNodes;
         /// <summary>|R| (start nodes included).</summary>
@@ -286,7 +297,7 @@ namespace MinikUsta.Core
         private readonly int[] rows;
         private readonly int[] colRows;
         private readonly int[] colBottom;
-        private readonly byte[] masks;
+        private readonly ushort[] masks;
         private readonly sbyte[] colTop;
         private readonly int openFree;
         /// <summary>Per gap: rows of the gap when passable, else 0 (`openRail[g]`, TECH §2.2).</summary>
@@ -327,6 +338,7 @@ namespace MinikUsta.Core
             w = Shape.W;
             h = Shape.H;
             Cargo = Movement.IsCargoShape(Shape);
+            PalletLayer = lvl.HasStacks && Movement.IsPalletLayer(s, pieceId);
             maxX = Cargo ? geo.Wy : geo.Cols;
             maxY = Cargo ? geo.Hy : geo.Rows;
             rows = Shape.Rows;
@@ -502,10 +514,12 @@ namespace MinikUsta.Core
             int right = node.Ix + w - 1;
             if (node.Mode == Movement.Free && right <= boundaryX)
             {
+                // K-58 item 9 (c): a pallet layer is never parked; over the yard it cancels whatever the row
+                if (PalletLayer) return DropClass.PalletSiteOnly;
                 // rows 2 / 3: over the yard; any cell at y ≥ hy (yard air or crane area) cancels (K-05, E-56)
                 return node.Iy + h - 1 < geo.Hy ? DropClass.Yard : DropClass.CraneOverYard;
             }
-            if (node.Ix <= boundaryX) return DropClass.Straddle; // row 4 (E-06, E-28)
+            if (node.Ix <= boundaryX) return PalletLayer ? DropClass.PalletSiteOnly : DropClass.Straddle; // row 4 (E-06, E-28)
             if (siteClosed) return DropClass.SiteClosed; // row 5 (E-27)
             if (node.Mode == Movement.Free) return DropClass.SiteFree; // row 6: falls (K-11)
             return node.Mode - 1 < railDrops.Count ? railDrops[node.Mode - 1] : DropClass.Invalid; // row 7: stays on the rail (K-12)

@@ -149,9 +149,9 @@ namespace MinikUsta.Core
         /// empty), the visible segment shifted by the elevator offset (plan rows `sy &lt; hs` on the board), and the platform rows
         /// `y &lt; elev` of the site columns. Site air and the crane area are free. The wall boundary has no cells (R-03).
         /// </summary>
-        public static byte[] CollisionMasks(GameState s, int exclude, byte[]? @out = null)
+        public static ushort[] CollisionMasks(GameState s, int exclude, ushort[]? @out = null)
         {
-            @out ??= new byte[Geometry.MaxRows];
+            @out ??= new ushort[Geometry.MaxRows];
             Array.Clear(@out, 0, @out.Length);
             var geo = s.Lvl.Geo;
             int wy = geo.Wy;
@@ -170,7 +170,7 @@ namespace MinikUsta.Core
                     int v = YardOcc(s, x, y);
                     if (v != 0 && v != skip) row |= 1 << x;
                 }
-                @out[y] = (byte)row;
+                @out[y] = (ushort)row;
             }
             int seg = VisibleSegment(s);
             int elev = Hdr(s, H.Elev);
@@ -185,7 +185,7 @@ namespace MinikUsta.Core
                         int v = SiteOcc(s, seg, sx, sy);
                         blocked = v != 0 && v != skip;
                     }
-                    if (blocked) @out[y] = (byte)(@out[y] | (1 << (siteX + sx)));
+                    if (blocked) @out[y] = (ushort)(@out[y] | (1 << (siteX + sx)));
                 }
             }
             return @out;

@@ -23,7 +23,7 @@ namespace MinikUsta.Core.Tests
 
         // --- edge model ≡ cell-by-cell model in every geometry of G -------------------------------------------------------
 
-        [Test(Description = "K-04 K-05 K-07 K-08 K-11 K-12 K-13 K-44 K-49 R, BFS distances, edges and release classes equal the cell model (9 geometries × 90 boards)")]
+        [Test(Description = "K-04 K-05 K-07 K-08 K-11 K-12 K-13 K-44 K-49 R, BFS distances, edges and release classes equal the cell model (10 geometries × 90 boards)")]
         public void K04_K05_K07_K08_K11_K12_K13_K44_K49_R_BFS_distances_edges_and_release_classes_equal_the_cell_model_9_geometries_90_boards()
         {
             var rng = new Mulberry32(49_49);
@@ -365,7 +365,7 @@ namespace MinikUsta.Core.Tests
             return n;
         }
 
-        [Test(Description = "K-49 no overlap, cells conserved, encode/decode round trip, hash of the copy, replay = live session (9 geometries × 6 levels × up to 40 moves)")]
+        [Test(Description = "K-49 no overlap, cells conserved, encode/decode round trip, hash of the copy, replay = live session (10 geometries × 6 levels × up to 40 moves)")]
         public void K49_no_overlap_cells_conserved_round_trip_hash_of_the_copy_replay_equals_live_session()
         {
             var rng = new Mulberry32(20261007);

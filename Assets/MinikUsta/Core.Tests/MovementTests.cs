@@ -983,7 +983,7 @@ namespace MinikUsta.Core.Tests
         [Test(Description = "K-08 node codes follow the TECH §2.1 layout and stay inside the per-level node space")]
         public void K08_node_codes_follow_the_TECH_2_1_layout_and_stay_inside_the_per_level_node_space()
         {
-            Assert.AreEqual(80, Movement.NodesPerMode);
+            Assert.AreEqual(90, Movement.NodesPerMode);
             var d = Drag(Init(new LevelSpec { Pieces = Ps(Pc("B1_0", "W", 0, 0)) }), 0);
             Assert.IsFalse(d.IsReachable(new DragNode(0, 1, 1))); // no gaps → no RAIL mode
             Assert.AreEqual(-1, d.DistanceFromStart(new DragNode(0, 1, 1)));

@@ -53,6 +53,7 @@ namespace MinikUsta.Presentation.Ui
         private readonly Action onPause;
         private readonly ProxyTarget moves = new ProxyTarget();
         private readonly ProxyTarget blocks = new ProxyTarget();
+        private readonly ProxyTarget movesBurst = new ProxyTarget();
         private readonly ProxyTarget trowel = new ProxyTarget();
         private readonly ProxyTarget gold = new ProxyTarget();
         private readonly ProxyTarget panel = new ProxyTarget();
@@ -88,6 +89,8 @@ namespace MinikUsta.Presentation.Ui
 
         public ITweenTarget MovesChip => moves;
         public ITweenTarget BlocksChip => blocks;
+        /// <summary>P4 (D-105): the gold "+n" of a bonus placement on the moves plate (scale pops; shown only while `SetMovesBurst` has a text).</summary>
+        public ITweenTarget MovesBurst => movesBurst;
         public ITweenTarget TrowelIcon => trowel;
         public ITweenTarget GoldChip => gold;
         public ITweenTarget PanelTarget => panel;
@@ -137,6 +140,9 @@ namespace MinikUsta.Presentation.Ui
             var mp = r.Add(UiKit.Image("hud.moves", "hud_moves_plate", mr, true));
             mp.Add(UiKit.Label("hud.moves.label", "", new PxRect(mr.X, mr.Y + 2, mr.W, settings.MovesBandH - 2), TextStyle.Card, HudLayout.MinTextPx, TextAlign.Center, Rgba.Hex(Palette.MovesCream)));
             mp.Add(UiKit.Label("hud.moves.n", "", new PxRect(mr.X, mr.Y + settings.MovesBandH - 2, mr.W, mr.H - settings.MovesBandH - 6), TextStyle.Big, 80));
+            // P4 (D-105): the bonus "+n" over the plate's top-right corner (hidden until a bonus placement pays; never blocks a touch)
+            var burst = r.Add(UiKit.Label("hud.moves.burst", "", HudLayout.MovesBurst(L), TextStyle.Gold, HudLayout.MovesBurstPx));
+            burst.Visible = false;
             // gold chip (JUICE #56): hidden until a win counts gold
             var gc = HudLayout.GoldChip(L);
             var g = r.Add(UiKit.Image("hud.gold", "capsule_hud", gc, true));
@@ -178,6 +184,7 @@ namespace MinikUsta.Presentation.Ui
             surface.Show(UiLayer.Hud, r, OnTap);
             if (King != null) King.BindCorner(surface, kingNode, new Vec2((float)kb.CenterX, (float)(kb.Bottom - 6)), King.SizeFor(King.Corner, kb.H));
             moves.Inner = surface.Target(N("hud.moves"));
+            movesBurst.Inner = surface.Target(N("hud.moves.burst"));
             blocks.Inner = surface.Target(N("hud.blocks"));
             trowel.Inner = surface.Target(N("hud.trowel"));
             gold.Inner = surface.Target(N("hud.gold"));
@@ -274,6 +281,14 @@ namespace MinikUsta.Presentation.Ui
             num.Text = Num(n);
             num.TextFill = fill;
             surface.Refresh(num);
+        }
+
+        /// <summary>P4 (D-105): "+2" over the moves plate while a bonus placement pays; null / empty hides it.</summary>
+        public void SetMovesBurst(string? textOrNull)
+        {
+            bool on = !string.IsNullOrEmpty(textOrNull);
+            if (on) Set("hud.moves.burst", textOrNull!);
+            SetVisible("hud.moves.burst", on);
         }
 
         public void SetBlocks(int n, string label, string segments)

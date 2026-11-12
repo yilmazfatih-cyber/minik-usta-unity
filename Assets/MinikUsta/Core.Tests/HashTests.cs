@@ -201,8 +201,8 @@ namespace MinikUsta.Core.Tests
             Assert.AreEqual(v["pos1First"]!.AsString, "0x" + z.Pos1[0].ToString("x8"));
             for (int i = 0; i < v["field0"]!.Count; i++) Assert.AreEqual(v["field0"]![i].AsString, "0x" + z.Field0[i].ToString("x8"));
             Assert.AreEqual(v["field1First"]!.AsString, "0x" + z.Field1[0].ToString("x8"));
-            Assert.AreEqual(80, Hash.PosSite);
-            Assert.AreEqual(240, Hash.PosQueue);
+            Assert.AreEqual(90, Hash.PosSite);
+            Assert.AreEqual(250, Hash.PosQueue);
         }
     }
 }

@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "id": 3,
+  "id": 6,
   "chapter": 1,
   "name": {
     "tr": "Test",
@@ -22,7 +22,7 @@
     "gaps": []
   },
   "site": {
-    "cols": 3,
+    "cols": 4,
     "rows": 6
   },
   "build": {

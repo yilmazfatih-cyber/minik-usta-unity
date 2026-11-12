@@ -2,42 +2,46 @@
   "schemaVersion": 3,
   "id": 6,
   "chapter": 1,
-  "name": { "tr": "Uzun Gövde", "en": "Tall Trunk" },
+  "name": { "tr": "Geniş Temel", "en": "Wide Base" },
   "difficulty": "normal",
-  "moves": 18,
+  "moves": 23,
+  "teaches": "S9",
   "goals": [{ "type": "build" }],
   "gravity": { "build": "normal", "yard": false },
-  "wall": { "height": 5, "gaps": [] },
-  "site": { "cols": 2, "rows": 6 },
+  "wall": { "height": 7, "gaps": [] },
+  "site": { "cols": 3, "rows": 5 },
   "build": {
     "mode": "segments",
     "segments": [
-      { "name": { "tr": "Kat 1", "en": "Floor 1" }, "rows": ["WG", "WG", "GG", "YY", "YY", "YY"] },
-      { "name": { "tr": "Kat 2", "en": "Floor 2" }, "rows": ["GG", "WG", "WW", "WW", "GG", "WW"] },
-      { "name": { "tr": "Kat 3", "en": "Floor 3" }, "rows": ["GG", "GG", "GG", "WG", "WW", "WW"] }
+      { "name": { "tr": "Kat 1", "en": "Floor 1" }, "rows": ["YYY", "GGW", "GWW", "WGW", "YGG"] },
+      { "name": { "tr": "Kat 2", "en": "Floor 2" }, "rows": ["YGG", "YGW", "YWW", "YWY", "WWY"] },
+      { "name": { "tr": "Kat 3", "en": "Floor 3" }, "rows": ["WWY", "WGY", "GGG", "WGG", "WWW"] }
     ]
   },
   "yard": {
     "cols": 6,
-    "rows": 7,
+    "rows": 8,
     "batches": [
       {
         "forSegment": 0,
         "pieces": [
-          { "shape": "D2_90", "color": "G", "x": 3, "y": 6 },
-          { "shape": "C3_0", "color": "Y", "x": 0, "y": 5 },
-          { "shape": "C3_180", "color": "Y", "x": 1, "y": 5 },
-          { "shape": "D2_90", "color": "W", "x": 1, "y": 4 },
-          { "shape": "C3_270", "color": "G", "x": 3, "y": 4, "colors": "GGW" },
-          { "shape": "D2_0", "color": "W", "x": 5, "y": 4 },
-          { "shape": "T4_0", "color": "W", "x": 0, "y": 2 },
-          { "shape": "D2_90", "color": "W", "x": 1, "y": 2 },
-          { "shape": "C3_180", "color": "G", "x": 2, "y": 2 },
-          { "shape": "D2_0", "color": "G", "x": 5, "y": 2 },
-          { "shape": "C3_0", "color": "W", "x": 0, "y": 0 },
-          { "shape": "D2_0", "color": "G", "x": 2, "y": 0 },
-          { "shape": "C3_180", "color": "G", "x": 3, "y": 0 },
-          { "shape": "D2_0", "color": "G", "x": 5, "y": 0 }
+          { "shape": "C3_90", "color": "G", "x": 0, "y": 6 },
+          { "shape": "C3_180", "color": "W", "x": 2, "y": 6 },
+          { "shape": "D2_0", "color": "Y", "x": 1, "y": 5, "colors": "YW" },
+          { "shape": "D2_0", "color": "W", "x": 2, "y": 5, "colors": "WY" },
+          { "shape": "D2_0", "color": "Y", "x": 5, "y": 5 },
+          { "shape": "C3_0", "color": "G", "x": 0, "y": 4 },
+          { "shape": "C3_270", "color": "W", "x": 2, "y": 4 },
+          { "shape": "D2_0", "color": "Y", "x": 4, "y": 4 },
+          { "shape": "D2_90", "color": "Y", "x": 0, "y": 3 },
+          { "shape": "C3_270", "color": "W", "x": 4, "y": 3 },
+          { "shape": "D2_0", "color": "Y", "x": 2, "y": 2 },
+          { "shape": "J4_90", "color": "W", "x": 3, "y": 2 },
+          { "shape": "C3_90", "color": "G", "x": 0, "y": 1 },
+          { "shape": "C3_270", "color": "G", "x": 0, "y": 0 },
+          { "shape": "D2_0", "color": "Y", "x": 2, "y": 0 },
+          { "shape": "C3_90", "color": "W", "x": 3, "y": 0 },
+          { "shape": "C3_270", "color": "G", "x": 4, "y": 0 }
         ]
       }
     ]
@@ -46,10 +50,10 @@
   "tutorial": [
     {
       "step": 1,
-      "highlight": ["piece:0"],
+      "highlight": ["piece:2"],
       "textKey": "tut.m.pattern",
       "done": { "event": "placementCorrect", "count": 1 }
     }
   ],
-  "targets": { "min": [16, 16], "deadRate": [0, 0] }
+  "targets": { "min": [19, 19], "deadRate": [0, 0] }
 }

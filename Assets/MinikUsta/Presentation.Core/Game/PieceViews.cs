@@ -16,9 +16,6 @@ namespace MinikUsta.Presentation.Game
         private readonly List<int> scratch = new List<int>();
         private double cellPx = 120;
 
-        /// <summary>Y10: how far a covered pallet layer is drawn below the layer above it, as a share of the cell (per layer).</summary>
-        public const double PalletDepthRise = 0.1;
-
         public PieceViews(ILevelView view)
         {
             this.view = view;
@@ -78,10 +75,9 @@ namespace MinikUsta.Presentation.Game
                 bool had = visuals.ContainsKey(id);
                 var v = Ensure(s, id);
                 var target = BoardPose.Center(g, ax, ay, shape);
-                // v3 Y10: a covered pallet layer lies lower under the top layer, so the stack shows as slabs
+                // v3 Y10 (P4): a covered pallet layer keeps the state pose under the top layer and draws only its board (BlockSkin)
                 var traits = BlockTraits.Of(s, id);
                 v.SetTraits(traits);
-                if (traits.PalletDepth > 0) target = new Vec2(target.X, target.Y + (float)(PalletDepthRise * cellPx * traits.PalletDepth));
                 if (had && v.Visible)
                 {
                     float dx = v.Position.X - target.X, dy = v.Position.Y - target.Y;

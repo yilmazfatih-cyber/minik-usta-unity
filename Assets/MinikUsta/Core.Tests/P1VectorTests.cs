@@ -1,6 +1,6 @@
 #nullable enable
 // TS ↔ C# equivalence of the P1 modules (movement, gravity, placement, delivery) on the 10 shipped levels and on 45
-// seeded random boards of the 9 geometries (TECH §2R.1): the lines written by tools/gen-p1-vectors.ts (TypeScript core =
+// seeded random boards of the 10 geometries (TECH §2R.1): the lines written by tools/gen-p1-vectors.ts (TypeScript core =
 // source of truth, D-091) are rebuilt here from the C# core and compared hash for hash (FNV-1a 64). Covers K-04, K-05,
 // K-07 (release table), K-08 (BFS distances, sticky follow with hysteresis — floating point included), K-09 (pick
 // outcomes), K-11/K-12/K-13 (R), K-16/K-34 (verdicts of every site landing), K-17 (return target and yard drop rows),
@@ -142,7 +142,7 @@ namespace MinikUsta.Core.Tests
             }
         }
 
-        [Test(Description = "P1 vectors: the file comes from the same web commit as the P0 vectors and covers 10 shipped levels + 9 geometries × 5 random boards + 10 Faz 2R archive levels")]
+        [Test(Description = "P1 vectors: the file comes from the same web commit as the P0 vectors and covers 10 shipped levels + 10 geometries × 5 random boards + 10 Faz 2R archive levels")]
         public void P1_vectors_file_is_consistent()
         {
             Assert.AreEqual(TestPaths.Vectors["generatedFrom"]!["webCommit"]!.AsString, Vectors["generatedFrom"]!["webCommit"]!.AsString, "p0 and p1 vectors from different web commits");
@@ -170,8 +170,8 @@ namespace MinikUsta.Core.Tests
             CheckBoard(b, Compiler.Compile(LevelJson.ParseOrThrow(TestPaths.LoadLevelJson(n))));
         }
 
-        [Test(Description = "K-49 K-08 K-17 K-19 the same on 45 seeded random boards of the 9 geometries (yard gravity settle included): GeometryTests.RandomLevel draws the TS randomLevel sequence")]
-        public void K49_random_boards_of_the_9_geometries_equal_the_TypeScript_core()
+        [Test(Description = "K-49 K-08 K-17 K-19 the same on 50 seeded random boards of the 10 geometries (yard gravity settle included): GeometryTests.RandomLevel draws the TS randomLevel sequence")]
+        public void K49_random_boards_of_the_10_geometries_equal_the_TypeScript_core()
         {
             var random = Vectors["random"]!;
             var rng = new Mulberry32(random["seed"]!.AsInt);

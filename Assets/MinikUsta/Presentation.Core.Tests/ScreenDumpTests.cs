@@ -7,6 +7,7 @@ using System.IO;
 using System.Linq;
 using MinikUsta.Core;
 using MinikUsta.Core.Json;
+using MinikUsta.Presentation.Flow;
 using MinikUsta.Presentation.Game;
 using MinikUsta.Presentation.Input;
 using MinikUsta.Presentation.Save;
@@ -130,10 +131,10 @@ namespace MinikUsta.Presentation.Tests
             Emit(SceneDump.Scene("win", win));
         }
 
-        [Test(Description = "E3: the v3 block traits on their levels (5 two-tone, 7 wrap + scissors, 9 bonus, 99 showcase) as scenes for tools/art/compose.mjs")]
+        [Test(Description = "E3/P4: the v3 block traits on their levels (5 two-tone, 6 wide site, 7 pallet, 8 wrap + scissors, 9 slippery, 10 bonus, 99 showcase) as scenes for tools/art/compose.mjs")]
         public void E3_scenes_v3_levels_show_the_block_traits()
         {
-            foreach (int n in new[] { 5, 7, 9, 99 })
+            foreach (int n in new[] { 5, 6, 7, 8, 9, 10, 99 })
             {
                 var rig = new AppRig(Store(10, 1250, true));
                 rig.App.Boot();
@@ -142,6 +143,36 @@ namespace MinikUsta.Presentation.Tests
                 rig.Settle();
                 Assert.AreEqual(n, rig.Player.LevelNumber);
                 Emit(SceneDump.Scene("traits-" + n, rig));
+            }
+            // P4 (D-105): level 10 the moment its bonus block pays — the gold "+2" over the moves plate, the king cheering
+            var bonus = new AppRig(Store(10, 1250, true));
+            bonus.App.Boot();
+            bonus.Tap(HomeView.PlayId);
+            bonus.App.DebugStartLevel(10);
+            bonus.Settle();
+            bool shown = false;
+            foreach (var m in Play.SolverGolden(10).Drags)
+            {
+                bonus.Settle();
+                var r = bonus.Player.Commit(m);
+                if (r.Events.OfType<MovesChangedEvent>().Any(e => e.Reason == MovesChangedReasons.Bonus))
+                {
+                    Until(bonus, () => bonus.View.MovesBurstText != null, 2000);
+                    bonus.Tick(160);
+                    shown = bonus.View.MovesBurstText != null;
+                    Emit(SceneDump.Scene("bonus-burst", bonus));
+                    break;
+                }
+            }
+            Assert.IsTrue(shown, "the +2 burst was on screen");
+            // P4: the level start windows of the taught mechanics (S9 level 6, Y10 level 7), with the info card
+            foreach (int n in new[] { 6, 7 })
+            {
+                var start = new AppRig(Store(n - 1, 1250, true), 390, 844);
+                start.App.Boot();
+                start.Tap(HomeView.PlayId);
+                Assert.AreEqual(AppScreen.LevelStart, start.Screen);
+                Emit(SceneDump.Scene("levelstart-" + n, start));
             }
         }
 

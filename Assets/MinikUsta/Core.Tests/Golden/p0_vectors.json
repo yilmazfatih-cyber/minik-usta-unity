@@ -1,7 +1,7 @@
 {
   "generatedFrom": {
     "webRepo": "yilmazfatih-cyber/minik-usta",
-    "webCommit": "701b8f3",
+    "webCommit": "37d5617",
     "generator": "tools/gen-p0-vectors.ts"
   },
   "levels": [
@@ -9,7 +9,7 @@
       "level": 1,
       "levelHash": "375c7d922a1e9db5",
       "rawEqualsParsed": true,
-      "initialHash": "59269006f67d4010",
+      "initialHash": "f00c9d153b6d0826",
       "ascii": "L1 turn 0 moves 12 seg 1/2 elev 0\nsize 5x4|2x4 H4\n y  0 1 2 3 4 | W | 5 6\n 5  . . . . . | : | . .\n 4  . . . . . | : | . .\n 3  y w w y . | : | . .\n 2  y w w y . | # | . .\n 1  y y w w . | # | . .\n 0  w w y y . | # | . .\nplan seg0 (top→bottom): WY WY YW YW",
       "asciiIds": "L1 turn 0 moves 12 seg 1/2 elev 0 ids\nsize 5x4|2x4 H4\n y  0 1 2 3 4 | W | 5 6\n 5  . . . . . | : | . .\n 4  . . . . . | : | . .\n 3  0 1 2 3 . | : | . .\n 2  0 1 2 3 . | # | . .\n 1  4 4 5 5 . | # | . .\n 0  6 6 7 7 . | # | . .\nplan seg0 (top→bottom): WY WY YW YW",
       "encoded": "AAAAAAwAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAADpAwAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAABwAAAAcAAAAIAAAACAAAAAAAAAAFAAAABQAAAAYAAAAGAAAAAAAAAAEAAAACAAAAAwAAAAQAAAAAAAAAAQAAAAIAAAADAAAABAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAABAAAAAEAAAAAAAAAAAAAAAIAAAD_____AAAAAAAAAAD_____BAAAAAAAAAAAAAAAAQAAAAIAAAD_____AAAAAAAAAAD_____BAAAAAAAAAAAAAAAAgAAAAIAAAD_____AAAAAAAAAAD_____BAAAAAEAAAAAAAAAAwAAAAIAAAD_____AAAAAAAAAAD_____BQAAAAEAAAAAAAAAAAAAAAEAAAD_____AAAAAAAAAAD_____BQAAAAAAAAAAAAAAAgAAAAEAAAD_____AAAAAAAAAAD_____BQAAAAAAAAAAAAAAAAAAAAAAAAD_____AAAAAAAAAAD_____BQAAAAEAAAAAAAAAAgAAAAAAAAD_____AAAAAAAAAAD_____AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA",
@@ -70,19 +70,19 @@
           "0x0755eb06"
         ],
         "pos1": [
-          "0xabe73bce",
-          "0x8d49964a"
+          "0x7e3a829c",
+          "0x59145bf2"
         ],
         "field0": [
-          "0xde621238",
-          "0x6c149049"
+          "0x953b0aba",
+          "0x20971c57"
         ],
         "field1": [
-          "0xb2b6b013",
-          "0xea493aee"
+          "0x87d9810a",
+          "0x29b6c2c9"
         ],
         "lengths": [
-          248,
+          258,
           15
         ]
       }
@@ -91,7 +91,7 @@
       "level": 2,
       "levelHash": "cbc945b59b37aa26",
       "rawEqualsParsed": true,
-      "initialHash": "cb0e60928f4cb070",
+      "initialHash": "da3cfca4f8d450a2",
       "ascii": "L2 turn 0 moves 12 seg 1/2 elev 0\nsize 6x5|2x6 H6\n y  0 1 2 3 4 5 | W | 6 7\n 7  . . . . . . | : | . .\n 6  . . . . . . | : | . .\n 5  · · · · · · | : | . .\n 4  . . y y . . | # | . .\n 3  g g y y . . | # | . .\n 2  g g y w y w | # | . .\n 1  g g y w y w | # | . .\n 0  g g w w w w | # | . .\nplan seg0 (top→bottom): YW YW WW GG YG YG",
       "asciiIds": "L2 turn 0 moves 12 seg 1/2 elev 0 ids\nsize 6x5|2x6 H6\n y  0 1 2 3 4 5 | W | 6 7\n 7  . . . . . . | : | . .\n 6  . . . . . . | : | . .\n 5  · · · · · · | : | . .\n 4  . . 0 1 . . | # | . .\n 3  2 2 0 1 . . | # | . .\n 2  3 2 4 5 6 7 | # | . .\n 1  3 2 4 5 6 7 | # | . .\n 0  3 3 5 5 7 7 | # | . .\nplan seg0 (top→bottom): YW YW WW GG YG YG",
       "encoded": "AAAAAAwAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAADSBwAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAABAAAAAQAAAAGAAAABgAAAAgAAAAIAAAABAAAAAMAAAAFAAAABgAAAAcAAAAIAAAABAAAAAMAAAAFAAAABgAAAAcAAAAIAAAAAwAAAAMAAAABAAAAAgAAAAAAAAAAAAAAAAAAAAAAAAABAAAAAgAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAEAAAAAQAAAAAAAAACAAAAAwAAAP____8AAAAAAAAAAP____8EAAAAAQAAAAAAAAADAAAAAwAAAP____8AAAAAAAAAAP____8aAAAAAgAAAAAAAAAAAAAAAQAAAP____8AAAAAAAAAAP____8YAAAAAgAAAAAAAAAAAAAAAAAAAP____8AAAAAAAAAAP____8EAAAAAQAAAAAAAAACAAAAAQAAAP____8AAAAAAAAAAP____8cAAAAAAAAAAAAAAACAAAAAAAAAP____8AAAAAAAAAAP____8EAAAAAQAAAAAAAAAEAAAAAQAAAP____8AAAAAAAAAAP____8cAAAAAAAAAAAAAAAEAAAAAAAAAP____8AAAAAAAAAAP____8AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA",
@@ -152,19 +152,19 @@
           "0x0755eb06"
         ],
         "pos1": [
-          "0xabe73bce",
-          "0x8d49964a"
+          "0x7e3a829c",
+          "0x59145bf2"
         ],
         "field0": [
-          "0xde621238",
-          "0x6c149049"
+          "0x953b0aba",
+          "0x20971c57"
         ],
         "field1": [
-          "0xb2b6b013",
-          "0xea493aee"
+          "0x87d9810a",
+          "0x29b6c2c9"
         ],
         "lengths": [
-          248,
+          258,
           15
         ]
       }
@@ -173,7 +173,7 @@
       "level": 3,
       "levelHash": "c039d0bda87f820f",
       "rawEqualsParsed": true,
-      "initialHash": "025afa57b1da2e2e",
+      "initialHash": "8df259cfd695441a",
       "ascii": "L3 turn 0 moves 15 seg 1/2 elev 0\nsize 5x5|2x5 H5\n y  0 1 2 3 4 | W | 5 6\n 6  . . . . . | : | . .\n 5  . . . . . | : | . .\n 4  . y y y y | : | . .\n 3  y w w w . | # | . .\n 2  y w w w . | # | . .\n 1  y y w . w | # | . .\n 0  y y w . w | # | . .\nplan seg0 (top→bottom): YY YW YW WW WW",
       "asciiIds": "L3 turn 0 moves 15 seg 1/2 elev 0 ids\nsize 5x5|2x5 H5\n y  0 1 2 3 4 | W | 5 6\n 6  . . . . . | : | . .\n 5  . . . . . | : | . .\n 4  . 0 0 1 1 | : | . .\n 3  2 3 4 4 . | # | . .\n 2  2 3 4 4 . | # | . .\n 1  5 6 7 . 8 | # | . .\n 0  5 6 7 . 8 | # | . .\nplan seg0 (top→bottom): YY YW YW WW WW",
       "encoded": "AAAAAA8AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAC7CwAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAABgAAAAcAAAAIAAAAAAAAAAkAAAAGAAAABwAAAAgAAAAAAAAACQAAAAMAAAAEAAAABQAAAAUAAAAAAAAAAwAAAAQAAAAFAAAABQAAAAAAAAAAAAAAAQAAAAEAAAACAAAAAgAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAABQAAAAEAAAAAAAAAAQAAAAQAAAD_____AAAAAAAAAAD_____BQAAAAEAAAAAAAAAAwAAAAQAAAD_____AAAAAAAAAAD_____BAAAAAEAAAAAAAAAAAAAAAIAAAD_____AAAAAAAAAAD_____BAAAAAAAAAAAAAAAAQAAAAIAAAD_____AAAAAAAAAAD_____EAAAAAAAAAAAAAAAAgAAAAIAAAD_____AAAAAAAAAAD_____BAAAAAEAAAAAAAAAAAAAAAAAAAD_____AAAAAAAAAAD_____BAAAAAEAAAAAAAAAAQAAAAAAAAD_____AAAAAAAAAAD_____BAAAAAAAAAAAAAAAAgAAAAAAAAD_____AAAAAAAAAAD_____BAAAAAAAAAAAAAAABAAAAAAAAAD_____AAAAAAAAAAD_____AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA",
@@ -234,19 +234,19 @@
           "0x0755eb06"
         ],
         "pos1": [
-          "0x8d49964a",
-          "0x52268d34"
+          "0x59145bf2",
+          "0x8a3fabbd"
         ],
         "field0": [
-          "0xf2f676f5",
-          "0x672f1cc5"
+          "0x8f6235c9",
+          "0xec70a34a"
         ],
         "field1": [
-          "0xa9b7259e",
-          "0xa6dc6623"
+          "0x13435f5f",
+          "0x8decb9c2"
         ],
         "lengths": [
-          249,
+          259,
           15
         ]
       }
@@ -255,7 +255,7 @@
       "level": 4,
       "levelHash": "dc0071fb4eaadc35",
       "rawEqualsParsed": true,
-      "initialHash": "7895edd458bcba06",
+      "initialHash": "6ab72765008f04de",
       "ascii": "L4 turn 0 moves 16 seg 1/3 elev 0\nsize 6x5|2x4 H5\n y  0 1 2 3 4 5 | W | 6 7\n 6  . . . . . . | : | . .\n 5  . . . . . . | : | . .\n 4  r r w . . w | : | · ·\n 3  r r w w r w | # | . .\n 2  r w w w r r | # | . .\n 1  r . w w . y | # | . .\n 0  r . . w y y | # | . .\nplan seg0 (top→bottom): WW RR RR RR",
       "asciiIds": "L4 turn 0 moves 16 seg 1/3 elev 0 ids\nsize 6x5|2x4 H5\n y  0 1 2 3 4 5 | W | 6 7\n 6  . . . . . . | : | . .\n 5  . . . . . . | : | . .\n 4  0 0 1 . . 2 | : | · ·\n 3  3 0 1 5 6 2 | # | . .\n 2  3 4 4 5 6 6 | # | . .\n 1  7 . 8 8 . 9 | # | . .\n 0  7 . . 8 9 9 | # | . .\nplan seg0 (top→bottom): WW RR RR RR",
       "encoded": "AAAAABAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAACkDwAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAACAAAAAAAAAAAAAAACQAAAAoAAAAKAAAACAAAAAAAAAAJAAAACQAAAAAAAAAKAAAABAAAAAUAAAAFAAAABgAAAAcAAAAHAAAABAAAAAEAAAACAAAABgAAAAcAAAADAAAAAQAAAAEAAAACAAAAAAAAAAAAAAADAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAFgAAAAMAAAAAAAAAAAAAAAMAAAD_____AAAAAAAAAAD_____BAAAAAAAAAAAAAAAAgAAAAMAAAD_____AAAAAAAAAAD_____BAAAAAAAAAAAAAAABQAAAAMAAAD_____AAAAAAAAAAD_____BAAAAAMAAAAAAAAAAAAAAAIAAAD_____AAAAAAAAAAD_____BQAAAAAAAAAAAAAAAQAAAAIAAAD_____AAAAAAAAAAD_____BAAAAAAAAAAAAAAAAwAAAAIAAAD_____AAAAAAAAAAD_____FAAAAAMAAAAAAAAABAAAAAIAAAD_____AAAAAAAAAAD_____BAAAAAMAAAAAAAAAAAAAAAAAAAD_____AAAAAAAAAAD_____FgAAAAAAAAAAAAAAAgAAAAAAAAD_____AAAAAAAAAAD_____FwAAAAEAAAAAAAAABAAAAAAAAAD_____AAAAAAAAAAD_____AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA",
@@ -316,19 +316,19 @@
           "0x0755eb06"
         ],
         "pos1": [
-          "0x52268d34",
-          "0x609b76e6"
+          "0x8a3fabbd",
+          "0xdb746830"
         ],
         "field0": [
-          "0x3cdfb760",
-          "0x15e04972"
+          "0x5085a5d7",
+          "0xfa5d0108"
         ],
         "field1": [
-          "0x20971c57",
-          "0x8f6235c9"
+          "0x4bfc74d8",
+          "0x53ca45f0"
         ],
         "lengths": [
-          250,
+          260,
           17
         ]
       }
@@ -337,7 +337,7 @@
       "level": 5,
       "levelHash": "e2b320f55b2b27c0",
       "rawEqualsParsed": true,
-      "initialHash": "17a344959125cc1d",
+      "initialHash": "9c48e850b7852377",
       "ascii": "L5 turn 0 moves 18 seg 1/3 elev 0\nsize 6x6|2x5 H6\n y  0 1 2 3 4 5 | W | 6 7\n 7  . . . . . . | : | . .\n 6  . . . . . . | : | . .\n 5  r w w w w . | : | · ·\n 4  r r r y w . | : | . .\n 3  r r r r r y | # | . .\n 2  w w . r y y | # | . .\n 1  y r . r . w | # | . .\n 0  w y . r r w | # | . .\nplan seg0 (top→bottom): WW RY WW RW RR\ntraits: -",
       "asciiIds": "L5 turn 0 moves 18 seg 1/3 elev 0 ids\nsize 6x6|2x5 H6\n y  0 1 2 3 4 5 | W | 6 7\n 7  . . . . . . | : | . .\n 6  . . . . . . | : | . .\n 5  1 0 0 2 2 . | : | · ·\n 4  1 1 4 4 2 . | : | . .\n 3  3 3 4 4 5 5 | # | . .\n 2  6 6 . a 7 7 | # | . .\n 1  8 9 . a . b | # | . .\n 0  8 9 . a a b | # | . .\nplan seg0 (top→bottom): WW RY WW RW RR\ntraits: -",
       "encoded": "AAAAABIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAACNEwAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAACQAAAAoAAAAAAAAACwAAAAsAAAAMAAAACQAAAAoAAAAAAAAACwAAAAAAAAAMAAAABwAAAAcAAAAAAAAACwAAAAgAAAAIAAAABAAAAAQAAAAFAAAABQAAAAYAAAAGAAAAAgAAAAIAAAAFAAAABQAAAAMAAAAAAAAAAgAAAAEAAAABAAAAAwAAAAMAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAABQAAAAAAAAAAAAAAAQAAAAUAAAD_____AAAAAAAAAAD_____FAAAAAMAAAAAAAAAAAAAAAQAAAD_____AAAAAAAAAAD_____FgAAAAAAAAAAAAAAAwAAAAQAAAD_____AAAAAAAAAAD_____BQAAAAMAAAAAAAAAAAAAAAMAAAD_____AAAAAAAAAAD_____EAAAAAMAAAAAAAAAAgAAAAMAAAD_____AAAAAAAAAAD_____BQAAAAMAAAAAAAAABAAAAAMAAAD_____AAAAAAAAAAD_____BQAAAAAAAAAAAAAAAAAAAAIAAAD_____AAAAAAAAAAD_____BQAAAAEAAAAAAAAABAAAAAIAAAD_____AAAAAAAAAAD_____BAAAAAAAAAAAAAAAAAAAAAAAAAD_____AAAAAAAAAAD_____BAAAAAEAAAAAAAAAAQAAAAAAAAD_____AAAAAAAAAAD_____GAAAAAMAAAAAAAAAAwAAAAAAAAD_____AAAAAAAAAAD_____BAAAAAAAAAAAAAAABQAAAAAAAAD_____AAAAAAAAAAD_____AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA",
@@ -399,371 +399,36 @@
           "0x0755eb06"
         ],
         "pos1": [
-          "0x7cf7b4e9",
-          "0xf6b8d781"
+          "0x53d4a8ea",
+          "0xbac6881c"
         ],
         "field0": [
-          "0xf9e884e6",
-          "0x109de603"
+          "0xb167d6df",
+          "0xa642db39"
         ],
         "field1": [
-          "0xfa5d0108",
-          "0x1b774856"
+          "0x050b2923",
+          "0x298c470f"
         ],
         "lengths": [
-          252,
+          262,
           17
         ]
       }
     },
     {
       "level": 6,
-      "levelHash": "811f788614f138d0",
+      "levelHash": "3f42b16fe39abd39",
       "rawEqualsParsed": true,
-      "initialHash": "20c94678ab8a2c9d",
-      "ascii": "L6 turn 0 moves 18 seg 1/3 elev 0\nsize 6x7|2x6 H7\n y  0 1 2 3 4 5 | W | 6 7\n 8  . . . . . . | : | . .\n 7  . . . . . . | : | . .\n 6  y y y g g . | : | · ·\n 5  y y y . w w | : | . .\n 4  w w w g g w | # | . .\n 3  w w g g . g | # | . .\n 2  w w w g . g | # | . .\n 1  w . g g g g | # | . .\n 0  w w g . g g | # | . .\nplan seg0 (top→bottom): WG WG GG YY YY YY\ntraits: -",
-      "asciiIds": "L6 turn 0 moves 18 seg 1/3 elev 0 ids\nsize 6x7|2x6 H7\n y  0 1 2 3 4 5 | W | 6 7\n 8  . . . . . . | : | . .\n 7  . . . . . . | : | . .\n 6  1 2 2 0 0 . | : | · ·\n 5  1 1 2 . 4 5 | : | . .\n 4  6 3 3 4 4 5 | # | . .\n 3  6 6 8 8 . 9 | # | . .\n 2  6 7 7 8 . 9 | # | . .\n 1  a . b c c d | # | . .\n 0  a a b . c d | # | . .\nplan seg0 (top→bottom): WG WG GG YY YY YY\ntraits: -",
-      "encoded": "AAAAABIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAB2FwAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAACwAAAAsAAAAMAAAAAAAAAA0AAAAOAAAACwAAAAAAAAAMAAAADQAAAA0AAAAOAAAABwAAAAgAAAAIAAAACQAAAAAAAAAKAAAABwAAAAcAAAAJAAAACQAAAAAAAAAKAAAABwAAAAQAAAAEAAAABQAAAAUAAAAGAAAAAgAAAAIAAAADAAAAAAAAAAUAAAAGAAAAAgAAAAMAAAADAAAAAQAAAAEAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAABQAAAAIAAAAAAAAAAwAAAAYAAAD_____AAAAAAAAAAD_____FAAAAAEAAAAAAAAAAAAAAAUAAAD_____AAAAAAAAAAD_____FgAAAAEAAAAAAAAAAQAAAAUAAAD_____AAAAAAAAAAD_____BQAAAAAAAAAAAAAAAQAAAAQAAAD_____AAAAAAAAAAD_____FwAAAAIAAAAAAAAAAwAAAAQAAAD_____AAAAAAAAAAD_____BAAAAAAAAAAAAAAABQAAAAQAAAD_____AAAAAAAAAAD_____IAAAAAAAAAAAAAAAAAAAAAIAAAD_____AAAAAAAAAAD_____BQAAAAAAAAAAAAAAAQAAAAIAAAD_____AAAAAAAAAAD_____FgAAAAIAAAAAAAAAAgAAAAIAAAD_____AAAAAAAAAAD_____BAAAAAIAAAAAAAAABQAAAAIAAAD_____AAAAAAAAAAD_____FAAAAAAAAAAAAAAAAAAAAAAAAAD_____AAAAAAAAAAD_____BAAAAAIAAAAAAAAAAgAAAAAAAAD_____AAAAAAAAAAD_____FgAAAAIAAAAAAAAAAwAAAAAAAAD_____AAAAAAAAAAD_____BAAAAAIAAAAAAAAABQAAAAAAAAD_____AAAAAAAAAAD_____AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA",
+      "initialHash": "a5dfbe37b29af237",
+      "ascii": "L6 turn 0 moves 23 seg 1/3 elev 0\nsize 6x8|3x5 H8\n y  0 1 2 3 4 5 | W | 6 7 8\n 9  . . . . . . | : | . . .\n 8  . . . . . . | : | . . .\n 7  g g w w . . | : | · · ·\n 6  g w y w . y | # | · · ·\n 5  g y w w y y | # | · · ·\n 4  g g w w y w | # | . . .\n 3  y y y w w w | # | . . .\n 2  g g y w w w | # | . . .\n 1  g g y w w g | # | . . .\n 0  g g y w g g | # | . . .\nplan seg0 (top→bottom): YYY GGW GWW WGW YGG\ntraits: -",
+      "asciiIds": "L6 turn 0 moves 23 seg 1/3 elev 0 ids\nsize 6x8|3x5 H8\n y  0 1 2 3 4 5 | W | 6 7 8\n 9  . . . . . . | : | . . .\n 8  . . . . . . | : | . . .\n 7  0 0 1 1 . . | : | · · ·\n 6  0 2 3 1 . 4 | # | · · ·\n 5  5 2 3 6 7 4 | # | · · ·\n 4  5 5 6 6 7 9 | # | . . .\n 3  8 8 a b 9 9 | # | . . .\n 2  c c a b b b | # | . . .\n 1  c d e f f g | # | . . .\n 0  d d e f g g | # | . . .\nplan seg0 (top→bottom): YYY GGW GWW WGW YGG\ntraits: -",
+      "encoded": "AAAAABcAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAB2FwAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAADgAAAA4AAAAPAAAAEAAAABEAAAARAAAADQAAAA4AAAAPAAAAEAAAABAAAAARAAAADQAAAA0AAAALAAAADAAAAAwAAAAMAAAACQAAAAkAAAALAAAADAAAAAoAAAAKAAAABgAAAAYAAAAHAAAABwAAAAgAAAAKAAAABgAAAAMAAAAEAAAABwAAAAgAAAAFAAAAAQAAAAMAAAAEAAAAAgAAAAAAAAAFAAAAAQAAAAEAAAACAAAAAgAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAFQAAAAIAAAAAAAAAAAAAAAYAAAD_____AAAAAAAAAAD_____FgAAAAAAAAAAAAAAAgAAAAYAAAD_____AAAAAAAAAAD_____BAAAAAEAAAAAAAAAAQAAAAUAAAD_____AAAAAAAAAAD_____BAAAAAAAAAAAAAAAAgAAAAUAAAD_____AAAAAAAAAAD_____BAAAAAEAAAAAAAAABQAAAAUAAAD_____AAAAAAAAAAD_____FAAAAAIAAAAAAAAAAAAAAAQAAAD_____AAAAAAAAAAD_____FwAAAAAAAAAAAAAAAgAAAAQAAAD_____AAAAAAAAAAD_____BAAAAAEAAAAAAAAABAAAAAQAAAD_____AAAAAAAAAAD_____BQAAAAEAAAAAAAAAAAAAAAMAAAD_____AAAAAAAAAAD_____FwAAAAAAAAAAAAAABAAAAAMAAAD_____AAAAAAAAAAD_____BAAAAAEAAAAAAAAAAgAAAAIAAAD_____AAAAAAAAAAD_____HQAAAAAAAAAAAAAAAwAAAAIAAAD_____AAAAAAAAAAD_____FQAAAAIAAAAAAAAAAAAAAAEAAAD_____AAAAAAAAAAD_____FwAAAAIAAAAAAAAAAAAAAAAAAAD_____AAAAAAAAAAD_____BAAAAAEAAAAAAAAAAgAAAAAAAAD_____AAAAAAAAAAD_____FQAAAAAAAAAAAAAAAwAAAAAAAAD_____AAAAAAAAAAD_____FwAAAAIAAAAAAAAABAAAAAAAAAD_____AAAAAAAAAAD_____AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA",
       "layout": {
-        "size": 266,
+        "size": 317,
         "counts": {
           "segments": 3,
-          "pieces": 14,
-          "gaps": 0,
-          "obstacles": 0,
-          "hidden": 0,
-          "goals": 1
-        },
-        "yardOcc": 18,
-        "siteOcc": 72,
-        "filled": 108,
-        "wrongOcc": 114,
-        "pieces": 120,
-        "gaps": 246,
-        "obstacles": 246,
-        "hidden": 246,
-        "goals": 246,
-        "queue": 249,
-        "revealed": 263
-      },
-      "cycle": 1,
-      "seed": 6006,
-      "mechanics": [
-        "S1",
-        "Y9"
-      ],
-      "step10": [],
-      "supply": [
-        14,
-        6,
-        16,
-        0,
-        0,
-        0,
-        0,
-        0
-      ],
-      "demand": [
-        14,
-        6,
-        16,
-        0,
-        0,
-        0,
-        0,
-        0
-      ],
-      "materialCount": 14,
-      "zobrist": {
-        "pos0": [
-          "0x23b1a2a7",
-          "0xb22d048a",
-          "0xc17953d1",
-          "0x0755eb06"
-        ],
-        "pos1": [
-          "0xbfd0d10b",
-          "0xf1308699"
-        ],
-        "field0": [
-          "0xb9b05142",
-          "0x5c202917"
-        ],
-        "field1": [
-          "0xa642db39",
-          "0xa9449cdf"
-        ],
-        "lengths": [
-          254,
-          17
-        ]
-      }
-    },
-    {
-      "level": 7,
-      "levelHash": "e7bc8b9d26781325",
-      "rawEqualsParsed": true,
-      "initialHash": "378f5f42db46f530",
-      "ascii": "L7 turn 0 moves 18 seg 1/4 elev 0\nsize 6x6|2x4 H6\n y  0 1 2 3 4 5 | W | 6 7\n 7  . . . . . . | : | . .\n 6  . . . . . . | : | . .\n 5  . r r g . . | : | · ·\n 4  . r g g y r | : | · ·\n 3  y r g g y y | : | . .\n 2  y y g g g r | # | . .\n 1  y y g g g r | # | . .\n 0  y y y y g g | # | . .\nplan seg0 (top→bottom): YY RR RG GG\ntraits: wrapped@(2,0) wrapped@(4,0) scissors@(2,1)",
-      "asciiIds": "L7 turn 0 moves 18 seg 1/4 elev 0 ids\nsize 6x6|2x4 H6\n y  0 1 2 3 4 5 | W | 6 7\n 7  . . . . . . | : | . .\n 6  . . . . . . | : | . .\n 5  . 0 0 1 . . | : | · ·\n 4  . 0 1 1 2 2 | : | · ·\n 3  5 5 3 3 4 4 | : | . .\n 2  5 5 6 6 8 9 | # | . .\n 1  a a 7 7 8 9 | # | . .\n 0  a a b b c c | # | . .\nplan seg0 (top→bottom): YY RR RG GG\ntraits: wrapped:11 wrapped:12 scissors:7",
-      "encoded": "AAAAABIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAABfGwAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAACwAAAAsAAAAMAAAADAAAAA0AAAANAAAACwAAAAsAAAAIAAAACAAAAAkAAAAKAAAABgAAAAYAAAAHAAAABwAAAAkAAAAKAAAABgAAAAYAAAAEAAAABAAAAAUAAAAFAAAAAAAAAAEAAAACAAAAAgAAAAMAAAADAAAAAAAAAAEAAAABAAAAAgAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAFQAAAAMAAAAAAAAAAQAAAAQAAAD_____AAAAAAAAAAD_____FwAAAAIAAAAAAAAAAgAAAAQAAAD_____AAAAAAAAAAD_____BQAAAAEAAAAAAAAABAAAAAQAAAD_____AAAAAAAAAAD_____BQAAAAIAAAAAAAAAAgAAAAMAAAD_____AAAAAAAAAAD_____BQAAAAEAAAAAAAAABAAAAAMAAAD_____AAAAAAAAAAD_____EAAAAAEAAAAAAAAAAAAAAAIAAAD_____AAAAAAAAAAD_____BQAAAAIAAAAAAAAAAgAAAAIAAAD_____AAAAAAAAAAD_____BQAAAAIAAAAAAAAAAgAAAAEAAAD_____AAIAAAAAAAD_____BAAAAAIAAAAAAAAABAAAAAEAAAD_____AAAAAAAAAAD_____BAAAAAMAAAAAAAAABQAAAAEAAAD_____AAAAAAAAAAD_____EAAAAAEAAAAAAAAAAAAAAAAAAAD_____AAAAAAAAAAD_____BQAAAAEAAAAAAAAAAgAAAAAAAAD_____AAEAAAAAAAD_____BQAAAAIAAAAAAAAABAAAAAAAAAD_____AAEAAAAAAAD_____AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA",
-      "layout": {
-        "size": 251,
-        "counts": {
-          "segments": 4,
-          "pieces": 13,
-          "gaps": 0,
-          "obstacles": 0,
-          "hidden": 0,
-          "goals": 1
-        },
-        "yardOcc": 18,
-        "siteOcc": 66,
-        "filled": 98,
-        "wrongOcc": 106,
-        "pieces": 114,
-        "gaps": 231,
-        "obstacles": 231,
-        "hidden": 231,
-        "goals": 231,
-        "queue": 234,
-        "revealed": 247
-      },
-      "cycle": 1,
-      "seed": 7007,
-      "mechanics": [
-        "S1",
-        "Y9",
-        "Y11"
-      ],
-      "step10": [],
-      "supply": [
-        0,
-        12,
-        13,
-        7,
-        0,
-        0,
-        0,
-        0
-      ],
-      "demand": [
-        0,
-        12,
-        13,
-        7,
-        0,
-        0,
-        0,
-        0
-      ],
-      "materialCount": 13,
-      "zobrist": {
-        "pos0": [
-          "0x23b1a2a7",
-          "0xb22d048a",
-          "0xc17953d1",
-          "0x0755eb06"
-        ],
-        "pos1": [
-          "0xf6b8d781",
-          "0xbfd0d10b"
-        ],
-        "field0": [
-          "0x5c25bff7",
-          "0x551887f2"
-        ],
-        "field1": [
-          "0xa642db39",
-          "0xa9449cdf"
-        ],
-        "lengths": [
-          253,
-          19
-        ]
-      }
-    },
-    {
-      "level": 8,
-      "levelHash": "d741a1863ea55ca8",
-      "rawEqualsParsed": true,
-      "initialHash": "b933bb7a80d9bd26",
-      "ascii": "L8 turn 0 moves 20 seg 1/3 elev 0\nsize 6x7|2x6 H7\n y  0 1 2 3 4 5 | W | 6 7\n 8  . . . . . . | : | . .\n 7  . . . . . . | : | . .\n 6  w g w . y . | : | · ·\n 5  w w w . y . | : | . .\n 4  g g w g g w | # | . .\n 3  g g w g g g | # | . .\n 2  y y g g g g | # | . .\n 1  y y g . g g | # | . .\n 0  y y g . g w | # | . .\nplan seg0 (top→bottom): YG YG GG GW WW WW\ntraits: slippery@(3,4) slippery@(2,3)",
-      "asciiIds": "L8 turn 0 moves 20 seg 1/3 elev 0 ids\nsize 6x7|2x6 H7\n y  0 1 2 3 4 5 | W | 6 7\n 8  . . . . . . | : | . .\n 7  . . . . . . | : | . .\n 6  0 1 1 . 2 . | : | · ·\n 5  0 0 1 . 2 . | : | . .\n 4  4 5 6 3 3 7 | # | . .\n 3  4 5 6 8 8 7 | # | . .\n 2  9 a b 8 d d | # | . .\n 1  9 a b . c d | # | . .\n 0  9 a b . c d | # | . .\nplan seg0 (top→bottom): YG YG GG GW WW WW\ntraits: slippery:3 slippery:6",
-      "encoded": "AAAAABQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAABIHwAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAACgAAAAsAAAAMAAAAAAAAAA0AAAAOAAAACgAAAAsAAAAMAAAAAAAAAA0AAAAOAAAACgAAAAsAAAAMAAAACQAAAA4AAAAOAAAABQAAAAYAAAAHAAAACQAAAAkAAAAIAAAABQAAAAYAAAAHAAAABAAAAAQAAAAIAAAAAQAAAAEAAAACAAAAAAAAAAMAAAAAAAAAAQAAAAIAAAACAAAAAAAAAAMAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAFAAAAAAAAAAAAAAAAAAAAAUAAAD_____AAAAAAAAAAD_____FgAAAAAAAAAAAAAAAQAAAAUAAAD_____AAAAAAAAAAD_____BAAAAAEAAAAAAAAABAAAAAUAAAD_____AAAAAAAAAAD_____BQAAAAIAAAAAAAAAAwAAAAQAAAD_____AAgAAAAAAAD_____BAAAAAIAAAAAAAAAAAAAAAMAAAD_____AAAAAAAAAAD_____BAAAAAIAAAAAAAAAAQAAAAMAAAD_____AAAAAAAAAAD_____BAAAAAAAAAAAAAAAAgAAAAMAAAD_____AAgAAAAAAAD_____BAAAAAIAAAAAAAAABQAAAAMAAAD_____AAAAAAAAAAD_____FQAAAAIAAAAAAAAAAwAAAAIAAAD_____AAAAAAAAAAD_____CAAAAAEAAAAAAAAAAAAAAAAAAAD_____AAAAAAAAAAD_____CAAAAAEAAAAAAAAAAQAAAAAAAAD_____AAAAAAAAAAD_____CAAAAAIAAAAAAAAAAgAAAAAAAAD_____AAAAAAAAAAD_____BAAAAAIAAAAAAAAABAAAAAAAAAD_____AAAAAAAAAAD_____GgAAAAAAAAAAAAAABAAAAAAAAAD_____AAAAAAAAAAD_____AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA",
-      "layout": {
-        "size": 266,
-        "counts": {
-          "segments": 3,
-          "pieces": 14,
-          "gaps": 0,
-          "obstacles": 0,
-          "hidden": 0,
-          "goals": 1
-        },
-        "yardOcc": 18,
-        "siteOcc": 72,
-        "filled": 108,
-        "wrongOcc": 114,
-        "pieces": 120,
-        "gaps": 246,
-        "obstacles": 246,
-        "hidden": 246,
-        "goals": 246,
-        "queue": 249,
-        "revealed": 263
-      },
-      "cycle": 1,
-      "seed": 8008,
-      "mechanics": [
-        "S1",
-        "Y9",
-        "Y13"
-      ],
-      "step10": [],
-      "supply": [
-        9,
-        8,
-        19,
-        0,
-        0,
-        0,
-        0,
-        0
-      ],
-      "demand": [
-        9,
-        8,
-        19,
-        0,
-        0,
-        0,
-        0,
-        0
-      ],
-      "materialCount": 14,
-      "zobrist": {
-        "pos0": [
-          "0x23b1a2a7",
-          "0xb22d048a",
-          "0xc17953d1",
-          "0x0755eb06"
-        ],
-        "pos1": [
-          "0xbfd0d10b",
-          "0xf1308699"
-        ],
-        "field0": [
-          "0xb9b05142",
-          "0x5c202917"
-        ],
-        "field1": [
-          "0xa642db39",
-          "0xa9449cdf"
-        ],
-        "lengths": [
-          254,
-          17
-        ]
-      }
-    },
-    {
-      "level": 9,
-      "levelHash": "d4dcfbdc9b3c16d9",
-      "rawEqualsParsed": true,
-      "initialHash": "1feb800648175623",
-      "ascii": "L9 turn 0 moves 22 seg 1/3 elev 0\nsize 6x7|2x6 H7\n y  0 1 2 3 4 5 | W | 6 7\n 8  . . . . . . | : | . .\n 7  . . . . . . | : | . .\n 6  . w g w g g | : | · ·\n 5  y y y g g g | : | . .\n 4  . w y w w w | : | . .\n 3  y y w g g w | # | . .\n 2  g . w g . y | # | . .\n 1  w g g g . y | # | . .\n 0  w g g w . y | # | . .\nplan seg0 (top→bottom): WW GW GG GY WY YY\ntraits: bonus+2@(0,0)",
-      "asciiIds": "L9 turn 0 moves 22 seg 1/3 elev 0 ids\nsize 6x7|2x6 H7\n y  0 1 2 3 4 5 | W | 6 7\n 8  . . . . . . | : | . .\n 7  . . . . . . | : | . .\n 6  . 0 0 2 3 3 | : | · ·\n 5  1 1 4 2 3 8 | : | . .\n 4  . 4 4 5 5 8 | : | . .\n 3  6 6 9 7 7 8 | # | . .\n 2  a . 9 c . d | # | . .\n 1  a b b c . d | # | . .\n 0  a b b c . d | # | . .\nplan seg0 (top→bottom): WW GW GG GY WY YY\ntraits: bonus:10",
-      "encoded": "AAAAABYAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAxIwAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAACwAAAAwAAAAMAAAADQAAAAAAAAAOAAAACwAAAAwAAAAMAAAADQAAAAAAAAAOAAAACwAAAAAAAAAKAAAADQAAAAAAAAAOAAAABwAAAAcAAAAKAAAACAAAAAgAAAAJAAAAAAAAAAUAAAAFAAAABgAAAAYAAAAJAAAAAgAAAAIAAAAFAAAAAwAAAAQAAAAJAAAAAAAAAAEAAAABAAAAAwAAAAQAAAAEAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAABQAAAAAAAAAAAAAAAQAAAAYAAAD_____AAAAAAAAAAD_____BQAAAAEAAAAAAAAAAAAAAAUAAAD_____AAAAAAAAAAD_____BAAAAAIAAAAAAAAAAwAAAAUAAAD_____AAAAAAAAAAD_____FQAAAAIAAAAAAAAABAAAAAUAAAD_____AAAAAAAAAAD_____FwAAAAAAAAAAAAAAAQAAAAQAAAD_____AAAAAAAAAAD_____BQAAAAAAAAAAAAAAAwAAAAQAAAD_____AAAAAAAAAAD_____BQAAAAEAAAAAAAAAAAAAAAMAAAD_____AAAAAAAAAAD_____BQAAAAIAAAAAAAAAAwAAAAMAAAD_____AAAAAAAAAAD_____CAAAAAAAAAAAAAAABQAAAAMAAAD_____AAAAAAAAAAD_____BAAAAAAAAAAAAAAAAgAAAAIAAAD_____AAAAAAAAAAD_____CAAAAAAAAAAAAAAAAAAAAAAAAAD_____AAQAAAAAAAD_____EAAAAAIAAAAAAAAAAQAAAAAAAAD_____AAAAAAAAAAD_____CAAAAAAAAAAAAAAAAwAAAAAAAAD_____AAAAAAAAAAD_____CAAAAAEAAAAAAAAABQAAAAAAAAD_____AAAAAAAAAAD_____AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA",
-      "layout": {
-        "size": 266,
-        "counts": {
-          "segments": 3,
-          "pieces": 14,
-          "gaps": 0,
-          "obstacles": 0,
-          "hidden": 0,
-          "goals": 1
-        },
-        "yardOcc": 18,
-        "siteOcc": 72,
-        "filled": 108,
-        "wrongOcc": 114,
-        "pieces": 120,
-        "gaps": 246,
-        "obstacles": 246,
-        "hidden": 246,
-        "goals": 246,
-        "queue": 249,
-        "revealed": 263
-      },
-      "cycle": 1,
-      "seed": 9009,
-      "mechanics": [
-        "S1",
-        "Y9",
-        "Y12"
-      ],
-      "step10": [],
-      "supply": [
-        12,
-        9,
-        15,
-        0,
-        0,
-        0,
-        0,
-        0
-      ],
-      "demand": [
-        12,
-        9,
-        15,
-        0,
-        0,
-        0,
-        0,
-        0
-      ],
-      "materialCount": 14,
-      "zobrist": {
-        "pos0": [
-          "0x23b1a2a7",
-          "0xb22d048a",
-          "0xc17953d1",
-          "0x0755eb06"
-        ],
-        "pos1": [
-          "0xbfd0d10b",
-          "0xf1308699"
-        ],
-        "field0": [
-          "0xb9b05142",
-          "0x5c202917"
-        ],
-        "field1": [
-          "0xa642db39",
-          "0xa9449cdf"
-        ],
-        "lengths": [
-          254,
-          17
-        ]
-      }
-    },
-    {
-      "level": 10,
-      "levelHash": "4073179f156e18cc",
-      "rawEqualsParsed": true,
-      "initialHash": "fc3cd55c365074ea",
-      "ascii": "L10 turn 0 moves 21 seg 1/4 elev 0\nsize 6x8|2x5 H8\n y  0 1 2 3 4 5 | W | 6 7\n 9  . . . . . . | : | . .\n 8  . . . . . . | : | . .\n 7  g . g . y . | : | · ·\n 6  g y g y y y | : | · ·\n 5  g w g . y y | : | · ·\n 4  y y y g g . | # | . .\n 3  y y w g g . | # | . .\n 2  y w w g y . | # | . .\n 1  w y w w y . | # | . .\n 0  w y y w w y | # | . .\nplan seg0 (top→bottom): YY YW GG GG GG\ntraits: wrapped@(0,2) wrapped@(2,2) scissors@(1,3) slippery@(3,0)",
-      "asciiIds": "L10 turn 0 moves 21 seg 1/4 elev 0 ids\nsize 6x8|2x5 H8\n y  0 1 2 3 4 5 | W | 6 7\n 9  . . . . . . | : | . .\n 8  . . . . . . | : | . .\n 7  1 . 3 . 0 . | : | · ·\n 6  1 2 3 0 0 4 | : | · ·\n 5  1 2 3 . 4 4 | : | · ·\n 4  7 5 5 9 6 . | # | . .\n 3  7 5 8 9 6 . | # | . .\n 2  7 c 8 9 a . | # | . .\n 1  b c d e a . | # | . .\n 0  b c d e f f | # | . .\nplan seg0 (top→bottom): YY YW GG GG GG\ntraits: wrapped:7 wrapped:8 scissors:5 slippery:14",
-      "encoded": "AAAAABUAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAaJwAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAADAAAAA0AAAAOAAAADwAAABAAAAAQAAAADAAAAA0AAAAOAAAADwAAAAsAAAAAAAAACAAAAA0AAAAJAAAACgAAAAsAAAAAAAAACAAAAAYAAAAJAAAACgAAAAcAAAAAAAAACAAAAAYAAAAGAAAACgAAAAcAAAAAAAAAAgAAAAMAAAAEAAAAAAAAAAUAAAAFAAAAAgAAAAMAAAAEAAAAAQAAAAEAAAAFAAAAAgAAAAAAAAAEAAAAAAAAAAEAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAXAAAAAQAAAAAAAAADAAAABgAAAP____8AAAAAAAAAAP____8IAAAAAgAAAAAAAAAAAAAABQAAAP____8AAAAAAAAAAP____8EAAAAAAAAAAAAAAABAAAABQAAAP____8AAAAAAAAAAP____8IAAAAAgAAAAAAAAACAAAABQAAAP____8AAAAAAAAAAP____8XAAAAAQAAAAAAAAAEAAAABQAAAP____8AAAAAAAAAAP____8VAAAAAQAAAAAAAAABAAAAAwAAAP____8AAgAAAAAAAP____8EAAAAAgAAAAAAAAAEAAAAAwAAAP____8AAAAAAAAAAP____8IAAAAAQAAAAAAAAAAAAAAAgAAAP____8AAQAAAAAAAP____8EAAAAAAAAAAAAAAACAAAAAgAAAP____8AAQAAAAAAAP____8IAAAAAgAAAAAAAAADAAAAAgAAAP____8AAAAAAAAAAP____8EAAAAAQAAAAAAAAAEAAAAAQAAAP____8AAAAAAAAAAP____8EAAAAAAAAAAAAAAAAAAAAAAAAAP____8AAAAAAAAAAP____8IAAAAAQAAAAAAAAABAAAAAAAAAP____8AAAAAAAAAAP____8EAAAAAQAAAAAAAAACAAAAAAAAAP____8AAAAAAAAAAP____8EAAAAAAAAAAAAAAADAAAAAAAAAP____8ACAAAAAAAAP____8FAAAAAAAAAAAAAAAEAAAAAAAAAP____8AAAAAAAAAAP____8AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA",
-      "layout": {
-        "size": 301,
-        "counts": {
-          "segments": 4,
-          "pieces": 16,
+          "pieces": 17,
           "gaps": 0,
           "obstacles": 0,
           "hidden": 0,
@@ -771,29 +436,28 @@
         },
         "yardOcc": 18,
         "siteOcc": 78,
-        "filled": 118,
-        "wrongOcc": 126,
-        "pieces": 134,
-        "gaps": 278,
-        "obstacles": 278,
-        "hidden": 278,
-        "goals": 278,
-        "queue": 281,
-        "revealed": 297
+        "filled": 123,
+        "wrongOcc": 132,
+        "pieces": 141,
+        "gaps": 294,
+        "obstacles": 294,
+        "hidden": 294,
+        "goals": 294,
+        "queue": 297,
+        "revealed": 314
       },
       "cycle": 1,
-      "seed": 10010,
+      "seed": 6006,
       "mechanics": [
         "S1",
-        "Y9",
-        "Y11",
-        "Y13"
+        "S9",
+        "Y9"
       ],
       "step10": [],
       "supply": [
-        10,
-        19,
-        11,
+        18,
+        12,
+        15,
         0,
         0,
         0,
@@ -801,16 +465,16 @@
         0
       ],
       "demand": [
-        10,
-        19,
-        11,
+        18,
+        12,
+        15,
         0,
         0,
         0,
         0,
         0
       ],
-      "materialCount": 16,
+      "materialCount": 17,
       "zobrist": {
         "pos0": [
           "0x23b1a2a7",
@@ -819,20 +483,364 @@
           "0x0755eb06"
         ],
         "pos1": [
-          "0xd79adb85",
-          "0x7b5e1647"
+          "0x8a45e644",
+          "0x8d7f2094"
         ],
         "field0": [
-          "0xea493aee",
-          "0xa9b7259e"
+          "0x8decb9c2",
+          "0x61fa2b42"
         ],
         "field1": [
-          "0x87d9810a",
-          "0x29b6c2c9"
+          "0x011ad44a",
+          "0xa9138af2"
         ],
         "lengths": [
-          256,
-          19
+          267,
+          20
+        ]
+      }
+    },
+    {
+      "level": 7,
+      "levelHash": "818916baed216a7c",
+      "rawEqualsParsed": true,
+      "initialHash": "9e01924ed4e27fbd",
+      "ascii": "L7 turn 0 moves 24 seg 1/4 elev 0\nsize 6x8|3x4 H8\n y  0 1 2 3 4 5 | W | 6 7 8\n 9  . . . . . . | : | . . .\n 8  . . . . . . | : | . . .\n 7  w w . w w . | : | · · ·\n 6  y w . w r r | # | · · ·\n 5  y w w y r r | # | · · ·\n 4  y y w y y y | # | · · ·\n 3  y y . y y y | # | . . .\n 2  r y r w w r | # | . . .\n 1  r y r y w r | # | . . .\n 0  y y y y w w | # | . . .\nplan seg0 (top→bottom): RRR RYY WWY WRR\ntraits: pallet@(4,0)x3",
+      "asciiIds": "L7 turn 0 moves 24 seg 1/4 elev 0 ids\nsize 6x8|3x4 H8\n y  0 1 2 3 4 5 | W | 6 7 8\n 9  . . . . . . | : | . . .\n 8  . . . . . . | : | . . .\n 7  0 0 . 1 1 . | : | · · ·\n 6  4 0 . 1 2 2 | # | · · ·\n 5  4 5 5 6 3 3 | # | · · ·\n 4  4 4 5 6 7 7 | # | · · ·\n 3  8 8 . 6 6 7 | # | . . .\n 2  9 8 a b b c | # | . . .\n 1  9 d a e b c | # | . . .\n 0  d d e e h h | # | . . .\nplan seg0 (top→bottom): RRR RYY WWY WRR\ntraits: pallet:f,g,h@(4,0)",
+      "encoded": "AAAAABgAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAABfGwAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAADgAAAA4AAAAPAAAADwAAABIAAAASAAAACgAAAA4AAAALAAAADwAAAAwAAAANAAAACgAAAAkAAAALAAAADAAAAAwAAAANAAAACQAAAAkAAAAAAAAABwAAAAcAAAAIAAAABQAAAAUAAAAGAAAABwAAAAgAAAAIAAAABQAAAAYAAAAGAAAABwAAAAQAAAAEAAAABQAAAAEAAAAAAAAAAgAAAAMAAAADAAAAAQAAAAEAAAAAAAAAAgAAAAIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAFgAAAAAAAAAAAAAAAAAAAAYAAAD_____AAAAAAAAAAD_____FQAAAAAAAAAAAAAAAwAAAAYAAAD_____AAAAAAAAAAD_____BQAAAAMAAAAAAAAABAAAAAYAAAD_____AAAAAAAAAAD_____BQAAAAMAAAAAAAAABAAAAAUAAAD_____AAAAAAAAAAD_____GAAAAAEAAAAAAAAAAAAAAAQAAAD_____AAAAAAAAAAD_____FgAAAAAAAAAAAAAAAQAAAAQAAAD_____AAAAAAAAAAD_____GAAAAAEAAAAAAAAAAwAAAAMAAAD_____AAAAAAAAAAD_____FgAAAAEAAAAAAAAABAAAAAMAAAD_____AAAAAAAAAAD_____FgAAAAEAAAAAAAAAAAAAAAIAAAD_____AAAAAAAAAAD_____BAAAAAMAAAAAAAAAAAAAAAEAAAD_____AAAAAAAAAAD_____BAAAAAMAAAAAAAAAAgAAAAEAAAD_____AAAAAAAAAAD_____FgAAAAAAAAAAAAAAAwAAAAEAAAD_____AAAAAAAAAAD_____BAAAAAMAAAAAAAAABQAAAAEAAAD_____AAAAAAAAAAD_____FwAAAAEAAAAAAAAAAAAAAAAAAAD_____AAAAAAAAAAD_____FwAAAAEAAAAAAAAAAgAAAAAAAAD_____AAAAAAAAAAD_____BQAAAAAAAAAAAAAABAAAAAAAAAD_____AAAAAAAAAAD_____BQAAAAAAAAAAAAAABAAAAAAAAAD_____AAAAAAAAAAD_____BQAAAAAAAAAAAAAABAAAAAAAAAD_____AAAAAAAAAAD_____AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA",
+      "layout": {
+        "size": 337,
+        "counts": {
+          "segments": 4,
+          "pieces": 18,
+          "gaps": 0,
+          "obstacles": 0,
+          "hidden": 0,
+          "goals": 1
+        },
+        "yardOcc": 18,
+        "siteOcc": 78,
+        "filled": 126,
+        "wrongOcc": 138,
+        "pieces": 150,
+        "gaps": 312,
+        "obstacles": 312,
+        "hidden": 312,
+        "goals": 312,
+        "queue": 315,
+        "revealed": 333
+      },
+      "cycle": 1,
+      "seed": 7007,
+      "mechanics": [
+        "S1",
+        "S9",
+        "Y10"
+      ],
+      "step10": [],
+      "supply": [
+        18,
+        20,
+        0,
+        10,
+        0,
+        0,
+        0,
+        0
+      ],
+      "demand": [
+        18,
+        20,
+        0,
+        10,
+        0,
+        0,
+        0,
+        0
+      ],
+      "materialCount": 18,
+      "zobrist": {
+        "pos0": [
+          "0x23b1a2a7",
+          "0xb22d048a",
+          "0xc17953d1",
+          "0x0755eb06"
+        ],
+        "pos1": [
+          "0x8d7f2094",
+          "0x6cfedd07"
+        ],
+        "field0": [
+          "0xa3bc49be",
+          "0x4bfc74d8"
+        ],
+        "field1": [
+          "0x7a2c32f4",
+          "0x2336bca8"
+        ],
+        "lengths": [
+          268,
+          23
+        ]
+      }
+    },
+    {
+      "level": 8,
+      "levelHash": "53ef7521544544f6",
+      "rawEqualsParsed": true,
+      "initialHash": "bf8fec4bc6e01c97",
+      "ascii": "L8 turn 0 moves 24 seg 1/4 elev 0\nsize 6x8|3x4 H8\n y  0 1 2 3 4 5 | W | 6 7 8\n 9  . . . . . . | : | . . .\n 8  . . . . . . | : | . . .\n 7  g g w . . w | : | · · ·\n 6  w w w y y g | # | · · ·\n 5  w w y y y y | # | · · ·\n 4  . w y y y g | # | · · ·\n 3  g g y y y g | # | . . .\n 2  g g y y y y | # | . . .\n 1  g y y y . y | # | . . .\n 0  w g g y y y | # | . . .\nplan seg0 (top→bottom): WWW YWG YYW WWW\ntraits: pallet@(1,0)x3 wrapped@(1,1) wrapped@(3,0) scissors@(2,5)",
+      "asciiIds": "L8 turn 0 moves 24 seg 1/4 elev 0 ids\nsize 6x8|3x4 H8\n y  0 1 2 3 4 5 | W | 6 7 8\n 9  . . . . . . | : | . . .\n 8  . . . . . . | : | . . .\n 7  0 0 1 . . 2 | : | · · ·\n 6  1 1 1 3 4 2 | # | · · ·\n 5  5 5 3 3 4 4 | # | · · ·\n 4  . 5 6 6 7 8 | # | · · ·\n 3  9 a 6 7 7 8 | # | . . .\n 2  9 a b c c c | # | . . .\n 1  d b b c . h | # | . . .\n 0  d g g h h h | # | . . .\nplan seg0 (top→bottom): WWW YWG YYW WWW\ntraits: pallet:e,f,g@(1,0) wrapped:11 wrapped:17 scissors:3",
+      "encoded": "AAAAABgAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAABIHwAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAADgAAABEAAAARAAAAEgAAABIAAAASAAAADgAAAAwAAAAMAAAADQAAAAAAAAASAAAACgAAAAsAAAAMAAAADQAAAA0AAAANAAAACgAAAAsAAAAHAAAACAAAAAgAAAAJAAAAAAAAAAYAAAAHAAAABwAAAAgAAAAJAAAABgAAAAYAAAAEAAAABAAAAAUAAAAFAAAAAgAAAAIAAAACAAAABAAAAAUAAAADAAAAAQAAAAEAAAACAAAAAAAAAAAAAAADAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAABQAAAAIAAAAAAAAAAAAAAAcAAAD_____AAAAAAAAAAD_____GwAAAAAAAAAAAAAAAAAAAAYAAAD_____AAAAAAAAAAD_____BAAAAAIAAAAAAAAABQAAAAYAAAD_____AAAAAAAAAAD_____FwAAAAEAAAAAAAAAAgAAAAUAAAD_____AAIAAAAAAAD_____FAAAAAEAAAAAAAAABAAAAAUAAAD_____AAAAAAAAAAD_____FgAAAAAAAAAAAAAAAAAAAAQAAAD_____AAAAAAAAAAD_____FQAAAAEAAAAAAAAAAgAAAAMAAAD_____AAAAAAAAAAD_____FwAAAAEAAAAAAAAAAwAAAAMAAAD_____AAAAAAAAAAD_____BAAAAAIAAAAAAAAABQAAAAMAAAD_____AAAAAAAAAAD_____BAAAAAIAAAAAAAAAAAAAAAIAAAD_____AAAAAAAAAAD_____BAAAAAIAAAAAAAAAAQAAAAIAAAD_____AAAAAAAAAAD_____FwAAAAEAAAAAAAAAAQAAAAEAAAD_____AAEAAAAAAAD_____GQAAAAEAAAAAAAAAAwAAAAEAAAD_____AAAAAAAAAAD_____BAAAAAAAAAAAAAAAAAAAAAAAAAD_____AAAAAAAAAAD_____BQAAAAIAAAAAAAAAAQAAAAAAAAD_____AAAAAAAAAAD_____BQAAAAIAAAAAAAAAAQAAAAAAAAD_____AAAAAAAAAAD_____BQAAAAIAAAAAAAAAAQAAAAAAAAD_____AAAAAAAAAAD_____GwAAAAEAAAAAAAAAAwAAAAAAAAD_____AAEAAAAAAAD_____AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA",
+      "layout": {
+        "size": 337,
+        "counts": {
+          "segments": 4,
+          "pieces": 18,
+          "gaps": 0,
+          "obstacles": 0,
+          "hidden": 0,
+          "goals": 1
+        },
+        "yardOcc": 18,
+        "siteOcc": 78,
+        "filled": 126,
+        "wrongOcc": 138,
+        "pieces": 150,
+        "gaps": 312,
+        "obstacles": 312,
+        "hidden": 312,
+        "goals": 312,
+        "queue": 315,
+        "revealed": 333
+      },
+      "cycle": 1,
+      "seed": 8008,
+      "mechanics": [
+        "S1",
+        "S9",
+        "Y9",
+        "Y10",
+        "Y11"
+      ],
+      "step10": [],
+      "supply": [
+        9,
+        23,
+        16,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "demand": [
+        9,
+        23,
+        16,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "materialCount": 18,
+      "zobrist": {
+        "pos0": [
+          "0x23b1a2a7",
+          "0xb22d048a",
+          "0xc17953d1",
+          "0x0755eb06"
+        ],
+        "pos1": [
+          "0x8d7f2094",
+          "0x6cfedd07"
+        ],
+        "field0": [
+          "0xa3bc49be",
+          "0x4bfc74d8"
+        ],
+        "field1": [
+          "0x7a2c32f4",
+          "0x2336bca8"
+        ],
+        "lengths": [
+          268,
+          23
+        ]
+      }
+    },
+    {
+      "level": 9,
+      "levelHash": "530bc0384d7a482c",
+      "rawEqualsParsed": true,
+      "initialHash": "05271957396ab5d3",
+      "ascii": "L9 turn 0 moves 23 seg 1/3 elev 0\nsize 6x8|3x5 H8\n y  0 1 2 3 4 5 | W | 6 7 8\n 9  . . . . . . | : | . . .\n 8  . . . . . . | : | . . .\n 7  . . g . y y | : | · · ·\n 6  . g g g y g | # | · · ·\n 5  w y y y g g | # | · · ·\n 4  y y y y w w | # | . . .\n 3  g g y y y w | # | . . .\n 2  g y y y g g | # | . . .\n 1  w y g g . g | # | . . .\n 0  w . . g w w | # | . . .\nplan seg0 (top→bottom): YYW YGW GGG YYG YGG\ntraits: pallet@(4,0)x3 slippery@(5,3) slippery@(0,0)",
+      "asciiIds": "L9 turn 0 moves 23 seg 1/3 elev 0 ids\nsize 6x8|3x5 H8\n y  0 1 2 3 4 5 | W | 6 7 8\n 9  . . . . . . | : | . . .\n 8  . . . . . . | : | . . .\n 7  . . 0 . 1 1 | : | · · ·\n 6  . 0 0 0 1 2 | # | · · ·\n 5  3 4 4 5 2 2 | # | · · ·\n 4  3 4 5 5 6 7 | # | . . .\n 3  8 8 9 9 6 7 | # | . . .\n 2  8 a a 9 b b | # | . . .\n 1  c a d d . b | # | . . .\n 0  c . . d g g | # | . . .\nplan seg0 (top→bottom): YYW YGW GGG YYG YGG\ntraits: pallet:e,f,g@(4,0) slippery:7 slippery:12",
+      "encoded": "AAAAABcAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAxIwAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAADQAAAAAAAAAAAAAADgAAABEAAAARAAAADQAAAAsAAAAOAAAADgAAAAAAAAAMAAAACQAAAAsAAAALAAAACgAAAAwAAAAMAAAACQAAAAkAAAAKAAAACgAAAAcAAAAIAAAABAAAAAUAAAAGAAAABgAAAAcAAAAIAAAABAAAAAUAAAAFAAAABgAAAAMAAAADAAAAAAAAAAEAAAABAAAAAQAAAAIAAAADAAAAAAAAAAAAAAABAAAAAAAAAAIAAAACAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAIwAAAAIAAAAAAAAAAQAAAAYAAAD_____AAAAAAAAAAD_____FQAAAAEAAAAAAAAABAAAAAYAAAD_____AAAAAAAAAAD_____FwAAAAIAAAAAAAAABAAAAAUAAAD_____AAAAAAAAAAD_____BAAAAAEAAAAAAAAAAAAAAAQAAAD_____AAAAAAAAAAD_____FQAAAAEAAAAAAAAAAQAAAAQAAAD_____AAAAAAAAAAD_____FwAAAAEAAAAAAAAAAgAAAAQAAAD_____AAAAAAAAAAD_____BAAAAAEAAAAAAAAABAAAAAMAAAD_____AAAAAAAAAAD_____BAAAAAAAAAAAAAAABQAAAAMAAAD_____AAgAAAAAAAD_____FQAAAAIAAAAAAAAAAAAAAAIAAAD_____AAAAAAAAAAD_____FgAAAAEAAAAAAAAAAgAAAAIAAAD_____AAAAAAAAAAD_____FQAAAAEAAAAAAAAAAQAAAAEAAAD_____AAAAAAAAAAD_____FgAAAAIAAAAAAAAABAAAAAEAAAD_____AAAAAAAAAAD_____BAAAAAAAAAAAAAAAAAAAAAAAAAD_____AAgAAAAAAAD_____FgAAAAIAAAAAAAAAAgAAAAAAAAD_____AAAAAAAAAAD_____BQAAAAAAAAAAAAAABAAAAAAAAAD_____AAAAAAAAAAD_____BQAAAAAAAAAAAAAABAAAAAAAAAD_____AAAAAAAAAAD_____BQAAAAAAAAAAAAAABAAAAAAAAAD_____AAAAAAAAAAD_____AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA",
+      "layout": {
+        "size": 317,
+        "counts": {
+          "segments": 3,
+          "pieces": 17,
+          "gaps": 0,
+          "obstacles": 0,
+          "hidden": 0,
+          "goals": 1
+        },
+        "yardOcc": 18,
+        "siteOcc": 78,
+        "filled": 123,
+        "wrongOcc": 132,
+        "pieces": 141,
+        "gaps": 294,
+        "obstacles": 294,
+        "hidden": 294,
+        "goals": 294,
+        "queue": 297,
+        "revealed": 314
+      },
+      "cycle": 1,
+      "seed": 9009,
+      "mechanics": [
+        "S1",
+        "S9",
+        "Y9",
+        "Y10",
+        "Y13"
+      ],
+      "step10": [],
+      "supply": [
+        12,
+        17,
+        16,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "demand": [
+        12,
+        17,
+        16,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "materialCount": 17,
+      "zobrist": {
+        "pos0": [
+          "0x23b1a2a7",
+          "0xb22d048a",
+          "0xc17953d1",
+          "0x0755eb06"
+        ],
+        "pos1": [
+          "0x8a45e644",
+          "0x8d7f2094"
+        ],
+        "field0": [
+          "0x8decb9c2",
+          "0x61fa2b42"
+        ],
+        "field1": [
+          "0x011ad44a",
+          "0xa9138af2"
+        ],
+        "lengths": [
+          267,
+          20
+        ]
+      }
+    },
+    {
+      "level": 10,
+      "levelHash": "b903ba2775564619",
+      "rawEqualsParsed": true,
+      "initialHash": "b774e7464e0163dc",
+      "ascii": "L10 turn 0 moves 23 seg 1/4 elev 0\nsize 6x8|3x4 H8\n y  0 1 2 3 4 5 | W | 6 7 8\n 9  . . . . . . | : | . . .\n 8  . . . . . . | : | . . .\n 7  . g g y . . | : | · · ·\n 6  y y y y g g | : | · · ·\n 5  w w w w y y | # | · · ·\n 4  g w w w g y | # | · · ·\n 3  g w w g w w | # | . . .\n 2  y y g w w w | # | . . .\n 1  y w g w g w | # | . . .\n 0  w y g g w . | # | . . .\nplan seg0 (top→bottom): YWW YWW GGW YYY\ntraits: pallet@(2,0)x3 wrapped@(2,1) wrapped@(3,1) scissors@(2,5) bonus+2@(0,4) slippery@(0,3)",
+      "asciiIds": "L10 turn 0 moves 23 seg 1/4 elev 0 ids\nsize 6x8|3x4 H8\n y  0 1 2 3 4 5 | W | 6 7 8\n 9  . . . . . . | : | . . .\n 8  . . . . . . | : | . . .\n 7  . 0 0 2 . . | : | · · ·\n 6  1 1 1 2 3 3 | : | · · ·\n 5  5 5 4 4 6 6 | # | · · ·\n 4  7 5 8 9 9 6 | # | · · ·\n 3  7 8 8 9 a a | # | . . .\n 2  b b c d d a | # | . . .\n 1  b e c d i i | # | . . .\n 0  e e h h i . | # | . . .\nplan seg0 (top→bottom): YWW YWW GGW YYY\ntraits: pallet:f,g,h@(2,0) wrapped:12 wrapped:13 scissors:4 bonus:5 slippery:7",
+      "encoded": "AAAAABcAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAaJwAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAADwAAAA8AAAASAAAAEgAAABMAAAAAAAAADAAAAA8AAAANAAAADgAAABMAAAATAAAADAAAAAwAAAANAAAADgAAAA4AAAALAAAACAAAAAkAAAAJAAAACgAAAAsAAAALAAAACAAAAAYAAAAJAAAACgAAAAoAAAAHAAAABgAAAAYAAAAFAAAABQAAAAcAAAAHAAAAAgAAAAIAAAACAAAAAwAAAAQAAAAEAAAAAAAAAAEAAAABAAAAAwAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAABQAAAAIAAAAAAAAAAQAAAAcAAAD_____AAAAAAAAAAD_____CQAAAAEAAAAAAAAAAAAAAAYAAAD_____AAAAAAAAAAD_____BAAAAAEAAAAAAAAAAwAAAAYAAAD_____AAAAAAAAAAD_____BQAAAAIAAAAAAAAABAAAAAYAAAD_____AAAAAAAAAAD_____BQAAAAAAAAAAAAAAAgAAAAUAAAD_____AAIAAAAAAAD_____FgAAAAAAAAAAAAAAAAAAAAQAAAD_____AAQAAAAAAAD_____FgAAAAEAAAAAAAAABAAAAAQAAAD_____AAAAAAAAAAD_____BAAAAAIAAAAAAAAAAAAAAAMAAAD_____AAgAAAAAAAD_____FwAAAAAAAAAAAAAAAQAAAAMAAAD_____AAAAAAAAAAD_____FQAAAAIAAAAAAAAAAwAAAAMAAAD_____AAAAAAAAAAD_____FgAAAAAAAAAAAAAABAAAAAIAAAD_____AAAAAAAAAAD_____FQAAAAEAAAAAAAAAAAAAAAEAAAD_____AAAAAAAAAAD_____BAAAAAIAAAAAAAAAAgAAAAEAAAD_____AAEAAAAAAAD_____FQAAAAAAAAAAAAAAAwAAAAEAAAD_____AAEAAAAAAAD_____FwAAAAAAAAAAAAAAAAAAAAAAAAD_____AAAAAAAAAAD_____BQAAAAIAAAAAAAAAAgAAAAAAAAD_____AAAAAAAAAAD_____BQAAAAIAAAAAAAAAAgAAAAAAAAD_____AAAAAAAAAAD_____BQAAAAIAAAAAAAAAAgAAAAAAAAD_____AAAAAAAAAAD_____FQAAAAAAAAAAAAAABAAAAAAAAAD_____AAAAAAAAAAD_____AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA",
+      "layout": {
+        "size": 347,
+        "counts": {
+          "segments": 4,
+          "pieces": 19,
+          "gaps": 0,
+          "obstacles": 0,
+          "hidden": 0,
+          "goals": 1
+        },
+        "yardOcc": 18,
+        "siteOcc": 78,
+        "filled": 126,
+        "wrongOcc": 138,
+        "pieces": 150,
+        "gaps": 321,
+        "obstacles": 321,
+        "hidden": 321,
+        "goals": 321,
+        "queue": 324,
+        "revealed": 343
+      },
+      "cycle": 1,
+      "seed": 10010,
+      "mechanics": [
+        "S1",
+        "S9",
+        "Y9",
+        "Y10",
+        "Y11",
+        "Y12",
+        "Y13"
+      ],
+      "step10": [],
+      "supply": [
+        19,
+        12,
+        17,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "demand": [
+        19,
+        12,
+        17,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "materialCount": 19,
+      "zobrist": {
+        "pos0": [
+          "0x23b1a2a7",
+          "0xb22d048a",
+          "0xc17953d1",
+          "0x0755eb06"
+        ],
+        "pos1": [
+          "0x6cfedd07",
+          "0xb308a39a"
+        ],
+        "field0": [
+          "0x53ca45f0",
+          "0x779919c9"
+        ],
+        "field1": [
+          "0xc6db7db9",
+          "0xd992a5ea"
+        ],
+        "lengths": [
+          269,
+          23
         ]
       }
     }
@@ -847,32 +855,32 @@
       "0x810289f4"
     ],
     "pos0At240": "0x067f5c6c",
-    "pos1First": "0x85bef39b",
+    "pos1First": "0x609b76e6",
     "field0": [
-      "0x0a225a11",
-      "0xeac73dd3",
-      "0xd7bcb7bf"
+      "0x5d17b4b6",
+      "0xdfd49f85",
+      "0xf9e884e6"
     ],
-    "field1First": "0xbcfe68bf",
+    "field1First": "0xd464e337",
     "lengths": [
-      241,
+      251,
       13
     ]
   },
   "gridWalk": {
     "seed7": {
-      "first": "c5eac415842af03e",
-      "at500": "eba386bb11556032",
-      "last": "b852716bbbfad45d",
-      "fnvAll": "962362022687a281"
+      "first": "c2af3e00198ee8c3",
+      "at500": "b5cdac058a47776f",
+      "last": "9257de2ee698f3fc",
+      "fnvAll": "4e453e5cdd1abae4"
     },
     "seed8": {
-      "last": "5bb4ff9e6539314b"
+      "last": "b69d11b8aa9c8688"
     }
   },
   "hashSpec": {
-    "id3": "4099254d0355ad5e",
-    "appendix": "bde11f8d26fc8287"
+    "id3": "10a56f89876faf2b",
+    "appendix": "599a86f5ec7482e2"
   },
   "rng": {
     "seed9": [

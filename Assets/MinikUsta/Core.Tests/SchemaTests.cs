@@ -105,8 +105,8 @@ namespace MinikUsta.Core.Tests
             Assert.IsFalse(Ok(Builders.LevelJson(new LevelSpec { Wall = Wall(4, J.O("type", "shutter", "y", 0, "size", 1, "period", 5)) })));
         }
 
-        [Test(Description = "K-44 shape ids: all 52 accepted by the schema, others rejected")]
-        public void K44_shape_ids_all_52_accepted_others_rejected()
+        [Test(Description = "K-44 K-56 shape ids: all 56 accepted by the schema, others rejected")]
+        public void K44_shape_ids_all_56_accepted_others_rejected()
         {
             Assert.IsTrue(Ok(Builders.LevelJson(new LevelSpec { Pieces = Ps(Pc("O4_270", "W", 0, 0)) })));
             foreach (var id in Shapes.Ids) Assert.IsTrue(LevelSchemaPatterns.ShapeId.IsMatch(id), id);

@@ -13,13 +13,13 @@ namespace MinikUsta.Core.Tests
 
         private static int[] Rows(int mask) => Enumerable.Range(0, 10).Where(y => ((mask >> y) & 1) != 0).ToArray();
 
-        [Test(Description = "K-01 the core grid is 8 × 10: board y 0–7 plus crane rows 8–9; internal = global coordinates")]
-        public void K01_the_core_grid_is_8x10_board_y_0_7_plus_crane_rows_8_9_internal_equals_global()
+        [Test(Description = "K-01 K-49 the core grid is 9 × 10 (D-103): board y 0–7 plus crane rows 8–9; internal = global coordinates")]
+        public void K01_the_core_grid_is_9x10_board_y_0_7_plus_crane_rows_8_9_internal_equals_global()
         {
-            CollectionAssert.AreEqual(new[] { 8, 10, 80, 8 }, new[] { Geometry.MaxCols, Geometry.MaxRows, Geometry.MaxCols * Geometry.MaxRows, G.H });
-            Assert.AreEqual(75, Coords.CellIndex(3, 9));
-            Assert.AreEqual(3, Coords.CellX(75));
-            Assert.AreEqual(9, Coords.CellY(75));
+            CollectionAssert.AreEqual(new[] { 9, 10, 90, 8 }, new[] { Geometry.MaxCols, Geometry.MaxRows, Geometry.MaxCols * Geometry.MaxRows, G.H });
+            Assert.AreEqual(84, Coords.CellIndex(3, 9));
+            Assert.AreEqual(3, Coords.CellX(84));
+            Assert.AreEqual(9, Coords.CellY(84));
         }
 
         [Test(Description = "K-01 D2_0 anchored at (3,8) fits, anchored at (3,9) leaves the grid")]
@@ -98,17 +98,17 @@ namespace MinikUsta.Core.Tests
             CollectionAssert.AreEqual(new Anchor[0], Coords.Neighbors4(G, 3, 8));
         }
 
-        [Test(Description = "drag node codes round-trip (mode * 10 + iy) * 8 + ix (TECH §2.1)")]
+        [Test(Description = "drag node codes round-trip (mode * 10 + iy) * 9 + ix (TECH §2.1, D-103)")]
         public void Drag_node_codes_round_trip()
         {
             foreach (int mode in new[] { 0, 1, 3 })
                 for (int iy = 0; iy < 10; iy++)
-                    for (int ix = 0; ix < 8; ix++)
+                    for (int ix = 0; ix < 9; ix++)
                     {
                         var node = new DragNode(ix, iy, mode);
                         Assert.AreEqual(node, Coords.DragNodeFromCode(Coords.DragNodeCode(node)));
                     }
-            Assert.AreEqual((1 * 10 + 3) * 8 + 6, Coords.DragNodeCode(new DragNode(6, 3, 1)));
+            Assert.AreEqual((1 * 10 + 3) * 9 + 6, Coords.DragNodeCode(new DragNode(6, 3, 1)));
         }
     }
 }

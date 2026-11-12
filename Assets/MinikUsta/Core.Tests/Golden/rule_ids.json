@@ -1,7 +1,7 @@
 {
  "generatedFrom": {
   "webRepo": "yilmazfatih-cyber/minik-usta",
-  "webCommit": "701b8f3",
+  "webCommit": "37d5617",
   "generator": "tools/gen-rule-ids.ts",
   "source": "tools/rule-coverage.ts ruleIds"
  },
@@ -11,9 +11,9 @@
   "K-64": "TS tool only (solver measures); no C# counterpart"
  },
  "required2R": {
-  "total": 76,
+  "total": 77,
   "K": 46,
-  "obstacle": 5,
+  "obstacle": 6,
   "E": 22,
   "N": 3
  },
@@ -93,7 +93,7 @@
 {"id":"S6","kind":"obstacle","phase":3},
 {"id":"S7","kind":"obstacle","phase":3},
 {"id":"S8","kind":"obstacle","phase":3},
-{"id":"S9","kind":"obstacle","phase":3},
+{"id":"S9","kind":"obstacle","phase":2.5},
 {"id":"W1","kind":"obstacle","phase":2},
 {"id":"W2","kind":"obstacle","phase":2.5},
 {"id":"W3","kind":"obstacle","phase":2.5},

@@ -135,7 +135,8 @@ namespace MinikUsta.Core.Tests
                 {
                     var d = Drag(Init(new LevelSpec { Wall = Wall(height), Pieces = Ps(Pc(shape.Id, "W", 0, 0)) }), 0);
                     bool onSite = d.ReachableNodes().Any(n => n.Mode == Movement.Free && n.Ix >= 6);
-                    Assert.AreEqual(!shape.Heavy && shape.H <= 10 - height, onSite, shape.Id + " at wall height " + height);
+                    // default board: a 2-column site, so a 3-wide material block has no site node (D-103: width is not weight)
+                    Assert.AreEqual(!shape.Heavy && shape.W <= 2 && shape.H <= 10 - height, onSite, shape.Id + " at wall height " + height);
                 }
             }
         }
@@ -802,7 +803,7 @@ namespace MinikUsta.Core.Tests
             // durması bir sunum olayıdır (blockedByWallHeight)"; TECH §4.4: box height h > 10 − wall.height.
             int fired = 0;
             int quiet = 0;
-            foreach (var shape in CanonicalShapes.Where(sh => !sh.Heavy))
+            foreach (var shape in CanonicalShapes.Where(sh => !sh.Heavy && sh.W <= 2))
             {
                 for (int height = 0; height <= 8; height++)
                 {

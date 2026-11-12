@@ -467,6 +467,10 @@ namespace MinikUsta.Core
             var start = opts.Start ?? PiecePlace(s, pieceId);
             var shape = Shapes.ShapeByIndex(PieceShape(s, pieceId));
             var geo = s.Lvl.Geo;
+            // v3c K-58 item 9 (b), K-17 exception (D-104): a pallet layer always bounces back onto its own pallet as the top
+            // layer (steps 1-3 skipped; the board is frozen during the drag, so the pallet's cells are free for it)
+            if (start.Zone == Core.Zone.Names[Core.Zone.Yard] && s.Lvl.Pieces[pieceId].StackId >= 0)
+                return new ReturnTarget(1, start, null);
             if (!opts.SkipStart && StartCellsEmpty(s, pieceId, shape, start)) return new ReturnTarget(1, start, null);
             foreach (int x in NearestColumnsFirst(geo, start.X, shape.W))
             {

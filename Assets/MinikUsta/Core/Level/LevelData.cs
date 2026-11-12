@@ -91,7 +91,7 @@ namespace MinikUsta.Core.Level
         /// <summary>v3 Y9 cell colours (GDD §16 K-57): one colour letter per shape cell, 2–9 letters.</summary>
         public static readonly JsRegex CellColors = new JsRegex("^[WYGROCBP]{2,9}$");
         /// <summary>`TÜR_AÇI` shape id format (`ShapeIdSchema`).</summary>
-        public static readonly JsRegex ShapeId = new JsRegex("^(B1|D2|I3|I4|O4|C3|L4|J4|T4|S4|Z4|I5|Q9)_(0|90|180|270)$");
+        public static readonly JsRegex ShapeId = new JsRegex("^(B1|D2|I3|I4|O4|C3|L4|J4|T4|S4|Z4|I5|Q9|P5)_(0|90|180|270)$");
 
         /// <summary>
         /// Colour of a parsed Ağır Yük piece written without `color` (K-44: "verideki `color` yok sayılır"). Only a placeholder

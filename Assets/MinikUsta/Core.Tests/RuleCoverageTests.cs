@@ -15,15 +15,15 @@ namespace MinikUsta.Core.Tests
     {
         private static List<RuleId> Required() => RuleCoverage.LoadIds().Where(r => r.Phase <= RuleCoverage.Phase2R).ToList();
 
-        [Test(Description = "test:rules id file: the phase 2R set of the web gate (K 46, obstacles 5, E 22, N-notes 3 = 76)")]
-        public void Rule_coverage_id_file_holds_the_76_phase_2R_ids_of_the_web_gate()
+        [Test(Description = "test:rules id file: the phase 2R set of the web gate (K 46, obstacles 6 with S9 of level 6 (D-103), E 22, N-notes 3 = 77)")]
+        public void Rule_coverage_id_file_holds_the_77_phase_2R_ids_of_the_web_gate()
         {
             var all = RuleCoverage.LoadIds();
             var req = Required();
-            Assert.AreEqual(76, req.Count, "phase ≤ 2R ids");
-            CollectionAssert.AreEqual(new[] { 46, 5, 22, 3 }, new[] { "K", "obstacle", "E", "N" }.Select(k => req.Count(r => r.Kind == k)).ToArray(), "K, obstacle, E, N");
+            Assert.AreEqual(77, req.Count, "phase ≤ 2R ids");
+            CollectionAssert.AreEqual(new[] { 46, 6, 22, 3 }, new[] { "K", "obstacle", "E", "N" }.Select(k => req.Count(r => r.Kind == k)).ToArray(), "K, obstacle, E, N");
             Assert.AreEqual(66, all.Count(r => r.Kind == "K"), "every GDD K-xx has an id (K-55 is the newest binding rule, phase 3; K-56…K-66 are the v3 ÖNERİ rules, phase v3)");
-            CollectionAssert.AreEqual(new[] { "S1", "W1", "W2", "W3", "Y5" }, req.Where(r => r.Kind == "obstacle").Select(r => r.Id).OrderBy(x => x, System.StringComparer.Ordinal).ToArray(), "obstacles of levels 1–10");
+            CollectionAssert.AreEqual(new[] { "S1", "S9", "W1", "W2", "W3", "Y5" }, req.Where(r => r.Kind == "obstacle").Select(r => r.Id).OrderBy(x => x, System.StringComparer.Ordinal).ToArray(), "obstacles of levels 1–10");
             // later phases are not required yet (TS: K-20 and the bridge / league rows are phase 3–4)
             Assert.IsFalse(req.Any(r => r.Id == "K-20" || r.Id == "E-22" || r.Id == "E-45"), "phase 3–4 ids stay out of the 2R set");
             CollectionAssert.AllItemsAreUnique(all.Select(r => r.Id).ToArray());

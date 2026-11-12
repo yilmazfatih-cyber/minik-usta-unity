@@ -52,6 +52,7 @@ namespace MinikUsta.Core.Tests
             new GeoCase(6, 8, 2, 8),
             new GeoCase(5, 7, 3, 7),
             new GeoCase(4, 6, 4, 6),
+            new GeoCase(6, 8, 3, 5), // D-103 wide site (levels 6-10 v3c): 9 columns
         };
 
         private static BoardGeo GeoOf(GeoCase c, int eMax = 0) => Geometry.MakeGeo(new GeoParams(c.Wy, c.Hy, c.Ws, c.Hs, eMax));
@@ -139,7 +140,7 @@ namespace MinikUsta.Core.Tests
             CollectionAssert.AreEqual(new[] { 6, 8, 2, 8, 0, 8, 10, 8 }, new[] { g.Wy, g.Hy, g.Ws, g.Hs, g.EMax, g.H, g.Rows, g.Cols });
             CollectionAssert.AreEqual(new[] { 6, 5, 8, 16 }, new[] { g.SiteX, g.BoundaryX, g.CraneRow, g.SegCells });
             CollectionAssert.AreEqual(new[] { 0b00111111, 0b11000000, 0b1111111111 }, new[] { g.YardBits, g.SiteBits, g.RowMaskAll });
-            CollectionAssert.AreEqual(new[] { 8, 10 }, new[] { Geometry.MaxCols, Geometry.MaxRows });
+            CollectionAssert.AreEqual(new[] { 9, 10 }, new[] { Geometry.MaxCols, Geometry.MaxRows });
             // TS `Object.isFrozen`: every BoardGeo field is readonly and the constructor is internal
             Assert.IsTrue(typeof(BoardGeo).GetFields(BindingFlags.Public | BindingFlags.Instance).All(f => f.IsInitOnly));
             Assert.IsTrue(Geometry.HasDefaultBoard(g));
@@ -162,13 +163,15 @@ namespace MinikUsta.Core.Tests
             Assert.AreEqual(8, Geometry.MakeGeo(new GeoParams(4, 8, 2, 5, 2)).H);
         }
 
-        [Test(Description = "K-49 makeGeo rejects boards outside the 8 × 10 frame (Wy + Ws ≤ 8, Ws ≤ 4, Hy and Hs ≤ 8, positive sizes)")]
-        public void K49_MakeGeo_rejects_boards_outside_the_8x10_frame()
+        [Test(Description = "K-49 makeGeo rejects boards outside the 9 × 10 frame (Wy + Ws ≤ 9, Ws ≤ 4, Hy and Hs ≤ 8, positive sizes); 6 | 3 fits (D-103)")]
+        public void K49_MakeGeo_rejects_boards_outside_the_9x10_frame()
         {
+            Assert.AreEqual(9, Geometry.MakeGeo(new GeoParams(6, 8, 3, 8, 0)).Cols);
             // TS also rejects `wy: 4.5`; GeoParams is int-typed in C#, so a non-integer size cannot be expressed.
             var bad = new[]
             {
-                new GeoParams(6, 8, 3, 8, 0), // board_too_wide
+                new GeoParams(6, 8, 4, 8, 0), // board_too_wide
+                new GeoParams(7, 8, 3, 8, 0),
                 new GeoParams(3, 8, 5, 8, 0),
                 new GeoParams(4, 9, 2, 8, 0),
                 new GeoParams(4, 8, 2, 9, 0),
@@ -319,10 +322,10 @@ namespace MinikUsta.Core.Tests
             CollectionAssert.AreEqual(new[] { 18, 78, 110, 114, 118 }, new[] { L.YardOcc, L.SiteOcc, L.Filled, L.WrongOcc, L.Pieces });
         }
 
-        [Test(Description = "K-49 Zobrist positions stay in the 8 × 10 frame for every geometry: yard y·8 + x, site 80 + seg·32 + sy·4 + sx, queue from 240")]
-        public void K49_Zobrist_positions_stay_in_the_8x10_frame_for_every_geometry_yard_y8_x_site_80_seg32_sy4_sx_queue_from_240()
+        [Test(Description = "K-49 Zobrist positions stay in the 9 × 10 frame for every geometry: yard y·9 + x, site 90 + seg·32 + sy·4 + sx, queue from 250")]
+        public void K49_Zobrist_positions_stay_in_the_9x10_frame_for_every_geometry_yard_y9_x_site_90_seg32_sy4_sx_queue_from_250()
         {
-            CollectionAssert.AreEqual(new[] { 80, 240 }, new[] { Hash.PosSite, Hash.PosQueue });
+            CollectionAssert.AreEqual(new[] { 90, 250 }, new[] { Hash.PosSite, Hash.PosQueue });
             foreach (var c in G)
             {
                 var g = GeoOf(c);
@@ -340,7 +343,7 @@ namespace MinikUsta.Core.Tests
                         }
                 Assert.AreEqual(c.Wy * c.Hy + Geometry.MaxSegments * c.Ws * c.Hs, seen.Count, c.Label);
             }
-            Assert.AreEqual(80 + 32 + 12 + 1, Hash.PiecePosition(6, Zone.Site, 7, 3, 1));
+            Assert.AreEqual(90 + 32 + 12 + 1, Hash.PiecePosition(6, Zone.Site, 7, 3, 1));
         }
 
         [Test(Description = "K-49 ASCII: a non-default board prints `size Wy×Hy|Ws×Hs H`, rows H + 1 … 0 and `·` for yard and site air; ids text round-trips in every geometry")]
@@ -457,7 +460,7 @@ namespace MinikUsta.Core.Tests
         {
             ["Geometry.cs"] = new[]
             {
-                new Rule(@"^public const int MaxCols = 8;$", "the maximum frame (K-49 Wy + Ws ≤ 8): the single source"),
+                new Rule(@"^public const int MaxCols = 9;$", "the maximum frame (K-49 Wy + Ws ≤ 9, D-103): the single source"),
                 new Rule(@"^public const int MaxRows = 10;$", "the maximum frame (K-49 H ≤ 8 + 2 crane rows): the single source"),
                 new Rule(@"^public const int MaxSegments = 5;$", "GDD K-22: 1 ≤ S ≤ 5"),
                 new Rule(@"^public static readonly GeoParams DefaultSizes = new GeoParams\(6, 8, 2, 8, 0\);$", "GDD K-49 defaults"),

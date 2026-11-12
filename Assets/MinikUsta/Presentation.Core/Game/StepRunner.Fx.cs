@@ -313,6 +313,16 @@ namespace MinikUsta.Presentation.Game
             int n = step.N ?? session.MovesLeft;
             var seq = new Sequence();
             var v = step.PieceId >= 0 ? p.Pieces.Get(step.PieceId) : null;
+            // P4 (D-105, K-60): the "+n" burst on the moves plate and a short cheer from the king — a reward moment, ≤ 900 ms, never blocks input
+            int delta = step.Event is MovesChangedEvent mc ? mc.Delta : 0;
+            if (delta > 0 && !instant)
+            {
+                float hold = 600f; // shown 600 ms (D-105: the burst never outlasts 900 ms)
+                seq.InsertCallback(step.Ms * 0.45f, () => p.View.SetMovesBurst("+" + delta.ToString(System.Globalization.CultureInfo.InvariantCulture)));
+                if (!p.Reduced) seq.Insert(step.Ms * 0.45f, Tweens.Pop(p.View.MovesBurst, 0.4f, 1.3f, 1f, 320f));
+                seq.InsertCallback(step.Ms * 0.45f + hold, () => p.View.SetMovesBurst(null));
+                p.King?.Cue(KingCue.Cheer);
+            }
             if (v != null)
             {
                 seq.Insert(0, TraitRelease(v, step.Ms * 0.8f, EaseType.OutQuad));

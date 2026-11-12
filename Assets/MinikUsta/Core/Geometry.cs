@@ -21,8 +21,8 @@ namespace MinikUsta.Core
     /// </summary>
     public static class Geometry
     {
-        /// <summary>Maximum frame width: K-49 `Wy + Ws ≤ 8`. Every column bit mask fits in 8 bits.</summary>
-        public const int MaxCols = 8;
+        /// <summary>Maximum frame width: K-49 `Wy + Ws ≤ 9` (D-103 wide site: 6 yard + 3 site columns). A column bit mask needs 9 bits, so collision rows are `ushort`.</summary>
+        public const int MaxCols = 9;
         /// <summary>Maximum frame height: K-49 `H ≤ 8` plus the 2 crane-area rows.</summary>
         public const int MaxRows = 10;
         /// <summary>Crane area rows above the board (K-05).</summary>

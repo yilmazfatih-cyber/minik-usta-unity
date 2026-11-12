@@ -30,7 +30,7 @@ namespace MinikUsta.Core
         /// <summary>Shape kinds (BRIEF §5). The array order fixes the shape index: `kindIndex * 4 + rotationIndex`.</summary>
         public static readonly string[] All =
         {
-            "B1", "D2", "I3", "I4", "O4", "C3", "L4", "J4", "T4", "S4", "Z4", "I5", "Q9",
+            "B1", "D2", "I3", "I4", "O4", "C3", "L4", "J4", "T4", "S4", "Z4", "I5", "Q9", "P5",
         };
 
         public static int IndexOf(string kind) => Array.IndexOf(All, kind);
@@ -87,7 +87,7 @@ namespace MinikUsta.Core
         public const int Free = 0;
     }
 
-    /// <summary>A drag graph node. Integer code: `(mode * 10 + iy) * 8 + ix` (core/coords `DragNodeCode`).</summary>
+    /// <summary>A drag graph node. Integer code: `(mode * 10 + iy) * 9 + ix` (core/coords `DragNodeCode`).</summary>
     public readonly struct DragNode : IEquatable<DragNode>
     {
         public readonly int Ix;
@@ -103,7 +103,7 @@ namespace MinikUsta.Core
 
         public bool Equals(DragNode other) => Ix == other.Ix && Iy == other.Iy && Mode == other.Mode;
         public override bool Equals(object? obj) => obj is DragNode n && Equals(n);
-        public override int GetHashCode() => (Mode * 10 + Iy) * 8 + Ix;
+        public override int GetHashCode() => (Mode * 10 + Iy) * Geometry.MaxCols + Ix;
         public override string ToString() => Mode + ":" + Ix + "," + Iy;
     }
 
@@ -556,12 +556,14 @@ namespace MinikUsta.Core
         public const string Straddle = "straddle";
         public const string SiteClosed = "siteClosed";
         public const string Invalid = "invalid";
+        /// <summary>v3c K-58 item 9 (c), D-104: a lifted pallet layer released anywhere but on the site; cost 0.</summary>
+        public const string PalletSiteOnly = "palletSiteOnly";
     }
 
     public sealed class MoveCancelledEvent : GameEvent
     {
         public readonly int PieceId;
-        /// <summary>sameSpot | craneOverYard | straddle | siteClosed | invalid.</summary>
+        /// <summary>sameSpot | craneOverYard | straddle | siteClosed | invalid | palletSiteOnly.</summary>
         public readonly string Reason;
 
         public MoveCancelledEvent(int pieceId, string reason)
@@ -899,13 +901,16 @@ namespace MinikUsta.Core
         /// <summary>move | offer | booster | bonus.</summary>
         public readonly string Reason;
         public readonly MoveCost? Cost;
+        /// <summary>Only with `bonus` (v3c, D-105): the bonus block whose correct placement paid the moves; else −1 (TS: absent).</summary>
+        public readonly int PieceId;
 
-        public MovesChangedEvent(int movesLeft, int delta, string reason, MoveCost? cost = null)
+        public MovesChangedEvent(int movesLeft, int delta, string reason, MoveCost? cost = null, int pieceId = -1)
         {
             MovesLeft = movesLeft;
             Delta = delta;
             Reason = reason;
             Cost = cost;
+            PieceId = pieceId;
         }
 
         public override EventKind T => EventKind.MovesChanged;

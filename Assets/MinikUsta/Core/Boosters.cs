@@ -49,6 +49,8 @@ namespace MinikUsta.Core
         public const string Precheck = "precheck";
         public const string NoTrowel = "noTrowel";
         public const string LegacyTrowel = "legacyTrowel";
+        /// <summary>v3c K-58 item 9 (e), D-104: the crane has no yard target for a pallet layer (site only).</summary>
+        public const string PalletSiteOnly = "palletSiteOnly";
     }
 
     /// <summary>What a hammer hit did (step 1 of the mini pipeline). `Kind` is a `HammerTargetKinds` value; the other fields depend on it.</summary>
@@ -378,6 +380,7 @@ namespace MinikUsta.Core
             int y = move.ToY;
             if (move.ToZone == At.ZoneYard)
             {
+                if (s.Lvl.HasStacks && Movement.IsPalletLayer(s, id)) return BoosterRejects.PalletSiteOnly;
                 if (t.Index != shape.Index) return BoosterRejects.BadRotation;
                 if (PieceZone(s, id) == Zone.Yard && PieceX(s, id) == x && PieceY(s, id) == y) return BoosterRejects.SameSpot;
                 return YardSpotFree(s, shape, x, y, id) ? null : BoosterRejects.NotEmpty;
@@ -432,6 +435,7 @@ namespace MinikUsta.Core
             {
                 if (!CraneSelectable(s, id, hooks)) continue;
                 if (CraneSiteSpots(s, id).Length > 0) return true;
+                if (s.Lvl.HasStacks && Movement.IsPalletLayer(s, id)) continue; // K-58 item 9 (e): no yard target
                 var shape = Shapes.ShapeByIndex(PieceShape(s, id));
                 bool inYard = PieceZone(s, id) == Zone.Yard;
                 for (int y = 0; y + shape.H <= hy; y++)

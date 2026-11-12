@@ -100,7 +100,7 @@ namespace MinikUsta.Core.Tests
             Assert.AreEqual("/^[WYGROCBP.?]{1,4}$/", LevelSchemaPatterns.PlanRow.Literal);
             Assert.AreEqual("/^piece:(\\d{1,2}|k[1-9]_\\d{1,2})$/", LevelSchemaPatterns.PieceRef.Literal);
             Assert.AreEqual("/^tut\\.(l\\d{1,2}|m|ctx)\\.[a-z][A-Za-z0-9]*$/", LevelSchemaPatterns.TutTextKey.Literal);
-            Assert.AreEqual("/^(B1|D2|I3|I4|O4|C3|L4|J4|T4|S4|Z4|I5|Q9)_(0|90|180|270)$/", LevelSchemaPatterns.ShapeId.Literal);
+            Assert.AreEqual("/^(B1|D2|I3|I4|O4|C3|L4|J4|T4|S4|Z4|I5|Q9|P5)_(0|90|180|270)$/", LevelSchemaPatterns.ShapeId.Literal);
             StringAssert.StartsWith("/^(piece:(\\d{1,2}|k[1-9]_\\d{1,2})|cell:[0-7],[0-9]|", LevelSchemaPatterns.Highlight.Literal);
             StringAssert.EndsWith("|truck|streak|fan)$/", LevelSchemaPatterns.Highlight.Literal);
         }

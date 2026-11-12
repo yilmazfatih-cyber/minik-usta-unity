@@ -192,6 +192,16 @@ namespace MinikUsta.Presentation.Tests.Fixtures
 
         public ITweenTarget MovesChip { get; } = new FakeTarget();
         public ITweenTarget BlocksChip { get; } = new FakeTarget();
+        public ITweenTarget MovesBurst { get; } = new FakeTarget();
+        /// <summary>P4: the "+n" burst text now (null = hidden) and every text it showed.</summary>
+        public string? MovesBurstText;
+        public readonly List<string> MovesBurstShown = new List<string>();
+        public void SetMovesBurst(string? text)
+        {
+            MovesBurstText = string.IsNullOrEmpty(text) ? null : text;
+            if (MovesBurstText != null) MovesBurstShown.Add(MovesBurstText);
+            Hud?.SetMovesBurst(text);
+        }
         public ITweenTarget PanelTarget { get; } = new FakeTarget();
         public ITweenTarget CameraRig { get; } = new FakeTarget();
         public ITweenTarget SiteLayer { get; } = new FakeTarget();

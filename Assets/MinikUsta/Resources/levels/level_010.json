@@ -2,20 +2,80 @@
   "schemaVersion": 3,
   "id": 10,
   "chapter": 1,
-  "name": { "tr": "Ağaç Ev Tamam!", "en": "Treehouse Done!" },
+  "name": {
+    "tr": "Ağaç Ev Tamam!",
+    "en": "Treehouse Done!"
+  },
   "difficulty": "hard",
-  "moves": 21,
-  "goals": [{ "type": "build" }],
-  "gravity": { "build": "normal", "yard": false },
-  "wall": { "height": 5, "gaps": [] },
-  "site": { "cols": 2, "rows": 5 },
+  "moves": 23,
+  "goals": [
+    {
+      "type": "build"
+    }
+  ],
+  "gravity": {
+    "build": "normal",
+    "yard": false
+  },
+  "wall": {
+    "height": 6,
+    "gaps": []
+  },
+  "site": {
+    "cols": 3,
+    "rows": 4
+  },
   "build": {
     "mode": "segments",
     "segments": [
-      { "name": { "tr": "Kat 1", "en": "Floor 1" }, "rows": ["YY", "YW", "GG", "GG", "GG"] },
-      { "name": { "tr": "Kat 2", "en": "Floor 2" }, "rows": ["WW", "WW", "YY", "YY", "YY"] },
-      { "name": { "tr": "Kat 3", "en": "Floor 3" }, "rows": ["WG", "WG", "YG", "YG", "YG"] },
-      { "name": { "tr": "Kat 4", "en": "Floor 4" }, "rows": ["WY", "WW", "YY", "YY", "YY"] }
+      {
+        "name": {
+          "tr": "Kat 1",
+          "en": "Floor 1"
+        },
+        "rows": [
+          "YWW",
+          "YWW",
+          "GGW",
+          "YYY"
+        ]
+      },
+      {
+        "name": {
+          "tr": "Kat 2",
+          "en": "Floor 2"
+        },
+        "rows": [
+          "WGW",
+          "GWY",
+          "YYW",
+          "YWW"
+        ]
+      },
+      {
+        "name": {
+          "tr": "Kat 3",
+          "en": "Floor 3"
+        },
+        "rows": [
+          "GGG",
+          "WWG",
+          "WYY",
+          "GGY"
+        ]
+      },
+      {
+        "name": {
+          "tr": "Kat 4",
+          "en": "Floor 4"
+        },
+        "rows": [
+          "GGG",
+          "GWG",
+          "WWW",
+          "GGW"
+        ]
+      }
     ]
   },
   "yard": {
@@ -25,22 +85,151 @@
       {
         "forSegment": 0,
         "pieces": [
-          { "shape": "C3_270", "color": "Y", "x": 3, "y": 6 },
-          { "shape": "I3_0", "color": "G", "x": 0, "y": 5 },
-          { "shape": "D2_0", "color": "W", "x": 1, "y": 5, "colors": "WY" },
-          { "shape": "I3_0", "color": "G", "x": 2, "y": 5 },
-          { "shape": "C3_270", "color": "Y", "x": 4, "y": 5 },
-          { "shape": "C3_90", "color": "Y", "x": 1, "y": 3, "flags": ["scissors"] },
-          { "shape": "D2_0", "color": "G", "x": 4, "y": 3 },
-          { "shape": "I3_0", "color": "Y", "x": 0, "y": 2, "flags": ["wrapped"] },
-          { "shape": "D2_0", "color": "W", "x": 2, "y": 2, "flags": ["wrapped"] },
-          { "shape": "I3_0", "color": "G", "x": 3, "y": 2 },
-          { "shape": "D2_0", "color": "Y", "x": 4, "y": 1 },
-          { "shape": "D2_0", "color": "W", "x": 0, "y": 0 },
-          { "shape": "I3_0", "color": "Y", "x": 1, "y": 0, "colors": "YYW" },
-          { "shape": "D2_0", "color": "Y", "x": 2, "y": 0, "colors": "YW" },
-          { "shape": "D2_0", "color": "W", "x": 3, "y": 0, "flags": ["slippery"] },
-          { "shape": "D2_90", "color": "W", "x": 4, "y": 0, "colors": "WY" }
+          {
+            "shape": "D2_90",
+            "color": "G",
+            "x": 1,
+            "y": 7
+          },
+          {
+            "shape": "I3_90",
+            "color": "Y",
+            "x": 0,
+            "y": 6
+          },
+          {
+            "shape": "D2_0",
+            "color": "Y",
+            "x": 3,
+            "y": 6
+          },
+          {
+            "shape": "D2_90",
+            "color": "G",
+            "x": 4,
+            "y": 6
+          },
+          {
+            "shape": "D2_90",
+            "color": "W",
+            "x": 2,
+            "y": 5,
+            "flags": [
+              "scissors"
+            ]
+          },
+          {
+            "shape": "C3_180",
+            "color": "W",
+            "x": 0,
+            "y": 4,
+            "flags": [
+              "bonus"
+            ],
+            "bonusMoves": 2
+          },
+          {
+            "shape": "C3_180",
+            "color": "Y",
+            "x": 4,
+            "y": 4
+          },
+          {
+            "shape": "D2_0",
+            "color": "G",
+            "x": 0,
+            "y": 3,
+            "flags": [
+              "slippery"
+            ]
+          },
+          {
+            "shape": "C3_270",
+            "color": "W",
+            "x": 1,
+            "y": 3
+          },
+          {
+            "shape": "C3_90",
+            "color": "G",
+            "x": 3,
+            "y": 3,
+            "colors": "GWG"
+          },
+          {
+            "shape": "C3_180",
+            "color": "W",
+            "x": 4,
+            "y": 2
+          },
+          {
+            "shape": "C3_90",
+            "color": "Y",
+            "x": 0,
+            "y": 1
+          },
+          {
+            "shape": "D2_0",
+            "color": "G",
+            "x": 2,
+            "y": 1,
+            "flags": [
+              "wrapped"
+            ]
+          },
+          {
+            "shape": "C3_90",
+            "color": "W",
+            "x": 3,
+            "y": 1,
+            "flags": [
+              "wrapped"
+            ]
+          },
+          {
+            "shape": "C3_270",
+            "color": "W",
+            "x": 0,
+            "y": 0,
+            "colors": "WYW"
+          },
+          {
+            "shape": "D2_90",
+            "color": "G",
+            "x": 2,
+            "y": 0,
+            "stack": {
+              "id": 0,
+              "z": 0
+            }
+          },
+          {
+            "shape": "D2_90",
+            "color": "G",
+            "x": 2,
+            "y": 0,
+            "stack": {
+              "id": 0,
+              "z": 1
+            }
+          },
+          {
+            "shape": "D2_90",
+            "color": "G",
+            "x": 2,
+            "y": 0,
+            "stack": {
+              "id": 0,
+              "z": 2
+            }
+          },
+          {
+            "shape": "C3_90",
+            "color": "W",
+            "x": 4,
+            "y": 0,
+            "colors": "WGW"
+          }
         ]
       }
     ]
@@ -49,12 +238,30 @@
   "tutorial": [
     {
       "step": 1,
-      "startOn": { "event": "segmentDone" },
-      "highlight": ["booster:crane"],
-      "hand": { "kind": "tap" },
+      "startOn": {
+        "event": "segmentDone"
+      },
+      "highlight": [
+        "booster:crane"
+      ],
+      "hand": {
+        "kind": "tap"
+      },
       "textKey": "tut.m.cranebooster",
-      "done": { "event": "boosterUsed", "count": 1 }
+      "done": {
+        "event": "boosterUsed",
+        "count": 1
+      }
     }
   ],
-  "targets": { "min": [20, 20], "deadRate": [0, 0] }
+  "targets": {
+    "min": [
+      22,
+      22
+    ],
+    "deadRate": [
+      0,
+      0
+    ]
+  }
 }

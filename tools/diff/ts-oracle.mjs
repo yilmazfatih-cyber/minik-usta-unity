@@ -18,7 +18,7 @@
  * (segment shifts, wins) are reached; the Faz 2R archive levels (`archive`, schemaVersion 1) also reach truck deliveries; a third of the seeds is "burn"-biased (yard shifts) so the
  * out-of-moves window, offers, K-29 losses and Söküm (K-30) show up within the move cap.
  * Sources: the shipped levels 1–10 (D-099, schemaVersion 2, fixed yard), the Faz 2R archive levels 1–10 (Core.Tests/Archive2R,
- * schemaVersion 1), tests/fixtures/cover.ts full-cover boards, random levels in the 9 K-49 geometries (static gap,
+ * schemaVersion 1), tests/fixtures/cover.ts full-cover boards, random levels in the 10 K-49 geometries (static gap,
  * yard gravity on/off), crowded "truck" boards whose batches queue (K-25, K-26, E-03), and scripted scenarios (P4 item
  * 3: Söküm / K-30 with Undo, offers and exits; D1 — unchain, Söküm `access` (RULES_VERSION 3), after an offer; +5 offers;
  * Undo; truck queue; K-55 fixed yard: tests/level/fixtures/v2/p1_two_floors.json), some followed by random valid play. Every source file carries the level data
@@ -65,7 +65,7 @@ const { validateLevelJson } = await web('src/core/level/logic.ts');
 const { Zone } = await web('src/core/types.ts');
 const { pieceZone, pieceShape } = await web('src/core/state.ts');
 const { hashHex } = await web('src/core/hash.ts');
-const { tryBeginDrag, isCancelled } = await web('src/core/movement.ts');
+const { tryBeginDrag, isCancelled, isPalletLayer } = await web('src/core/movement.ts');
 const { ArraySink, eventLogHash, fnv1a64, canonicalJson } = await web('src/core/moves.ts');
 const { GameSession, levelHash } = await web('src/core/session.ts');
 const { shapeByIndex, shapeById } = await web('src/core/shapes.ts');
@@ -97,6 +97,7 @@ const GEOS = [
   { wy: 6, hy: 8, ws: 2, hs: 8 },
   { wy: 5, hy: 7, ws: 3, hs: 7 },
   { wy: 4, hy: 6, ws: 4, hs: 6 },
+  { wy: 6, hy: 8, ws: 3, hs: 5 }, // D-103 wide site: 9 columns
 ];
 
 function planRows(g, rng) {
@@ -225,6 +226,19 @@ function dragAction(game, rng, burn) {
     const a = tryBeginDrag(s, id, game.hooks.drag);
     if (!a.ok) continue;
     const d = a.session;
+    // v3c K-58 item 9 c (D-104): now and then release a pallet layer where it may never stay (yard, yard air, crane area, over the
+    // wall): the core cancels with `palletSiteOnly` (no move, nothing changes) in both ports
+    if (s.lvl.hasStacks && isPalletLayer(s, id) && rng.next() < 0.2) {
+      const offSite = d.reachableNodes().filter((n) => {
+        const c = d.classify(n);
+        return c.kind === 'cancel' && c.reason === 'palletSiteOnly';
+      });
+      const t = pick(rng, offSite);
+      if (t) {
+        totals.palletSiteOnly = (totals.palletSiteOnly ?? 0) + 1;
+        return { kind: 'drag', pieceId: id, to: { ix: t.ix, iy: t.iy, mode: t.mode } };
+      }
+    }
     const starts = new Set(d.startNodes.map(key));
     const nodes = d.reachableNodes().filter((n) => !starts.has(key(n)) && !isCancelled(d.classify(n)));
     if (nodes.length === 0) continue;
@@ -534,6 +548,7 @@ const V3_GEOS = [
   { wy: 5, hy: 5, ws: 2, hs: 5 },
   { wy: 6, hy: 5, ws: 2, hs: 6 },
   { wy: 5, hy: 6, ws: 3, hs: 6 },
+  { wy: 6, hy: 6, ws: 3, hs: 5 }, // D-103 wide site: 9 columns (pallet, bonus and wrap boards on the wide board)
 ];
 
 function v3LevelData(g, rng, id, variant) {

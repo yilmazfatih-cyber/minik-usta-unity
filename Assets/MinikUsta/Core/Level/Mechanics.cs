@@ -113,8 +113,8 @@ namespace MinikUsta.Core.Level
             new MechanicSignature("S8", 38, l => AnyFlag(l, PieceFlags.Balloon)),
             new MechanicSignature("G-H", 15, l => l.Gravity.Build == "high"),
             new MechanicSignature("G-L", 23, l => l.Gravity.Build == "low"),
-            // S9 Geniş Şantiye (K-49, R2-02): a site of 3 or 4 columns.
-            new MechanicSignature("S9", 12, l => (l.Site?.Cols ?? Geometry.DefaultSizes.Ws) >= 3),
+            // S9 Geniş Şantiye (K-49, R2-02; D-103: first level 6, v3c): a site of 3 columns.
+            new MechanicSignature("S9", 6, l => (l.Site?.Cols ?? Geometry.DefaultSizes.Ws) >= 3),
         };
 
         /// <summary>
@@ -124,10 +124,10 @@ namespace MinikUsta.Core.Level
         public static readonly MechanicSignature[] TraitTable =
         {
             new MechanicSignature("Y9", 5, l => { foreach (var p in AllPieces(l)) if (p.Colors != null) return true; return false; }),
-            new MechanicSignature("Y10", 3, l => { foreach (var p in AllPieces(l)) if (p.Stack != null) return true; return false; }),
-            new MechanicSignature("Y11", 7, l => AnyFlag(l, PieceFlags.Wrapped) || AnyFlag(l, PieceFlags.Scissors)),
-            new MechanicSignature("Y12", 9, l => AnyFlag(l, PieceFlags.Bonus)),
-            new MechanicSignature("Y13", 8, l => AnyFlag(l, PieceFlags.Slippery)),
+            new MechanicSignature("Y10", 7, l => { foreach (var p in AllPieces(l)) if (p.Stack != null) return true; return false; }),
+            new MechanicSignature("Y11", 8, l => AnyFlag(l, PieceFlags.Wrapped) || AnyFlag(l, PieceFlags.Scissors)),
+            new MechanicSignature("Y12", 10, l => AnyFlag(l, PieceFlags.Bonus)),
+            new MechanicSignature("Y13", 9, l => AnyFlag(l, PieceFlags.Slippery)),
         };
 
         static Mechanics()

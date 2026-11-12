@@ -107,6 +107,9 @@ namespace MinikUsta.Presentation.Game
 
         /// <summary>U4 R-06: the gold chip keeps at least this far from the moves plate and the pause tool.</summary>
         public const double GoldChipGapPx = 24;
+        /// <summary>P4 (D-105): the bonus "+n" burst, a 140 × 96 box on the moves plate's top-right corner, text 80 px (≥ 34).</summary>
+        public const double MovesBurstPx = 80;
+        public static PxRect MovesBurst(ScreenLayout L) => new PxRect(L.Moves.Right - 110, L.Moves.Y - 52, 160, 100);
 
         /// <summary>The gold chip between the moves plate and the pause tool (JUICE #56: the coins fly there).</summary>
         public static PxRect GoldChip(ScreenLayout L) => new PxRect(L.Moves.Right + GoldChipGapPx, L.Moves.Y + 40, L.Pause.X - L.Moves.Right - 2 * GoldChipGapPx, 60);

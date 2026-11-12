@@ -30,5 +30,10 @@
       "resume": "Tahta bıraktığın gibi duruyor.",
       "support": "Önce alttaki boşluğu doldur."
     }
+  },
+  "card": {
+    "y10": {
+      "site": "Katman yalnız şantiyeye bırakılır."
+    }
   }
 }

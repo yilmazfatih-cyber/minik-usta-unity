@@ -26,6 +26,7 @@ namespace MinikUsta.Presentation.Tests
         public static readonly BoardGeo[] G =
         {
             Geo(4, 4, 2, 5), Geo(4, 4, 2, 6), Geo(4, 5, 2, 5), Geo(4, 5, 2, 7), Geo(6, 5, 2, 6), Geo(6, 5, 2, 7), Geo(6, 8, 2, 8), Geo(5, 7, 3, 7), Geo(4, 6, 4, 6),
+            Geo(6, 8, 3, 5), // D-103 wide site (levels 6-10 v3c): 9 columns
         };
 
         private static string Label(BoardGeo g) => g.Wy + "x" + g.Hy + "|" + g.Ws + "x" + g.Hs;
@@ -125,9 +126,15 @@ namespace MinikUsta.Presentation.Tests
             }
             foreach (var n in Play.Levels)
             {
-                var geo = Play.LevelFile(n).Geo; // D-099: the shipped levels (5×4, 4×5, 6×5 yards): a multiple of the step inside 120…144
+                var geo = Play.LevelFile(n).Geo; // D-099: levels 1-5 (5×4, 4×5, 6×5 yards): a multiple of the step inside 120…144; D-103: levels 6-10 are 9 columns wide
                 double cell = BoardLayout.AdaptiveCellPx(S, geo);
                 Assert.AreEqual(0, cell % S.CellStepPx, "shipped B" + n + " is a multiple of the step");
+                if (geo.Cols >= BoardLayout.WideBoardCols)
+                {
+                    Assert.AreEqual(BoardLayout.WideBoardCellPx, cell, "shipped B" + n + " is a 9-column board: cell 108");
+                    Assert.AreEqual(BoardLayout.WideBoardCellPx, BoardLayout.AdaptiveCellPx(S120, geo), "shipped B" + n + " at 120");
+                    continue;
+                }
                 Assert.That(cell, Is.InRange(120d, 144d), "shipped B" + n);
                 Assert.AreEqual(120, BoardLayout.AdaptiveCellPx(S120, geo), "shipped B" + n + " at 120");
             }
@@ -161,8 +168,10 @@ namespace MinikUsta.Presentation.Tests
                     var L = ScreenLayout.Create(s, H, geo);
                     var g = L.Grid;
                     string at = Label(geo) + " " + name + " c" + g.CellPx;
-                    Assert.GreaterOrEqual(g.YardX, s.MinSideMarginPx, at + ": left margin");
-                    Assert.GreaterOrEqual(L.W - g.SiteRight, s.MinSideMarginPx, at + ": right margin");
+                    // K-49 item 5 (D-103): a 9-column board keeps a 27 px margin (108 px cells, wall 54); every other board the token margin
+                    double margin = geo.Cols >= BoardLayout.WideBoardCols ? 27 : s.MinSideMarginPx;
+                    Assert.GreaterOrEqual(g.YardX, margin, at + ": left margin");
+                    Assert.GreaterOrEqual(L.W - g.SiteRight, margin, at + ": right margin");
                     Assert.GreaterOrEqual(g.CraneTopY - L.TopGroupBottomY, s.MinGapTopPx, at + ": under the HUD");
                     Assert.AreEqual(g.BoardBottomY, L.Board.Board.Bottom, at);
                     Assert.GreaterOrEqual(L.Board.Status.Y, g.BoardBottomY, at + ": status strip under the board");
@@ -238,6 +247,7 @@ namespace MinikUsta.Presentation.Tests
                 for (int id = 0; id < lvl.Layout.Counts.Pieces; id++)
                 {
                     if (PieceZone(s, id) != Zone.Yard) continue;
+                    if (Grid.IsCovered(s, id)) continue; // a covered pallet layer: the top layer owns the cells (K-58 item 3)
                     foreach (var c in Grid.PieceBoardCells(s, id))
                     {
                         var r = L.Grid.CellRect(c.X, c.Y);

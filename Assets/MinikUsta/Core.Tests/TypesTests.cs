@@ -15,10 +15,11 @@ namespace MinikUsta.Core.Tests
             Assert.AreEqual("WYGROCBP", string.Join("", ColorCodes.All));
         }
 
-        [Test(Description = "K-44 thirteen shape kinds")]
-        public void K44_thirteen_shape_kinds()
+        [Test(Description = "K-44 K-56 fourteen shape kinds (P5 appended last, D-103)")]
+        public void K44_fourteen_shape_kinds()
         {
-            Assert.AreEqual(13, ShapeKinds.All.Length);
+            Assert.AreEqual(14, ShapeKinds.All.Length);
+            Assert.AreEqual("P5", ShapeKinds.All[13]);
         }
 
         [Test(Description = "K-34 verdict reasons have the fixed GDD order")]

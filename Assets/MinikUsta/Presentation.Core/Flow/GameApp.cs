@@ -526,6 +526,7 @@ namespace MinikUsta.Presentation.Flow
                 DifficultyText = lvl != null && (lvl.Difficulty == "hard" || lvl.Difficulty == "superhard") ? TrText.Upper(T.Get("difficulty." + lvl.Difficulty)) : null,
                 Blocks = start != null ? Goals.BlocksLeft(start) : -1,
                 MovesText = lvl != null ? T.Format("levelStart.moves", lvl.Data.Moves) : null,
+                InfoText = lvl != null ? InfoCardText(lvl) : null,
                 Thumb = start != null ? PlanThumb.Whole(start) : null,
                 SlotsTitle = T.Get("levelStart.boosters"),
                 LockedSlots = PreLevelSlots(n),
@@ -536,6 +537,21 @@ namespace MinikUsta.Presentation.Flow
             {
                 new PanelButton(T.Get("levelStart.play"), Game.PanelAction.Play, ButtonKind.Primary),
             }, false, d));
+        }
+
+        /// <summary>
+        /// P4: the info card of the mechanic a level teaches (`teaches`, OBSTACLES R-08: the web `obs.<id>.desc` key). Y10 (pallet) adds the
+        /// D-104 rule (a lifted layer is dropped on the site only) from the Unity overlay. A mechanic without a key shows no card.
+        /// </summary>
+        private string? InfoCardText(MinikUsta.Core.Level.CompiledLevel lvl)
+        {
+            string? id = lvl.Data.Teaches;
+            if (string.IsNullOrEmpty(id)) return null;
+            string key = MinikUsta.Core.Obstacles.ObstacleRules.ObstacleInfoKey(id!);
+            if (!T.Has(key)) return null;
+            string text = T.Get(key);
+            if (id == "Y10" && T.Has("card.y10.site")) text += " " + T.Get("card.y10.site");
+            return text;
         }
 
         /// <summary>The three pre-level slots (Termos, Mala Başlangıcı, Açık Kepenk; UX §4): locked below their unlock level ("Bölüm N").</summary>

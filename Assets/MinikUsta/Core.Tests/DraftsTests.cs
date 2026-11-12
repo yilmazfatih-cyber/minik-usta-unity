@@ -120,13 +120,16 @@ namespace MinikUsta.Core.Tests
             CollectionAssert.AreEqual(new[] { "too_many_new_mechanics" }, Codes(ValidateDraft(4, json)));
         }
 
-        [Test(Description = "K-49 GDD example: Wy = 6, Ws = 3 is board_too_wide")]
-        public void K49_GDD_example_Wy_6_Ws_3_is_board_too_wide()
+        [Test(Description = "K-49 GDD example (D-103): Wy = 6, Ws = 4 is board_too_wide (10 > 9) and size_out_of_range; Ws = 3 in level 1 is size_out_of_range")]
+        public void K49_GDD_example_Wy_6_Ws_4_is_board_too_wide()
         {
             var json = Draft(1);
             json["yard"]!.Set("cols", JsonValue.Of(6));
+            json.Set("site", J.O("cols", 4, "rows", 5));
+            CollectionAssert.AreEqual(new[] { "board_too_wide", "size_out_of_range" }, Codes(ValidateDraft(1, json)));
             json.Set("site", J.O("cols", 3, "rows", 5));
-            CollectionAssert.AreEqual(new[] { "board_too_wide" }, Codes(ValidateDraft(1, json)));
+            CollectionAssert.Contains(Codes(ValidateDraft(1, json)), "size_out_of_range");
+            CollectionAssert.DoesNotContain(Codes(ValidateDraft(1, json)), "board_too_wide");
         }
 
         [Test(Description = "K-44 GDD example: an L4_90 W on a 2-column site is piece_too_wide")]

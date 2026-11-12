@@ -225,6 +225,8 @@ namespace MinikUsta.Presentation.Game
         public string? DifficultyText;
         public int Blocks = -1;
         public string? MovesText;
+        /// <summary>P4 level start: the info card of the mechanic the level teaches (OBSTACLES R-08 `obs.*.desc`), 34 px, at most two lines; null = no card.</summary>
+        public string? InfoText;
         /// <summary>Level start: the pre-level booster slots (locked: "Bölüm N").</summary>
         public string[] LockedSlots = new string[0];
         public string? SlotsTitle;
@@ -322,6 +324,10 @@ namespace MinikUsta.Presentation.Game
         /// <summary>Scale targets of the HUD chips (pops, pulses); `Position` is not used.</summary>
         ITweenTarget MovesChip { get; }
         ITweenTarget BlocksChip { get; }
+
+        /// <summary>P4 (D-105): the gold "+n" on the moves plate (a bonus block placed correctly); `SetMovesBurst(null)` hides it.</summary>
+        ITweenTarget MovesBurst { get; }
+        void SetMovesBurst(string? text);
 
         /// <summary>Shows a window (null hides); a button press calls `onAction`.</summary>
         void ShowPanel(PanelModel? panel, Action<PanelAction> onAction);

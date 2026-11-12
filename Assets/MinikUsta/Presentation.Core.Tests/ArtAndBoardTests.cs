@@ -317,6 +317,7 @@ namespace MinikUsta.Presentation.Tests
             Assert.IsTrue(ShadowLook.CancelPreview(DropClass.CraneOverYard));
             Assert.IsTrue(ShadowLook.CancelPreview(DropClass.Straddle));
             Assert.IsTrue(ShadowLook.CancelPreview(DropClass.SiteClosed));
+            Assert.IsTrue(ShadowLook.CancelPreview(DropClass.PalletSiteOnly), "v3c K-58 item 9 c: a pallet layer over the yard shows the cancel look");
             Assert.IsFalse(ShadowLook.CancelPreview(DropClass.SameSpot));
             Assert.IsFalse(ShadowLook.CancelPreview(DropClass.SiteFree));
             Assert.IsTrue(ShadowLook.ShowsShadow(DropClass.SiteFree));

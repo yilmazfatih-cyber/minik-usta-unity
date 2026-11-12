@@ -2,47 +2,248 @@
   "schemaVersion": 3,
   "id": 8,
   "chapter": 1,
-  "name": { "tr": "İp Merdiven", "en": "Rope Ladder" },
+  "name": {
+    "tr": "Paketli Kat",
+    "en": "Wrapped Floor"
+  },
   "difficulty": "normal",
-  "moves": 20,
-  "teaches": "Y13",
-  "goals": [{ "type": "build" }],
-  "gravity": { "build": "normal", "yard": false },
-  "wall": { "height": 5, "gaps": [] },
-  "site": { "cols": 2, "rows": 6 },
+  "moves": 24,
+  "teaches": "Y11",
+  "goals": [
+    {
+      "type": "build"
+    }
+  ],
+  "gravity": {
+    "build": "normal",
+    "yard": false
+  },
+  "wall": {
+    "height": 7,
+    "gaps": []
+  },
+  "site": {
+    "cols": 3,
+    "rows": 4
+  },
   "build": {
     "mode": "segments",
     "segments": [
-      { "name": { "tr": "Kat 1", "en": "Floor 1" }, "rows": ["YG", "YG", "GG", "GW", "WW", "WW"] },
-      { "name": { "tr": "Kat 2", "en": "Floor 2" }, "rows": ["GG", "GY", "WY", "WY", "WG", "GG"] },
-      { "name": { "tr": "Kat 3", "en": "Floor 3" }, "rows": ["YG", "YG", "YG", "GG", "GG", "GW"] }
+      {
+        "name": {
+          "tr": "Kat 1",
+          "en": "Floor 1"
+        },
+        "rows": [
+          "WWW",
+          "YWG",
+          "YYW",
+          "WWW"
+        ]
+      },
+      {
+        "name": {
+          "tr": "Kat 2",
+          "en": "Floor 2"
+        },
+        "rows": [
+          "GGG",
+          "YYG",
+          "YYG",
+          "YYG"
+        ]
+      },
+      {
+        "name": {
+          "tr": "Kat 3",
+          "en": "Floor 3"
+        },
+        "rows": [
+          "GGY",
+          "GYY",
+          "WYG",
+          "YYG"
+        ]
+      },
+      {
+        "name": {
+          "tr": "Kat 4",
+          "en": "Floor 4"
+        },
+        "rows": [
+          "GGY",
+          "YYY",
+          "YYY",
+          "YGG"
+        ]
+      }
     ]
   },
   "yard": {
     "cols": 6,
-    "rows": 7,
+    "rows": 8,
     "batches": [
       {
         "forSegment": 0,
         "pieces": [
-          { "shape": "C3_0", "color": "W", "x": 0, "y": 5 },
-          { "shape": "C3_180", "color": "W", "x": 1, "y": 5, "colors": "WGW" },
-          { "shape": "D2_0", "color": "Y", "x": 4, "y": 5 },
-          { "shape": "D2_90", "color": "G", "x": 3, "y": 4, "flags": ["slippery"] },
-          { "shape": "D2_0", "color": "G", "x": 0, "y": 3 },
-          { "shape": "D2_0", "color": "G", "x": 1, "y": 3 },
-          { "shape": "D2_0", "color": "W", "x": 2, "y": 3, "flags": ["slippery"] },
-          { "shape": "D2_0", "color": "G", "x": 5, "y": 3, "colors": "GW" },
-          { "shape": "C3_90", "color": "G", "x": 3, "y": 2 },
-          { "shape": "I3_0", "color": "Y", "x": 0, "y": 0 },
-          { "shape": "I3_0", "color": "Y", "x": 1, "y": 0 },
-          { "shape": "I3_0", "color": "G", "x": 2, "y": 0 },
-          { "shape": "D2_0", "color": "G", "x": 4, "y": 0 },
-          { "shape": "L4_180", "color": "W", "x": 4, "y": 0, "colors": "WGGG" }
+          {
+            "shape": "D2_90",
+            "color": "G",
+            "x": 0,
+            "y": 7
+          },
+          {
+            "shape": "L4_270",
+            "color": "W",
+            "x": 0,
+            "y": 6
+          },
+          {
+            "shape": "D2_0",
+            "color": "G",
+            "x": 5,
+            "y": 6,
+            "colors": "GW"
+          },
+          {
+            "shape": "C3_270",
+            "color": "Y",
+            "x": 2,
+            "y": 5,
+            "flags": [
+              "scissors"
+            ]
+          },
+          {
+            "shape": "C3_0",
+            "color": "Y",
+            "x": 4,
+            "y": 5
+          },
+          {
+            "shape": "C3_180",
+            "color": "W",
+            "x": 0,
+            "y": 4
+          },
+          {
+            "shape": "C3_90",
+            "color": "Y",
+            "x": 2,
+            "y": 3
+          },
+          {
+            "shape": "C3_270",
+            "color": "Y",
+            "x": 3,
+            "y": 3
+          },
+          {
+            "shape": "D2_0",
+            "color": "G",
+            "x": 5,
+            "y": 3
+          },
+          {
+            "shape": "D2_0",
+            "color": "G",
+            "x": 0,
+            "y": 2
+          },
+          {
+            "shape": "D2_0",
+            "color": "G",
+            "x": 1,
+            "y": 2
+          },
+          {
+            "shape": "C3_270",
+            "color": "Y",
+            "x": 1,
+            "y": 1,
+            "flags": [
+              "wrapped"
+            ]
+          },
+          {
+            "shape": "L4_90",
+            "color": "Y",
+            "x": 3,
+            "y": 1
+          },
+          {
+            "shape": "D2_0",
+            "color": "W",
+            "x": 0,
+            "y": 0,
+            "colors": "WG"
+          },
+          {
+            "shape": "D2_90",
+            "color": "G",
+            "x": 1,
+            "y": 0,
+            "stack": {
+              "id": 0,
+              "z": 0
+            }
+          },
+          {
+            "shape": "D2_90",
+            "color": "G",
+            "x": 1,
+            "y": 0,
+            "stack": {
+              "id": 0,
+              "z": 1
+            }
+          },
+          {
+            "shape": "D2_90",
+            "color": "G",
+            "x": 1,
+            "y": 0,
+            "stack": {
+              "id": 0,
+              "z": 2
+            }
+          },
+          {
+            "shape": "L4_270",
+            "color": "Y",
+            "x": 3,
+            "y": 0,
+            "flags": [
+              "wrapped"
+            ]
+          }
         ]
       }
     ]
   },
   "obstacles": [],
-  "targets": { "min": [16, 16], "deadRate": [0, 0] }
+  "tutorial": [
+    {
+      "step": 1,
+      "highlight": [
+        "piece:3"
+      ],
+      "textKey": "tut.m.wrap",
+      "done": {
+        "event": "placementCorrect",
+        "count": 1,
+        "piece": "piece:3"
+      }
+    }
+  ],
+  "targets": {
+    "min": [
+      20,
+      20
+    ],
+    "deadRate": [
+      0,
+      0
+    ]
+  }
 }

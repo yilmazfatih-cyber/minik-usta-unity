@@ -25,7 +25,7 @@ namespace MinikUsta.Core.Tests
             Grid.RefreshSiteMasks(s, seg);
         }
 
-        private static string[] Rows(byte[] m) =>
+        private static string[] Rows(ushort[] m) =>
             m.Select(r => string.Join("", Enumerable.Range(0, 8).Select(x => ((r >> x) & 1) != 0 ? "#" : "."))).Reverse().ToArray();
 
         [Test(Description = "K-08 collision rows: yard occupancy minus the dragged piece, crane rows empty")]

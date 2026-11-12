@@ -24,7 +24,7 @@ namespace MinikUsta.Core
 
     public sealed class ShapeDef
     {
-        /// <summary>0..51 = kindIndex * 4 + rotationIndex.</summary>
+        /// <summary>0..55 = kindIndex * 4 + rotationIndex.</summary>
         public readonly int Index;
         public readonly string Id;
         public readonly string Kind;
@@ -41,7 +41,7 @@ namespace MinikUsta.Core
         /// <summary>Lowest / highest occupied y offset of column c (open sky and falling, K-11).</summary>
         public readonly int[] ColBottom;
         public readonly int[] ColTop;
-        /// <summary>Y5: `w ≥ 3` or kind I5/Q9 (GDD K-44). Heavy pieces never cross the boundary.</summary>
+        /// <summary>Ağır Yük (Y5): kind I5 or Q9 only (GDD K-44, K-49 item 4 / D-103). Heavy pieces never cross the boundary.</summary>
         public readonly bool Heavy;
         /// <summary>First id (in rotation order 0, 90, 180, 270) with the same cell set, e.g. `O4_90 → O4_0`.</summary>
         public readonly string Canonical;
@@ -102,6 +102,8 @@ namespace MinikUsta.Core
                     new[] { 0, 2 }, new[] { 1, 2 }, new[] { 2, 2 },
                 }
             },
+            // the plus (GDD K-56 D-103 annex): every rotation is the same cell set, canonical P5_0
+            { "P5", new[] { new[] { 1, 0 }, new[] { 0, 1 }, new[] { 1, 1 }, new[] { 2, 1 }, new[] { 1, 2 } } },
         };
 
         /// <summary>Always heavy, whatever the orientation (GDD K-44; a crane turn keeps the weight, K-37).</summary>
@@ -114,7 +116,7 @@ namespace MinikUsta.Core
         public static readonly IReadOnlyDictionary<string, int> KindFirstChapter = new Dictionary<string, int>
         {
             { "B1", 1 }, { "D2", 1 }, { "O4", 1 }, { "C3", 1 }, { "I3", 2 }, { "L4", 2 }, { "J4", 2 }, { "T4", 3 },
-            { "S4", 3 }, { "Z4", 3 }, { "I4", 4 }, { "I5", 1 }, { "Q9", 1 },
+            { "S4", 3 }, { "Z4", 3 }, { "I4", 4 }, { "I5", 1 }, { "Q9", 1 }, { "P5", 2 },
         };
 
         /// <summary>
@@ -124,15 +126,21 @@ namespace MinikUsta.Core
         public static readonly IReadOnlyDictionary<string, int> KindFirstLevelV3 = new Dictionary<string, int>
         {
             { "B1", 1 }, { "D2", 1 }, { "O4", 1 }, { "C3", 1 }, { "L4", 2 }, { "J4", 2 }, { "T4", 6 }, { "I3", 8 },
-            { "S4", 11 }, { "Z4", 11 }, { "I4", 21 }, { "I5", 0 }, { "Q9", 0 },
+            { "S4", 11 }, { "Z4", 11 }, { "I4", 21 }, { "I5", 0 }, { "Q9", 0 }, { "P5", 16 },
         };
 
-        /// <summary>Heavy shapes (I5, Q9 and every w ≥ 3 orientation) are allowed only from this level id (GDD K-44 "8. bölüm").</summary>
+        /// <summary>
+        /// GDD K-56 D-103 annex item 2: on a 3-column site (Ws = 3) these kinds are free of the kind lock (`shape_locked` is not
+        /// raised); the T4 (6+) and I3 (8+) level locks, I4 and Ağır Yük stay.
+        /// </summary>
+        public static readonly HashSet<string> WideSiteFreeKinds = new HashSet<string> { "S4", "Z4", "P5" };
+
+        /// <summary>Heavy shapes (Ağır Yük: I5, Q9 only; width never makes a block heavy, D-103) are allowed only from this level id (GDD K-44 "8. bölüm").</summary>
         public const int HeavyMinLevelId = 8;
 
-        /// <summary>All 52 shapes, indexed by `ShapeDef.Index`.</summary>
+        /// <summary>All 56 shapes, indexed by `ShapeDef.Index`.</summary>
         public static readonly ShapeDef[] All;
-        /// <summary>All 52 ids in index order.</summary>
+        /// <summary>All 56 ids in index order.</summary>
         public static readonly string[] Ids;
         private static readonly Dictionary<string, ShapeDef> byId;
 
@@ -184,7 +192,7 @@ namespace MinikUsta.Core
 
         private static ShapeDef[] BuildShapes()
         {
-            var o = new List<ShapeDef>(52);
+            var o = new List<ShapeDef>(56);
             for (int kindIndex = 0; kindIndex < ShapeKinds.All.Length; kindIndex++)
             {
                 string kind = ShapeKinds.All[kindIndex];
@@ -237,7 +245,7 @@ namespace MinikUsta.Core
                         colRows,
                         colBottom,
                         colTop,
-                        w >= 3 || AlwaysHeavy.Contains(kind),
+                        AlwaysHeavy.Contains(kind),
                         kind + "_" + canonicalRotation,
                         canonicalIndex));
                 }
@@ -254,7 +262,7 @@ namespace MinikUsta.Core
             return s;
         }
 
-        /// <summary>Shape by index 0..51; throws when out of range (TS `shapeByIndex`).</summary>
+        /// <summary>Shape by index 0..55; throws when out of range (TS `shapeByIndex`).</summary>
         public static ShapeDef ShapeByIndex(int index)
         {
             if (index < 0 || index >= All.Length) throw new ArgumentOutOfRangeException(nameof(index), "unknown shape index " + index);

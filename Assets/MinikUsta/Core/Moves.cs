@@ -290,7 +290,7 @@ namespace MinikUsta.Core
             var s = ctx.S;
             int left = Hdr(s, H.MovesLeft) + bonus;
             SetHdr(s, H.MovesLeft, left);
-            em.Emit(new MovesChangedEvent(left, bonus, MovesChangedReasons.Bonus));
+            em.Emit(new MovesChangedEvent(left, bonus, MovesChangedReasons.Bonus, null, id));
         }
 
         /// <summary>K-35 step 3 for a block that landed on the site (fall or rail). Returns true for a correct placement.</summary>

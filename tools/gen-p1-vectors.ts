@@ -1,7 +1,7 @@
 /**
  * Generates Assets/MinikUsta/Core.Tests/Golden/p1_vectors.json from the TypeScript core (the source of truth, D-091):
  * the P1 modules (movement, gravity, placement, delivery) evaluated on the 10 shipped levels (D-099, schemaVersion 2), on
- * 45 seeded random boards of the 9 geometries of TECH §2R.1 and on the 10 Faz 2R archive levels (schemaVersion 1, truck
+ * 50 seeded random boards of the 10 geometries of TECH §2R.1 and on the 10 Faz 2R archive levels (schemaVersion 1, truck
  * batches; Assets/MinikUsta/Core.Tests/Archive2R, `archive_level_NNN`). Per board: settleYard motions (yard gravity boards), state hash after the
  * settle, build front, site column masks. Per piece: tryBeginDrag outcome, R with BFS distances, K-07 class of every
  * node, computeFall + shadowInfo of every site node, a K-08 sticky-follow sweep over the board (0.5-cell grid), the
@@ -64,6 +64,7 @@ const G: readonly GeoCase[] = [
   { wy: 6, hy: 8, ws: 2, hs: 8 },
   { wy: 5, hy: 7, ws: 3, hs: 7 },
   { wy: 4, hy: 6, ws: 4, hs: 6 },
+  { wy: 6, hy: 8, ws: 3, hs: 5 }, // D-103 wide site (levels 6-10 v3c): 9 columns
 ];
 
 const label = (g: GeoCase): string => `${g.wy}x${g.hy}|${g.ws}x${g.hs}`;

@@ -4,9 +4,9 @@
 //
 //   Y9  two-tone    `CellColors`: the colour of every cell (the body tile of each cell is its own colour; the joined tiles read as one
 //                   two-coloured block, each cell keeps its embossed colour symbol — colour AND symbol, never colour alone)
-//   Y10 pallet      `PalletLayers` (layers still on the pallet, top layer only), `PalletDepth` (layers above this one: 0 = the top
-//                   layer; a covered layer is drawn lower and offset like a slab under the top), `PalletBase` (the lowest layer draws
-//                   the planks)
+//   Y10 pallet      `PalletLayers` (layers still on the pallet, top layer only: the "×n" badge), `PalletDepth` (layers above this one:
+//                   0 = the top layer; a covered layer lies in the same pose under it and draws only its board: one edge line per layer),
+//                   `PalletBase` (the lowest layer draws the planks, under the last board). Only the top layer can be held (K-58 item 3).
 //   Y11 wrap        `Wrapped` (film + rope net + knot badge), `Scissors` (scissors badge)
 //   Y12 bonus       `Bonus` = moves the placement adds (star badge "+n")
 //   Y13 slippery    `Slippery` (frost sheen + snowflake badge)

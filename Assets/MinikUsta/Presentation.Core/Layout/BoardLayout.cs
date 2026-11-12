@@ -170,18 +170,29 @@ namespace MinikUsta.Presentation.Layout
         }
 
         /// <summary>
+        /// GDD K-49 item 5 (D-103 wide site): the floor of the cell on a 9-column board (6 yard + 3 site columns). 108 is the
+        /// only 12-step value in 100…112: 9 · 108 + wall 54 (k 0.9) = 1026 px board, 27 px on both sides at 1080. No level gets a
+        /// cell below 100 design px (touch target).
+        /// </summary>
+        public const double WideBoardCellPx = 108;
+        /// <summary>Columns from which the wide-board floor applies (Wy + Ws ≥ 9, K-49 item 5).</summary>
+        public const int WideBoardCols = 9;
+
+        /// <summary>
         /// DL-2R-14 / TECH §2R.1 cell size of a level, chosen once and device independent:
         /// `c = max(120, min(cellMaxPx, ⌊960 / cols / 12⌋·12, ⌊1200 / (h + 2) / 12⌋·12))`, 960 = 1080 − 2·60 and
         /// 1200 = boardBottomY − top.groupBottomY − minGapTopPx. B1–B5, B7, B9 → 144; B6 → 132; B8, B10, default → 120.
+        /// A 9-column board (D-103) has the floor `WideBoardCellPx` = 108 (web `adaptiveCellPx`).
         /// </summary>
         public static double AdaptiveCellPx(LayoutSettings s, BoardGeo geo)
         {
+            double floor = geo.Cols >= WideBoardCols ? Math.Min(s.CellPx, WideBoardCellPx) : s.CellPx;
             double step = s.CellStepPx;
             double budgetW = s.DesignWidth - 2 * s.SideReservePx;
             double budgetH = s.BoardBottomY - s.TopGroupBottomY - s.MinGapTopPx;
             double byW = Math.Floor(budgetW / geo.Cols / step) * step;
             double byH = Math.Floor(budgetH / (geo.H + Geometry.CraneRows) / step) * step;
-            return Math.Max(s.CellPx, Math.Min(s.CellMaxPx, Math.Min(byW, byH)));
+            return Math.Max(floor, Math.Min(s.CellMaxPx, Math.Min(byW, byH)));
         }
 
         /// <summary>UX §5.8 rules 1–5 for level geometry `geo` at design height `designH` (FIT 1920; EXPAND 1920 … 2400).</summary>

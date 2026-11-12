@@ -196,8 +196,15 @@ namespace MinikUsta.Core.Level
         /// <summary>Site plan height Hs.</summary>
         public static readonly int[] SiteRowsRange = { 4, 8 };
 
-        /// <summary>Site width Ws: 2–3 in story chapters 1–3 (levels 1–30), 2–4 in chapters 4–5 (K-49).</summary>
-        public static int[] SiteColsRange(int chapter) => chapter <= 3 ? new[] { 2, 3 } : new[] { 2, Geometry.MaxSiteCols };
+        /// <summary>K-49 item 2 (D-103): the last level id that must keep the 2-column site (the learning curve).</summary>
+        public const int NarrowSiteLastLevel = 5;
+        /// <summary>K-49 item 1 (D-103): the widest site of the product (Ws in {2, 3}; the frame allows `MaxSiteCols`).</summary>
+        public const int WideSiteCols = 3;
+        /// <summary>K-49 item 1 (D-103): `Wy + Ws ≤ 9` (`board_too_wide`; 108 px cells at 9 columns, item 5).</summary>
+        public const int MaxBoardCols = Geometry.MaxCols;
+
+        /// <summary>Site width Ws (K-49 items 1–2, D-103): exactly 2 in levels 1–5, 2–3 from level 6 on.</summary>
+        public static int[] SiteColsRange(int levelId) => levelId <= NarrowSiteLastLevel ? new[] { 2, 2 } : new[] { 2, Math.Min(WideSiteCols, Geometry.MaxSiteCols) };
 
         /// <summary>Free yard cells at the start (K-02): `2 ≤ E ≤ ⌊0,4·C⌋`.</summary>
         public const int YardEmptyMin = 2;
@@ -239,7 +246,7 @@ namespace MinikUsta.Core.Level
             level.Site?.Cols ?? Geometry.DefaultSizes.Ws,
             level.Site?.Rows ?? Geometry.DefaultSizes.Hs);
 
-        /// <summary>The sizes fit the 8 × 10 frame, so `GeoFromLevel` can build the geometry (Geometry.cs `MakeGeo` limits).</summary>
+        /// <summary>The sizes fit the 9 × 10 frame, so `GeoFromLevel` can build the geometry (Geometry.cs `MakeGeo` limits).</summary>
         public static bool FitsFrame(LevelSizes z)
         {
             bool InRange(int v, int lo, int hi) => v >= lo && v <= hi;
@@ -576,10 +583,10 @@ namespace MinikUsta.Core.Level
             }
             Out("yard.cols", "Wy", z.Wy, YardColsRange);
             Out("yard.rows", "Hy", z.Hy, YardRowsRange);
-            Out("site.cols", "Ws", z.Ws, SiteColsRange(level.Chapter), " in story chapter " + level.Chapter);
+            Out("site.cols", "Ws", z.Ws, SiteColsRange(level.Id), " in level " + level.Id);
             Out("site.rows", "Hs", z.Hs, SiteRowsRange);
-            if (z.Wy + z.Ws > Geometry.MaxCols)
-                push("L-28", "board_too_wide", "site.cols", "Wy + Ws = " + z.Wy + " + " + z.Ws + " > " + Geometry.MaxCols + " (K-49, 120 px cells)");
+            if (z.Wy + z.Ws > MaxBoardCols)
+                push("L-28", "board_too_wide", "site.cols", "Wy + Ws = " + z.Wy + " + " + z.Ws + " > " + MaxBoardCols + " (K-49, D-103: 108 px cells at 9 columns)");
             return FitsFrame(z);
         }
 
@@ -703,11 +710,13 @@ namespace MinikUsta.Core.Level
                 // v3 (schemaVersion 3, GDD §16 K-56): unlock by level id; earlier files keep the K-44 chapter table
                 int firstLevel = LevelSchema.SchemaVersionOf(level) == 3 && !b.Cargo ? Shapes.KindFirstLevelV3[b.Shape.Kind] : 0;
                 int first = Shapes.KindFirstChapter[b.Shape.Kind];
+                // K-56 D-103 annex item 2: S4, Z4 and P5 are free of the kind lock on a 3-column site
+                bool wideFree = geo.Ws >= WideSiteCols && Shapes.WideSiteFreeKinds.Contains(b.Shape.Kind);
                 if (firstLevel > 0)
                 {
-                    if (firstLevel > level.Id) Bad("shape_locked", b.Path, b.Shape.Kind + " unlocks at level " + firstLevel + " (v3 table, K-56)");
+                    if (firstLevel > level.Id && !wideFree) Bad("shape_locked", b.Path, b.Shape.Kind + " unlocks at level " + firstLevel + " (v3 table, K-56)");
                 }
-                else if (first > level.Chapter)
+                else if (first > level.Chapter && !wideFree)
                     Bad("shape_locked", b.Path, b.Shape.Kind + " unlocks in story chapter " + first + " (level is chapter " + level.Chapter + ")");
                 if (b.Cargo && level.Id < Shapes.HeavyMinLevelId)
                     Bad("shape_locked", b.Path, "Ağır Yük " + b.Id + " is allowed only from level " + Shapes.HeavyMinLevelId);
@@ -937,15 +946,17 @@ namespace MinikUsta.Core.Level
             return TileSearch(level, plans, geo, budget, null, null);
         }
 
-        private static string TileSearch(LevelData level, SegmentPlan[] plans, BoardGeo geo, int budget, Func<Placed, bool>? skip, Func<Placed, bool>? target)
+        /// <summary>D3a classes of the level's material blocks (TECH §2R.4 step 1) with their counts; `targets[i]` = `target`.</summary>
+        private static void TileClasses(LevelData level, Func<Placed, bool>? skip, Func<Placed, bool>? target,
+            out List<LevelTileClass> classes, out List<int> counts, out List<bool> targets)
         {
             bool carousel = level.Build.Mode == "carousel";
             var paint = new List<GapData>();
             foreach (var g in level.Wall.Gaps) if (g.Type == "paint") paint.Add(g);
-            List<LevelTileClass> classes = new List<LevelTileClass>();
-            List<int> counts = new List<int>();
+            classes = new List<LevelTileClass>();
+            counts = new List<int>();
             var index = new Dictionary<string, int>();
-            var targets = new List<bool>();
+            targets = new List<bool>();
             foreach (var b in MaterialBlocks(level))
             {
                 if (skip != null && skip(b)) continue;
@@ -970,6 +981,188 @@ namespace MinikUsta.Core.Level
                 }
                 counts[i] = counts[i] + 1;
             }
+        }
+
+        /// <summary>
+        /// The anchor y of class `t` on the column profile `heights` at anchor x `ax` when it fits there (K-34: every block
+        /// column starts exactly at its column's height, nothing above Hs) and every cell has the plan colour; else −1.
+        /// </summary>
+        private static int TileFit(LevelTileClass t, SegmentPlan plan, int[] heights, int ax, int hs, int ws)
+        {
+            var s = t.Shape;
+            if (ax + s.W > ws) return -1;
+            int ay = heights[ax] - s.ColBottom[0];
+            if (ay < 0) return -1;
+            for (int j = 0; j < s.W; j++)
+            {
+                int x = ax + j;
+                if (ay + s.ColBottom[j] != heights[x] || ay + s.ColTop[j] >= hs) return -1;
+            }
+            if (t.CellColors != null)
+            {
+                for (int ci = 0; ci < s.Cells.Length; ci++)
+                {
+                    var c = s.Cells[ci];
+                    if (ci >= t.CellColors.Length || plan.Cells[Plan.LocalIndex(ax + c.X, ay + c.Y, ws)] != t.CellColors[ci]) return -1;
+                }
+                return ay;
+            }
+            var first = s.Cells[0];
+            char color = plan.Cells[Plan.LocalIndex(ax + first.X, ay + first.Y, ws)];
+            if (color == Plan.None || color == Plan.Dot || Array.IndexOf(t.Colors, color.ToString()) < 0) return -1;
+            foreach (var c in s.Cells) if (plan.Cells[Plan.LocalIndex(ax + c.X, ay + c.Y, ws)] != color) return -1;
+            return ay;
+        }
+
+        /// <summary>Result of the K-63 D-103 plan-level trap scan (TS `PlanTrapResult`).</summary>
+        public sealed class PlanTrapResult
+        {
+            /// <summary>"done" or "unknown" (the state budget was spent before the scan finished).</summary>
+            public readonly string Status;
+            /// <summary>Correct placements that lead from a tileable state to an untileable one.</summary>
+            public readonly int Traps;
+            /// <summary>Distinct (segment, profile, remaining classes) states visited.</summary>
+            public readonly int States;
+            /// <summary>The start state can be tiled at all (false = `untileable`, L-11 reports it).</summary>
+            public readonly bool Tileable;
+            public readonly bool HasExample;
+            public readonly int ExampleSeg;
+            public readonly string ExampleShape;
+            public readonly int ExampleX;
+            public readonly int ExampleY;
+
+            public PlanTrapResult(string status, int traps, int states, bool tileable, bool hasExample, int seg, string shape, int x, int y)
+            {
+                Status = status;
+                Traps = traps;
+                States = states;
+                Tileable = tileable;
+                HasExample = hasExample;
+                ExampleSeg = seg;
+                ExampleShape = shape;
+                ExampleX = x;
+                ExampleY = y;
+            }
+        }
+
+        /// <summary>State budget of the plan trap scan (a 3 × 6 plan with 20 blocks needs about 10⁴ states).</summary>
+        public const int PlanTrapBudget = 400_000;
+
+        /// <summary>
+        /// K-63 D-103 annex (`plan_trap`): the full plan-level trap scan. Visits EVERY state reachable by correct bottom-up
+        /// placements (colour, shape, K-34 support; yard access, pallet order, wraps and the bonus are ignored) from the start —
+        /// state = (segment, column heights, remaining class counts), the D3a model — and counts the placements that go from a
+        /// state that can still be tiled to one that cannot. Exact (no sampling); "unknown" only when `budget` states are spent.
+        /// </summary>
+        public static PlanTrapResult PlanTrapScan(LevelData level, SegmentPlan[] plans, BoardGeo? geoIn = null, int budget = PlanTrapBudget)
+        {
+            var geo = geoIn ?? Geometry.GeoFromLevel(level);
+            List<LevelTileClass> classes;
+            List<int> counts;
+            List<bool> unusedTargets;
+            TileClasses(level, null, null, out classes, out counts, out unusedTargets);
+            int S = plans.Length;
+            int ws = geo.Ws;
+            int hs = geo.Hs;
+            int[] heights = new int[ws];
+            var memo = new Dictionary<string, bool>();
+            int traps = 0;
+            bool over = false;
+            bool hasExample = false;
+            int exSeg = 0, exX = 0, exY = 0;
+            string exShape = "";
+            bool Visit(int seg)
+            {
+                while (seg < S && AllEqual(heights, hs))
+                {
+                    Array.Clear(heights, 0, heights.Length);
+                    seg++;
+                }
+                if (seg >= S) return true;
+                string key = seg + "|" + string.Join(",", heights) + "|" + string.Join(",", counts);
+                if (memo.TryGetValue(key, out bool known)) return known;
+                if (memo.Count >= budget)
+                {
+                    over = true;
+                    return true;
+                }
+                memo[key] = false;
+                var plan = plans[seg];
+                bool any = false;
+                var dead = new List<(string Shape, int X, int Y)>();
+                for (int ti = 0; ti < classes.Count; ti++)
+                {
+                    var t = classes[ti];
+                    if (counts[ti] == 0 || t.From > seg) continue;
+                    for (int ax = 0; ax + t.Shape.W <= ws; ax++)
+                    {
+                        int ay = TileFit(t, plan, heights, ax, hs, ws);
+                        if (ay < 0) continue;
+                        var saved = (int[])heights.Clone();
+                        for (int j = 0; j < t.Shape.W; j++) heights[ax + j] = ay + t.Shape.ColTop[j] + 1;
+                        counts[ti] = counts[ti] - 1;
+                        bool ok = Visit(seg);
+                        counts[ti] = counts[ti] + 1;
+                        Array.Copy(saved, heights, ws);
+                        if (ok) any = true;
+                        else dead.Add((t.Shape.Id, ax, ay));
+                    }
+                }
+                if (any)
+                {
+                    traps += dead.Count;
+                    if (!hasExample && dead.Count > 0)
+                    {
+                        hasExample = true;
+                        exSeg = seg;
+                        exShape = dead[0].Shape;
+                        exX = dead[0].X;
+                        exY = dead[0].Y;
+                    }
+                }
+                memo[key] = any;
+                return any;
+            }
+            bool tileable = Visit(0);
+            return new PlanTrapResult(over ? "unknown" : "done", traps, memo.Count, tileable, hasExample, exSeg, exShape, exX, exY);
+        }
+
+        private static bool AllEqual(int[] heights, int v)
+        {
+            foreach (int h in heights) if (h != v) return false;
+            return true;
+        }
+
+        /// <summary>
+        /// K-63 D-103 annex: `plan_trap` on a 3-column site — error in levels 1–10 (story 1) and on Easy / Normal later, warn on
+        /// Hard / Very Hard; a scan that spends its budget gives the `plan_trap_unknown` warning (no proof).
+        /// </summary>
+        private static void CheckPlanTraps(LevelData level, SegmentPlan[] plans, BoardGeo geo, Push push)
+        {
+            var res = PlanTrapScan(level, plans, geo);
+            if (!res.Tileable && res.Status == "done") return; // L-11 `untileable` reports a plan that cannot be tiled at all
+            bool strict = level.Chapter == 1 || level.Difficulty == "easy" || level.Difficulty == "normal";
+            if (res.Traps > 0)
+            {
+                push("L-41", "plan_trap", "build.segments",
+                    res.Traps + " correct placement(s) leave a plan the remaining blocks cannot tile" +
+                    (res.HasExample ? ", e.g. " + res.ExampleShape + " at site (" + res.ExampleX + ", " + res.ExampleY + ") of segment " + res.ExampleSeg : "") +
+                    " (K-63 D-103 annex; trap-free plans are a generator constraint)",
+                    strict ? Severities.Error : Severities.Warn);
+            }
+            else if (res.Status == "unknown")
+            {
+                push("L-41", "plan_trap_unknown", "build.segments",
+                    "the plan trap scan stopped after " + res.States + " states: no proof of a trap-free plan (K-63 D-103 annex)", Severities.Warn);
+            }
+        }
+
+        private static string TileSearch(LevelData level, SegmentPlan[] plans, BoardGeo geo, int budget, Func<Placed, bool>? skip, Func<Placed, bool>? target)
+        {
+            List<LevelTileClass> classes;
+            List<int> counts;
+            List<bool> targets;
+            TileClasses(level, skip, target, out classes, out counts, out targets);
 
             int S = plans.Length;
             int ws = geo.Ws;
@@ -1907,7 +2100,10 @@ namespace MinikUsta.Core.Level
             new[] { "bonus", "wet", "two number badges on one block (K-65 item 4)" },
         };
 
-        /// <summary>Flags a pallet layer can never carry (OBSTACLES v3 table: a layer neither floats nor breaks nor locks).</summary>
+        /// <summary>K-65 item 2 (v3c): overlay traits; at most one per block in story 1 (a pallet layer is one more).</summary>
+        private static readonly string[] OverlayFlags = { "wrapped", "scissors", "bonus", "slippery" };
+
+        /// <summary>Flags a pallet layer can never carry (OBSTACLES v3 table; K-58 item 9 f, D-104: slippery, mortar and glass in every story).</summary>
         private static readonly string[] StackForbiddenFlags = { "slippery", "glass", "mortar", "chained", "wet", "balloon" };
 
         /// <summary>The piece writes a v3 field (`colors`, `stack`, `bonusMoves`, a v3 flag).</summary>
@@ -2075,14 +2271,14 @@ namespace MinikUsta.Core.Level
                 if (story1)
                 {
                     var fl = FlagsOf(p);
-                    int overlays = (Array.IndexOf(fl, "wrapped") >= 0 ? 1 : 0) + (Array.IndexOf(fl, "scissors") >= 0 ? 1 : 0) + (Array.IndexOf(fl, "bonus") >= 0 ? 1 : 0) + (p.Stack != null ? 1 : 0);
+                    int overlays = (p.Stack != null ? 1 : 0);
+                    foreach (var of in OverlayFlags) if (Array.IndexOf(fl, of) >= 0) overlays++;
                     if (overlays > 1)
                         push("L-41", "trait_overlay_many", path, overlays + " overlay traits on one block; at most 1 in story 1 (K-65 item 2)", Severities.Warn);
                 }
             }
-            // pallets: story-1 single type, capacity
+            // pallets: story-1 single type (K-65 item 1) and on the ground (K-58 item 9 g)
             var pallets = PalletsOf(level);
-            int worst = 0;
             foreach (var kv in pallets)
             {
                 if (kv.Value.Count == 0) continue;
@@ -2093,24 +2289,13 @@ namespace MinikUsta.Core.Level
                     foreach (var l in kv.Value)
                         if (!(l.Piece.Shape == first.Shape && l.Piece.Color == first.Color && (l.Piece.Colors ?? "") == (first.Colors ?? "") && FlagsOf(l.Piece).Length == 0)) same = false;
                     if (!same) push("L-41", "stack_mixed", kv.Value[0].Path, "pallet " + kv.Key + ": in story 1 every layer is the same block without flags (K-65 item 1)");
+                    var fshape = Shapes.ShapeById(first.Shape);
+                    bool grounded = true;
+                    foreach (int cb in fshape.ColBottom) if (first.Y + cb != 0) grounded = false;
+                    if (!grounded)
+                        push("L-41", "pallet_not_grounded", kv.Value[0].Path,
+                            "pallet " + kv.Key + " (" + first.Shape + " at y " + first.Y + "): in story 1 the lowest cell of every column is at y = 0 (K-58 item 9 g)");
                 }
-                worst = Math.Max(worst, Shapes.ShapeById(first.Shape).CellCount * (kv.Value.Count - 1));
-            }
-            if (pallets.Count > 0)
-            {
-                var footprint = new HashSet<int>();
-                foreach (var p in pieces)
-                {
-                    if (p.Stack != null && HasHigherLayer(pieces, p)) continue;
-                    foreach (var c in CellsAt(Shapes.ShapeById(p.Shape), p.X, p.Y)) footprint.Add(c.Y * geo.Wy + c.X);
-                }
-                foreach (var o in level.Obstacles)
-                    if (o.Type == "crate" || o.Type == "cement_bag") footprint.Add(o.Y * geo.Wy + o.X);
-                int empty = geo.Wy * geo.Hy - footprint.Count;
-                int need = 2 + worst;
-                if (empty < need)
-                    push("L-41", "pallet_capacity", "yard", "E = " + empty + " empty cells < 2 + max(cells × (layers − 1)) = " + need + " (K-58 item 8)",
-                        level.Difficulty == "easy" ? Severities.Error : Severities.Warn);
             }
             // scissors: trivial (not under a dig) / blocked (its correct placement needs a wrapped block first)
             int sIndex = -1;
@@ -2149,8 +2334,13 @@ namespace MinikUsta.Core.Level
                             "the scissors block cannot be placed correctly before a wrapped block is placed (K-34 support or an earlier segment needs a wrapped block; K-59 item 6)");
                 }
             }
-            // K-63 tiling families (Easy / Normal): one "bottom row full" and one "column" orientation per colour
-            if (level.Difficulty == "easy" || level.Difficulty == "normal")
+            // K-63 tiling families (Easy / Normal) on a 2-column site: one "bottom row full" and one "column" orientation per
+            // colour. On a 3-column site (D-103 annex) the full plan-level trap scan replaces it.
+            if (geo.Ws >= WideSiteCols)
+            {
+                if (plansUsable) CheckPlanTraps(level, plans, geo, push);
+            }
+            else if (level.Difficulty == "easy" || level.Difficulty == "normal")
             {
                 var famOrder = new List<string>();
                 var bottomInsertion = new Dictionary<string, List<string>>();
