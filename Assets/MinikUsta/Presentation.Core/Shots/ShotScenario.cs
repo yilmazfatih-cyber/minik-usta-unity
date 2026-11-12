@@ -528,7 +528,7 @@ namespace MinikUsta.Presentation.Shots
             if (session.Outcome != BoosterOutcomes.Playing) return Fail2("the level ended before the bonus paid");
             // not `Idle()`: Bölüm 10 keeps looping tweens alive (the bonus badge pulses), so the clock never empties; the move queue and
             // the coins in flight are what must be quiet before the next golden move
-            if (p.Queue.Busy || p.CoinsInFlight != 0 || sinceCommit < 450f || p.Panel != PanelKind.None) return false;
+            if (p.Queue.Busy || p.CoinsInFlight != 0 || sinceCommit < 250f || p.Panel != PanelKind.None) return false;
             var move = DebugSolver.Next(session, Sol());
             if (move == null) return Fail2("no move left");
             p.Commit(move);
