@@ -382,3 +382,32 @@ aşımı yerine anında hata); (4) çekim zaman aşımı varsayılan 150 sn'ye d
 hamlesine kadar animasyonsuz yeniden oynatılır (`GameApp.DebugStartLevelAt`, `GameSession.Replay`), bonus hamlesi animasyonla
 oynanır, patlama göründükten 144 ms sonra (320 ms'lik büyümenin %45'i) oyun saati durur (`TimeScale` 0) ve çekim istenir; döngüdeki
 tween'ler (rozet nabzı) yüzünden `Idle()` yerine hamle kuyruğu beklenir. `v3_bonus_10` → `v3_final_10`.
+
+### 13.4 CI ve görsel kanıt (ci-shots, DPR 2, 390×844 ve 360×800)
+
+| Commit | CI run | Sonuç | ci-shots |
+|---|---|---|---|
+| `afe949e` | [43290690799](https://github.com/yilmazfatih-cyber/minik-usta-unity/actions/runs/43290690799) | Build WebGL ✓, CI screenshots ✓, Deploy Pages ✓ (28 dk) | `ok`, uyarı 0; 18 ekran + 2 şerit / boyut; `v3_bonus_burst_7` iki boyutta geldi; konsolda istisna **0** (önceki üç koşuda 1200) |
+| `55bc84a` | [43296036331](https://github.com/yilmazfatih-cyber/minik-usta-unity/actions/runs/43296036331) | Build WebGL ✓, CI screenshots ✓, Deploy Pages ✓ | `ok`; 18 ekran + 2 şerit / boyut, hata 0, istisna 0; uyarı: 3B sayfa çözme 278 / 261 ms (bütçe 250, CL-V3C-17, yazılım GL) |
+
+Gördüklerim (Read ile, iki boyut):
+
+- `v3_bonus_burst_7`: Bölüm 7, HAMLE plakasının sağ üst köşesinde altın "+2" (360'ta da taşmadan okunuyor), şantiyede yeni
+  yerleşen kırmızı `D2_0` bonus bloğu, sönen yıldız parçacıkları, köşede sevinmeye başlayan kral; "1 blok" kaldı.
+- `v3_pallet_7`: sol alttaki sarı `O4_0` ×4 paletinde "×4" beyaz daire rozet; aynı tahtada kırmızı bloktaki "+2" altın yıldız —
+  biçim, renk ve işaret üçü ayrı. Palet altında üç sarı katman bandı ve perçinli gri-mavi metal kızak.
+- `v3_final_10`: kahverengi W `C3_0` ×4 paleti, "×4" rozeti, kahverengi bantlar ve gri-mavi kızak (W ile karışmıyor); Bölüm 10'da
+  "+2" yok (D-107). `v3_wrap_8` / `v3_slippery_9`: "×3" rozetleri, makas ve kar tanesi rozetleri.
+- `v3_info_7`: bilgi kartı "Paletten hep en üstteki alınır. Katman sahaya inmez, yalnız şantiyeye gider." (web `card.y10.site`).
+
+Ölçüm (360×800, `v3_pallet_7`): "×4" rozetinin dış konturu 45 fiziksel px = 22,5 CSS px ≈ **68 design px** (≥ 56 ✓); rakam
+yüksekliği `afe949e`'de 19 fiziksel px = **9,5 CSS px** (D-108 kabul ölçütü ≥ 10 ✗) → `55bc84a`'da yazı 58 → 64 px, ölçüm
+22 fiziksel px = **11,0 CSS px** ✓ (390×844'te 11,5 CSS px, rozet 69 design px).
+
+Rubrik öz puanı (ART_REFERENCE §10; Bölüm 7 ve 10 tahtası, palet ve bonus öğeleri): hacim/ışık 4 · renk/kontrast 4 · tipografi 4
+· düzen/boşluk 4 · ikon/rozet 4 · karakter/sahne — (değişmedi). Kabul ≥ 4 ✓. Sahibin referans ekranları (`artifacts/reference/…`)
+bu ortamda yoktu; yan yana karşılaştırma yapılamadı.
+
+Açık kalanlar: Bölüm 7 giriş nabzı (2 × 400 ms, D-108 tablosu) çizilmedi; 360 px'te katman bantları 2 CSS px adımla ince
+(okunurluk "×n" rozetinde); iki EN öğretici metni web'de 6 kelimenin üstünde (Unity üstyazısı geçici); web
+`artifacts/solver` önbellek anahtarı C2'den sonra eski (sonuç değişmez).
