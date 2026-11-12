@@ -125,7 +125,8 @@ namespace MinikUsta.Presentation.Art
         /// <summary>
         /// D-108 (web ART_DIRECTION §3A.6, tokens <c>check.palletV3c.badge</c>): the "×n" white circle fills 82 of its 88 px frame, so this
         /// frame size shows the specified Ø 76 at a 120 px cell; never under <see cref="PalletBadgeMinPx"/> (visible Ø 56). The digit is
-        /// 58 px Baloo 2 in the 88 px frame: ≥ kit.badge.fontPx (36) × k at every cell size ≥ 100.
+        /// 64 px Baloo 2 in the 88 px frame: ≥ kit.badge.fontPx (36) × k at every cell size ≥ 100, and on the 9-column board at 360 px its
+        /// glyph is ≥ 10 CSS px tall (D-108 acceptance; C1 measured 9.5 at 58 px in the ci-shots, hence 64).
         /// </summary>
         public const double PalletBadgePx = 82;
         public const double PalletBadgeMinPx = 61;

@@ -5,6 +5,6 @@
 <circle cx="44" cy="43" r="41" fill="#2E3A4B"/>
 <circle cx="44" cy="43" r="36" fill="url(#bd)"/>
 <ellipse cx="30" cy="22" rx="13" ry="4.5" transform="rotate(-30 30 22)" fill="#FFFFFF" fill-opacity=".95"/>
-<g transform="translate(25 48)" stroke-linecap="round" fill="none"><path d="M-7 -7 L7 7 M7 -7 L-7 7" stroke="#2E3A4B" stroke-width="7"/></g>
-<text x="56" y="65" font-family="'Baloo 2', sans-serif" font-weight="800" font-size="58" text-anchor="middle" fill="#2E3A4B">3</text>
+<g transform="translate(22 48)" stroke-linecap="round" fill="none"><path d="M-6.5 -6.5 L6.5 6.5 M6.5 -6.5 L-6.5 6.5" stroke="#2E3A4B" stroke-width="7"/></g>
+<text x="55" y="67" font-family="'Baloo 2', sans-serif" font-weight="800" font-size="64" text-anchor="middle" fill="#2E3A4B">3</text>
 </svg>

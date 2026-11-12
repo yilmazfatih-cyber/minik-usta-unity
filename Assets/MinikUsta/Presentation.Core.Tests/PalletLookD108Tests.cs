@@ -50,8 +50,8 @@ namespace MinikUsta.Presentation.Tests
                 Assert.GreaterOrEqual(Visible(frame, size), 56, frame + " at cell " + cellPx);
             }
             if (cellPx == 120) Assert.AreEqual(76, Visible("ico_layers_3", BlockSkin.BadgeSize("ico_layers_3", 120)), 0.5, "Ø 76 (tokens check.palletV3c.badge.diameterPx)");
-            // the "×n" digit is 58 px Baloo 2 in the 88 px frame: font px on screen ≥ kit.badge.fontPx (36) × k (ART_REFERENCE k = 0.8955)
-            double fontPx = 58 * BlockSkin.BadgeSize("ico_layers_3", cellPx) / 88;
+            // the "×n" digit is 64 px Baloo 2 in the 88 px frame: font px on screen ≥ kit.badge.fontPx (36) × k (ART_REFERENCE k = 0.8955)
+            double fontPx = 64 * BlockSkin.BadgeSize("ico_layers_3", cellPx) / 88;
             Assert.GreaterOrEqual(fontPx, 36 * 0.8955, "digit font px at cell " + cellPx);
         }
 

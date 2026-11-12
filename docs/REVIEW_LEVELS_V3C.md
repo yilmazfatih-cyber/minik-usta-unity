@@ -324,3 +324,61 @@ Web `wip/phase-2r` + Unity `main` aynı turda (D-091). Önbelleksiz `node tools/
 | CL-V3C-08 | **Kısmen kapandı** | `v3_info_7` (Bölüm 7 başlangıç penceresi: kart + palet metni, `GameApp.DebugOpenLevelStart`) ve FIT `v3_wide_6` (9 sütun, 390 ve 360) ana dal CI'ında üretildi ve ben okudum: kart görünür, 9 sütunlu FIT tahtası taşmadan sığıyor. **`v3_bonus_burst_10` çalışmadı**: golden çözüm bonusa kadar oynandı, "+2" ekranda göründü (`_failure.png`) ama senaryo sinyali 150 ve 300 sn içinde gelmedi; neden bulunamadı (oyun saatinin takıldığından kuşkulanıyorum). Adım senaryodan çıkarıldı ki manifest yeşil kalsın; yerel WebGL koşusuyla ayrı bir iş olarak açık. |
 | CL-V3C-09 | product-lead | LEVELS §2 kartları çekilince `LEVELS_2_CURRENT` açılır; code-lead bekliyor. |
 | CL-V3C-10 | design-lead / product-lead | Karar (rakam B, taban A) onların; Unity sanat tarafı kararla birlikte. |
+
+## 13. Kapanışlar (v3c2 turu: A1, B1, C2 web; C1 Unity, 2026-11-12)
+
+Kararlar: D-106 (palet katmanı kendi paletiyle çarpışmaz, `RULES_VERSION` 6), D-107 (blok hedefleri, bonus Bölüm 7, bantlar),
+D-108 (palet görünümü). Web `wip/phase-2r`: A1 `98a01c0`, B1 `b92120a`, C2 `2a08cd2`. Unity `main`: C1 `afe949e`.
+
+Kapılar (C1'in kendi koşuları): Unity `dotnet build -warnaserror` 0 uyarı / 0 hata; `dotnet test` Presentation **609 geçti**, Core
+**2151 geçti / 5 atlandı** (JS uyumluluk notları); `tools/stub-gate-selftest.sh` 4/4. Web 2a08cd2 `npm run check` yeşil (125 dosya,
+**2317 test, atlanan 0** — `data.review` işareti etkin; kural kapsamı 88 kimlik / 1702 test). Önbelleksiz `levels:check`: §13.2.
+
+### 13.1 Bulgu tablosu
+
+| Kimlik | Durum | Kapanış |
+|---|---|---|
+| CL-V3C-01 | **Kapandı** (B1) | Bonus Bölüm 7'ye taşındı (seçenek A); ileri bakış vekili (ε 0,1, 400 oyun, Wilson %95) 6–9 = 0,83 / 0,86 / 0,86 / 0,88, 10 = 0,54 → bantlar (6–9 %80–90, 10 %50–60) içinde, `policyWin` uyarısı 0. Bölüm 10'da bonus yok, etkin pay P 1 + a 2. Unity verisi 2a08cd2 ile eşit. |
+| CL-V3C-03 | **Kapandı** (B1 + C2 + C1) | Bölüm 4 ve 5 yeniden boyandı, tuzak 4 → 0 ve 3 → 0. `NARROW_PLAN_TRAP_OPEN` boş (web C2, C# `Logic.NarrowPlanTrapOpen`). Tuzaksız kanıtlı plan `tile_family_mix`'i susturur (iki tarafta). C# testleri `K63_C2_narrow_plan_trap_open_is_empty_and_levels_1_to_5_have_no_plan_trap`, `K63_C2_tile_family_mix_is_silent_on_a_proven_trap_free_plan`. |
+| CL-V3C-04 | **Kapandı** (A1 + B1) | D-106 ile C3/O4 paletleri açıldı: Bölüm 6–10 = 17 / 20 / 19 / 19 / 20 = 95 blok (D-107: 6 ≥ 17, 7–9 ≥ 18, 10 ≥ 20). |
+| CL-V3C-06 | **Kapandı** (B1 + design-lead + C1) | Bölüm 7 öğreticisi iki adım (`startOn: segmentDone`, `tut.m.pallet` → `tut.m.palletsite`), 6 `tut.m.widesite`, 9 `tut.m.slippery`; `card.y10.site` web i18n'de (Unity üstyazısından kaldırıldı). **Not:** iki EN metni 6 kelimeyi aşıyor (7 ve 8); Unity üstyazısı geçici 6 kelimelik metin kullanıyor, design-lead'e REVIEW_LOG. |
+| CL-V3C-08 | **Kök neden bulundu, düzeltildi** (C1) | §13.3. |
+| CL-V3C-09 | **Kapandı** (B1 + C2) | LEVELS §2 kartları sevkiyat verisinden; `data.review` işareti etkin, 83 kart testi koşuyor (web 2317 / 0 atlanan). |
+| CL-V3C-10 | **Kapandı** (D-108 + C1) | "×n" beyaz daire rozet (satırda ilk), gri-mavi metal kızak, katman bantları; §13.4. |
+| CL-V3C-11 | **Kapandı** (C1) | Kâhine Vinç `palletSiteOnly` reddi, D-106 şekilli paletler, P5/S4/Z4 geniş tahtaları ve betikli C3 palet senaryosu; kapılar eklendi. §13.2. |
+| CL-V3C-12 | **Kapandı** (C1) | `BadgeMinPx` 66 (görünen ≥ 56), `PalletBadgePx` 82 / en az 61 (görünen Ø 76 / ≥ 56); rakam ≥ 36 × k. Test `Y10_K65_item_4_D108_CL_V3C_12_badges_never_shrink_under_56_design_px`. |
+| CL-V3C-13 | **Kapandı** (A1) | `policyWinRates` aynı oyunlarda birden çok bütçe, 400 oyun, Wilson %95 aralığı raporda. |
+| CL-V3C-14 | **Kapandı** (B1) | GDD K-58 / K-62 örnekleri sevkiyat verisinden. |
+| CL-V3C-15 | **Kapandı** (A1 + C2 + C1) | Vurgu deseni `cell:[0-8],[0-9]`, `done.at` ve `hand.path` x 0–8; C# `LevelSchemaPatterns`, `LevelJson` ve testler (`JsRegexTests`, `K65_K53_CL_V3C_15_hand_path_and_done_at_accept_column_8`). |
+
+### 13.2 C# eşitliği ve fuzz (C1)
+
+- D-106: `Grid.CollisionMasks` her zaman `exclude + 1` atlar, `OwnCellCode` kalktı; Vinç `YardSpotFree` `self + 1`;
+  `Deadlock.QuickHoldable` her palet katmanını BFS'e bırakır; `Logic.PalletStuck` ve `pallet_stuck` kalktı; `RulesVersion` 6.
+  `PalletD106Tests` (web `palletD106.test.ts` ikizi, 19 test): eski C# çekirdeğinde 10'u kırmızı.
+- Golden, çözüm günlükleri, bölümler, i18n, fikstürler web 2a08cd2'den (`tools/sync-from-web.sh`); p0–p3, review follow / d3a /
+  json ve `rule_ids` vektörleri yeniden üretildi. p1'e 5 "geniş" tahta eklendi (P5, S4, Z4; C3, L4, T4, J4, O4 paletleri; düzey
+  verisi vektörde).
+- DiffFuzz (`node tools/diff/ts-oracle.mjs <web 2a08cd2>`): **851 dizi, 24 007 eylem, 0 sapma** (C# `DiffFuzz` 853/853). Kapsam:
+  Vinç `palletSiteOnly` reddi **110** (rastgele 104 + betik 6), sürükleme `palletSiteOnly` iptali 164, D-106 kendi ayak izinden
+  çıkış C3 171 / L4 50 / O4 44 / J4 42 / T4 20, P5 205 / S4 178 / Z4 89 uygulanmış hamle. Kâhin kapıları bunların her birini
+  sayıyor. Eski C# çekirdeği bu çıktıda **92 dizide** sapıyor (Bölüm 7–10 ve D-106 tahtalarının hepsi).
+
+### 13.3 CL-V3C-08 kök nedeni (bonus patlaması sinyali)
+
+Kanıt: `ci-shots` dalındaki konsol günlükleri — bonus adımının olduğu üç koşuda (82ef885, e09624a, 6c9d50f) son 600 kaydın hepsi
+`NullReferenceException … UnityEngine.Bindings.ThrowHelper` (1200 satır), adımın olmadığı koşularda (4b8ed97, 2385036) 0.
+`_failure.png`: "+2" patlaması, yıldız parçacıkları ve sevinen kral aynı karede donmuş. Sebep: `LevelHud.RebindTargets` "+n"
+patlama hedefini yeniden bağlamıyordu; her bölümün ilk `SetHudState`'i boş plan küçük resmini doldurup HUD'u yeniden gösterdiği için
+(`SyncCells` → `surface.Show(Hud)`, UiRenderer eski RectTransform'ları yok eder) hedef yok edilmiş nesnede kalıyordu. Bonus
+yerleşiminde `Tweens.Pop(MovesBurst)` her karede motor istisnası attı; istisna `GameApp.Tick` içinde olduğu için dizi ilerlemedi ve
+`GameRunner.Update`'te ondan sonra çağrılan `shots.Tick` hiç çalışmadı → sinyal yok. Zaman aşımı büyütmek bunu çözemezdi; gerçek
+oyuncu da bonus anında takılıyordu (P4 f7a8043'ten beri).
+
+Düzeltme: (1) `RebindTargets` bütün HUD hedeflerini bağlar ve `Layout` de onu çağırır; (2) `FakeSurface` bir katmanı yeniden
+gösterince eski hedefleri yok eder (Unity gibi) — `HudRebindTests` düzeltmesiz kodda "B1 at the start: the burst target" ile
+kırmızı; (3) `GameRunner`, `GameApp.Tick` istisnasını `ShotScenario.Fault` ile `error:exception:…` olarak bildirir (sessiz zaman
+aşımı yerine anında hata); (4) çekim zaman aşımı varsayılan 150 sn'ye döndü; (5) `v3_bonus_burst_7`: Bölüm 7 golden'ın bonus
+hamlesine kadar animasyonsuz yeniden oynatılır (`GameApp.DebugStartLevelAt`, `GameSession.Replay`), bonus hamlesi animasyonla
+oynanır, patlama göründükten 144 ms sonra (320 ms'lik büyümenin %45'i) oyun saati durur (`TimeScale` 0) ve çekim istenir; döngüdeki
+tween'ler (rozet nabzı) yüzünden `Idle()` yerine hamle kuyruğu beklenir. `v3_bonus_10` → `v3_final_10`.
