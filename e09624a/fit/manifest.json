@@ -1,0 +1,190 @@
+{
+  "schema": 1,
+  "commit": "e09624ad28860a46c691810bd6ac71e4c4073108",
+  "shortSha": "e09624a",
+  "generatedAt": "2026-11-12T13:06:48.063Z",
+  "run": "https://github.com/yilmazfatih-cyber/minik-usta-unity/actions/runs/43219833614",
+  "renderer": "headless Chromium, software GL (SwiftShader), Playwright 1.64.1",
+  "dpr": 2,
+  "query": "scale=fit",
+  "shots": [
+    "level_start",
+    "tutorial",
+    "win",
+    "v3_wide_6"
+  ],
+  "viewports": {
+    "390x844": {
+      "width": 390,
+      "height": 844,
+      "dpr": 2,
+      "screens": [
+        {
+          "name": "level_start",
+          "file": "390x844/level_start.png",
+          "bytes": 719974,
+          "colours": 206,
+          "blank": false
+        },
+        {
+          "name": "tutorial",
+          "file": "390x844/tutorial.png",
+          "bytes": 719461,
+          "colours": 203,
+          "blank": false
+        },
+        {
+          "name": "win",
+          "file": "390x844/win.png",
+          "bytes": 581794,
+          "colours": 174,
+          "blank": false
+        },
+        {
+          "name": "v3_wide_6",
+          "file": "390x844/v3_wide_6.png",
+          "bytes": 767880,
+          "colours": 245,
+          "blank": false
+        }
+      ],
+      "errors": [
+        "shot \"v3_bonus_burst_10\" did not arrive within 150 s"
+      ],
+      "ok": false,
+      "canvas": {
+        "cssWidth": 390,
+        "cssHeight": 844,
+        "pixelWidth": 780,
+        "pixelHeight": 1688
+      },
+      "gl": "ANGLE (Google, Vulkan 1.3.0 (SwiftShader Device (Subzero) (0x0000C0DE)), SwiftShader driver)",
+      "ready": "ready 1080x1920",
+      "art3d": {
+        "decodes": [
+          {
+            "resource": "art3d/king_0",
+            "width": 1920,
+            "height": 1924,
+            "ms": 145,
+            "afterShot": "boot"
+          },
+          {
+            "resource": "art3d/king_1",
+            "width": 1808,
+            "height": 528,
+            "ms": 34,
+            "afterShot": "boot"
+          },
+          {
+            "resource": "art3d/fx_1",
+            "width": 1916,
+            "height": 628,
+            "ms": 32,
+            "afterShot": "boot"
+          },
+          {
+            "resource": "art3d/fx_0",
+            "width": 1920,
+            "height": 884,
+            "ms": 97,
+            "afterShot": "boot"
+          }
+        ],
+        "totalMs": 308,
+        "budgetMs": 250,
+        "lateDecodes": []
+      }
+    },
+    "360x800": {
+      "width": 360,
+      "height": 800,
+      "dpr": 2,
+      "screens": [
+        {
+          "name": "level_start",
+          "file": "360x800/level_start.png",
+          "bytes": 601829,
+          "colours": 216,
+          "blank": false
+        },
+        {
+          "name": "tutorial",
+          "file": "360x800/tutorial.png",
+          "bytes": 602651,
+          "colours": 215,
+          "blank": false
+        },
+        {
+          "name": "win",
+          "file": "360x800/win.png",
+          "bytes": 500236,
+          "colours": 164,
+          "blank": false
+        },
+        {
+          "name": "v3_wide_6",
+          "file": "360x800/v3_wide_6.png",
+          "bytes": 668504,
+          "colours": 217,
+          "blank": false
+        }
+      ],
+      "errors": [
+        "shot \"v3_bonus_burst_10\" did not arrive within 150 s"
+      ],
+      "ok": false,
+      "canvas": {
+        "cssWidth": 360,
+        "cssHeight": 800,
+        "pixelWidth": 720,
+        "pixelHeight": 1600
+      },
+      "gl": "ANGLE (Google, Vulkan 1.3.0 (SwiftShader Device (Subzero) (0x0000C0DE)), SwiftShader driver)",
+      "ready": "ready 1080x1920",
+      "art3d": {
+        "decodes": [
+          {
+            "resource": "art3d/king_0",
+            "width": 1920,
+            "height": 1924,
+            "ms": 153,
+            "afterShot": "boot"
+          },
+          {
+            "resource": "art3d/king_1",
+            "width": 1808,
+            "height": 528,
+            "ms": 34,
+            "afterShot": "boot"
+          },
+          {
+            "resource": "art3d/fx_1",
+            "width": 1916,
+            "height": 628,
+            "ms": 33,
+            "afterShot": "boot"
+          },
+          {
+            "resource": "art3d/fx_0",
+            "width": 1920,
+            "height": 884,
+            "ms": 118,
+            "afterShot": "boot"
+          }
+        ],
+        "totalMs": 338,
+        "budgetMs": 250,
+        "lateDecodes": []
+      }
+    }
+  },
+  "ok": false,
+  "warnings": [
+    "390x844: shot \"v3_bonus_burst_10\" did not arrive within 150 s",
+    "390x844: 3D page decodes took 308 ms in total (budget 250 ms)",
+    "360x800: shot \"v3_bonus_burst_10\" did not arrive within 150 s",
+    "360x800: 3D page decodes took 338 ms in total (budget 250 ms)"
+  ],
+  "chromium": "156.0.8078.4"
+}

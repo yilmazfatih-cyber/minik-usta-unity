@@ -1,0 +1,546 @@
+{
+  "schema": 1,
+  "commit": "55bc84a12373a4366a57278a2500bbd270db1ace",
+  "shortSha": "55bc84a",
+  "generatedAt": "2026-11-12T20:05:34.611Z",
+  "run": "https://github.com/yilmazfatih-cyber/minik-usta-unity/actions/runs/43296036331",
+  "renderer": "headless Chromium, software GL (SwiftShader), Playwright 1.64.1",
+  "dpr": 2,
+  "query": null,
+  "shots": [
+    "home",
+    "settings",
+    "level_start",
+    "tutorial",
+    "drag_mid",
+    "landed",
+    "win",
+    "v3_info_7",
+    "pause",
+    "exit_confirm",
+    "level_start_window",
+    "v3_wide_6",
+    "v3_pallet_7",
+    "v3_wrap_8",
+    "v3_slippery_9",
+    "v3_final_10",
+    "v3_bonus_burst_7",
+    "lose_offer"
+  ],
+  "viewports": {
+    "390x844": {
+      "width": 390,
+      "height": 844,
+      "dpr": 2,
+      "screens": [
+        {
+          "name": "home",
+          "file": "390x844/home.png",
+          "bytes": 1187987,
+          "colours": 505,
+          "blank": false
+        },
+        {
+          "name": "settings",
+          "file": "390x844/settings.png",
+          "bytes": 657507,
+          "colours": 206,
+          "blank": false
+        },
+        {
+          "name": "level_start",
+          "file": "390x844/level_start.png",
+          "bytes": 797781,
+          "colours": 192,
+          "blank": false
+        },
+        {
+          "name": "tutorial",
+          "file": "390x844/tutorial.png",
+          "bytes": 797277,
+          "colours": 192,
+          "blank": false
+        },
+        {
+          "name": "drag_mid",
+          "file": "390x844/drag_mid.png",
+          "bytes": 765210,
+          "colours": 168,
+          "blank": false
+        },
+        {
+          "name": "landed",
+          "file": "390x844/landed.png",
+          "bytes": 767826,
+          "colours": 168,
+          "blank": false
+        },
+        {
+          "name": "win",
+          "file": "390x844/win.png",
+          "bytes": 618853,
+          "colours": 184,
+          "blank": false
+        },
+        {
+          "name": "v3_info_7",
+          "file": "390x844/v3_info_7.png",
+          "bytes": 584296,
+          "colours": 161,
+          "blank": false
+        },
+        {
+          "name": "pause",
+          "file": "390x844/pause.png",
+          "bytes": 523978,
+          "colours": 107,
+          "blank": false
+        },
+        {
+          "name": "exit_confirm",
+          "file": "390x844/exit_confirm.png",
+          "bytes": 536486,
+          "colours": 138,
+          "blank": false
+        },
+        {
+          "name": "level_start_window",
+          "file": "390x844/level_start_window.png",
+          "bytes": 584550,
+          "colours": 152,
+          "blank": false
+        },
+        {
+          "name": "v3_wide_6",
+          "file": "390x844/v3_wide_6.png",
+          "bytes": 835098,
+          "colours": 246,
+          "blank": false
+        },
+        {
+          "name": "v3_pallet_7",
+          "file": "390x844/v3_pallet_7.png",
+          "bytes": 766403,
+          "colours": 235,
+          "blank": false
+        },
+        {
+          "name": "v3_wrap_8",
+          "file": "390x844/v3_wrap_8.png",
+          "bytes": 875119,
+          "colours": 291,
+          "blank": false
+        },
+        {
+          "name": "v3_slippery_9",
+          "file": "390x844/v3_slippery_9.png",
+          "bytes": 864414,
+          "colours": 282,
+          "blank": false
+        },
+        {
+          "name": "v3_final_10",
+          "file": "390x844/v3_final_10.png",
+          "bytes": 850048,
+          "colours": 286,
+          "blank": false
+        },
+        {
+          "name": "v3_bonus_burst_7",
+          "file": "390x844/v3_bonus_burst_7.png",
+          "bytes": 773659,
+          "colours": 227,
+          "blank": false
+        },
+        {
+          "name": "lose_offer",
+          "file": "390x844/lose_offer.png",
+          "bytes": 578216,
+          "colours": 160,
+          "blank": false
+        }
+      ],
+      "errors": [],
+      "ok": true,
+      "canvas": {
+        "cssWidth": 390,
+        "cssHeight": 844,
+        "pixelWidth": 780,
+        "pixelHeight": 1688
+      },
+      "gl": "ANGLE (Google, Vulkan 1.3.0 (SwiftShader Device (Subzero) (0x0000C0DE)), SwiftShader driver)",
+      "ready": "ready 1080x2337",
+      "motion": {
+        "king_wave": {
+          "ok": true,
+          "finished": true,
+          "pictures": 110,
+          "uniquePictures": 92,
+          "strip": "390x844/seq_king_wave_strip.png",
+          "pictureSize": {
+            "w": 390,
+            "h": 844
+          },
+          "box": {
+            "x": 16,
+            "y": 321,
+            "w": 241,
+            "h": 304
+          },
+          "movedBox": {
+            "x": 16,
+            "y": 321,
+            "w": 241,
+            "h": 304
+          },
+          "focus": {
+            "x": 0.04,
+            "y": 0.38,
+            "w": 0.62,
+            "h": 0.36
+          },
+          "firstT": 1,
+          "lastT": 1791,
+          "gameSpanMs": 1790,
+          "medianGapMs": 16,
+          "changedPairs": 24,
+          "changedRatio": 0.22,
+          "changesPerGameSecond": 13.4,
+          "undersampled": false
+        },
+        "king_big_cheer": {
+          "ok": true,
+          "finished": true,
+          "pictures": 77,
+          "uniquePictures": 33,
+          "strip": "390x844/seq_king_big_cheer_strip.png",
+          "pictureSize": {
+            "w": 390,
+            "h": 844
+          },
+          "box": {
+            "x": 16,
+            "y": 236,
+            "w": 195,
+            "h": 304
+          },
+          "movedBox": {
+            "x": 16,
+            "y": 320,
+            "w": 195,
+            "h": 220
+          },
+          "focus": {
+            "x": 0.04,
+            "y": 0.28,
+            "w": 0.5,
+            "h": 0.36
+          },
+          "firstT": 0,
+          "lastT": 1799,
+          "gameSpanMs": 1799,
+          "medianGapMs": 24,
+          "changedPairs": 23,
+          "changedRatio": 0.3,
+          "changesPerGameSecond": 12.8,
+          "undersampled": true
+        }
+      },
+      "art3d": {
+        "decodes": [
+          {
+            "resource": "art3d/king_0",
+            "width": 1920,
+            "height": 1924,
+            "ms": 123,
+            "afterShot": "boot"
+          },
+          {
+            "resource": "art3d/king_1",
+            "width": 1808,
+            "height": 528,
+            "ms": 29,
+            "afterShot": "boot"
+          },
+          {
+            "resource": "art3d/fx_1",
+            "width": 1916,
+            "height": 628,
+            "ms": 27,
+            "afterShot": "boot"
+          },
+          {
+            "resource": "art3d/fx_0",
+            "width": 1920,
+            "height": 884,
+            "ms": 99,
+            "afterShot": "boot"
+          }
+        ],
+        "totalMs": 278,
+        "budgetMs": 250,
+        "lateDecodes": []
+      }
+    },
+    "360x800": {
+      "width": 360,
+      "height": 800,
+      "dpr": 2,
+      "screens": [
+        {
+          "name": "home",
+          "file": "360x800/home.png",
+          "bytes": 1069071,
+          "colours": 484,
+          "blank": false
+        },
+        {
+          "name": "settings",
+          "file": "360x800/settings.png",
+          "bytes": 595155,
+          "colours": 188,
+          "blank": false
+        },
+        {
+          "name": "level_start",
+          "file": "360x800/level_start.png",
+          "bytes": 678980,
+          "colours": 219,
+          "blank": false
+        },
+        {
+          "name": "tutorial",
+          "file": "360x800/tutorial.png",
+          "bytes": 679821,
+          "colours": 220,
+          "blank": false
+        },
+        {
+          "name": "drag_mid",
+          "file": "360x800/drag_mid.png",
+          "bytes": 664388,
+          "colours": 184,
+          "blank": false
+        },
+        {
+          "name": "landed",
+          "file": "360x800/landed.png",
+          "bytes": 665880,
+          "colours": 186,
+          "blank": false
+        },
+        {
+          "name": "win",
+          "file": "360x800/win.png",
+          "bytes": 534871,
+          "colours": 158,
+          "blank": false
+        },
+        {
+          "name": "v3_info_7",
+          "file": "360x800/v3_info_7.png",
+          "bytes": 520816,
+          "colours": 158,
+          "blank": false
+        },
+        {
+          "name": "pause",
+          "file": "360x800/pause.png",
+          "bytes": 458978,
+          "colours": 131,
+          "blank": false
+        },
+        {
+          "name": "exit_confirm",
+          "file": "360x800/exit_confirm.png",
+          "bytes": 477192,
+          "colours": 136,
+          "blank": false
+        },
+        {
+          "name": "level_start_window",
+          "file": "360x800/level_start_window.png",
+          "bytes": 517988,
+          "colours": 150,
+          "blank": false
+        },
+        {
+          "name": "v3_wide_6",
+          "file": "360x800/v3_wide_6.png",
+          "bytes": 733178,
+          "colours": 220,
+          "blank": false
+        },
+        {
+          "name": "v3_pallet_7",
+          "file": "360x800/v3_pallet_7.png",
+          "bytes": 679721,
+          "colours": 207,
+          "blank": false
+        },
+        {
+          "name": "v3_wrap_8",
+          "file": "360x800/v3_wrap_8.png",
+          "bytes": 760478,
+          "colours": 269,
+          "blank": false
+        },
+        {
+          "name": "v3_slippery_9",
+          "file": "360x800/v3_slippery_9.png",
+          "bytes": 751179,
+          "colours": 258,
+          "blank": false
+        },
+        {
+          "name": "v3_final_10",
+          "file": "360x800/v3_final_10.png",
+          "bytes": 742327,
+          "colours": 266,
+          "blank": false
+        },
+        {
+          "name": "v3_bonus_burst_7",
+          "file": "360x800/v3_bonus_burst_7.png",
+          "bytes": 673058,
+          "colours": 205,
+          "blank": false
+        },
+        {
+          "name": "lose_offer",
+          "file": "360x800/lose_offer.png",
+          "bytes": 503476,
+          "colours": 157,
+          "blank": false
+        }
+      ],
+      "errors": [],
+      "ok": true,
+      "canvas": {
+        "cssWidth": 360,
+        "cssHeight": 800,
+        "pixelWidth": 720,
+        "pixelHeight": 1600
+      },
+      "gl": "ANGLE (Google, Vulkan 1.3.0 (SwiftShader Device (Subzero) (0x0000C0DE)), SwiftShader driver)",
+      "ready": "ready 1080x2400",
+      "motion": {
+        "king_wave": {
+          "ok": true,
+          "finished": true,
+          "pictures": 124,
+          "uniquePictures": 94,
+          "strip": "360x800/seq_king_wave_strip.png",
+          "pictureSize": {
+            "w": 360,
+            "h": 800
+          },
+          "box": {
+            "x": 14,
+            "y": 304,
+            "w": 224,
+            "h": 288
+          },
+          "movedBox": {
+            "x": 14,
+            "y": 304,
+            "w": 224,
+            "h": 288
+          },
+          "focus": {
+            "x": 0.04,
+            "y": 0.38,
+            "w": 0.62,
+            "h": 0.36
+          },
+          "firstT": 0,
+          "lastT": 1789,
+          "gameSpanMs": 1789,
+          "medianGapMs": 15,
+          "changedPairs": 24,
+          "changedRatio": 0.2,
+          "changesPerGameSecond": 13.4,
+          "undersampled": false
+        },
+        "king_big_cheer": {
+          "ok": true,
+          "finished": true,
+          "pictures": 81,
+          "uniquePictures": 35,
+          "strip": "360x800/seq_king_big_cheer_strip.png",
+          "pictureSize": {
+            "w": 360,
+            "h": 800
+          },
+          "box": {
+            "x": 14,
+            "y": 224,
+            "w": 180,
+            "h": 288
+          },
+          "movedBox": {
+            "x": 14,
+            "y": 317,
+            "w": 180,
+            "h": 195
+          },
+          "focus": {
+            "x": 0.04,
+            "y": 0.28,
+            "w": 0.5,
+            "h": 0.36
+          },
+          "firstT": 0,
+          "lastT": 1784,
+          "gameSpanMs": 1784,
+          "medianGapMs": 22,
+          "changedPairs": 25,
+          "changedRatio": 0.31,
+          "changesPerGameSecond": 14,
+          "undersampled": true
+        }
+      },
+      "art3d": {
+        "decodes": [
+          {
+            "resource": "art3d/king_0",
+            "width": 1920,
+            "height": 1924,
+            "ms": 125,
+            "afterShot": "boot"
+          },
+          {
+            "resource": "art3d/king_1",
+            "width": 1808,
+            "height": 528,
+            "ms": 29,
+            "afterShot": "boot"
+          },
+          {
+            "resource": "art3d/fx_1",
+            "width": 1916,
+            "height": 628,
+            "ms": 26,
+            "afterShot": "boot"
+          },
+          {
+            "resource": "art3d/fx_0",
+            "width": 1920,
+            "height": 884,
+            "ms": 81,
+            "afterShot": "boot"
+          }
+        ],
+        "totalMs": 261,
+        "budgetMs": 250,
+        "lateDecodes": []
+      }
+    }
+  },
+  "ok": true,
+  "warnings": [
+    "390x844: 3D page decodes took 278 ms in total (budget 250 ms)",
+    "360x800: 3D page decodes took 261 ms in total (budget 250 ms)"
+  ],
+  "chromium": "156.0.8078.4"
+}

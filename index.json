@@ -1,0 +1,58 @@
+[
+  {
+    "shortSha": "834e819",
+    "commit": "834e81933fbafdc0fd32a6b65e7fe171ab25a32a",
+    "generatedAt": "2026-11-13T00:08:10.764Z",
+    "ok": true,
+    "run": "https://github.com/yilmazfatih-cyber/minik-usta-unity/actions/runs/43333734965"
+  },
+  {
+    "shortSha": "55bc84a",
+    "commit": "55bc84a12373a4366a57278a2500bbd270db1ace",
+    "generatedAt": "2026-11-12T20:05:34.611Z",
+    "ok": true,
+    "run": "https://github.com/yilmazfatih-cyber/minik-usta-unity/actions/runs/43296036331"
+  },
+  {
+    "shortSha": "afe949e",
+    "commit": "afe949e40ab760f9e988b5cf91e5a67e83f4abf9",
+    "generatedAt": "2026-11-12T19:37:07.928Z",
+    "ok": true,
+    "run": "https://github.com/yilmazfatih-cyber/minik-usta-unity/actions/runs/43290690799"
+  },
+  {
+    "shortSha": "2385036",
+    "commit": "2385036f110c49ca4ffc6ffe2dd680199bfa236e",
+    "generatedAt": "2026-11-12T14:05:25.308Z",
+    "ok": true,
+    "run": "https://github.com/yilmazfatih-cyber/minik-usta-unity/actions/runs/43232653840"
+  },
+  {
+    "shortSha": "6c9d50f",
+    "commit": "6c9d50f1fc1d5af168ef680cab466f2ffee00bf9",
+    "generatedAt": "2026-11-12T13:22:05.174Z",
+    "ok": false,
+    "run": "https://github.com/yilmazfatih-cyber/minik-usta-unity/actions/runs/43225794457"
+  },
+  {
+    "shortSha": "e09624a",
+    "commit": "e09624ad28860a46c691810bd6ac71e4c4073108",
+    "generatedAt": "2026-11-12T12:44:36.064Z",
+    "ok": false,
+    "run": "https://github.com/yilmazfatih-cyber/minik-usta-unity/actions/runs/43219833614"
+  },
+  {
+    "shortSha": "82ef885",
+    "commit": "82ef885c81b408170495f03895bcf973f117343e",
+    "generatedAt": "2026-11-12T12:06:13.743Z",
+    "ok": false,
+    "run": "https://github.com/yilmazfatih-cyber/minik-usta-unity/actions/runs/43213914201"
+  },
+  {
+    "shortSha": "4b8ed97",
+    "commit": "4b8ed97e2e1eab5572b4e3e78da401f424e3e805",
+    "generatedAt": "2026-11-12T09:36:59.545Z",
+    "ok": true,
+    "run": "https://github.com/yilmazfatih-cyber/minik-usta-unity/actions/runs/43191840874"
+  }
+]
