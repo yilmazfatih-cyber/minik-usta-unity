@@ -1588,6 +1588,8 @@ namespace MinikUsta.Core.Level
             }
             switch (cond.Event)
             {
+                case "pieceFree": // K-53 item 7, start-only state condition: the named block must exist
+                    return PieceRef(cond.Event, cond.Piece);
                 case "segmentDone":
                     return level.Build.Segments.Length >= 2 ? null : "segmentDone needs ≥ 2 segments";
                 case "deliveryDone":

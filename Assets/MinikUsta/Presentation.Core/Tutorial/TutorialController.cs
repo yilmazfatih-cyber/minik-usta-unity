@@ -171,6 +171,17 @@ namespace MinikUsta.Presentation.Tutorial
             Version++;
         }
 
+        /// <summary>
+        /// `startOn: pieceFree` is a state condition: a waiting step whose block can be held now starts. Called at the level start and after
+        /// every move (`MoveEnded`); a no-op for any other phase or condition. Web `refresh`.
+        /// </summary>
+        public void Refresh(float now)
+        {
+            if (phase != Phase.Waiting || index < 0 || index >= Steps.Length) return;
+            var cond = Steps[index].StartOn;
+            if (cond != null && cond.Event == TutEvents.PieceFree && TutorialEvents.PieceFreeNow(cond, host.CurrentState)) Activate(now);
+        }
+
         /// <summary>The player lifted a block (K-07 threshold passed): a new drag for the drag-signal counting.</summary>
         public void DragStarted() => dragCounted.Clear();
 
@@ -228,7 +239,8 @@ namespace MinikUsta.Presentation.Tutorial
         public void MoveEnded(IReadOnlyList<GameEvent> events, float now)
         {
             var cond = ActiveCond();
-            if (cond != null && TutorialEvents.MoveMatches(cond, events, host.CurrentState)) Hit(cond, now);
+            if (cond != null && cond.Event == TutEvents.PieceFree) Refresh(now);
+            else if (cond != null && TutorialEvents.MoveMatches(cond, events, host.CurrentState)) Hit(cond, now);
         }
 
         // --- internals ---------------------------------------------------------------------------------------------------------
@@ -270,6 +282,7 @@ namespace MinikUsta.Presentation.Tutorial
             {
                 phase = Phase.Waiting;
                 Version++;
+                Refresh(now); // a `pieceFree` start can already hold
                 return;
             }
             Activate(now);
